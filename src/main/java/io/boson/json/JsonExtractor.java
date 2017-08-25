@@ -15,6 +15,4 @@ public interface JsonExtractor<O> extends Function<JsonParser, Validation<O>> {
 
     Validation<O> apply(JsonParser src);
 
-
-
 }
