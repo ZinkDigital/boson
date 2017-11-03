@@ -72,29 +72,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       Unpooled.buffer()
   }
 
-  // This classes Netty ByteBuf
-  /*val nettyBuffer: ByteBuf = byteArray match {
-    case Some(array) =>
-      val b =  Unpooled.buffer()
-      b.writeBytes(array)
-    case None =>
-      byteBuf match {
-        case Some(buf) =>
-          val b =  Unpooled.buffer()
-          b.writeBytes(buf)
-        case None =>
-          //val b =  Unpooled.buffer()
-          //b
-          javaByteBuf match {
-            case Some(jBuf) =>
-              val b = Unpooled.buffer()
-              b.writeBytes(jBuf.array())
-              b
-            case None =>
-              Unpooled.buffer()
-          }
-      }
-  }*/
 
   private val arrKeyDecode: ListBuffer[Byte] = new ListBuffer[Byte]()
   private val arrKeyExtract: ListBuffer[Byte] = new ListBuffer[Byte]()
@@ -557,12 +534,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   def writerIndex: Int = {
     nettyBuffer.writerIndex()
   }
-
-  /*def toByteArray: Array[Byte] = {
-    val arraybuf: Array[Byte] = new Array[Byte](nettyBuffer.writerIndex())
-    nettyBuffer.getBytes(0, arraybuf)
-    arraybuf
-  }*/
 
   def array: Array[Byte] = {
     if (nettyBuffer.isReadOnly) {
