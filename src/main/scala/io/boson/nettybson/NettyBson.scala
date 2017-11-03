@@ -597,44 +597,23 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   }
 
   def readBoolean: Boolean = {
-    try {
       nettyBuffer.readBoolean()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
 
   def readByte: Byte = {
-    try {
       nettyBuffer.readByte()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readBytes(arr: Array[Byte]): NettyBson = {
-    try {
       new NettyBson(Option(nettyBuffer.readBytes(arr).array()))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readBytes(arr: Array[Byte], dstIndex: Int, length: Int): NettyBson = {
-    try {
       new NettyBson(Option(nettyBuffer.readBytes(arr, dstIndex, length).array()))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readBytes(buf: NettyBson): NettyBson = {
-    try {
       buf.writerIndex match {
         case 0 =>
           val byteBuf: ByteBuf = Unpooled.buffer()
@@ -646,14 +625,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           nettyBuffer.readBytes(byteBuf)
           new NettyBson(Option(byteBuf.array()))
       }
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readBytes(buf: NettyBson, length: Int): NettyBson = {
-    try {
       buf.writerIndex match {
         case 0 =>
           val byteBuf: ByteBuf = Unpooled.buffer()
@@ -665,14 +639,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           nettyBuffer.readBytes(byteBuf, length)
           new NettyBson(Option(byteBuf.array()))
       }
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readBytes(buf: NettyBson, dstIndex: Int, length: Int): NettyBson = {
-    try {
       buf.writerIndex match {
         case 0 =>
           val byteBuf: ByteBuf = Unpooled.buffer()
@@ -684,58 +653,28 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           nettyBuffer.readBytes(byteBuf, dstIndex, length)
           new NettyBson(Option(byteBuf.array()))
       }
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readBytes(length: Int): NettyBson = {
-    try {
       val bB: ByteBuf = Unpooled.buffer()
       nettyBuffer.readBytes(bB, length)
       new NettyBson(byteBuf = Option(bB))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readChar: Char = {
-    try {
       nettyBuffer.readChar()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readCharSequence(length: Int, charset: Charset): CharSequence = {
-    try {
       nettyBuffer.readCharSequence(length, charset)
-
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readDouble: Double = {
-    try {
       nettyBuffer.readDouble()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readerIndex(readerIndex: Int): NettyBson = {
-    try {
       new NettyBson(Option(nettyBuffer.readerIndex(readerIndex).array()))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def hasArray: Boolean = {
@@ -743,176 +682,81 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   }
 
   def readFloat: Float = {
-    try {
       nettyBuffer.readFloat()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readInt: Int = {
-    try {
       nettyBuffer.readInt()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readIntLE: Int = {
-    try {
       nettyBuffer.readIntLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readLong: Long = {
-    try {
       nettyBuffer.readLong()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readLongLE: Long = {
-    try {
       nettyBuffer.readLongLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readMedium: Int = {
-    try {
       nettyBuffer.readMedium()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readMediumLE: Int = {
-    try {
       nettyBuffer.readMediumLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readRetainedSlice(length: Int): NettyBson = {
-    try {
       new NettyBson(Option(nettyBuffer.readRetainedSlice(length).array()))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readShort: Short = {
-    try {
       nettyBuffer.readShort()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readShortLE: Short = {
-    try {
       nettyBuffer.readShortLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readSlice(length: Int): NettyBson = {
-    try {
       new NettyBson(Option(nettyBuffer.readSlice(length).array()))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedByte: Short = {
-    try {
       nettyBuffer.readUnsignedByte()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedInt: Long = {
-    try {
       nettyBuffer.readUnsignedInt()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedIntLE: Long = {
-    try {
       nettyBuffer.readUnsignedIntLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedMedium: Int = {
-    try {
       nettyBuffer.readUnsignedMedium()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedMediumLE: Int = {
-    try {
       nettyBuffer.readUnsignedMediumLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedShort: Int = {
-    try {
       nettyBuffer.readUnsignedShort()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   def readUnsignedShortLE: Int = {
-    try {
       nettyBuffer.readUnsignedShortLE()
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
   }
 
   override def toString: String = nettyBuffer.toString
 
   def toString(charset: Charset): String = {
-    try {
       nettyBuffer.toString(charset)
-    } catch {
-      case e: UnsupportedCharsetException =>
-        throw new UnsupportedCharsetException(e.getMessage)
-    }
   }
 
   def toString(index: Int, length: Int, charset: Charset): String =
@@ -926,632 +770,4 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
     nettyBuffer.writableBytes()
   }
 
-  def writeBoolean(field: String, value: Boolean): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BOOLEAN_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BOOLEAN_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(1)
-      nettyBuffer.writeBoolean(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeByte(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BYTE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BYTE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(1)
-      nettyBuffer.writeByte(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeBytes(field: String, arr: Array[Byte]): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BYTES_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BYTES_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(arr.length)
-      nettyBuffer.writeBytes(arr)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeBytes(field: String, arr: Array[Byte], scrIndex: Int, length: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BYTES_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BYTES_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(length)
-      nettyBuffer.writeBytes(arr, scrIndex, length)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeBytes(field: String, src: NettyBson): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BYTES_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BYTES_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(src.writerIndex)
-      nettyBuffer.writeBytes(src.getByteBuf)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeBytes(field: String, src: NettyBson, length: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BYTES_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BYTES_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(length)
-      nettyBuffer.writeBytes(src.getByteBuf, length)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeBytes(field: String, src: NettyBson, srcIndex: Int, length: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + BYTES_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(BYTES_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(length)
-      nettyBuffer.writeBytes(src.getByteBuf, srcIndex, length)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeChar(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + CHAR_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(CHAR_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(2)
-      nettyBuffer.writeChar(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeCharSequence(field: String, sequence: CharSequence, chrset: Charset): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + CHARSEQUENCE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(CHARSEQUENCE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(sequence.length())
-      nettyBuffer.writeCharSequence(sequence, chrset)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeDouble(field: String, value: Double): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + DOUBLE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(DOUBLE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(8)
-      nettyBuffer.writeDouble(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeFloat(field: String, value: Float): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + FLOAT_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(FLOAT_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(4)
-      nettyBuffer.writeFloat(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeInt(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + INT_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(INT_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(4)
-      nettyBuffer.writeInt(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeIntLE(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + INT_LE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(INT_LE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(4)
-      nettyBuffer.writeIntLE(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeLong(field: String, value: Long): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + LONG_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(LONG_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(8)
-      nettyBuffer.writeLong(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeLongLE(field: String, value: Long): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + LONG_LE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(LONG_LE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(8)
-      nettyBuffer.writeLongLE(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeMedium(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + MEDIUM_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(MEDIUM_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(3)
-      nettyBuffer.writeMedium(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeMediumLE(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + MEDIUM_LE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(MEDIUM_LE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(3)
-      nettyBuffer.writeMediumLE(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writerIndex(writerIndex: Int): NettyBson = {
-    try {
-      new NettyBson(byteArray = Option(nettyBuffer.writerIndex(writerIndex).array()))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeShort(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + SHORT_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(SHORT_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(2)
-      nettyBuffer.writeShort(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-  def writeShortLE(field: String, value: Int): NettyBson = {
-    try {
-      nettyBuffer.writeInt(field.length + SEPARATOR_SIZE + SHORT_LE_VALUE.length)
-      val completeField: CharSequence = field.concat(SEPARATOR.toString).concat(SHORT_LE_VALUE)
-      nettyBuffer.writeCharSequence(completeField, charset)
-      nettyBuffer.writeInt(2)
-      nettyBuffer.writeShortLE(value)
-      new NettyBson(byteBuf = Option(nettyBuffer))
-    } catch {
-      case e: IndexOutOfBoundsException =>
-        throw new IndexOutOfBoundsException(e.getMessage)
-    }
-  }
-
-
-  ////////////////////////////////////////////////////////////////////////////////////////
-
-  //Function to convert a BsonObject into a Netty Buffer
-  //Netty Buffer Structure
-  // | <-Field 1 Size-><-Field 1-><-Value 1 Size-><-Value-><-Field 2 Size-><-Field 1-><-Value 2 Size-><-Value-> ...
-  // Working for Strings and Booleans Only
-  @throws[IllegalArgumentException]
-  def Bson2ByteBuf(bson: BsonObject): NettyBson = {
-    // val buf: ByteBuf = Unpooled.buffer()
-    val newByteBuf: ByteBuf = Unpooled.buffer()
-    // println(Option(newByteBuf))
-    bson.fieldNames().forEach(field => {
-      if (field.equals("")) throw new IllegalArgumentException("Fields can not be empty.")
-
-      //  val value: AnyRef = bson.getMap.get(field).getClass
-      val value: AnyRef = bson.getMap.get(field).getClass.getSimpleName
-      //println("value name " + value)
-      value match {
-        case STRING_VALUE =>
-          val str: String = bson.getMap.get(field).asInstanceOf[String]
-          writeCharSequenceFromBson(field, str, newByteBuf)
-        case BOOLEAN_VALUE =>
-          val bool: Boolean = bson.getMap.get(field).asInstanceOf[Boolean]
-          writeBooleanFromBson(field, bool, newByteBuf)
-        case BYTES_VALUE =>
-          val array: Array[Byte] = bson.getMap.get(field).asInstanceOf[Array[Byte]]
-          writeBytesFromBson(field, array, newByteBuf)
-        case BYTE_VALUE =>
-          val byte: Byte = bson.getMap.get(field).asInstanceOf[Byte]
-          writeByteFromBson(field, byte, newByteBuf)
-        case CHAR_VALUE =>
-          val char: Char = bson.getMap.get(field).asInstanceOf[Char]
-          writeCharFromBson(field, char, newByteBuf)
-        case DOUBLE_VALUE =>
-          val double: Double = bson.getMap.get(field).asInstanceOf[Double]
-          writeDoubleFromBson(field, double, newByteBuf)
-        case FLOAT_VALUE =>
-          val float: Float = bson.getMap.get(field).asInstanceOf[Float]
-          writeFloatFromBson(field, float, newByteBuf)
-        case INT_VALUE =>
-          val int: Int = bson.getMap.get(field).asInstanceOf[Int]
-          writeIntFromBson(field, int, newByteBuf)
-        case INT_LE_VALUE =>
-          val intLE: Int = bson.getMap.get(field).asInstanceOf[Int]
-          writeIntLEFromBson(field, intLE, newByteBuf)
-        case LONG_VALUE =>
-          val long: Long = bson.getMap.get(field).asInstanceOf[Long]
-          writeLongFromBson(field, long, newByteBuf)
-        case LONG_LE_VALUE =>
-          val longLE: Long = bson.getMap.get(field).asInstanceOf[Long]
-          writeLongLEFromBson(field, longLE, newByteBuf)
-        case MEDIUM_VALUE =>
-          val medium: Int = bson.getMap.get(field).asInstanceOf[Int]
-          writeMediumFromBson(field, medium, newByteBuf)
-        case MEDIUM_LE_VALUE =>
-          val mediumLE: Int = bson.getMap.get(field).asInstanceOf[Int]
-          writeMediumLEFromBson(field, mediumLE, newByteBuf)
-        case SHORT_VALUE =>
-          val short: Short = bson.getMap.get(field).asInstanceOf[Short]
-          writeShortFromBson(field, short, newByteBuf)
-        case SHORT_LE_VALUE =>
-          val shortLE: Short = bson.getMap.get(field).asInstanceOf[Short]
-          writeShortLEFromBson(field, shortLE, newByteBuf)
-        /* case UNSIGNED_BYTE_VALUE =>
-           val ubyte: Byte = bson.getMap.get(field).asInstanceOf[Byte]
-           writeUnsignedByteFromBson(field, ubyte, newByteBuf)
-         case UNSIGNED_INT_VALUE =>
-           val uint: Int = bson.getMap.get(field).asInstanceOf[Int]
-           writeUnsignedIntFromBson(field, uint, newByteBuf)
-         case UNSIGNED_INT_LE_VALUE =>
-           val uintLE: Int = bson.getMap.get(field).asInstanceOf[Int]
-           writeUnsignedIntLEFromBson(field, uintLE, newByteBuf)
-         case UNSIGNED_MEDIUM_VALUE =>
-           val umedium: Int = bson.getMap.get(field).asInstanceOf[Int]
-           writeUnsignedMediumFromBson(field, umedium, newByteBuf)
-         case UNSIGNED_MEDIUM_LE_VALUE =>
-           val umediumLE: Int = bson.getMap.get(field).asInstanceOf[Int]
-           writeUnsignedMediumLEFromBson(field, umediumLE, newByteBuf)
-         case UNSIGNED_SHORT_VALUE =>
-           val ushort: Short = bson.getMap.get(field).asInstanceOf[Short]
-           writeUnsignedShortFromBson(field, ushort, newByteBuf)
-         case UNSIGNED_SHORT_LE_VALUE =>
-           val ushortLE: Short = bson.getMap.get(field).asInstanceOf[Short]
-           writeUnsignedShortLEFromBson(field, ushortLE, newByteBuf)*/
-
-      }
-    })
-    //return a new one or modified the inner bytebuf ????
-    new NettyBson(byteBuf = Option(newByteBuf))
-  }
-
-  //Function to write a CharSequence directly in a ByteBuf
-  def writeCharSequenceFromBson(field: String, value: String, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + CHARSEQUENCE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(CHARSEQUENCE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(value.length)
-    newBB.writeCharSequence(value, charset)
-  }
-
-  //Function to write a Boolean directly in a ByteBuf
-  def writeBooleanFromBson(field: String, value: Boolean, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + BOOLEAN_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(BOOLEAN_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(BOOLEAN_SIZE)
-    newBB.writeBoolean(value)
-  }
-
-  //Function to write a Array[Byte] directly in a ByteBuf
-  def writeBytesFromBson(field: String, value: Array[Byte], newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + BYTES_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(BYTES_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(value.length)
-    newBB.writeBytes(value)
-  }
-
-  //Function to write a Byte directly in a ByteBuf
-  def writeByteFromBson(field: String, value: Byte, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + BYTE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(BYTE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(BYTE_SIZE)
-    newBB.writeByte(value)
-  }
-
-  //Function to write a Char directly in a ByteBuf
-  def writeCharFromBson(field: String, value: Char, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + CHAR_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(CHAR_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(CHAR_SIZE)
-    newBB.writeChar(value)
-  }
-
-  //Function to write a Double directly in a ByteBuf
-  def writeDoubleFromBson(field: String, value: Double, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + DOUBLE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(DOUBLE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(DOUBLE_SIZE)
-    newBB.writeDouble(value)
-  }
-
-  //Function to write a Float directly in a ByteBuf
-  def writeFloatFromBson(field: String, value: Float, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + FLOAT_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(FLOAT_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(FLOAT_SIZE)
-    newBB.writeFloat(value)
-  }
-
-  //Function to write a Int directly in a ByteBuf
-  def writeIntFromBson(field: String, value: Int, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + INT_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(INT_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(INT_SIZE)
-    newBB.writeInt(value)
-  }
-
-  //Function to write a IntLE directly in a ByteBuf
-  def writeIntLEFromBson(field: String, value: Int, newBB: ByteBuf): Unit = {
-    /* convert int into int le ??*/
-    newBB.writeInt(field.length + SEPARATOR_SIZE + INT_LE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(INT_LE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(INT_LE_SIZE)
-    newBB.writeIntLE(value)
-  }
-
-  //Function to write a Long directly in a ByteBuf
-  def writeLongFromBson(field: String, value: Long, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + LONG_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(LONG_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(LONG_SIZE)
-    newBB.writeLong(value)
-  }
-
-  //Function to write a LongLE directly in a ByteBuf
-  def writeLongLEFromBson(field: String, value: Long, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + LONG_LE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(LONG_LE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(LONG_LE_SIZE)
-    newBB.writeLongLE(value)
-  }
-
-  //Function to write a MediumLE directly in a ByteBuf
-  def writeMediumFromBson(field: String, value: Int, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + MEDIUM_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(MEDIUM_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(MEDIUM_SIZE)
-    newBB.writeMedium(value)
-  }
-
-  //Function to write a MediumLE directly in a ByteBuf
-  def writeMediumLEFromBson(field: String, value: Int, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + MEDIUM_LE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(MEDIUM_LE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(MEDIUM_LE_SIZE)
-    newBB.writeMediumLE(value)
-  }
-
-  //Function to write a Short directly in a ByteBuf
-  def writeShortFromBson(field: String, value: Short, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + SHORT_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(SHORT_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(SHORT_SIZE)
-    newBB.writeShort(value)
-  }
-
-  //Function to write a ShortLE directly in a ByteBuf
-  def writeShortLEFromBson(field: String, value: Short, newBB: ByteBuf): Unit = {
-    newBB.writeInt(field.length + SEPARATOR_SIZE + SHORT_LE_VALUE.length)
-    val str1: String = field.concat(SEPARATOR.toString).concat(SHORT_LE_VALUE)
-    newBB.writeCharSequence(str1, charset)
-    newBB.writeInt(SHORT_LE_SIZE)
-    newBB.writeShortLE(value)
-  }
-
-  def extractField(field: String, bB: Option[NettyBson] = None): Any = {
-    val byteBuf: NettyBson = bB match {
-      case Some(buf) => buf
-      case None =>
-        new NettyBson(byteBuf = Option(nettyBuffer.duplicate()))
-    }
-    if (byteBuf.readerIndex < byteBuf.writerIndex) {
-      val size: Int = byteBuf.readInt
-
-      val str: String = byteBuf.readCharSequence(size, charset).toString
-
-      val strArray: Array[String] = str.split(SEPARATOR)
-      val strField: String = strArray(0)
-      val valueType: String = strArray(1)
-
-
-      Option(strField) match {
-        case Some(value) if value.equals(field) =>
-          // byteBuf.readInt()
-          extractValue(valueType, byteBuf) //byteBuf.readBoolean()
-        case Some(_) =>
-          val sizeOfNext: Int = byteBuf.readInt
-          byteBuf.readerIndex(byteBuf.readerIndex + sizeOfNext)
-          extractField(field, Option(byteBuf))
-        case None =>
-      }
-    } else {
-      throw new NoSuchFieldException(s"This field does not exist $field.")
-    }
-  }
-
-  def extractValue(valueType: String, buf: NettyBson): Any = {
-    valueType match {
-      case CHARSEQUENCE_VALUE =>
-        val size: Int = buf.readInt
-        val str: CharSequence = buf.readCharSequence(size, charset)
-        str
-      case BOOLEAN_VALUE =>
-        buf.readInt
-        val bool: Boolean = buf.readBoolean
-        bool
-      case BYTES_VALUE =>
-        val size: Int = buf.readInt
-        //val bB: NettyBson = new NettyBson()
-        val b: NettyBson = buf.readBytes(size)
-        val array1: Array[Byte] = b.array
-        array1
-      case BYTE_VALUE =>
-        buf.readInt
-        val byte: Byte = buf.readByte
-        byte
-      case CHAR_VALUE =>
-        buf.readInt
-        val char: Char = buf.readChar
-        char
-      case DOUBLE_VALUE =>
-        buf.readInt
-        val double: Double = buf.readDouble
-        double
-      case FLOAT_VALUE =>
-        buf.readInt
-        val float: Float = buf.readFloat
-        float
-      case INT_VALUE =>
-        buf.readInt
-        val int: Int = buf.readInt
-        int
-      case INT_LE_VALUE =>
-        buf.readInt
-        val intLE: Int = buf.readIntLE
-        intLE
-      case LONG_VALUE =>
-        buf.readInt
-        val long: Long = buf.readLong
-        long
-      case LONG_LE_VALUE =>
-        buf.readInt
-        val longLE: Long = buf.readLongLE
-        longLE
-      case MEDIUM_VALUE =>
-        buf.readInt
-        val medium: Int = buf.readMedium
-        medium
-      case MEDIUM_LE_VALUE =>
-        buf.readInt
-        val mediumLE: Int = buf.readMediumLE
-        mediumLE
-      case SHORT_VALUE =>
-        buf.readInt
-        val short: Short = buf.readShort
-        short
-      case SHORT_LE_VALUE =>
-        buf.readInt
-        val shortLE: Short = buf.readShortLE
-        shortLE
-      case UNSIGNED_BYTE_VALUE =>
-        buf.readInt
-        val unByte: Short = buf.readUnsignedByte
-        unByte
-      case UNSIGNED_INT_VALUE =>
-        buf.readInt
-        val unInt: Long = buf.readUnsignedInt
-        unInt
-      case UNSIGNED_INT_LE_VALUE =>
-        buf.readInt
-        val unIntLE: Long = buf.readUnsignedIntLE
-        unIntLE
-      case UNSIGNED_MEDIUM_VALUE =>
-        buf.readInt
-        val unMedium: Int = buf.readUnsignedMedium
-        unMedium
-      case UNSIGNED_MEDIUM_LE_VALUE =>
-        buf.readInt
-        val unMediumLE: Int = buf.readUnsignedMediumLE
-        unMediumLE
-      case UNSIGNED_SHORT_VALUE =>
-        buf.readInt
-        val unShort: Int = buf.readUnsignedShort
-        unShort
-      case UNSIGNED_SHORT_LE_VALUE =>
-        buf.readInt
-        val unShortLE: Int = buf.readUnsignedShortLE
-        unShortLE
-    }
-  }
 }
