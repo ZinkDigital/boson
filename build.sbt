@@ -59,10 +59,5 @@ publishTo := {
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
-
-credentials += Credentials(
-  "Sonatype Nexus Repository Manager",
-  "oss.sonatype.org",
-  "Ricardoffmartins",
-  "RFFM_64053Growin")
+credentials += Credentials(Path.userHome / ".sbt" / "credentials")
 
