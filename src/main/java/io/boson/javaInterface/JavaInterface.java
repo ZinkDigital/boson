@@ -16,20 +16,6 @@ import java.nio.ByteBuffer;
  */
 public class JavaInterface {
 
-
-    BsonArray br4 = new BsonArray().add("Insecticida");
-    BsonArray br1 = new BsonArray().add("Tarantula").add("Aracnídius").add(br4);
-    BsonObject obj1 = new BsonObject().put("José", br1);
-    BsonArray br2 = new BsonArray().add("Spider");
-    BsonObject obj2 = new BsonObject().put("José", br2);
-    BsonArray br3 = new BsonArray().add("Fly");
-    BsonObject obj3 = new BsonObject().put("José", br3);
-
-    BsonArray arr = new BsonArray().add(obj1).add(obj2).add(obj3).add(br4);
-    BsonObject bsonEvent = new BsonObject().put("StartUp", arr);
-
-    BsonArray arrTest = new BsonArray().add(2.2).add(2.4).add(2.6);
-
     public NettyBson createNettyBson(byte[] byteArray){
         Option<io.netty.buffer.ByteBuf> op = Option.apply(null);
         Option<java.nio.ByteBuffer> op1 = Option.apply(null);
@@ -71,27 +57,23 @@ public class JavaInterface {
     }
 
 
-//    String key = "José";
-//    String language = "all isEmpty";
-
-    public void parse(NettyBson netty, String key, String expression){
+    public Object parse(NettyBson netty, String key, String expression){
         TinyLanguage parser = new TinyLanguage();
         Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
-
+        Object result = null;
         try {
             if (pr.successful()) {
                 System.out.println("Success");
                 Interpreter interpreter = new Interpreter(netty, key, (Program) pr.get());
-                System.out.println(interpreter.run());
+                result =  interpreter.run();
             } else {
                 System.out.println("Failure or Error");
-                System.out.println(pr.get());
+                result =  pr.get();
             }
         }catch(RuntimeException e){
             System.out.println(e.getMessage());
         }
-
-
+        return result;
     }
 /*
     val parser = new TinyLanguage
