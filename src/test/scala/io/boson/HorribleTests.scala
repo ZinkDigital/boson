@@ -5,12 +5,12 @@ import io.boson.bson.{BsonArray, BsonObject}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import io.boson.bsonPath.TestTinyLanguage.{finalExpr, parse}
-import io.boson.bsonPath.TinyLanguage
+import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
   */
+
 @RunWith(classOf[JUnitRunner])
 class HorribleTests extends FunSuite {
 
@@ -21,11 +21,26 @@ class HorribleTests extends FunSuite {
   val arrEvent: BsonArray = new BsonArray().add(bsonEvent)
   val arr: BsonArray = new BsonArray().add(1).add(2)
 
+  def callParse(netty: NettyBson, key: String, expression: String): Any = {
+    val parser = new TinyLanguage
+    parser.parseAll(parser.program, expression) match {
+      case parser.Success(r, _) =>
+        val interpreter = new Interpreter(netty, key, r.asInstanceOf[Program])
+        try {
+          interpreter.run()
+        } catch {
+          case e: RuntimeException => println("Error inside run() " + e.getMessage)
+        }
+      case parser.Error(msg, _) => throw new RuntimeException("Error parsing: " + msg)
+      case parser.Failure(msg, _) => throw new RuntimeException("Failure parsing: " + msg)
+    }
+  }
+
   test("Empty ObjEvent") {
     val key: String = "tempReadings"
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(obj1.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -33,7 +48,7 @@ class HorribleTests extends FunSuite {
     val key: String = "tempReadings"
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr1.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -41,7 +56,7 @@ class HorribleTests extends FunSuite {
     val key: String = "tempReadings"
     val expression: String = "first"
     val netty: NettyBson = new NettyBson()
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -49,13 +64,8 @@ class HorribleTests extends FunSuite {
     val key: String = "tempReadings"
     val expression: String = "Something Wrong [2 to 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr1.encode()))
-    val parser = new TinyLanguage
-    intercept[Exception] {
-      parser.parseAll(parser.finalExpr(netty, key), expression) match {
-        case parser.Success(r, _) => r
-        case parser.Error(msg, _) => throw new RuntimeException(msg)
-        case parser.Failure(msg, _) => throw new RuntimeException(msg)
-      }
+    intercept[RuntimeException] {
+      callParse(netty, key, expression)
     }
   }
 
@@ -63,13 +73,8 @@ class HorribleTests extends FunSuite {
     val key: String = ""
     val expression: String = "[0 to 1] kunhnfvgklhu "
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
     intercept[RuntimeException] {
-      parser.parseAll(parser.finalExpr(netty, key), expression) match {
-        case parser.Success(r, _) => r
-        case parser.Error(msg, _) => throw new RuntimeException(msg)
-        case parser.Failure(msg, _) => throw new RuntimeException(msg)
-      }
+      callParse(netty, key, expression)
     }
   }
 
@@ -77,13 +82,8 @@ class HorribleTests extends FunSuite {
     val key: String = ""
     val expression: String = ""
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
-    intercept[Exception] {
-      parser.parseAll(parser.finalExpr(netty, key), expression) match {
-        case parser.Success(r, _) => r
-        case parser.Error(msg, _) => throw new RuntimeException(msg)
-        case parser.Failure(msg, _) => throw new RuntimeException(msg)
-      }
+    intercept[RuntimeException] {
+      callParse(netty, key, expression)
     }
   }
 
@@ -91,29 +91,17 @@ class HorribleTests extends FunSuite {
     val key: String = ""
     val expression: String = "[1 xx 2]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
-    val thrown =
-      intercept[Exception] {
-        parser.parseAll(parser.finalExpr(netty, key), expression) match {
-          case parser.Success(r, _) => r
-          case parser.Error(msg, _) => throw new RuntimeException(msg)
-          case parser.Failure(msg, _) => throw new RuntimeException(msg)
-        }
+      intercept[RuntimeException] {
+        callParse(netty, key, expression)
       }
-    assert(thrown.getMessage === "Array Expression is Invalid")
   }
 
   test("Bad parser expression V5") {
     val key: String = ""
     val expression: String = "first ?= 4.0 "
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
     intercept[RuntimeException] {
-      parser.parseAll(parser.finalExpr(netty, key), expression) match {
-        case parser.Success(r, _) => r
-        case parser.Error(msg, _) => throw new RuntimeException(msg)
-        case parser.Failure(msg, _) => throw new RuntimeException(msg)
-      }
+      callParse(netty, key, expression)
     }
   }
 
@@ -121,7 +109,7 @@ class HorribleTests extends FunSuite {
     val key: String = ""
     val expression: String = "[2 to 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -129,7 +117,7 @@ class HorribleTests extends FunSuite {
     val key: String = "tempReadings"
     val expression: String = "[2 until 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -137,7 +125,7 @@ class HorribleTests extends FunSuite {
     val key: String = ""
     val expression: String = "[2 until 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -145,7 +133,7 @@ class HorribleTests extends FunSuite {
     val key: String = "tempReadingS"
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arrEvent.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -153,7 +141,7 @@ class HorribleTests extends FunSuite {
     val key: String = "tempReadingS"
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val resultParser = parse(finalExpr(netty, key), expression).get
+    val resultParser = callParse(netty, key, expression)
     assert(List() === resultParser)
   }
 
@@ -161,64 +149,50 @@ class HorribleTests extends FunSuite {
     val key: String = ""
     val expression: String = "in"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
-    val thrown =
-      intercept[Exception] {
-        parser.parseAll(parser.finalExpr(netty, key), expression) match {
-          case parser.Success(r, _) => r
-          case parser.Error(msg, _) => throw new RuntimeException(msg)
-          case parser.Failure(msg, _) => throw new RuntimeException(msg)
+      intercept[RuntimeException] {
+        val parser = new TinyLanguage
+        parser.parseAll(parser.program, expression) match {
+          case parser.Success(r, _) =>
+            val interpreter = new Interpreter(netty, key, r.asInstanceOf[Program])
+              interpreter.run()
+          case parser.Error(msg, _) => throw new RuntimeException("Error parsing: " + msg)
+          case parser.Failure(msg, _) => throw new RuntimeException("Failure parsing: " + msg)
         }
       }
-    assert(thrown.getMessage === "Expressions in/Nin aren't available with Empty Key")
   }
 
   test("Check if key  doesn't exists when key is empty") {
     val key: String = ""
     val expression: String = "Nin"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
-    val thrown =
-      intercept[Exception] {
-        parser.parseAll(parser.finalExpr(netty, key), expression) match {
-          case parser.Success(r, _) => r
-          case parser.Error(msg, _) => throw new RuntimeException(msg)
-          case parser.Failure(msg, _) => throw new RuntimeException(msg)
+      intercept[RuntimeException] {
+        val parser = new TinyLanguage
+        parser.parseAll(parser.program, expression) match {
+          case parser.Success(r, _) =>
+            val interpreter = new Interpreter(netty, key, r.asInstanceOf[Program])
+            interpreter.run()
+          case parser.Error(msg, _) => throw new RuntimeException("Error parsing: " + msg)
+          case parser.Failure(msg, _) => throw new RuntimeException("Failure parsing: " + msg)
         }
       }
-    assert(thrown.getMessage === "Expressions in/Nin aren't available with Empty Key")
   }
 
   test("Mixing in/Nin with other expressions") {
     val key: String = ""
     val expression: String = "all > 5 Nin"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
-    val thrown =
-      intercept[Exception] {
-        parser.parseAll(parser.finalExpr(netty, key), expression) match {
-          case parser.Success(r, _) => r
-          case parser.Error(msg, _) => throw new RuntimeException(msg)
-          case parser.Failure(msg, _) => throw new RuntimeException(msg)
-        }
+      intercept[RuntimeException] {
+        callParse(netty, key, expression)
       }
-    assert(thrown.getMessage === "Global Expression is Invalid")
   }
 
   test("Mixing size/isEmpty with other expressions") {
     val key: String = ""
     val expression: String = "all size Nin"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
-    val parser = new TinyLanguage
-    val thrown =
-      intercept[Exception] {
-        parser.parseAll(parser.finalExpr(netty, key), expression) match {
-          case parser.Success(r, _) => r
-          case parser.Error(msg, _) => throw new RuntimeException(msg)
-          case parser.Failure(msg, _) => throw new RuntimeException(msg)
-        }
+      intercept[RuntimeException] {
+        callParse(netty, key, expression)
       }
-    assert(thrown.getMessage === "Global Expression is Invalid")
   }
 
 }

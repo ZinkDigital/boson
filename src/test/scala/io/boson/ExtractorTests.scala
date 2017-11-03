@@ -1,4 +1,5 @@
 package io.boson
+
 import java.time.Instant
 
 import io.boson.nettybson.NettyBson
@@ -52,7 +53,6 @@ class ExtractorTests extends FunSuite {
   }
 
   test("Extract Instant") {
-    println(s"globalObj -> $globalObj")
     val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
     assertEquals(now.toString, new String(nettyBson.extract(nettyBson.getByteBuf, "UpdatedOn", "first").get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
   }

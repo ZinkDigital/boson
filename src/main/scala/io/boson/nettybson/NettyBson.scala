@@ -101,36 +101,25 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
 
   def extract(netty: ByteBuf, key: String, condition: String,
               limitA: Option[Int] = None, limitB: Option[Int] = None): Option[Any] = {
-    println(s"extract netty buf info: $netty")
     val startReaderIndex: Int = netty.readerIndex()
     val size: Int = netty.getIntLE(startReaderIndex)
-    println(s"extract -> size: $size")
     val seqType: Int = netty.getByte(startReaderIndex+4).toInt
-    println(s"extract -> seqType: $seqType")
     seqType match {
       case 0 => None // end of obj
       case _ =>
         netty.getByte(startReaderIndex+5).toInt match {
           case 48 =>  // root obj is BsonArray, call extractFromBsonArray
-            println("THE ROOT IS A BsonArray")
             netty.readIntLE()
             val arrayFinishReaderIndex: Int = startReaderIndex + size
-            println(s"arrayFinishReaderIndex -> $arrayFinishReaderIndex")
             val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, key, condition, limitA, limitB)
-            println(s"inside EXTRACT -> $midResult")
             if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
           case _ =>  // root obj isn't BsonArray, call extractFromBsonObj
             if(key.isEmpty){
               None  // Doens't make sense to pass "" as a key when root isn't a BsonArray
             } else {
-              println("THE ROOT IS A BsonObject")
               netty.readIntLE()
-              println(s"extractFromNetty, valueTotalLength -> $size ")
               val bsonFinishReaderIndex: Int = startReaderIndex + size
-              println(s"limitA -> $limitA, limitB -> $limitB")
-              //extractFromNetty(netty, key, condition, limitA, limitB)
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
-              println(s"inside EXTRACT -> $midResult")
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
             }
         }
@@ -140,18 +129,14 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   // Extracts the value of a key inside a BsonObject
   private def extractFromBsonObj(netty: ByteBuf, key: String, bsonFinishReaderIndex: Int, condition: String, limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     arrKeyExtract.clear()
-    println(s"inside extractFromBsonObj, netty info: $netty")
     val seqType: Int = netty.readByte().toInt
-    println(s"Inside extractFromBsonObj -> seqType: $seqType")
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
           if (compareKeys(netty, key) && !condition.equals("limit")) {
             val value: Double = netty.readDoubleLE()
-            println(s"Inside extractFromBsonObj, inside DoubleFloat, inside MATCH with value: $value")
             Some(value)
           } else {
-            println(s"Inside extractFromBsonObj, inside DoubleFloat, inside NOT match")
             netty.readDoubleLE()
             None
           }
@@ -172,12 +157,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             Some(traverseBsonObj(netty,  new BsonObject(), bsonFinishReaderIndex))
           } else {
-            println("Inside NOT match bsonObj")
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
-            println(s"extractFromNetty, valueTotalLength -> $valueTotalLength ")
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
-            println(s"limitA -> $limitA, limitB -> $limitB")
             val midResult = extractFromBsonObj(netty, key, bFnshRdrIndex, condition, limitA, limitB)
             if(midResult.isEmpty) None else Some(resultComposer(midResult.toList))
           }
@@ -191,7 +173,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               case Some(value) => Some(value)
             }
           } else {
-            println("Inside NOT match bsonArray")
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
@@ -240,12 +221,10 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           case x if x > 0 =>
             extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
           case 0 =>
-            println("Inside extractFromBsonObj, inside finalValue case ZERO")
             None
         }
       case Some(value) if condition.equals("first") || condition.equals("limit")=>
         netty.readerIndex(bsonFinishReaderIndex)
-        println(s"Inside extractFromBsonObj, inside finalValue, with value $finalValue")
         Some(value)
       case Some(_) =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -253,7 +232,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           case x if x > 0 =>
             finalValue ++ extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
           case 0 =>
-            println("Inside extractFromBsonObj, inside finalValue case ZERO")
             None
         }
     }
@@ -263,16 +241,13 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, key: String, condition: String, limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     key match {
       case "" =>  // Constructs a new BsonArray, BsonArray is Root
-        println("Extracting from ROOT \"\" !!!")
         val result = Some(traverseBsonArray(netty, length, arrayFRIdx, new BsonArray(), limitA, limitB))
         result match {
           case Some(x) if x.isEmpty => None   // indexOutOfBounds treatment
           case Some(_) => result
         }
       case _ =>
-        println(s"inside extractFromBsonArray, netty info: $netty")
         val seqType2: Int = netty.readByte().toInt
-        println(s"Inside extractFromBsonArray -> seqType2: $seqType2")
         if (seqType2 != 0) {
           netty.readByte()
           netty.readByte()
@@ -287,15 +262,12 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               netty.readCharSequence(valueLength, charset)
               None
             case D_BSONOBJECT =>
-              println("Inside extractFromBsonArray, inside BsonObject")
               val bsonStartReaderIndex: Int = netty.readerIndex()
               val valueTotalLength: Int = netty.readIntLE()
-              println(s"extractFromNetty, valueTotalLength -> $valueTotalLength ")
               val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
             case D_BSONARRAY =>
-              println("Inside extractFromBsonArray, inside BsonArray")
               val startReaderIndex: Int = netty.readerIndex()
               val valueLength2: Int = netty.readIntLE()
               val finishReaderIndex: Int = startReaderIndex + valueLength2
@@ -320,24 +292,18 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             val actualPos2 = arrayFRIdx - netty.readerIndex()
             actualPos2 match {
               case x if x > 0 =>
-                println("       Inside extractFromBsonArray, inside finalValue case hasMoreToRead")
-                println(s"inside extractFromBsonArray, netty info: $netty")
                 extractFromBsonArray(netty, length, arrayFRIdx, key, condition, limitA, limitB)
               case 0 =>
-                println("       Inside extractFromBsonArray, inside finalValue case ZERO")
                 None
             }
           case Some(value) =>
-            println(s"        Inside extractFromBsonArray, inside finalValue, with value: $value")
             condition match {
               case "first" =>
-                println(s"Condition FIRST with finalValue -> $finalValue")
                 finalValue
               case "last" | "all" | "max" | "min" | "limit" =>
                 if (seqType2 != 0) {
                   finalValue ++ extractFromBsonArray(netty, length, arrayFRIdx, key, condition, limitA, limitB)
                 } else {
-                  println(s"Condition LAST with finalValue -> $finalValue")
                   finalValue
                 }
             }
@@ -378,7 +344,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   // Constructs a new BsonObject
   private def traverseBsonObj(netty: ByteBuf, bsonObj: BsonObject, bsonFinishReaderIndex: Int): BsonObject = {
     arrKeyDecode.clear()
-    println("inside                traverseBsonObj")
     val seqType: Int = netty.readByte().toInt
     seqType match {
       case D_FLOAT_DOUBLE =>
@@ -432,12 +397,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
 
   // Constructs a new BsonArray with limits
   private def traverseBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, bsonArr: BsonArray, limitA: Option[Int] = None, limitB: Option[Int] = None): BsonArray = {
-    println(s"limitA -> $limitA, limitB -> $limitB")
 
     def constructWithLimits(iter: Int): BsonArray = {
-      println(s"iter!!!!!!!!! $iter")
       val seqType2: Int = netty.readByte().toInt
-      println(s"seqTypeConstructArray -> $seqType2")
       if (seqType2 != 0) {
         netty.readByte()
         netty.readByte()
@@ -447,7 +409,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val value: Double = netty.readDoubleLE()
         limitB match {
           case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-            println(s"constructing DOUBLE inside Array")
             bsonArr.add(value)
           case Some(_) =>
           case None =>
@@ -464,7 +425,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val field: CharSequence = netty.readCharSequence(valueLength - 1, charset)
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing ArrayBytes inside Array")
               bsonArr.add(field)
             case Some(_) =>
             case None =>
@@ -483,7 +443,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing Object inside Array")
               bsonArr.add(traverseBsonObj(netty, new BsonObject(), bsonFinishReaderIndex))
             case Some(_) =>
               netty.readerIndex(bsonFinishReaderIndex)
@@ -502,7 +461,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val finishReaderIndex: Int = startReaderIndex + valueLength2
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing ArrayObject inside Array")
               bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
             case Some(_) =>
               netty.readerIndex(finishReaderIndex)
@@ -519,7 +477,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val value: Int = netty.readByte()
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing BOOL inside Array")
               bsonArr.add(value == 1)
             case Some(_) =>
             case None =>
@@ -534,7 +491,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
         case D_NULL =>
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing NULL inside Array")
               bsonArr.addNull()
             case Some(_) =>
             case None =>
@@ -550,7 +506,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val value: Int = netty.readIntLE()
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing INT inside Array")
               bsonArr.add(value)
             case Some(_) =>
             case None =>
@@ -566,7 +521,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
           val value: Long = netty.readLongLE()
           limitB match {
             case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              println(s"constructing LONG inside Array")
               bsonArr.add(value)
             case Some(_) =>
             case None =>
@@ -585,7 +539,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
         case x if x > 0 =>
           constructWithLimits(iter + 1)
         case 0 =>
-          println(s"Final BsonArray: $bsonArr")
           bsonArr
       }
     }
