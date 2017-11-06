@@ -1,20 +1,34 @@
 package io.boson.javaInterface;
 
-
+import io.boson.bson.BsonArray;
+import io.boson.bson.BsonObject;
 import io.boson.bsonPath.Interpreter;
 import io.boson.bsonPath.Program;
 import io.boson.bsonPath.TinyLanguage;
 import io.boson.nettybson.NettyBson;
 import io.netty.buffer.ByteBuf;
+import scala.Array;
 import scala.Option;
+import scala.collection.mutable.ListBuffer;
 import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import scala.collection.JavaConverters.*;
 
 /**
  * Created by Tiago Filipe on 03/11/2017.
  */
 public class JavaInterface {
 
+
+    public static void main(String [] args)
+    {
+        JavaInterface JI = new JavaInterface();
+        Object result = JI.parse(JI.createNettyBson(new BsonObject().encode()), "ok", "first");
+
+
+    }
     public NettyBson createNettyBson(byte[] byteArray){
         Option<io.netty.buffer.ByteBuf> op = Option.apply(null);
         Option<java.nio.ByteBuffer> op1 = Option.apply(null);
@@ -55,6 +69,8 @@ public class JavaInterface {
         return new NettyBson( op, op1, op2, op3 ,Option.apply(arrayBuffer));
     }
 
+
+
     public Object parse(NettyBson netty, String key, String expression){
         TinyLanguage parser = new TinyLanguage();
         Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
@@ -63,13 +79,12 @@ public class JavaInterface {
             if (pr.successful()) {
                 System.out.println("Success");
                 Interpreter interpreter = new Interpreter(netty, key, (Program) pr.get());
+                //System.out.println(interpreter.run());
                 result = interpreter.run();
-                System.out.println(result);
-
             } else {
                 System.out.println("Failure or Error");
                 result = pr.get();
-                System.out.println(result);
+                System.out.println(pr.get());
             }
         }catch(RuntimeException e){
             System.out.println(e.getMessage());
@@ -77,4 +92,5 @@ public class JavaInterface {
 
         return result;
     }
+
 }
