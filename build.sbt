@@ -1,6 +1,6 @@
 name := "boson"
 organization:="com.github.ricardoffmartins"
-version := "1.3-SNAPSHOT"
+version := "1.3"
 
 scalaVersion := "2.12.3"
 
@@ -59,5 +59,9 @@ publishTo := {
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
-credentials += Credentials(Path.userHome / ".sbt" / "credentials")
 
+credentials += Credentials(
+  "Sonatype Nexus Repository Manager",
+  "oss.sonatype.org",
+  "Ricardoffmartins",
+  "RFFM_64053Growin")
