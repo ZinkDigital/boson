@@ -66,8 +66,8 @@ all [2 until 5] size | Returns a list with sizes of all filtered values
 first [1 to end] isEmpty | Returns true/false depending if the first element of the filtered list is empty or not
 
 ### Available Buffer Types
-*Array of Bytes
-*Netty ByteBuf
-*Java ByteBuffer
-*Vertx Buffer
-*Scala ArrayBuffer
+* Array of Bytes
+* Netty ByteBuf
+* Java ByteBuffer
+* Vertx Buffer
+* Scala ArrayBuffer
