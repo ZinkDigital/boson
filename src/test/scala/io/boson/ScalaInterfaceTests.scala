@@ -21,7 +21,7 @@ import org.scalatest.junit.JUnitRunner
     test("first") {
       val key: String = ""
       val language: String = "first"
-      val netty: NettyBson = new NettyBson(vertxBuff = Option(ba1.encode()))
+      val netty: NettyBson = sI.createNettyBson(ba1.encode())
       val result: Any = sI.parse(netty, key, language)
 
       assert(List("ArrayField") === result)
