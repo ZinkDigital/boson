@@ -43,3 +43,31 @@ String expression = "all";
 NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
 Object result = jI.parse(netty, key, expression);
 ```
+
+### Extracting Available Terms
+Expression Terms | Output
+---------------- | ------
+all | Returns a list of all occurrences of a key
+first | Returns a list with the first occurrence of a key
+last | Returns a list with the last occurrence of a key
+[2 to 5] | Returns a list with all of BsonArrays occurences of a key, filtered by the limits established
+[2 until 5] | Instead of 'to' its possible to use 'until'
+[1 to end] | The ending limit can be 'end' instead of a number, it can be used with 'until' aswell
+in | Returns true/false depending on if the buffer contains a certain key
+Nin | Returns true/false depending on if the buffer contains a certain key
+first [2 to 5] | Returns a list with the first element filtered by the limits
+last [2 until 5] | Returns a list with the last element filtered by the limits
+all [2 until end] | Returns a list with all elements filtered by the limits
+all size | Returns a list with sizes of the containing values
+first isEmpty | Returns true/false depending on if the first occurrence is empty or not
+[3 to 4] size | Returns a list with sizes of the filtered values
+[0 until end] isEmpty | Returns true/false depending if the filtered list has content or not
+all [2 until 5] size | Returns a list with sizes of all filtered values
+first [1 to end] isEmpty | Returns true/false depending if the first element of the filtered list is empty or not
+
+### Available Buffer Types
+*Array of Bytes
+*Netty ByteBuf
+*Java ByteBuffer
+*Vertx Buffer
+*Scala ArrayBuffer

@@ -32,11 +32,11 @@ public class JavaInterfaceTest {
 
         JavaInterface jI = new JavaInterface();
         String key = "José";
-        String expression = "all";
+        String expression = "first [1 to end] isEmpty";
         NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
 
         Object result = jI.parse(netty, key, expression);
-        List list = jI.convert((scala.collection.Seq<Object>)result);
+        //List list = jI.convert((scala.collection.Seq<Object>)result);
 
 
 
@@ -45,6 +45,6 @@ public class JavaInterfaceTest {
         myList.add(br2);
         myList.add(br3);
 
-        assertEquals(myList, list);
+        assertEquals(myList, result);
     }
 }
