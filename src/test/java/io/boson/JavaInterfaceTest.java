@@ -28,7 +28,7 @@ public class JavaInterfaceTest {
 
 
     @Test
-    public void extractString() {
+    public void extractWithJavaInterface() {
 
         JavaInterface jI = new JavaInterface();
         String key = "José";
@@ -37,6 +37,8 @@ public class JavaInterfaceTest {
 
         Object result = jI.parse(netty, key, expression);
         List list = jI.convert((scala.collection.Seq<Object>)result);
+
+
 
         ArrayList<Object> myList =  new ArrayList<>();
         myList.add(br1);
