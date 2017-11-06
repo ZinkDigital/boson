@@ -1,6 +1,6 @@
 name := "boson"
-organization:="com.github.ricardoffmartins"
-version := "1.3"
+organization:="organization name"
+version := "version"
 
 scalaVersion := "2.12.3"
 
@@ -33,17 +33,17 @@ pomIncludeRepository := { _ => false }
 publishArtifact in Test := false
 developers := List(
   Developer(
-    id="ricardoffmartins",
-    name="Ricardo Martins",
-    email="rffmartins64@hotmail.com",
+    id="developerID",
+    name="developerName",
+    email="developerEmail",
     url=url("https://www.example.com/Ricardo/")
   )
 )
 // Information about the source code repository of your code
 scmInfo := Some(
   ScmInfo(
-    url("https://github.com/ricardoffmartins/boson"),
-    "scm:git@github.com:ricardoffmartins/boson.git"
+    url("https://github.com/<github username>/<project name>"),
+    "scm:git@github.com:<github username>/<project name>.git"
   )
 )
 
@@ -63,5 +63,5 @@ publishTo := {
 credentials += Credentials(
   "Sonatype Nexus Repository Manager",
   "oss.sonatype.org",
-  "Ricardoffmartins",
-  "RFFM_64053Growin")
+  "jira account username",
+  "jira account password")
