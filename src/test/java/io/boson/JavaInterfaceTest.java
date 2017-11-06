@@ -28,7 +28,7 @@ public class JavaInterfaceTest {
 
 
     @Test
-    public void extractString() {
+    public void extractWithJavaInterface() {
 
         JavaInterface jI = new JavaInterface();
         String key = "José";
