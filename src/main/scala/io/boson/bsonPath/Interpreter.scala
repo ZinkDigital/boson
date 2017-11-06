@@ -1,7 +1,11 @@
 package io.boson.bsonPath
 
+import java.util
+
 import io.boson.nettybson.NettyBson
 import io.boson.bson.BsonArray
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -114,10 +118,15 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
             List(list.head.getValue(list.head.size - 1))
           }).getOrElse(List.empty)
         } else {
-          result.map(v => List(v.asInstanceOf[List[Any]].last)).getOrElse(List.empty)
+          val someList = result.map(v => List(v.asInstanceOf[List[Any]].last)).getOrElse(Seq.empty)
+         //val javaCollection = seqAsJavaList(someList.toSeq)
+          someList
         }
       case "all" =>
-        result.getOrElse(List.empty)
+        //val list: java.util.ArrayList[Any] = new util.ArrayList[Any]()
+        //result.map(v => v.asInstanceOf[List[Any]].map(x => list.add(x)))getOrElse(List.empty)
+        //list
+        result.map(v => v.asInstanceOf[List[Any]]).getOrElse(Seq.empty)
     }
   }
 
