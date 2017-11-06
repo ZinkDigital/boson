@@ -70,6 +70,21 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
 
   private def executeArraySelect(left: Int, mid: String, right: Any): Any = {
     (left, mid, right) match {
+      case (a, ("until" | "Until"), "end") =>
+        val midResult = netty.extract(netty.getByteBuf, key, "limit", Option(a), None)
+        if(key.isEmpty){
+          midResult.map(v => {
+            v.asInstanceOf[List[BsonArray]].head.remove(v.asInstanceOf[List[BsonArray]].head.size()-1)
+            v.asInstanceOf[List[BsonArray]]
+          }
+          ).getOrElse(None)
+        } else {
+          midResult.map(v => {
+            v.asInstanceOf[List[BsonArray]].foreach(elem => elem.remove(elem.size()-1))
+            v.asInstanceOf[List[BsonArray]]
+          }
+          ).getOrElse(None)
+        }
       case (a, _, "end") => // "[# .. end]"
         netty.extract(netty.getByteBuf, key, "limit", Option(a), None).getOrElse(None)
       case (a, expr, b) if b.isInstanceOf[Int] =>
