@@ -290,7 +290,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
 
   private def extractKeys(netty: ByteBuf): Unit = {
     var i = netty.readerIndex()
-    while (netty.getByte(i).toChar.isLetter) {
+    while (netty.getByte(i) != 0) {
       arrKeyDecode.append(netty.readByte())
       i += 1
     }
@@ -299,7 +299,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
 
   private def compareKeys(netty: ByteBuf, key: String): Boolean = {
     var i = netty.readerIndex()
-    while (netty.getByte(i).toChar.isLetter) {
+    while (netty.getByte(i) != 0) {
       arrKeyExtract.append(netty.readByte())
       i += 1
     }
