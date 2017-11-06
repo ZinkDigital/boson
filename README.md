@@ -13,22 +13,22 @@ val sI: ScalaInterface = new ScalaInterface
 
 //  The key is the identifier of the value wished to be extracted.
 //  This key can be empty or filled depending on users choice.
-//  Since the BsonArray doens't have the structure (key -> value) like
+//  Since the BsonArray doesn't have the structure (key -> value) like
 //  the BsonObject, the key can be empty assuming that the Root Object is a BsonArray,
 //  otherwise the result will be an empty list.
 val key: String = ""
 
-//  The expression is a String containing the terms choosen by the user to extract something.
+//  The expression is a String containing the terms chosen by the user to extract something.
 //  The available terms to use are shown further down in the README document.
 val expression: String = "first"
 
 //  NettyBson is an Object that encapsulates a certain type of buffer
-//  and transformes it into a Netty buffer.
+//  and transforms it into a Netty buffer.
 //  Available types are shown further down in the README document.
 val netty: NettyBson = sI.createNettyBson(ba1.encode())
 
-//  To extract from the Netty buffer method parse is called with the key and expression.
-//  The result can have three types depending on the used terms in expression.
+//  To extract from the Netty buffer, method parse is called with the key and expression.
+//  The result can be one of three types depending on the used terms in expression.
 val result: Any = sI.parse(netty, key, expression)
 ```
 
@@ -36,7 +36,7 @@ val result: Any = sI.parse(netty, key, expression)
 
 ```java
 
-//  Boson has a JavaInterface aswell like the ScalaInterface implemented the same way
+//  Boson has a JavaInterface as well like the ScalaInterface implemented the same way
 JavaInterface jI = new JavaInterface();
 String key = "Something";
 String expression = "all";
@@ -56,9 +56,9 @@ last | Returns a list with the last occurrence of a key
 ### Table 2
 Expression Terms | Output
 ---------------- | ------
-[2 to 5] | Returns a list with all of BsonArrays occurences of a key, filtered by the limits established
+[2 to 5] | Returns a list with all of BsonArrays occurrences of a key, filtered by the limits established
 [2 until 5] | Instead of 'to' its possible to use 'until'
-[1 to end] | The ending limit can be 'end' instead of a number, it can be used with 'until' aswell
+[1 to end] | The ending limit can be 'end' instead of a number, it can be used with 'until' as well
 
 ### Table 3
 Expression Terms | Output
@@ -95,9 +95,9 @@ It is also possible to mix terms of tables 1 and 3.
 Expression Terms | Output
 ---------------- | ------
 [3 to 4] size | Returns a list with sizes of the filtered values
-[0 until end] isEmpty | Returns true/false depending if the filtered list has content or not
+[0 until end] isEmpty | Returns true/false depending on if the filtered list has content or not
 
-It is possible aswell to join terms of tables 2 and 3.
+It is possible as well to join terms of tables 2 and 3.
 
 Expression Terms | Output
 ---------------- | ------
