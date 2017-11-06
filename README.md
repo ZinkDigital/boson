@@ -25,7 +25,7 @@ val expression: String = "first"
 //  NettyBson is an Object that encapsulates a certain type of buffer
 //  and transforms it into a Netty buffer.
 //  Available types are shown further down in the README document.
-val netty: NettyBson = sI.createNettyBson(ba1.encode())
+val netty: NettyBson = sI.createNettyBson(bsonObject.encode())
 
 //  To extract from the Netty buffer, method parse is called with the key and expression.
 //  The result can be one of three types depending on the used terms in expression.
@@ -40,7 +40,7 @@ val result: Any = sI.parse(netty, key, expression)
 JavaInterface jI = new JavaInterface();
 String key = "Something";
 String expression = "all";
-NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
+NettyBson netty = jI.createNettyBson(bsonObject.encode().getBytes());
 Object result = jI.parse(netty, key, expression);
 ```
 
