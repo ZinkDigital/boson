@@ -76,7 +76,7 @@ Nin | Returns true/false depending on if the buffer contains a certain key
 
 The terms in table 4 can't be used with other tables terms.
 
-#### A few examples of mixing terms
+#### A few examples of mixing terms:
 Expression Terms | Output
 ---------------- | ------
 first [2 to 5] | Returns a list with the first element filtered by the limits
@@ -102,7 +102,7 @@ It is possible as well to join terms of tables 2 and 3.
 Expression Terms | Output
 ---------------- | ------
 all [2 until 5] size | Returns a list with sizes of all filtered values
-first [1 to end] isEmpty | Returns true/false depending if the first element of the filtered list is empty or not
+first [1 to end] isEmpty | Returns true/false depending if the filtered list is empty or not
 
 Lastly its possible to join terms of tables 1, 2 and 3.
 
