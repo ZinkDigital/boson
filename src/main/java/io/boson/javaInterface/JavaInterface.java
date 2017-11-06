@@ -64,7 +64,7 @@ public class JavaInterface {
                 System.out.println("Success");
                 Interpreter interpreter = new Interpreter(netty, key, (Program) pr.get());
                 result = interpreter.run();
-                System.out.println(result);
+                //do the conversion here
 
             } else {
                 System.out.println("Failure or Error");
@@ -76,5 +76,9 @@ public class JavaInterface {
         }
 
         return result;
+    }
+
+    public java.util.List<Object> convert(scala.collection.Seq<Object> seq) {
+        return scala.collection.JavaConverters.seqAsJavaList(seq);
     }
 }
