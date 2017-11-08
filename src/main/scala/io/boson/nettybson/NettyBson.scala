@@ -89,7 +89,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             netty.readIntLE()
             val arrayFinishReaderIndex: Int = startReaderIndex + size
             val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, key, condition, limitA, limitB)
-            if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+            if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           case _ =>  // root obj isn't BsonArray, call extractFromBsonObj
             if(key.isEmpty){
               None  // Doens't make sense to pass "" as a key when root isn't a BsonArray
@@ -97,7 +97,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               netty.readIntLE()
               val bsonFinishReaderIndex: Int = startReaderIndex + size
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             }
         }
     }
@@ -138,7 +138,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             val valueTotalLength: Int = netty.readIntLE()
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             val midResult = extractFromBsonObj(netty, key, bFnshRdrIndex, condition, limitA, limitB)
-            if(midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+            if(midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           }
         case D_BSONARRAY =>
           if (compareKeys(netty, key)) {
@@ -154,7 +154,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             val midResult = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, key, condition, limitA, limitB)
-            if(midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+            if(midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           }
         case D_BOOLEAN =>
           if (compareKeys(netty, key) && !condition.equals("limit")) {
@@ -243,13 +243,13 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               val valueTotalLength: Int = netty.readIntLE()
               val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BSONARRAY =>
               val startReaderIndex: Int = netty.readerIndex()
               val valueLength2: Int = netty.readIntLE()
               val finishReaderIndex: Int = startReaderIndex + valueLength2
               val midResult = extractFromBsonArray(netty, valueLength2, finishReaderIndex, key, condition, limitA, limitB)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BOOLEAN =>
               netty.readByte()
               None
@@ -273,7 +273,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               case 0 =>
                 None
             }
-          case Some(value) =>
+          case Some(_) =>
             condition match {
               case "first" =>
                 finalValue
@@ -308,13 +308,13 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
     key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep
   }
 
-  private def resultComposer(list: List[Any]): List[Any] = {
+  private def resultComposer(list: Seq[Any]): Seq[Any] = {
     list match {
-      case Nil => Nil
-      case x :: Nil if x.isInstanceOf[List[Any]] => (resultComposer(x.asInstanceOf[List[Any]]) :: Nil).flatten
-      case x :: Nil => x :: Nil
-      case x :: xs if x.isInstanceOf[List[Any]] => (resultComposer(x.asInstanceOf[List[Any]]) :: resultComposer(xs) :: Nil).flatten
-      case x :: xs => ((x :: Nil) :: resultComposer(xs) :: Nil).flatten
+      case Seq() => Seq.empty[Any]
+      case x :: Seq() if x.isInstanceOf[Seq[Any]] => (resultComposer(x.asInstanceOf[Seq[Any]]) +: Seq()).flatten
+      case x :: Nil => x +: Seq.empty[Any]
+      case x :: xs if x.isInstanceOf[Seq[Any]] => (resultComposer(x.asInstanceOf[Seq[Any]]) +: resultComposer(xs) +: Seq()).flatten
+      case x :: xs => ((x +: Seq()) +: resultComposer(xs) +: Seq()).flatten
     }
   }
 

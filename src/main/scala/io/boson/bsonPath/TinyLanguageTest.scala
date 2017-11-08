@@ -19,9 +19,9 @@ object TinyLanguageTest {
       val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3).add(br4)
       val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
       val arrTest: BsonArray = new BsonArray().add(2.2).add(2.4).add(2.6)
-      val netty: NettyBson = new NettyBson(vertxBuff = Option(arrTest.encode()))
-      val key: String = ""
-      val language: String = "[0 to end]"
+      val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+      val key: String = "José"
+      val language: String = "[0 to end] size"
       val parser = new TinyLanguage
       parser.parseAll(parser.program, language) match {
         case parser.Success(r, _) =>
