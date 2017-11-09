@@ -1,9 +1,7 @@
 package io.boson
 
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
 
-import com.sun.corba.se.impl.transport.ByteBufferPoolImpl
 import io.boson.bson.BsonObject
 import io.boson.nettybson.NettyBson
 import io.vertx.core.buffer.Buffer
