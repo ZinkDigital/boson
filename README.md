@@ -8,8 +8,8 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ```scala
 //  Create a BsonObject/BsonArray
-val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L).put("Unemployed", false)
-    .put("Residence", "Lisboa").putNull("Experience")
+val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L)
+    .put("Unemployed", false).put("Residence", "Lisboa").putNull("Experience")
 
 //  Instantiate a NettyBson that receives a buffer containing the Bson encoded
 val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
@@ -19,7 +19,8 @@ val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
 val result: Option[Any] = nettyBson.extract(nettyBson.getByteBuf, "AnualSalary", "first")
 ```
 
-###Extracting a Json (Java)
+### Extracting a Json (Java)
+
 ```java
 //  JsonObject represented by a String
 final String json = "{\"value\": 27, \"onclick\": \"CreateNewDoc()\", \"bool\": false }";
