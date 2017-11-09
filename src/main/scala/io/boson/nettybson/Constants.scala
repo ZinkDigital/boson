@@ -56,6 +56,7 @@ object Constants {
   val ARRAY_BYTE: String = "byte[]"
   val NETTY_DEFAULT_BUF: String = "InstrumentedUnpooledUnsafeHeapByteBuf" //"UnpooledUnsafeHeapByteBuf" on netty 4.1.8Final this was the name
   val NETTY_READONLY_BUF: String = "ReadOnlyByteBuf"
+  val NETTY_COMPOSITE_BUF: String = "CompositeByteBuf"
 
   val D_ZERO_BYTE: Int = 0
   val D_FLOAT_DOUBLE: Int = 1

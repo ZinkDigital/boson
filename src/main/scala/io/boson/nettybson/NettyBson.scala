@@ -48,6 +48,10 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       val b = byteBuf.get.duplicate()
         //Unpooled.buffer()
       b//.writeBytes(byteBuf.get)
+    case NETTY_COMPOSITE_BUF =>
+      val b = byteBuf.get.duplicate()
+      //Unpooled.buffer()
+      b///.writeBytes(byteBuf.get)
     case NETTY_DEFAULT_BUF => // Netty
       val b = byteBuf.get.duplicate()
         //Unpooled.buffer()

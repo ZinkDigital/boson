@@ -26,26 +26,23 @@ object Injector extends App{
   val inj: Injector = new Injector
   val ext = new ScalaInterface
 
-
-
-
-
-  val b1= inj.modify(netty, "field", x => x+1)
+  val b1= inj.modify(netty, "no", x => "no")
 
   println(s"b1 capacity = ${b1.getByteBuf.capacity()}")
-  println(ext.parse(b1, "field", "first"))
+  println(new String(ext.parse(b1, "no", "first").asInstanceOf[List[Array[Byte]]].head))
 
-  val b2= inj.modify(b1, "field", x => x+1)
+  val b2= inj.modify(b1, "no", x => "yes")
 
-  println(ext.parse(b2, "field", "first"))
+  println(ext.parse(b2, "no", "first"))
 
-  val b3= inj.modify(b2, "field", x => x*4)
-  println(ext.parse(b3, "field", "first"))
+  val b3= inj.modify(b2, "no", x => "maybe")
+  println(new String(ext.parse(b3, "no", "first").asInstanceOf[List[Array[Byte]]].head))
+  //println(ext.parse(b3, "field", "first"))
 
 }
 class Injector {
 
-  def modify(netty: NettyBson, fieldID: String, f: (Int)=>Int):NettyBson = {
+  def modify(netty: NettyBson, fieldID: String, f: (Any)=>Any):NettyBson = {
     val buffer: ByteBuf = netty.getByteBuf.duplicate().capacity(netty.writerIndex).readerIndex(0)
     val bufferSize: Int = buffer.readIntLE()
     println(s"$bufferSize " )
@@ -60,19 +57,29 @@ class Injector {
     /*
     * TODO
     * Do the work on the buffer of interest
+    * break the bufferOriginalSize into 2 buffer : One with the entire buf size and other with the remaining
     * */
     //Verify the seqType with the type to update
 
+    //call the updateValue function to update a specific field on the bufferOfInterest
     val seqType: Int = bufferOfInterst.readByte().toInt
-
     val newBuffer: ByteBuf = updateValues(bufferOfInterst, seqType, f)
     println(new String(newBuffer.array()))
 
-    val newSize = Unpooled.buffer(4).writeIntLE(bufferOriginalSize.capacity()+newBuffer.capacity()+bufferRemainder.capacity())
+    //Split bufferOriginalSize into 2 bytebuf
+    println("bufferOriginalSize "+ bufferOriginalSize.capacity())
+    val byteBufOriginalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(bufferOriginalSize.capacity()+newBuffer.capacity()+bufferRemainder.capacity())
+    val remainingOfSizeBuffer: ByteBuf = bufferOriginalSize.slice(4,bufferOriginalSize.capacity() - 4)
+
+    //create the section that indicates the size of the entire buf
+    val newSize: ByteBuf = Unpooled.buffer(4).writeIntLE(bufferOriginalSize.capacity()+newBuffer.capacity()+bufferRemainder.capacity())
     println("newSize reder index " + newSize.readerIndex() + " writer index " + newSize.writerIndex())
-    val test = Unpooled.wrappedBuffer(newSize,newBuffer,bufferRemainder)
+
+
+    //Putting the pieces together
+    val result: ByteBuf = Unpooled.wrappedBuffer(byteBufOriginalSize, remainingOfSizeBuffer,newBuffer,bufferRemainder)
     //val test1 = Unpooled.c
-    println(test.capacity())
+    println(result.capacity())
 
     /* vertx buffer
     val vertxBuffer: BufferImpl = {
@@ -89,12 +96,13 @@ class Injector {
     /* arrayByte => NEED TO CONVERT TO NIO AND THEN TO ARRAY[BYTE]
     val array: Array[Byte] = test.nioBuffer().array()
     */
+    /* scala buffer ArrayBuffer
     val scala : ArrayBuffer[Byte] = new ArrayBuffer[Byte](test.capacity())
     test.nioBuffer().array().foreach(b => scala.+=(b))
+    */
 
-
-
-    new NettyBson(scalaArrayBuf = Option(scala))
+    //returning the resulting NettyBson
+    new NettyBson(byteBuf = Option(result))
       //Unpooled.buffer(bufferOriginalSize.capacity()+newBuffer.capacity()+bufferRemainder.capacity()).writeBytes(bufferOriginalSize).writeBytes(newBuffer).writeBytes(bufferRemainder))
   }
 
@@ -142,7 +150,7 @@ println(new String(fieldBytes.toArray))
     }
   }
 
-  def updateValues(buffer: ByteBuf, seqType: Int, f: (Int) => Int): ByteBuf = {
+  def updateValues(buffer: ByteBuf, seqType: Int, f: (Any) => Any): ByteBuf = {
     val newBuffer: ByteBuf = Unpooled.buffer()
     val fieldBytes: ListBuffer[Byte] = new ListBuffer[Byte]
 
@@ -165,6 +173,10 @@ println(new String(fieldBytes.toArray))
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val valueLength: Int = buffer.readIntLE()
         val value: ByteBuf = buffer.readBytes(valueLength)
+        val newValue: Any = f(value)
+
+        newBuffer.writeIntLE(newValue.asInstanceOf[String].length+1).writeBytes(newValue.asInstanceOf[String].getBytes).writeByte(0)
+        println("add new value "+new String(newBuffer.array()))
       case D_BSONOBJECT =>
         val bsonStartReaderIndex: Int = buffer.readerIndex()
         val valueTotalLength: Int = buffer.readIntLE()
@@ -179,8 +191,8 @@ println(new String(fieldBytes.toArray))
       case D_INT =>
         println("Int")
         val value: Int = buffer.readIntLE()
-        val newValue: Int = f(value)
-        newBuffer.writeIntLE(newValue)
+        val newValue = f(value)
+        newBuffer.writeIntLE(newValue.asInstanceOf[Int])
         println("add new value "+new String(newBuffer.array()))
       case D_LONG =>
         val value: Long = buffer.readLongLE()
