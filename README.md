@@ -4,6 +4,38 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ## Basic Usage
 
+### Extracting a Bson (Scala)
+
+```scala
+//  Create a BsonObject/BsonArray
+val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L).put("Unemployed", false)
+    .put("Residence", "Lisboa").putNull("Experience")
+
+//  Instantiate a NettyBson that receives a buffer containing the Bson encoded
+val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+
+//  Call extract method on nettyBson, the arguments being the netty byteBuf of NettyBson object,
+//  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
+val result: Option[Any] = nettyBson.extract(nettyBson.getByteBuf, "AnualSalary", "first")
+```
+
+###Extracting a Json (Java)
+```java
+//  JsonObject represented by a String
+final String json = "{\"value\": 27, \"onclick\": \"CreateNewDoc()\", \"bool\": false }";
+
+//  Create a parser to read Strings and the argument being the json String
+JsonParser parser = Json.createParser(new StringReader(json));
+
+//  Knowing the JsonObject choose which value to be extracted with a key
+//  and an ObjectExtractor, specifying the type of the ObjectExtractor
+//  like in this case a StringExtractor.
+JsonExtractor<String> ext = new ObjectExtractor( new StringExtractor("onclick") );
+
+//  Apply the extractor to the parser to get the result
+String result = ext.apply(parser).getResult().toString();
+```
+
 ### Using ScalaInterface
 
 ```scala
