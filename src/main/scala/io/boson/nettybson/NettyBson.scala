@@ -45,29 +45,32 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
     case NETTY_READONLY_BUF => // Netty
-      val b = Unpooled.buffer()
-      b.writeBytes(byteBuf.get)
+      val b = byteBuf.get.duplicate()
+        //Unpooled.buffer()
+      b//.writeBytes(byteBuf.get)
     case NETTY_DEFAULT_BUF => // Netty
-      val b = Unpooled.buffer()
-      b.writeBytes(byteBuf.get)
+      val b = byteBuf.get.duplicate()
+        //Unpooled.buffer()
+      b///.writeBytes(byteBuf.get)
     case ARRAY_BYTE => // Array[Byte]
-      val b = Unpooled.buffer()
-      b.writeBytes(byteArray.get)
+      val b = Unpooled.copiedBuffer(byteArray.get)
+     // b.writeBytes(byteArray.get)
+      b
     case JAVA_BYTEBUFFER => // Java ByteBuffer
-      val b = Unpooled.buffer()
-      //javaByteBuf.get.flip()
-      b.writeBytes(javaByteBuf.get)
+      val b = Unpooled.copiedBuffer(javaByteBuf.get)
       javaByteBuf.get.clear()
       b
     case VERTX_BUF => // Vertx Buffer
-      val b = Unpooled.buffer()
-      b.writeBytes(vertxBuff.get.getBytes)
+      println("Vertx buffer")
+      val b = vertxBuff.get.getByteBuf
+      b//.writeBytes(vertxBuff.get.getBytes)
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
-      val b = Unpooled.buffer()
-      b.writeBytes(scalaArrayBuf.get.toArray)
+      val b = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
+      b//.writeBytes(scalaArrayBuf.get.toArray)
     case NETTY_DUPLICATED_BUF => // Netty
-      val b = Unpooled.buffer()
-      b.writeBytes(byteBuf.get)
+      val b = byteBuf.get.duplicate()
+        //Unpooled.buffer()
+      b//.writeBytes(byteBuf.get)
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
   }
