@@ -6,6 +6,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
+import io.boson.bsonValue.BsSeq
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
@@ -41,7 +42,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(obj1.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Empty ArrEvent") {
@@ -49,7 +50,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr1.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Empty ByteBuf") {
@@ -57,7 +58,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "first"
     val netty: NettyBson = new NettyBson()
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Bad parser expression V1") {
@@ -110,7 +111,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "[2 to 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Extract array when doesn't exists V1") {
@@ -118,7 +119,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "[2 until 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Extract array when doesn't exists V2") {
@@ -126,7 +127,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "[2 until 3]"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Extract value with wrong Key") {
@@ -134,7 +135,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arrEvent.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Extract value when only exists BsonArray") {
@@ -142,7 +143,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "first"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
     val resultParser = callParse(netty, key, expression)
-    assert(List() === resultParser)
+    assert(BsSeq(Seq()) === resultParser)
   }
 
   test("Check if key exists when key is empty") {

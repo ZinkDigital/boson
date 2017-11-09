@@ -796,6 +796,14 @@ public class BsonObject implements Iterable<Map.Entry<String, Object>> {
         return new JsonObject(m);
     }
 
+    public JsonObject asJson(){
+        return this.toJsonObject();
+    }
+
+    public BsonObject asBson(JsonObject jsonObj) {
+        return new BsonObject(jsonObj);
+    }
+
     @Override
     public String toString() {
         return encodeToString();

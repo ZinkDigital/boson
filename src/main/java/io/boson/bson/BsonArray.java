@@ -584,6 +584,14 @@ public class BsonArray implements Iterable<Object> {
         return new JsonArray(l);
     }
 
+    public JsonArray asJson(){
+        return this.toJsonArray();
+    }
+
+    public BsonArray asBson(JsonArray jsonArray) {
+        return new BsonArray(jsonArray);
+    }
+
 
     @Override
     public String toString() {

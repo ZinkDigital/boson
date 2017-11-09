@@ -35,6 +35,10 @@ trait DefaultWrites {
     def writes(o: Seq[Any]) = BsSeq(o)
   }
 
+  implicit object BsExceptionWrites extends Writes[String] {
+    def writes(o: String) = BsException(o)
+  }
+
   implicit object BsValueWrites extends Writes[BsValue] {
     def writes(o: BsValue) = o
   }

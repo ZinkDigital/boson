@@ -1,8 +1,8 @@
 package io.boson
 
-import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.nettybson.NettyBson
 import io.boson.bson.{BsonArray, BsonObject}
+import io.boson.bsonValue._
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -18,13 +18,13 @@ import org.scalatest.junit.JUnitRunner
     val sI: ScalaInterface = new ScalaInterface
 
 
-    test("first") {
+    test("extractWithScalaInterface") {
       val key: String = ""
       val language: String = "first"
       val netty: NettyBson = sI.createNettyBson(ba1.encode())
-      val result: Any = sI.parse(netty, key, language)
+      val result: BsValue = sI.parse(netty, key, language)
 
-      assert(List("ArrayField") === result)
+      assert(BsSeq(Seq("ArrayField")) === result)
     }
 
 

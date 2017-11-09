@@ -6,16 +6,21 @@ package io.boson.bsonValue
 sealed trait BsValue
 
 /**
-  * Represents a Json boolean value.
+  * Represents a Bson boolean value.
   */
 case class BsBoolean(value: Boolean) extends BsValue
 
 /**
-* Represent a Json number value.
+* Represent a Bson number value.
 */
 case class BsNumber(value: BigDecimal) extends BsValue
 
 /**
-  * Represent a Json number value.
+  * Represent a Bson number value.
   */
 case class BsSeq(value: Seq[Any]) extends BsValue
+
+/**
+  * Represent a Bson throwable value.
+  */
+case class BsException(value: String) extends BsValue
