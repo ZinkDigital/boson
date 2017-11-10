@@ -2,8 +2,12 @@ matrix:
   include:
     - language: scala
       scala: 2.12.3
+      before_script:
+              - cd test/scala
       script: sbt ++$TRAVIS_SCALA_VERSION test
 
     - language: java
       jdk: oraclejdk8
+      before_script:
+                    - cd test/java
       script: sbt test
