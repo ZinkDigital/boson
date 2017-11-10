@@ -1,0 +1,9 @@
+matrix:
+  include:
+    - language: scala
+      scala:
+        - 2.12.3
+    - language: java
+
+  jdk:
+  - oraclejdk8

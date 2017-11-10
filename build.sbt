@@ -7,6 +7,11 @@ scalaVersion := "2.12.3"
 javacOptions += "-g:none"
 compileOrder := CompileOrder.Mixed
 
+scalacOptions in Test ++= Seq(
+  "-encoding",
+  "UTF-8"
+)
+
 
 
   val libraries = Seq(
