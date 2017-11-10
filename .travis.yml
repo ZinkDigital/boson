@@ -1,9 +1,8 @@
 matrix:
   include:
     - language: scala
-      scala:
-        - 2.12.3
-    - language: java
+      scala: 2.12.3
+      script: sbt test
 
-  jdk:
-  - oraclejdk8
+    - language: java
+      jdk: oraclejdk8
