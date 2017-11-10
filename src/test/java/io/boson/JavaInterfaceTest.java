@@ -2,6 +2,8 @@ package io.boson;
 
 import io.boson.bson.BsonArray;
 import io.boson.bson.BsonObject;
+import io.boson.bsonValue.BsException$;
+import io.boson.bsonValue.BsValue;
 import io.boson.javaInterface.JavaInterface;
 import io.boson.nettybson.NettyBson;
 import org.junit.Test;
@@ -10,9 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/**
- * Created by Tiago Filipe on 03/11/2017.
- */
 public class JavaInterfaceTest {
 
     private BsonArray br4 = new BsonArray().add("Insecticida");
@@ -32,19 +31,11 @@ public class JavaInterfaceTest {
 
         JavaInterface jI = new JavaInterface();
         String key = "José";
-        String expression = "all";
+        String expression = "[-8 to 5]";
         NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
 
-        Object result = jI.parse(netty, key, expression);
-        List list = jI.convert((scala.collection.Seq<Object>)result);
+        BsValue result = jI.parse(netty, key, expression);
 
-
-
-        ArrayList<Object> myList =  new ArrayList<>();
-        myList.add(br1);
-        myList.add(br2);
-        myList.add(br3);
-
-        assertEquals(myList, list);
+        assertEquals(BsException$.MODULE$.apply("Failure/Error parsing!"), result);
     }
 }

@@ -2,6 +2,7 @@ package io.boson.bsonPath
 
 import io.boson.nettybson.NettyBson
 import io.boson.bson.{BsonArray, BsonObject}
+import io.vertx.core.json.{JsonArray, JsonObject}
 
 /**
   * Created by Tiago Filipe on 03/11/2017.
@@ -16,12 +17,43 @@ object TinyLanguageTest {
       val obj2: BsonObject = new BsonObject().put("José", br2)
       val br3: BsonArray = new BsonArray().add("Fly")
       val obj3: BsonObject = new BsonObject().put("José", br3)
+
+      val json: String = """
+  {
+    "name" : "Watership Down",
+    "location" : {
+      "lat" : 51.235685,
+      "long" : -1.309197
+    },
+    "residents" : [ {
+      "name" : "Fiver",
+      "age" : 4,
+      "role" : null
+    }, {
+      "name" : "Bigwig",
+      "age" : 6,
+      "role" : "Owsla"
+    } ]
+  }
+  """
       val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3).add(br4)
       val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
+
+      val otherJsonObject: JsonObject = bsonEvent.asJson()
+      println(s"otherJsonObject: $otherJsonObject")
+      val otherJsonArray: JsonArray = arr.asJson()
+      println(s"otherJsonArray: $otherJsonArray")
+
+      val otherBsonObject: BsonObject = new BsonObject().asBson(otherJsonObject)
+      println(s"otherBsonObject: $otherBsonObject")
+      val otherBsonArray: BsonArray = new BsonArray().asBson(otherJsonArray)
+      println(s"otherBsonArray: $otherBsonArray")
+
+
       val arrTest: BsonArray = new BsonArray().add(2.2).add(2.4).add(2.6)
-      val netty: NettyBson = new NettyBson(vertxBuff = Option(arrTest.encode()))
-      val key: String = ""
-      val language: String = "[0 to end]"
+      val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+      val key: String = "José"
+      val language: String = "[0 to end] size"
       val parser = new TinyLanguage
       parser.parseAll(parser.program, language) match {
         case parser.Success(r, _) =>

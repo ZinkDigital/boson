@@ -1,13 +1,12 @@
 package io.boson.scalaInterface
 
 import java.nio.ByteBuffer
-
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.nettybson.NettyBson
 import io.netty.buffer.ByteBuf
 import io.vertx.core.buffer.Buffer
-
 import scala.collection.mutable.ArrayBuffer
+import io.boson.bsonValue
 
 /**
   * Created by Ricardo Martins on 03/11/2017.
@@ -31,23 +30,18 @@ class ScalaInterface {
   }
 
 
-  def parse(netty: NettyBson, key: String, expression: String): Any = {
+  def parse(netty: NettyBson, key: String, expression: String): bsonValue.BsValue = {
     val parser = new TinyLanguage
-
-    parser.parseAll(parser.program, expression) match {
-      case parser.Success(r, _) =>
-        val interpreter = new Interpreter(netty, key, r.asInstanceOf[Program])
-        try {
-          val result: Any = interpreter.run()
-          println("SUCCESS: " + result)
-          result
-        } catch {
-          case e: RuntimeException => println("Error inside run() " + e.getMessage)
-        }
-      case parser.Error(msg, _) => println("Error parsing: " + msg)
-      case parser.Failure(msg, _) => println("Failure parsing: " + msg)
+    try {
+      parser.parseAll(parser.program, expression) match {
+        case parser.Success(r, _) =>
+          new Interpreter(netty, key, r.asInstanceOf[Program]).run()
+        case parser.Error(msg, _) => throw new RuntimeException("Error parsing: " + msg)
+        case parser.Failure(msg, _) => throw new RuntimeException("Failure parsing: " + msg)
+      }
+    } catch {
+      case e:RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
     }
-
   }
 
 }
