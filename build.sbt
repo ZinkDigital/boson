@@ -12,6 +12,7 @@ scalacOptions in Test ++= Seq(
   "UTF-8"
 )
 
+crossPaths := false
 
 
   val libraries = Seq(
