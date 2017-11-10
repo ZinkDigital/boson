@@ -3,8 +3,7 @@ package io.boson
 import java.time.Instant
 
 import io.boson.bson.BsonObject
-import io.boson.injectors.Injector
-import io.boson.injectors.Injector.{b1, ext}
+import io.boson.injectors.{EnumerationTest, Injector}
 import io.boson.nettybson.NettyBson
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
@@ -15,6 +14,7 @@ import org.scalatest.junit.JUnitRunner
   * Created by Ricardo Martins on 09/11/2017.
   */
 
+
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
   val inj: Injector = new Injector
@@ -24,6 +24,8 @@ class InjectorsTest extends FunSuite {
   val bytearray2: Array[Byte] = "4".getBytes()
   val ins: Instant = Instant.now()
   val ins1: Instant = Instant.now().plusMillis(1000)
+  //val enum = EnumerationTest.A
+  //val enum1 = EnumerationTest.B
   val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("array", bytearray2).put("inst", ins)
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode()))
 
@@ -85,6 +87,22 @@ class InjectorsTest extends FunSuite {
     assert(ins1 === Instant.parse(s)
       , "Contents are not equal")
   }
+
+  /*test("Injector: Enumeration => Enumeration") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "enum", x => enum1)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "enum", "first")
+    }
+
+    val s: String = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
+
+    println(new String(result.asInstanceOf[List[Array[Byte]]].head))
+    assert(enum1.toString === s
+      , "Contents are not equal")
+  }*/
 
 
   }
