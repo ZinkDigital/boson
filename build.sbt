@@ -12,6 +12,7 @@ scalacOptions in Test ++= Seq(
   "UTF-8"
 )
 
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
 crossPaths := false
 
 
@@ -25,7 +26,8 @@ crossPaths := false
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
-    "junit"             %  "junit"       % "4.12"  % Test
+    "junit"             %  "junit"       % "4.12"  % Test,
+    "com.novocode" % "junit-interface" % "0.10" % "test"
   )
 
 
