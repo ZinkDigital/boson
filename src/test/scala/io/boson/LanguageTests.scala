@@ -460,7 +460,7 @@ class LanguageTests extends FunSuite {
     val resultParser: Any = callParse(netty, key, expression)
     assert(BsBoolean(false) === resultParser)
   }
-
+  //val arrEvent: BsonArray = new BsonArray().add(arr).add(obj4).add("Temperature").add(2.5)
   test("[# .. #] size w/key") {
     val expression: String = "[1 to 2] size"
     val key: String = ""

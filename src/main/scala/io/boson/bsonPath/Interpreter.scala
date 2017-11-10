@@ -25,9 +25,7 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
         case ArrExpr(left: Int, mid: String, right: Any) =>   // "[# .. #]"
           executeArraySelect(left, mid, right) match {
             case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-            case v =>
-              println(s"value of V: ${v}")
-              bsonValue.BsObject.toBson(v)
+            case v =>     bsonValue.BsObject.toBson(v)
           }
         case Grammar(selectType) =>   // "(all|first|last)"
           executeSelect(selectType)
