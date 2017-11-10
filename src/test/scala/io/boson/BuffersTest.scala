@@ -1,7 +1,6 @@
 package io.boson
 
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
 
 import io.boson.bson.BsonObject
 import io.boson.nettybson.NettyBson
@@ -20,19 +19,20 @@ class BuffersTest extends FunSuite {
   val exampleNetty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
 
   test("Java ByteBuffer"){
-    val javaBuffer: ByteBuffer = ByteBuffer.allocate(256)
-    javaBuffer.put(bsonEvent.encode().getBytes)
+    val array: Array[Byte] = bsonEvent.encode().getBytes
+    val javaBuffer: ByteBuffer = ByteBuffer.allocate(array.size)
+    javaBuffer.put(array)
     javaBuffer.flip()
     val nettyFromJava = new NettyBson(javaByteBuf = Option(javaBuffer))
-    assert(new String(javaBuffer.array()) === new String(nettyFromJava.getByteBuf.array())
+    assert(javaBuffer.array() === nettyFromJava.getByteBuf.array()
       , "Content from ByteBuffer(java) it's different from nettyFromJava")
   }
 
   test("Vertx ByteBuffer"){
-    val vertxBuf: Buffer = Buffer.buffer()
+    val vertxBuf: Buffer = Buffer.buffer(exampleNetty.array.length)
     vertxBuf.appendBytes(exampleNetty.array)
     val nettyFromVertx = new NettyBson(vertxBuff = Option(vertxBuf))
-    assert(new String(vertxBuf.getBytes) === new String(nettyFromVertx.getByteBuf.array())
+    assert(vertxBuf.getBytes === nettyFromVertx.getByteBuf.array()
       , "Content from ByteBuffer(Vertx) it's different from nettyFromVertx")
   }
 
