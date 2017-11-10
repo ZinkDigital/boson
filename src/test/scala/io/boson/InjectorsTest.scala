@@ -1,8 +1,10 @@
 package io.boson
 
+import java.time.Instant
+
 import io.boson.bson.BsonObject
 import io.boson.injectors.Injector
-
+import io.boson.injectors.Injector.{b1, ext}
 import io.boson.nettybson.NettyBson
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
@@ -20,8 +22,9 @@ class InjectorsTest extends FunSuite {
 
   val bytearray1: Array[Byte] = "AlguresPorAi".getBytes()
   val bytearray2: Array[Byte] = "4".getBytes()
-
-  val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("array", bytearray2)
+  val ins: Instant = Instant.now()
+  val ins1: Instant = Instant.now().plusMillis(1000)
+  val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("array", bytearray2).put("inst", ins)
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode()))
 
   test("Injector: Int => Int") {
@@ -64,6 +67,22 @@ class InjectorsTest extends FunSuite {
     }
     println(new String(result.asInstanceOf[List[Array[Byte]]].head))
     assert(new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "") === "AlguresPorAi"
+      , "Contents are not equal")
+  }
+
+  test("Injector: Instant => Instant") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "inst", x => ins1)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "inst", "first")
+    }
+
+    val s: String = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
+
+    println(new String(result.asInstanceOf[List[Array[Byte]]].head))
+    assert(ins1 === Instant.parse(s)
       , "Contents are not equal")
   }
 

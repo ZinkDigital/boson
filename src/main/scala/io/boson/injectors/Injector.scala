@@ -29,11 +29,15 @@ object Injector extends App{
   val inj: Injector = new Injector
   val ext = new ScalaInterface
   val ins: Instant = Instant.now()
+  val ins1: Instant = Instant.now()
   val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("array", bytearray1).put("inst", ins)
   val netty: Option[NettyBson] = Some(new NettyBson(vertxBuff = Option(obj.encode())))
 
-  val b1: NettyBson = inj.modify(netty, "inst", x => bytearray2).get
-  println(ext.parse(b1, "inst", "first").asInstanceOf[List[Array[Byte]]].head)
+  val b1: NettyBson = inj.modify(netty, "inst", x => ins1).get
+  //println(new String(ext.parse(b1, "inst", "first").asInstanceOf[List[Array[Byte]]].head))
+  val s: String = new String(ext.parse(b1, "inst", "first").asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
+  println(s)
+  println(Instant.parse(s))
   //println(s"b1 capacity = ${b1.getByteBuf.capacity()}")
   //println(new String(ext.parse(b1, "no", "first").asInstanceOf[List[Array[Byte]]].head))
 
@@ -181,7 +185,7 @@ class Injector {
         println(newBuffer.readerIndex())
         val newValue: Any = f(new String(array))
 
-        writeNewValue(newBuffer, newValue)
+        writeNewValue(newBuffer, newValue, valueLength)
 
         println("add new value "+new String(newBuffer.array()))
 
@@ -240,16 +244,17 @@ class Injector {
     }
   }
 
-  def writeNewValue(newBuffer: ByteBuf, newValue: Any): Unit = {
+  def writeNewValue(newBuffer: ByteBuf, newValue: Any, valueLength: Int): Unit = {
     val returningType: String = newValue.getClass.getSimpleName
-    println(returningType)
+    println("returning type = "+returningType)
 
     returningType match {
       case "byte[]" =>
         newBuffer.writeIntLE(newValue.asInstanceOf[Array[Byte]].length+1).writeBytes(newValue.asInstanceOf[Array[Byte]]).writeByte(0)
       case "String" =>
         newBuffer.writeIntLE(newValue.asInstanceOf[String].length+1).writeBytes(newValue.asInstanceOf[String].getBytes).writeByte(0)
-
+      case "Instant" =>
+        newBuffer.writeIntLE(valueLength+1).writeBytes(newValue.asInstanceOf[Instant].toString.getBytes()).writeByte(0)
 
     }
   }
