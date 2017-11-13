@@ -2,7 +2,7 @@ package io.boson
 
 import java.time.Instant
 
-import io.boson.bson.BsonObject
+import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.injectors.{EnumerationTest, Injector}
 import io.boson.nettybson.NettyBson
 import io.boson.scalaInterface.ScalaInterface
@@ -30,9 +30,15 @@ class InjectorsTest extends FunSuite {
   val newDouble: Double = 25.toDouble
   val bObj: BsonObject = new BsonObject().put("bsonObj", "ola")
   val newbObj: BsonObject = new BsonObject().put("newbsonObj", "newbsonObj")
+  val bool: Boolean = true
+  val newBool: Boolean = false
+  val long: Long = 100000001.toLong
+  val newLong: Long = 200000002.toLong
+  val bsonArray: BsonArray = new BsonArray().add(1).add(2).add("Hi")
+  val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
   //val enum = EnumerationTest.A
   //val enum1 = EnumerationTest.B
-  val obj: BsonObject = new BsonObject().put("field", 0).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
+  val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode()))
 
   test("Injector: Int => Int") {
@@ -137,6 +143,51 @@ class InjectorsTest extends FunSuite {
 
     println(result.asInstanceOf[List[BsonObject]].head)
     assert(newbObj === s
+      , "Contents are not equal")
+  }
+
+  test("Injector: Boolean => Boolean") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "bool", x => newBool)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "bool", "first")
+    }
+    val s: Boolean = result.asInstanceOf[List[Boolean]].head
+
+    println(result.asInstanceOf[List[Boolean]].head)
+    assert(newBool === s
+      , "Contents are not equal")
+  }
+
+  test("Injector: Long => Long") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "long", x => newLong)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "long", "first")
+    }
+    val s: Long = result.asInstanceOf[List[Long]].head
+
+    println(result.asInstanceOf[List[Long]].head)
+    assert(newLong === s
+      , "Contents are not equal")
+  }
+
+  test("Injector: BsonArray => BsonArray") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "bsonArray", x => newbsonArray)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "bsonArray", "first")
+    }
+    val s: BsonArray = result.asInstanceOf[List[BsonArray]].head
+
+    println(result.asInstanceOf[List[BsonArray]].head)
+    assert(newbsonArray === s
       , "Contents are not equal")
   }
 
