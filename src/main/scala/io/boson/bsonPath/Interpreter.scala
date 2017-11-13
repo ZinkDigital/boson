@@ -39,6 +39,7 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
 
   private def executeSizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar): bsonValue.BsValue = {
     val midResult: Seq[Any] = executeArraySelectStatement(grammar, arrEx)
+    println(s"midResult: $midResult")
     if (midResult.isEmpty) {
       scndGrammar.selectType match {
         case "size" =>  bsonValue.BsObject.toBson(0)
@@ -46,9 +47,16 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
       }
     } else {
       scndGrammar.selectType match {
-        case "size" => val list =
-          for (elem <- midResult.asInstanceOf[Seq[BsonArray]]) yield elem.size()
-          bsonValue.BsObject.toBson(list)
+        case "size" =>
+          if(midResult.size == 1) {
+            //println(s"midResult.size -> ${midResult.asInstanceOf[Seq[BsonArray]].size}, asInstance.head.size -> ${midResult.asInstanceOf[Seq[BsonArray]].head.size()}")
+            bsonValue.BsObject.toBson(midResult.asInstanceOf[Seq[BsonArray]].head.size())
+          } else {
+            //println(s"midResult.size -> ${midResult.size}, asInstance.head.size -> ${midResult.asInstanceOf[Seq[BsonArray]].head.size()}")
+            val list =
+              for (elem <- midResult.asInstanceOf[Seq[BsonArray]]) yield elem.size()
+            bsonValue.BsObject.toBson(list)
+          }
         case "isEmpty" => bsonValue.BsObject.toBson(false)
       }
     }
@@ -59,10 +67,22 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
     midResult match {
       case Seq() => Seq.empty
       case value =>
-        grammar.selectType match {
-          case "first" => Seq(value.asInstanceOf[Seq[BsonArray]].head)
-          case "last" => Seq(value.asInstanceOf[Seq[BsonArray]].last)
-          case "all" => value.asInstanceOf[Seq[BsonArray]]
+        if(key.isEmpty) {
+          grammar.selectType match {
+            case "first" =>
+              //println("first + [] " + value.asInstanceOf[Seq[BsonArray]].head.getList.get(0))
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getList.get(0))
+            case "last" =>
+              //println("last + [] " + value.asInstanceOf[Seq[BsonArray]].head.getList.get(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getList.get(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
+            case "all" => value.asInstanceOf[Seq[BsonArray]]
+          }
+        } else {
+          grammar.selectType match {
+            case "first" => Seq(value.asInstanceOf[Seq[BsonArray]].head)
+            case "last" => Seq(value.asInstanceOf[Seq[BsonArray]].last)
+            case "all" => value.asInstanceOf[Seq[BsonArray]]
+          }
         }
     }
   }

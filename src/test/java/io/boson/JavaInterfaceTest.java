@@ -110,5 +110,6 @@ public class JavaInterfaceTest {
             bool = newResult.getValue();
         }
         assertEquals(false, bool);
+        System.out.println("passed");
     }
 }
