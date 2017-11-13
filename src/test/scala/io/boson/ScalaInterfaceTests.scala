@@ -51,7 +51,7 @@ import org.scalatest.junit.JUnitRunner
       val netty: NettyBson = sI.createNettyBson(ba1.encode())
       val result: BsValue = sI.parse(netty, key, language)
 
-      assert(BsException("Failure parsing: `isEmpty' expected but `i' found") === result)
+      assert(BsException("`isEmpty' expected but `i' found") === result)
     }
 
   }

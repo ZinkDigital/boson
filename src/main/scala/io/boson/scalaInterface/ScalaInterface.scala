@@ -36,8 +36,8 @@ class ScalaInterface {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
           new Interpreter(netty, key, r.asInstanceOf[Program]).run()
-        case parser.Error(msg, _) => throw new RuntimeException("Error parsing: " + msg)
-        case parser.Failure(msg, _) => throw new RuntimeException("Failure parsing: " + msg)
+        case parser.Error(msg, _) =>  bsonValue.BsObject.toBson(msg)
+        case parser.Failure(msg, _) =>  bsonValue.BsObject.toBson(msg)
       }
     } catch {
       case e:RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
