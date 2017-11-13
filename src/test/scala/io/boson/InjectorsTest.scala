@@ -24,9 +24,15 @@ class InjectorsTest extends FunSuite {
   val bytearray2: Array[Byte] = "4".getBytes()
   val ins: Instant = Instant.now()
   val ins1: Instant = Instant.now().plusMillis(1000)
+  val float: Float = 11.toFloat
+  val newFloat: Float = 15.toFloat
+  val double: Double = 21.toDouble
+  val newDouble: Double = 25.toDouble
+  val bObj: BsonObject = new BsonObject().put("bsonObj", "ola")
+  val newbObj: BsonObject = new BsonObject().put("newbsonObj", "newbsonObj")
   //val enum = EnumerationTest.A
   //val enum1 = EnumerationTest.B
-  val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("array", bytearray2).put("inst", ins)
+  val obj: BsonObject = new BsonObject().put("field", 0).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode()))
 
   test("Injector: Int => Int") {
@@ -44,7 +50,7 @@ class InjectorsTest extends FunSuite {
       , "Contents are not equal")
   }
 
-  test("Injector: String => String") {
+  test("Injector: String/CharSequence => String/CharSequence") {
 
     val b1: Option[NettyBson] = inj.modify(netty, "no", x => "no")
     val b2: Option[NettyBson] = inj.modify(b1, "no", x => "yes")
@@ -87,6 +93,53 @@ class InjectorsTest extends FunSuite {
     assert(ins1 === Instant.parse(s)
       , "Contents are not equal")
   }
+
+  test("Injector: Float => Float") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "float", x => newFloat)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "float", "first")
+    }
+    val s: Double = result.asInstanceOf[List[Double]].head
+
+    println(result.asInstanceOf[List[Double]].head)
+    assert(newFloat === s
+      , "Contents are not equal")
+
+  }
+
+  test("Injector: Double => Double") {
+
+      val b1: Option[NettyBson] = inj.modify(netty, "double", x => newDouble)
+
+      val result: Any = b1 match {
+        case None => List()
+        case Some(nb) => ext.parse(nb, "double", "first")
+      }
+      val s: Double = result.asInstanceOf[List[Double]].head
+
+      println(result.asInstanceOf[List[Double]].head)
+      assert(newDouble === s
+        , "Contents are not equal")
+    }
+
+  test("Injector: BsonObject => BsonObject") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "bObj", x => newbObj)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "bObj", "first")
+    }
+    val s: BsonObject = result.asInstanceOf[List[BsonObject]].head
+
+    println(result.asInstanceOf[List[BsonObject]].head)
+    assert(newbObj === s
+      , "Contents are not equal")
+  }
+
 
   /*test("Injector: Enumeration => Enumeration") {
 

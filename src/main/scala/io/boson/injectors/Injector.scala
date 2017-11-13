@@ -33,20 +33,28 @@ object Injector extends App{
 
   val bytearray1: Array[Byte] = "AlguresPorAi".getBytes()
   val bytearray2: Array[Byte] = "4".getBytes()
+  val float: Float = 11.toFloat
+  val newFloat: Float = 15.toFloat
+  val bObj: BsonObject = new BsonObject().put("bsonObj", "ola")
+  val newbObj: BsonObject = new BsonObject().put("newbsonObj", "newbsonObj")
   //val enum = io.boson.injectors.EnumerationTest.A
   //val enum1 =  io.boson.injectors.EnumerationTest.A
   //val enum = e.A
   //val enum1 =  e.B
+  val charseq: CharSequence = "charSequence"
+  val anotherCharseq: CharSequence = "AnothercharSequence"
   val inj: Injector = new Injector
   val ext = new ScalaInterface
   val ins: Instant = Instant.now()
   val ins1: Instant = Instant.now()
-  val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("array", bytearray1).put("inst", ins)
+  val obj: BsonObject = new BsonObject().put("field", 0).put("no", "ok").put("float", float).put("bObj",bObj).put("charS", charseq).put("array", bytearray1).put("inst", ins)
   val netty: Option[NettyBson] = Some(new NettyBson(vertxBuff = Option(obj.encode())))
 
-  val b1: NettyBson = inj.modify(netty, "x", x => x).get
+  println( obj.encode())
+  val b1: NettyBson = inj.modify(netty, "bObj", x => newbObj).get
   //println(new String(ext.parse(b1, "inst", "first").asInstanceOf[List[Array[Byte]]].head))
-  val s: String = new String(ext.parse(b1, "enum", "first").asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
+  val s: Any = ext.parse(b1, "bObj", "first")
+    //.asInstanceOf[List[Any]].head//.replaceAll("\\p{C}", "")
   println(s)
 
  /*
@@ -153,9 +161,11 @@ class Injector {
       buffer.readByte()
       println(new String(fieldBytes.toArray))
       if (fieldID.toCharArray.deep == new String(fieldBytes.toArray).toCharArray.deep) {
+        println("FOUND NAME")
         consume(seqType, buffer)
         (startReaderIndex, buffer.readerIndex())
       } else {
+        println("DIDNT FOUND NAME")
         // keep looking
         consume(seqType, buffer)
         findFieldID(buffer, fieldID, bufferSize)
@@ -168,7 +178,6 @@ class Injector {
   def updateValues(buffer: ByteBuf, seqType: Int, f: (Any) => Any): ByteBuf = {
     val newBuffer: ByteBuf = Unpooled.buffer()
     val fieldBytes: ListBuffer[Byte] = new ListBuffer[Byte]
-
     while (buffer.getByte(buffer.readerIndex()) != 0) {
       fieldBytes.append(buffer.readByte())
     }
@@ -181,7 +190,9 @@ class Injector {
     seqType match {
       case D_ZERO_BYTE => None
       case D_FLOAT_DOUBLE =>
-        buffer.readDoubleLE()
+        val value: Double = buffer.readDoubleLE()
+        val newValue: Any = f(value)//.toString
+        writeNewValue(newBuffer, newValue)
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val valueLength: Int = buffer.readIntLE()
         val value: ByteBuf = Unpooled.copiedBuffer(buffer.readBytes(valueLength))
@@ -192,9 +203,12 @@ class Injector {
         writeNewValue(newBuffer, newValue, valueLength)
         //println("add new value "+new String(newBuffer.array()))
       case D_BSONOBJECT =>
-        val bsonStartReaderIndex: Int = buffer.readerIndex()
-        val valueTotalLength: Int = buffer.readIntLE()
-        val bsonObject: ByteBuf = buffer.readBytes(valueTotalLength)
+       // val bsonStartReaderIndex: Int = buffer.readerIndex()
+    val valueTotalLength: Int = buffer.readIntLE()
+    val bsonObject: ByteBuf = Unpooled.copiedBuffer(buffer.readBytes(valueTotalLength-4))
+        println("Update values "+bsonObject.array())
+        val newValue: Any = f(bsonObject)
+        writeNewValue(newBuffer, newValue)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.readIntLE()
         val bsonArray: ByteBuf = buffer.readBytes(valueLength)
@@ -223,9 +237,10 @@ class Injector {
         val valueLength: Int = buffer.readIntLE()
         val value: ByteBuf = buffer.readBytes(valueLength)
       case D_BSONOBJECT =>
-        val bsonStartReaderIndex: Int = buffer.readerIndex()
+        println("BSONOBJECT ")
         val valueTotalLength: Int = buffer.readIntLE()
-        val bsonObject: ByteBuf = buffer.readBytes(valueTotalLength)
+        println(valueTotalLength)
+        val bsonObject: ByteBuf = buffer.readBytes(valueTotalLength-4)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.readIntLE()
         val bsonArray: ByteBuf = buffer.readBytes(valueLength)
@@ -242,10 +257,13 @@ class Injector {
   }
 
   def writeNewValue(newBuffer: ByteBuf, newValue: Any, valueLength: Int = 0): Unit = {
+
     val returningType: String = newValue.getClass.getSimpleName
     println("returning type = "+returningType)
-    val superclass: String = newValue.getClass.getGenericSuperclass.toString
-    println("superclass type = "+superclass)
+    // superclass to try to find a solution for enumerations
+    //val superclass: String = newValue.getClass.getGenericSuperclass.toString
+    //println("superclass type = "+superclass)
+
     returningType match {
       case "Integer" =>
         newBuffer.writeIntLE(newValue.asInstanceOf[Int])
@@ -259,7 +277,15 @@ class Injector {
         val aux: Array[Byte] = newValue.asInstanceOf[Instant].toString.getBytes()
         newBuffer.writeIntLE(aux.length +1).writeBytes(aux).writeByte(0)
       case "Enumerations" =>
-
+      case "Float" =>
+        val aux: Float = newValue.asInstanceOf[Float]
+        newBuffer.writeDoubleLE(aux)
+      case "Double" =>
+        val aux: Double = newValue.asInstanceOf[Double]
+        newBuffer.writeDoubleLE(aux)
+      case "BsonObject" =>
+        val buf: Buffer = newValue.asInstanceOf[BsonObject].encode()
+        newBuffer.writeBytes(buf.getByteBuf)
 
 
 
