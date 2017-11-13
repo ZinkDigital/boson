@@ -24,10 +24,10 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 
 
-/*object e extends Enumeration{
+object e extends Enumeration{
   val A = ""
   val B = 54
-}*/
+}
 
 object Injector extends App{
 
@@ -45,7 +45,7 @@ object Injector extends App{
   val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
   //val enum = io.boson.injectors.EnumerationTest.A
   //val enum1 =  io.boson.injectors.EnumerationTest.A
-  //val enum = e.A
+  val enum: e.type = e
   //val enum1 =  e.B
   val charseq: CharSequence = "charSequence"
   val anotherCharseq: CharSequence = "AnothercharSequence"
@@ -53,13 +53,13 @@ object Injector extends App{
   val ext = new ScalaInterface
   val ins: Instant = Instant.now()
   val ins1: Instant = Instant.now()
-  val obj: BsonObject = new BsonObject().put("bsonArray", bsonArray)//.put("field", 0).put("bool", bool).put("long", long).put("no", "ok").put("float", float).put("bObj",bObj).put("charS", charseq).put("array", bytearray1).put("inst", ins)
+  val obj: BsonObject = new BsonObject().put("bsonArray", bsonArray).putNull("null")//.put("field", 0).put("bool", bool).put("long", long).put("no", "ok").put("float", float).put("bObj",bObj).put("charS", charseq).put("array", bytearray1).put("inst", ins)
   val netty: Option[NettyBson] = Some(new NettyBson(vertxBuff = Option(obj.encode())))
 
   println( obj.encode())
-  val b1: NettyBson = inj.modify(netty, "bsonArray", x => newbsonArray).get
+  val b1: NettyBson = inj.modify(netty, "null", x => newbsonArray).get
   //println(new String(ext.parse(b1, "inst", "first").asInstanceOf[List[Array[Byte]]].head))
-  val s: Any = ext.parse(b1, "bsonArray", "all")
+  val s: Any = ext.parse(b1, "null", "all")
     //.asInstanceOf[List[Any]].head//.replaceAll("\\p{C}", "")
   println(s)
 
@@ -225,6 +225,7 @@ class Injector {
         val newValue: Any = f(value)
         writeNewValue(newBuffer, newValue)
       case D_NULL =>
+
       case D_INT =>
         println("Int")
         val value: Int = buffer.readIntLE()
