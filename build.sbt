@@ -7,6 +7,13 @@ scalaVersion := "2.12.3"
 javacOptions += "-g:none"
 compileOrder := CompileOrder.Mixed
 
+scalacOptions in Test ++= Seq(
+  "-encoding",
+  "UTF-8"
+)
+
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
+crossPaths := false
 
 
   val libraries = Seq(
@@ -19,7 +26,8 @@ compileOrder := CompileOrder.Mixed
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
-    "junit"             %  "junit"       % "4.12"  % Test
+    "junit"             %  "junit"       % "4.12"  % Test,
+    "com.novocode" % "junit-interface" % "0.10" % "test"
   )
 
 
