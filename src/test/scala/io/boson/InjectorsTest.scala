@@ -3,6 +3,7 @@ package io.boson
 import java.time.Instant
 
 import io.boson.bson.{BsonArray, BsonObject}
+import io.boson.injectors.e.Value
 import io.boson.injectors.{EnumerationTest, Injector}
 import io.boson.nettybson.NettyBson
 import io.boson.scalaInterface.ScalaInterface
@@ -14,6 +15,11 @@ import org.scalatest.junit.JUnitRunner
   * Created by Ricardo Martins on 09/11/2017.
   */
 
+
+object enum extends Enumeration{
+  val A = Value("AAAA")
+  val B = Value("BBBBB")
+}
 
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
@@ -36,9 +42,11 @@ class InjectorsTest extends FunSuite {
   val newLong: Long = 200000002.toLong
   val bsonArray: BsonArray = new BsonArray().add(1).add(2).add("Hi")
   val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
+  val enumJava = io.boson.injectors.EnumerationTest.A
+  val newEnumJava = io.boson.injectors.EnumerationTest.B
   //val enum = EnumerationTest.A
   //val enum1 = EnumerationTest.B
-  val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
+  val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumJava", enumJava).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode()))
 
   test("Injector: Int => Int") {
@@ -191,7 +199,35 @@ class InjectorsTest extends FunSuite {
       , "Contents are not equal")
   }
 
+  test("Injector: JavaEnum => JavaEnum") {
 
+    val b1: Option[NettyBson] = inj.modify(netty, "enumJava", x => newEnumJava)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "enumJava", "first")
+    }
+    val s: Any = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
+
+    println(result.asInstanceOf[List[Array[Byte]]].head)
+    assert(newEnumJava.toString === s
+      , "Contents are not equal")
+  }
+
+  test("Injector: ScalaEnum => ScalaEnum") {
+
+    val b1: Option[NettyBson] = inj.modify(netty, "enumScala", x => enum.B.toString)
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => ext.parse(nb, "enumScala", "first")
+    }
+    val s: Any = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
+
+    println(result.asInstanceOf[List[Array[Byte]]].head)
+    assert(newEnumJava.toString === s
+      , "Contents are not equal")
+  }
   /*test("Injector: Enumeration => Enumeration") {
 
     val b1: Option[NettyBson] = inj.modify(netty, "enum", x => enum1)
