@@ -192,7 +192,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsNumber(2) === resultParser)
+    assert(BsSeq(Seq(2)) === resultParser)
   }
 
   test("(all|first|last) [# .. #] isEmpty") {

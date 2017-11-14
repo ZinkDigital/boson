@@ -6,7 +6,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.bsonValue.{BsException, BsSeq, BsValue}
+import io.boson.bsonValue.{BsException, BsNumber, BsSeq, BsValue}
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
@@ -14,6 +14,16 @@ import io.boson.bsonValue.{BsException, BsSeq, BsValue}
 
 @RunWith(classOf[JUnitRunner])
 class HorribleTests extends FunSuite {
+
+  val br4: BsonArray = new BsonArray().add("Insecticida")
+  val br1: BsonArray = new BsonArray().add("Tarantula").add("Aracnídius").add(br4)
+  val obj11: BsonObject = new BsonObject().put("José", br1)
+  val br2: BsonArray = new BsonArray().add("Spider")
+  val obj2: BsonObject = new BsonObject().put("José", br2)
+  val br3: BsonArray = new BsonArray().add("Fly")
+  val obj3: BsonObject = new BsonObject().put("José", br3)
+  val arr11: BsonArray = new BsonArray().add(obj11).add(obj2).add(obj3).add(br4)
+  val bsonEvent1: BsonObject = new BsonObject().put("StartUp", arr11)
 
   val obj1: BsonObject = new BsonObject()
   val arr1: BsonArray = new BsonArray()
@@ -171,6 +181,46 @@ class HorribleTests extends FunSuite {
     val netty: NettyBson = new NettyBson(vertxBuff = Option(arr.encode()))
     val result: BsValue = callParse(netty, key, expression)
     assert(BsException("Failure parsing!") === result)
+  }
+
+  test("Only WhiteSpaces in Expression") {
+    val key: String = ""
+    val expression: String = "  "
+    val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val result: BsValue = callParse(netty, key, expression)
+    assert(BsException("Failure parsing!") === result)
+  }
+
+  test("array prob 1") {
+    val key: String = "José"
+    val expression: String = "   all    [     0    to   end      ]   size  "
+    val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent1.encode()))
+    val result: BsValue = callParse(netty, key, expression)
+    assert(BsSeq(Seq(3,1,1)) === result)
+  }
+
+  test("array prob 2") {
+    val key: String = ""
+    val expression: String = "   all    [     0    to   end      ]   size  "
+    val netty: NettyBson = new NettyBson(vertxBuff = Option(arr11.encode()))
+    val result: BsValue = callParse(netty, key, expression)
+    assert(BsNumber(4) === result)
+  }
+
+  test("array prob 3") {
+    val key: String = ""
+    val expression: String = "   first    [     0    to   end      ]   size  "
+    val netty: NettyBson = new NettyBson(vertxBuff = Option(arr11.encode()))
+    val result: BsValue = callParse(netty, key, expression)
+    assert(BsNumber(1) === result)
+  }
+
+  test("array prob 4") {
+    val key: String = "José"
+    val expression: String = "   first    [     0    to   end      ]   size  "
+    val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent1.encode()))
+    val result: BsValue = callParse(netty, key, expression)
+    assert(BsSeq(Seq(3)) === result)
   }
 
 }

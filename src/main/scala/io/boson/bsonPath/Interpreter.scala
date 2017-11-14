@@ -1,7 +1,7 @@
 package io.boson.bsonPath
 
 import io.boson.nettybson.NettyBson
-import io.boson.bson.BsonArray
+import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue
 
 /**
@@ -38,9 +38,28 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
   }
 
   private def executeSizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar): bsonValue.BsValue = {
-    val midResult: Seq[Any] = executeArraySelectStatement(grammar, arrEx)
-    println(s"midResult: $midResult")
-    if (midResult.isEmpty) {
+    val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
+    val result =
+    midResult match {
+      case Seq() => Seq.empty
+      case value =>
+        if(key.isEmpty) {
+          grammar.selectType match {
+            case "first" =>
+              Seq(new BsonArray().add(value.asInstanceOf[Seq[BsonArray]].head.getValue(0)))
+            case "last" =>
+              Seq(new BsonArray().add(value.asInstanceOf[Seq[BsonArray]].head.getValue(value.asInstanceOf[Seq[BsonArray]].head.size()-1)))
+            case "all" => value.asInstanceOf[Seq[BsonArray]]
+          }
+        } else {
+          grammar.selectType match {
+            case "first" => Seq(value.asInstanceOf[Seq[BsonArray]].head)
+            case "last" => Seq(value.asInstanceOf[Seq[BsonArray]].last)
+            case "all" => value.asInstanceOf[Seq[BsonArray]]
+          }
+        }
+    }
+    if (result.isEmpty) {
       scndGrammar.selectType match {
         case "size" =>  bsonValue.BsObject.toBson(0)
         case "isEmpty" => bsonValue.BsObject.toBson(true)
@@ -48,13 +67,16 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
     } else {
       scndGrammar.selectType match {
         case "size" =>
-          if(midResult.size == 1) {
-            //println(s"midResult.size -> ${midResult.asInstanceOf[Seq[BsonArray]].size}, asInstance.head.size -> ${midResult.asInstanceOf[Seq[BsonArray]].head.size()}")
-            bsonValue.BsObject.toBson(midResult.asInstanceOf[Seq[BsonArray]].head.size())
-          } else {
-            //println(s"midResult.size -> ${midResult.size}, asInstance.head.size -> ${midResult.asInstanceOf[Seq[BsonArray]].head.size()}")
+          if(result.size == 1 && key.isEmpty){
+            result.head match {
+              case i: BsonArray =>
+                bsonValue.BsObject.toBson(i.size())
+              case _ =>
+                bsonValue.BsObject.toBson(result.size)
+            }
+          } else {    //("all")
             val list =
-              for (elem <- midResult.asInstanceOf[Seq[BsonArray]]) yield elem.size()
+              for (elem <- result.asInstanceOf[Seq[BsonArray]]) yield elem.size()
             bsonValue.BsObject.toBson(list)
           }
         case "isEmpty" => bsonValue.BsObject.toBson(false)
@@ -70,11 +92,9 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
         if(key.isEmpty) {
           grammar.selectType match {
             case "first" =>
-              //println("first + [] " + value.asInstanceOf[Seq[BsonArray]].head.getList.get(0))
-              Seq(value.asInstanceOf[Seq[BsonArray]].head.getList.get(0))
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getValue(0))
             case "last" =>
-              //println("last + [] " + value.asInstanceOf[Seq[BsonArray]].head.getList.get(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
-              Seq(value.asInstanceOf[Seq[BsonArray]].head.getList.get(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getValue(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
             case "all" => value.asInstanceOf[Seq[BsonArray]]
           }
         } else {
