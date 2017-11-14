@@ -143,7 +143,11 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
         }
       case v =>
         scndGrammar.selectType match {
-          case "size" => bsonValue.BsObject.toBson(v.asInstanceOf[Seq[BsonArray]].size)
+          case "size" =>
+            val list =
+              for (elem <- v.asInstanceOf[Seq[BsonArray]]) yield elem.size()
+            bsonValue.BsObject.toBson(list)
+            //bsonValue.BsObject.toBson(v.asInstanceOf[Seq[BsonArray]].size)
           case "isEmpty" => bsonValue.BsObject.toBson(false)
         }
     }
