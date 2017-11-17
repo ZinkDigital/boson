@@ -18,8 +18,6 @@ public class JavaInterface {
         return new NettyBson(
                 Option.apply(byteArray),
                 Option.apply(null),
-                Option.apply(null),
-                Option.apply(null),
                 Option.apply(null)
         );
     }
@@ -27,9 +25,7 @@ public class JavaInterface {
     public NettyBson createNettyBson(ByteBuffer byteBuffer) {
         return new NettyBson(
                 Option.apply(null),
-                Option.apply(null),
                 Option.apply(byteBuffer),
-                Option.apply(null),
                 Option.apply(null)
         );
     }

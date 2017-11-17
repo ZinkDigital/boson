@@ -30,35 +30,35 @@ class ExtractorTests extends FunSuite {
 
   test("Extract Int") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes))
     assert(1500 === nettyBson.extract(nettyBson.getByteBuf, "Américo", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Long") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes))
     assert(1250L === nettyBson.extract(nettyBson.getByteBuf, "Pedro", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Boolean") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes()))
     assert(false === nettyBson.extract(nettyBson.getByteBuf, "José", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Null") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes()))
     assert("Null" === nettyBson.extract(nettyBson.getByteBuf, "Amadeu", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Instant") {
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes()))
     assertEquals(now.toString, new String(nettyBson.extract(nettyBson.getByteBuf, "UpdatedOn", "first").get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
   }
 
   test("Extract String") {
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes))
     assertEquals("Lisboa", new String(nettyBson.extract(nettyBson.getByteBuf, "Residence", "first")
       .get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
   }
@@ -67,7 +67,7 @@ class ExtractorTests extends FunSuite {
     val help: ByteBuf = Unpooled.buffer()
     val finalBuf: ByteBuf = Unpooled.buffer()
 
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes()))
 
     help.writeBytes(nettyBson.extract(nettyBson.getByteBuf, "FavoriteSentence", "first").get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]])
     finalBuf.writeBytes(io.netty.handler.codec.base64.Base64.decode(help))
@@ -75,7 +75,7 @@ class ExtractorTests extends FunSuite {
   }
 
   test("Extract Array[Byte] w/ String") {
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes))
     assert("Be the best".getBytes === new String(java.util.Base64.getMimeDecoder
       .decode(new String(nettyBson.extract(nettyBson.getByteBuf, "FavoriteSentence", "first")
         .get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]))).getBytes)
@@ -83,12 +83,12 @@ class ExtractorTests extends FunSuite {
 
   test("Extract BsonObject") {
     val bsonEvent: BsonObject = new BsonObject().put("First", obj1).put("Second", obj2).put("Third", obj3)
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes()))
     assert(obj2 === nettyBson.extract(nettyBson.getByteBuf, "Second", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract BsonArray") {
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes()))
     assert(arr === nettyBson.extract(nettyBson.getByteBuf, "Colleagues", "first").get.asInstanceOf[List[Any]].head)
   }
 
@@ -96,12 +96,12 @@ class ExtractorTests extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
     val arr2: BsonArray = new BsonArray().add("Day3").add("Day20").add("Day31")
     obj2.put("JoséMonthLeave", arr2)
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes()))
     assert(arr2 === nettyBson.extract(nettyBson.getByteBuf, "JoséMonthLeave", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract nonexistent key") {
-    val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+    val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes()))
     assert(None === nettyBson.extract(nettyBson.getByteBuf, "Random", "first"))
   }
 }

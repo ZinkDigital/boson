@@ -18,8 +18,10 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
   * This class encapsulates one Netty ByteBuf
   *
   */
-class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] = None, javaByteBuf: Option[ByteBuffer] = None,
-                vertxBuff: Option[Buffer] = None, scalaArrayBuf: Option[ArrayBuffer[Byte]] = None) {
+class NettyBson( byteArray: Option[Array[Byte]] = None,
+                 javaByteBuf: Option[ByteBuffer] = None,
+                 scalaArrayBuf: Option[ArrayBuffer[Byte]] = None
+               ) {
 
   /*private val valueOfArgument: String = this match {
     case _ if javaByteBuf.isDefined => javaByteBuf.get.getClass.getSimpleName
@@ -35,21 +37,11 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       javaByteBuf.get.getClass.getSimpleName
     } else if(byteArray.isDefined) {
       byteArray.get.getClass.getSimpleName
-    } else if(byteBuf.isDefined) {
-      byteBuf.get.getClass.getSimpleName
-    } else if(vertxBuff.isDefined) {
-      vertxBuff.get.getClass.getSimpleName
     } else if(scalaArrayBuf.isDefined) {
       scalaArrayBuf.get.getClass.getSimpleName
     } else EMPTY_CONSTRUCTOR
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
-    case NETTY_READONLY_BUF => // Netty
-      val b = Unpooled.buffer()
-      b.writeBytes(byteBuf.get)
-    case NETTY_DEFAULT_BUF => // Netty
-      val b = Unpooled.buffer()
-      b.writeBytes(byteBuf.get)
     case ARRAY_BYTE => // Array[Byte]
       val b = Unpooled.buffer()
       b.writeBytes(byteArray.get)
@@ -59,15 +51,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       b.writeBytes(javaByteBuf.get)
       javaByteBuf.get.clear()
       b
-    case VERTX_BUF => // Vertx Buffer
-      val b = Unpooled.buffer()
-      b.writeBytes(vertxBuff.get.getBytes)
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
       val b = Unpooled.buffer()
       b.writeBytes(scalaArrayBuf.get.toArray)
-    case NETTY_DUPLICATED_BUF => // Netty
-      val b = Unpooled.buffer()
-      b.writeBytes(byteBuf.get)
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
   }
@@ -547,7 +533,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   }
 
   def asReadOnly: NettyBson = {
-    new NettyBson(byteBuf = Option(nettyBuffer.asReadOnly()))
+    new NettyBson(byteArray = Option(nettyBuffer.asReadOnly().array()))
   }
 
   def isReadOnly: Boolean = {
@@ -628,7 +614,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   def readBytes(length: Int): NettyBson = {
       val bB: ByteBuf = Unpooled.buffer()
       nettyBuffer.readBytes(bB, length)
-      new NettyBson(byteBuf = Option(bB))
+      new NettyBson(byteArray = Option(bB.array()))
   }
 
   def readChar: Char = {
