@@ -16,15 +16,17 @@ import org.scalatest.junit.JUnitRunner
   */
 
 
-object enum extends Enumeration{
-  val A = Value("AAAA")
-  val B = Value("BBBBB")
-}
+
 
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
   val inj: Injector = new Injector
   val ext = new ScalaInterface
+
+  object enum extends Enumeration{
+    val A = Value("AAAA")
+    val B = Value("BBBBB")
+  }
 
   val bytearray1: Array[Byte] = "AlguresPorAi".getBytes()
   val bytearray2: Array[Byte] = "4".getBytes()
@@ -66,10 +68,10 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: String/CharSequence => String/CharSequence") {
 
-    val b1: Option[NettyBson] = inj.modify(netty, "no", x => "no")
-    val b2: Option[NettyBson] = inj.modify(b1, "no", x => "yes")
-    val b3: Option[NettyBson] = inj.modify(b2, "no", x => "maybe")
-    val result: Any = b3 match {
+    val b1: Option[NettyBson] = inj.modify(netty, "no", x => "maybe")
+    //val b2: Option[NettyBson] = inj.modify(b1, "no", x => "yes")
+    //val b3: Option[NettyBson] = inj.modify(b2, "no", x => "maybe")
+    val result: Any = b1 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "no", "first")
     }
@@ -209,7 +211,7 @@ class InjectorsTest extends FunSuite {
     }
     val s: Any = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
 
-    println(result.asInstanceOf[List[Array[Byte]]].head)
+    println(s)
     assert(newEnumJava.toString === s
       , "Contents are not equal")
   }
@@ -224,8 +226,8 @@ class InjectorsTest extends FunSuite {
     }
     val s: Any = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
 
-    println(result.asInstanceOf[List[Array[Byte]]].head)
-    assert(newEnumJava.toString === s
+    println(s)
+    assert(enum.B.toString === s
       , "Contents are not equal")
   }
   /*test("Injector: Enumeration => Enumeration") {
