@@ -5,6 +5,15 @@ version := "version"
 scalaVersion := "2.12.3"
 
 javacOptions += "-g:none"
+
+scalacOptions in Test ++= Seq(
+  "-encoding",
+  "UTF-8"
+)
+
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
+crossPaths := false
+
 compileOrder := CompileOrder.Mixed
 
 scalacOptions in Test ++= Seq(

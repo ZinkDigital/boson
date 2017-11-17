@@ -307,7 +307,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       i += 1
     }
     netty.readByte() // consume the end String byte
-
     key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep
   }
 

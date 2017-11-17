@@ -62,7 +62,6 @@ public class JavaInterface {
         try {
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if (pr.successful()) {
-                System.out.println("Success");
                 Interpreter interpreter = new Interpreter(netty, key, (Program) pr.get());
                 return interpreter.run();
             } else {
@@ -73,7 +72,7 @@ public class JavaInterface {
         }
     }
 
-    @Deprecated
+
     public java.util.List<Object> convert(scala.collection.Seq<Object> seq) {
         return scala.collection.JavaConverters.seqAsJavaList(seq);
     }

@@ -120,7 +120,7 @@ It is possible to mix terms of tables 1 and 2.
 
 Expression Terms | Output
 ---------------- | ------
-all size | Returns a list with sizes of the containing values
+all size | Returns the size of all elements filtered
 first isEmpty | Returns true/false depending on if the first occurrence is empty or not
 
 It is also possible to mix terms of tables 1 and 3.
