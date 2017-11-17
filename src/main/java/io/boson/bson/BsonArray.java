@@ -546,6 +546,22 @@ public class BsonArray implements Iterable<Object> {
     }
 
     /**
+     * Encode the BSON array as a Byte Array
+     *
+     * @return the Byte Array
+     */
+    public byte[] encodeToBarray(){
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            Bson.encode(list, os);
+            os.flush();
+            return os.toByteArray();
+        } catch (IOException e) {
+            throw new VertxException(e);
+        }
+    }
+
+    /**
      * Encode this BSON object in an output stream
      *
      * @return the string encoding.
