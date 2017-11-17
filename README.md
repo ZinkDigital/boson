@@ -141,7 +141,5 @@ Lastly its possible to join terms of tables 1, 2 and 3.
 
 ### Available Buffer Types
 * Array of Bytes
-* Netty ByteBuf
 * Java ByteBuffer
-* Vertx Buffer
 * Scala ArrayBuffer
