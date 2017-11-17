@@ -2,11 +2,10 @@ package io.boson.nettybson
 
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
-import java.nio.charset.{Charset, UnsupportedCharsetException}
+import java.nio.charset.Charset
 import io.boson.bson.{BsonArray, BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.boson.nettybson.Constants._
-import io.vertx.core.buffer.Buffer
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 

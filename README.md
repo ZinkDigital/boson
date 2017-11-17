@@ -12,7 +12,7 @@ val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalar
     .put("Unemployed", false).put("Residence", "Lisboa").putNull("Experience")
 
 //  Instantiate a NettyBson that receives a buffer containing the Bson encoded
-val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes))
 
 //  Call extract method on nettyBson, the arguments being the netty byteBuf of NettyBson object,
 //  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
