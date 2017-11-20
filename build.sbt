@@ -16,6 +16,13 @@ crossPaths := false
 
 compileOrder := CompileOrder.Mixed
 
+scalacOptions in Test ++= Seq(
+  "-encoding",
+  "UTF-8"
+)
+
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
+crossPaths := false
 
 
   val libraries = Seq(

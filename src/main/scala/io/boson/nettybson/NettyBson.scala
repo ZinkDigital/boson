@@ -42,17 +42,16 @@ class NettyBson( byteArray: Option[Array[Byte]] = None,
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
     case ARRAY_BYTE => // Array[Byte]
-      val b = Unpooled.buffer()
-      b.writeBytes(byteArray.get)
+      val b = Unpooled.copiedBuffer(byteArray.get)
+      // b.writeBytes(byteArray.get)
+      b
     case JAVA_BYTEBUFFER => // Java ByteBuffer
-      val b = Unpooled.buffer()
-      //javaByteBuf.get.flip()
-      b.writeBytes(javaByteBuf.get)
+      val b = Unpooled.copiedBuffer(javaByteBuf.get)
       javaByteBuf.get.clear()
       b
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
-      val b = Unpooled.buffer()
-      b.writeBytes(scalaArrayBuf.get.toArray)
+      val b = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
+      b
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
   }
