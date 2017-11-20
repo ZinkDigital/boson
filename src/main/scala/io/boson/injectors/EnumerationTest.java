@@ -6,5 +6,11 @@ package io.boson.injectors;
 
 
 public enum EnumerationTest {
-   A, B, C
+   A("a"), B("b"), C("c");
+
+
+   private String str;
+   private EnumerationTest(String str){
+      this.str=str;
+   }
 }
