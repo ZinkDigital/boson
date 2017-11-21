@@ -387,8 +387,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
     def constructWithLimits(iter: Int): BsonArray = {
       val seqType2: Int = netty.readByte().toInt
       if (seqType2 != 0) {
-        netty.readByte()
-        netty.readByte()
+        readArrayPos(netty)
       }
       seqType2 match {
         case D_FLOAT_DOUBLE =>
@@ -532,7 +531,8 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   }
 
 
-
+  def duplicate: NettyBson =
+    new NettyBson(byteArray = Option(this.nettyBuffer.duplicate().array()))
 
   def getByteBuf: ByteBuf = this.nettyBuffer
 

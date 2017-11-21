@@ -86,6 +86,7 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
 
   private def executeArraySelectStatement(grammar: Grammar, arrEx: ArrExpr): Seq[Any] = {
     val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
+    println(s"midResult: $midResult")
     midResult match {
       case Seq() => Seq.empty
       case value =>
@@ -99,7 +100,11 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
           }
         } else {
           grammar.selectType match {
+            case "first" if value.asInstanceOf[Seq[BsonArray]].size == 1 =>
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getValue(0))
             case "first" => Seq(value.asInstanceOf[Seq[BsonArray]].head)
+            case "last" if value.asInstanceOf[Seq[BsonArray]].size == 1 =>
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getValue(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
             case "last" => Seq(value.asInstanceOf[Seq[BsonArray]].last)
             case "all" => value.asInstanceOf[Seq[BsonArray]]
           }

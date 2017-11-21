@@ -63,8 +63,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsSeq(List(new BsonArray().add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1)))) === resultParser)
+    assert(BsSeq(List(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))) === resultParser)
   }
 
   test("Last [# until #]") {
@@ -72,8 +71,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsSeq(List(new BsonArray().add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1)))) === resultParser)
+    assert(BsSeq(List(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1))) === resultParser)
   }
 
   test("First [# to #]") {
@@ -81,8 +79,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsSeq(List(new BsonArray().add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(2)))) === resultParser)
+    assert(BsSeq(List(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1))) === resultParser)
   }
 
   test("Last [# to #]") {
@@ -90,9 +87,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsSeq(List(new BsonArray().add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(2)))) === resultParser)
+    assert(BsSeq(List(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(2))) === resultParser)
   }
 
   test("First [# .. end]") {
@@ -100,8 +95,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsSeq(List(new BsonArray().add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1)))) === resultParser)
+    assert(BsSeq(List(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))) === resultParser)
   }
 
   test("Last [# .. end]") {
@@ -109,9 +103,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeReadings"
     val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
     val resultParser: BsValue = callParse(netty, key, expression)
-    assert(BsSeq(List(new BsonArray().add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(0))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(1))
-      .add(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(2)))) === resultParser)
+    assert(BsSeq(List(bsonEvent.getBsonArray("fridgeReadings").getBsonObject(2))) === resultParser)
   }
 
   test("[# .. end]") {
