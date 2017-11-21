@@ -61,7 +61,6 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       javaByteBuf.get.clear()
       b
     case VERTX_BUF => // Vertx Buffer
-      println("Vertx buffer")
       val b = vertxBuff.get.getByteBuf
       b//.writeBytes(vertxBuff.get.getBytes)
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
@@ -204,7 +203,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             None
         }
       case Some(value) if condition.equals("first") || condition.equals("limit")=>
-        netty.readerIndex(bsonFinishReaderIndex)
+        netty.readerIndex(bsonFinishReaderIndex)                                  //  TODO: review this line
         Some(value)
       case Some(_) =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -229,8 +228,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       case _ =>
         val seqType2: Int = netty.readByte().toInt
         if (seqType2 != 0) {
-          netty.readByte()
-          netty.readByte()
+          readArrayPos(netty)
         }
         val finalValue: Option[Any] =
           seqType2 match {
@@ -289,6 +287,15 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             }
         }
     }
+  }
+
+  private def readArrayPos(netty: ByteBuf): Unit = {
+    var i = netty.readerIndex()
+    while(netty.getByte(i) != 0 ) {
+      netty.readByte()
+      i+=1
+    }
+    netty.readByte()  //  consume the end Pos byte
   }
 
   private def extractKeys(netty: ByteBuf): Unit = {
