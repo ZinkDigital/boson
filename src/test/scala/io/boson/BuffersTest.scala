@@ -16,7 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 @RunWith(classOf[JUnitRunner])
 class BuffersTest extends FunSuite {
   val bsonEvent: BsonObject = new BsonObject().put("kitchen", "dirty".getBytes).put("Grade", 'C').put("CharSequence", "It WORKS!!!")
-  val exampleNetty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+  val exampleNetty: NettyBson = new NettyBson(byteArray = Option(bsonEvent.encode().getBytes))
 
   test("Java ByteBuffer"){
     val array: Array[Byte] = bsonEvent.encode().getBytes
@@ -26,14 +26,6 @@ class BuffersTest extends FunSuite {
     val nettyFromJava = new NettyBson(javaByteBuf = Option(javaBuffer))
     assert(javaBuffer.array() === nettyFromJava.getByteBuf.array()
       , "Content from ByteBuffer(java) it's different from nettyFromJava")
-  }
-
-  test("Vertx ByteBuffer"){
-    val vertxBuf: Buffer = Buffer.buffer(exampleNetty.array.length)
-    vertxBuf.appendBytes(exampleNetty.array)
-    val nettyFromVertx = new NettyBson(vertxBuff = Option(vertxBuf))
-    assert(vertxBuf.getBytes === nettyFromVertx.getByteBuf.array()
-      , "Content from ByteBuffer(Vertx) it's different from nettyFromVertx")
   }
 
   test("Scala ArrayBuffer[Byte]"){

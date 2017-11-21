@@ -2,11 +2,10 @@ package io.boson.nettybson
 
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
-import java.nio.charset.{Charset, UnsupportedCharsetException}
+import java.nio.charset.Charset
 import io.boson.bson.{BsonArray, BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.boson.nettybson.Constants._
-import io.vertx.core.buffer.Buffer
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -18,8 +17,10 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
   * This class encapsulates one Netty ByteBuf
   *
   */
-class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] = None, javaByteBuf: Option[ByteBuffer] = None,
-                vertxBuff: Option[Buffer] = None, scalaArrayBuf: Option[ArrayBuffer[Byte]] = None) {
+class NettyBson( byteArray: Option[Array[Byte]] = None,
+                 javaByteBuf: Option[ByteBuffer] = None,
+                 scalaArrayBuf: Option[ArrayBuffer[Byte]] = None
+               ) {
 
   /*private val valueOfArgument: String = this match {
     case _ if javaByteBuf.isDefined => javaByteBuf.get.getClass.getSimpleName
@@ -35,23 +36,11 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       javaByteBuf.get.getClass.getSimpleName
     } else if(byteArray.isDefined) {
       byteArray.get.getClass.getSimpleName
-    } else if(byteBuf.isDefined) {
-      byteBuf.get.getClass.getSimpleName
-    } else if(vertxBuff.isDefined) {
-      vertxBuff.get.getClass.getSimpleName
     } else if(scalaArrayBuf.isDefined) {
       scalaArrayBuf.get.getClass.getSimpleName
     } else EMPTY_CONSTRUCTOR
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
-    case NETTY_READONLY_BUF => // Netty
-      val b = byteBuf.get.duplicate()
-      //Unpooled.buffer()
-      b//.writeBytes(byteBuf.get)
-    case NETTY_DEFAULT_BUF => // Netty
-      val b = byteBuf.get.duplicate()
-      //Unpooled.buffer()
-      b///.writeBytes(byteBuf.get)
     case ARRAY_BYTE => // Array[Byte]
       val b = Unpooled.copiedBuffer(byteArray.get)
       // b.writeBytes(byteArray.get)
@@ -60,17 +49,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       val b = Unpooled.copiedBuffer(javaByteBuf.get)
       javaByteBuf.get.clear()
       b
-    case VERTX_BUF => // Vertx Buffer
-      println("Vertx buffer")
-      val b = vertxBuff.get.getByteBuf
-      b//.writeBytes(vertxBuff.get.getBytes)
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
       val b = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
-      b//.writeBytes(scalaArrayBuf.get.toArray)
-    case NETTY_DUPLICATED_BUF => // Netty
-      val b = byteBuf.get.duplicate()
-      //Unpooled.buffer()
-      b//.writeBytes(byteBuf.get)
+      b
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
   }
@@ -550,7 +531,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   }
 
   def asReadOnly: NettyBson = {
-    new NettyBson(byteBuf = Option(nettyBuffer.asReadOnly()))
+    new NettyBson(byteArray = Option(nettyBuffer.asReadOnly().array()))
   }
 
   def isReadOnly: Boolean = {
@@ -631,7 +612,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   def readBytes(length: Int): NettyBson = {
       val bB: ByteBuf = Unpooled.buffer()
       nettyBuffer.readBytes(bB, length)
-      new NettyBson(byteBuf = Option(bB))
+      new NettyBson(byteArray = Option(bB.array()))
   }
 
   def readChar: Char = {
