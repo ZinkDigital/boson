@@ -86,7 +86,6 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
 
   private def executeArraySelectStatement(grammar: Grammar, arrEx: ArrExpr): Seq[Any] = {
     val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
-    println(s"midResult: $midResult")
     midResult match {
       case Seq() => Seq.empty
       case value =>

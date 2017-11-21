@@ -1,7 +1,7 @@
 package io.boson.performanceTests
 
 import io.boson.bson.{BsonArray, BsonObject}
-import io.boson.bsonValue.BsSeq
+import io.boson.bsonValue.{BsNumber, BsSeq}
 import io.boson.nettybson.NettyBson
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
@@ -34,39 +34,45 @@ object PerformanceTest extends App{
 
 
   /**
-    * Testing performance of extracting a top value of a BsonObject
-    */
-  val result1 = time { sI.parse(netty.duplicate, "Epoch", "first") }
-  println(result1.asInstanceOf[BsSeq].getValue.head)
-  println()
-
-  /**
     * Testing performance of extracting a bottom value of a BsonObject
     */
   val result2 = time { sI.parse(netty.duplicate, "SSLNLastName", "last") }
-  println(new String(result2.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]))
+  println("result2: " + new String(result2.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]))
+  println()
+
+  /**
+    * Testing performance of extracting a top value of a BsonObject
+    */
+  val result1 = time { sI.parse(netty.duplicate, "Epoch", "first") }
+  println("result1: " + result1.asInstanceOf[BsSeq].getValue.head)
   println()
 
   /**
     * Testing performance of extracting all 'Tags' values
     */
   val result3 = time { sI.parse(netty.duplicate, "Tags", "all") }
-  println(result3.asInstanceOf[BsSeq].getValue)
+  println("result3: " + result3.asInstanceOf[BsSeq].getValue)
   println()
 
   /**
     * Testing performance of extracting values of some positions of a BsonArray
     */
   val result4 = time { sI.parse(netty.duplicate, "Markets", "[3 to 5]") }
-  println(result4.asInstanceOf[BsSeq].getValue.asInstanceOf[Seq[BsonArray]].head.forEach(e => println(e)))
+  result4.asInstanceOf[BsSeq].getValue.asInstanceOf[Seq[BsonArray]].head.forEach(e => println("result4: " + e))
   println()
 
   /**
     * Testing performance of extracting values of some positions of a BsonArray and selecting one
     */
   val result5 = time { sI.parse(netty.duplicate, "Markets", "last [3 to 5]") }
-  println(result5.asInstanceOf[BsSeq].getValue)
-  println(result5.asInstanceOf[BsSeq].getValue.asInstanceOf[Seq[BsonArray]].head.forEach(e => println(e)))
+  println("result5: " + result5.asInstanceOf[BsSeq].getValue.head.asInstanceOf[BsonObject])
+  println()
+
+  /**
+    * Testing performance of getting size of all occurrences of a key
+    */
+  val result6 = time { sI.parse(netty.duplicate, "Price", "all size") }
+  println("result6: " + result6.asInstanceOf[BsNumber].value)
   println()
 
 }
