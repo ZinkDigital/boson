@@ -1,13 +1,13 @@
 package io.boson.bsonPath
 
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
-class Interpreter(netty: NettyBson, key: String, program: Program) {
+class Interpreter(netty: Boson, key: String, program: Program) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)

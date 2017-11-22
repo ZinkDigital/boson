@@ -1,4 +1,4 @@
-package io.boson.nettybson
+package io.boson.nettyboson
 
 import java.nio.charset.Charset
 

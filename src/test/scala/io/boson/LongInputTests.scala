@@ -2,7 +2,7 @@ package io.boson
 
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue.{BsBoolean, BsNumber, BsSeq, BsValue}
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
 import org.junit.runner.RunWith
@@ -25,7 +25,7 @@ class LongInputTests extends FunSuite {
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
 
-  val netty: NettyBson = sI.createNettyBson(bson.encode().getBytes)
+  val netty: Boson = sI.createNettyBson(bson.encode().getBytes)
 
   test("extract top field") {
     val result: BsValue = sI.parse(netty.duplicate, "Epoch", "first")

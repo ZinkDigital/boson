@@ -2,7 +2,7 @@ package io.boson.performanceTests
 
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue.{BsNumber, BsSeq}
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
 import org.scalameter._
@@ -23,7 +23,7 @@ object PerformanceTest extends App{
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
 
-  val netty: NettyBson = sI.createNettyBson(bson.encode().getBytes)
+  val netty: Boson = sI.createNettyBson(bson.encode().getBytes)
 
   def bestTimeMeasure[R](block: => R): Quantity[Double] = {
     val time = withWarmer( new Warmer.Default ) measure {

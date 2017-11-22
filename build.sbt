@@ -22,6 +22,8 @@ scalacOptions in Test ++= Seq(
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
+
+// Do not append Scala versions to the generated artifacts
 crossPaths := false
 
 
@@ -36,7 +38,7 @@ crossPaths := false
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
     "junit"             %  "junit"       % "4.12"  % Test,
-    "com.novocode" % "junit-interface" % "0.10" % "test"
+    "com.novocode" % "junit-interface" % "0.11" % "test"
   )
 
 

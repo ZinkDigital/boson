@@ -4,7 +4,7 @@ import io.boson.bson.BsonArray;
 import io.boson.bson.BsonObject;
 import io.boson.bsonValue.*;
 import io.boson.javaInterface.JavaInterface;
-import io.boson.nettybson.NettyBson;
+import io.boson.nettyboson.Boson;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -35,7 +35,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "José";
         String expression = "[-8 to 5]";
-        NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
+        Boson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
 
         BsValue result = jI.parse(netty, key, expression);
 
@@ -51,7 +51,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "José";
         String expression = "[0 until 4]";
-        NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
+        Boson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
 
         BsValue result = jI.parse(netty, key, expression);
 
@@ -81,7 +81,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "";
         String expression = "all size";
-        NettyBson netty = jI.createNettyBson(arr.encode().getBytes());
+        Boson netty = jI.createNettyBson(arr.encode().getBytes());
 
         BsValue result = jI.parse(netty, key, expression);
 
@@ -101,7 +101,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "";
         String expression = "first isEmpty";
-        NettyBson netty = jI.createNettyBson(arr.encode().getBytes());
+        Boson netty = jI.createNettyBson(arr.encode().getBytes());
 
         BsValue result = jI.parse(netty, key, expression);
 
