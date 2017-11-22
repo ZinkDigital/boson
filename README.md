@@ -62,7 +62,7 @@ val netty: NettyBson = sI.createNettyBson(bsonObject.encode())
 
 //  To extract from the Netty buffer, method parse is called with the key and expression.
 //  The result can be one of three types depending on the used terms in expression.
-val result: Any = sI.parse(netty, key, expression)
+val result: BsValue = sI.parse(netty, key, expression)
 ```
 
 ### Using JavaInterface
@@ -74,7 +74,7 @@ JavaInterface jI = new JavaInterface();
 String key = "Something";
 String expression = "all";
 NettyBson netty = jI.createNettyBson(bsonObject.encode().getBytes());
-Object result = jI.parse(netty, key, expression);
+BsValue result = jI.parse(netty, key, expression);
 ```
 
 ## Extracting Available Terms
