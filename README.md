@@ -11,12 +11,12 @@ Streaming Data Access for BSON and JSON encoded documents
 val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L)
     .put("Unemployed", false).put("Residence", "Lisboa").putNull("Experience")
 
-//  Instantiate a NettyBson that receives a buffer containing the Bson encoded
-val nettyBson: NettyBson = new NettyBson(vertxBuff = Option(globalObj.encode()))
+//  Instantiate a Boson that receives a buffer containing the Bson encoded
+val boson: Boson = new Boson(vertxBuff = Option(globalObj.encode()))
 
-//  Call extract method on nettyBson, the arguments being the netty byteBuf of NettyBson object,
+//  Call extract method on boson, the arguments being the netty byteBuf of Boson object,
 //  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
-val result: Option[Any] = nettyBson.extract(nettyBson.getByteBuf, "AnualSalary", "first")
+val result: Option[Any] = boson.extract(nettyBson.getByteBuf, "AnualSalary", "first")
 ```
 
 ### Extracting a Json (Java)
@@ -55,14 +55,14 @@ val key: String = ""
 //  The available terms to use are shown further down in the README document.
 val expression: String = "first"
 
-//  NettyBson is an Object that encapsulates a certain type of buffer
+//  Boson is an Object that encapsulates a certain type of buffer
 //  and transforms it into a Netty buffer.
 //  Available types are shown further down in the README document.
-val netty: NettyBson = sI.createNettyBson(bsonObject.encode())
+val boson: Boson = sI.createNettyBson(bsonObject.encode())
 
 //  To extract from the Netty buffer, method parse is called with the key and expression.
 //  The result can be one of three types depending on the used terms in expression.
-val result: BsValue = sI.parse(netty, key, expression)
+val result: BsValue = sI.parse(boson, key, expression)
 ```
 
 ### Using JavaInterface
@@ -73,8 +73,8 @@ val result: BsValue = sI.parse(netty, key, expression)
 JavaInterface jI = new JavaInterface();
 String key = "Something";
 String expression = "all";
-NettyBson netty = jI.createNettyBson(bsonObject.encode().getBytes());
-BsValue result = jI.parse(netty, key, expression);
+Boson boson = jI.createNettyBson(bsonObject.encode().getBytes());
+BsValue result = jI.parse(boson, key, expression);
 ```
 
 ## Extracting Available Terms
