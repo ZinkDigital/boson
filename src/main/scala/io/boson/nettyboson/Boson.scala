@@ -2,7 +2,7 @@ package io.boson.nettyboson
 
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
-import java.nio.charset.{Charset, UnsupportedCharsetException}
+import java.nio.charset.Charset
 import io.boson.bson.{BsonArray, BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.boson.nettyboson.Constants._

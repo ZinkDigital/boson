@@ -1,4 +1,4 @@
-package io.boson.performanceTests
+package io.boson.benchMarck
 
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue.{BsNumber, BsSeq}
@@ -6,7 +6,6 @@ import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
 import org.scalameter._
-
 import scala.io.Source
 
 /**
