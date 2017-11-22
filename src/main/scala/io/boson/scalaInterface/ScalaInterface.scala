@@ -12,21 +12,21 @@ import io.boson.bsonValue
   */
 class ScalaInterface {
 
-  def createNettyBson(byteArray: Array[Byte]):Boson = {
+  def createBoson(byteArray: Array[Byte]):Boson = {
      new Boson(byteArray = Option(byteArray))
   }
 
-  def createNettyBson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
+  def createBoson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
     new Boson(scalaArrayBuf = Option(arrayBuffer))
   }
 
 
-  def parse(netty: Boson, key: String, expression: String): bsonValue.BsValue = {
+  def parse(boson: Boson, key: String, expression: String): bsonValue.BsValue = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(netty, key, r.asInstanceOf[Program]).run()
+          new Interpreter(boson, key, r.asInstanceOf[Program]).run()
         case parser.Error(msg, _) =>  bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) =>  bsonValue.BsObject.toBson(msg)
       }

@@ -5,7 +5,6 @@ import io.boson.bsonPath.Interpreter;
 import io.boson.bsonPath.Program;
 import io.boson.bsonPath.TinyLanguage;
 import io.boson.nettyboson.Boson;
-import io.netty.buffer.ByteBuf;
 import scala.Function1;
 import scala.Option;
 import scala.util.parsing.combinator.Parsers;
@@ -15,7 +14,7 @@ import io.boson.bsonValue.*;
 
 public class JavaInterface {
 
-    public Boson createNettyBson(byte[] byteArray) {
+    public Boson createBoson(byte[] byteArray) {
         return new Boson(
                 Option.apply(byteArray),
                 Option.apply(null),
@@ -23,7 +22,7 @@ public class JavaInterface {
         );
     }
 
-    public Boson createNettyBson(ByteBuffer byteBuffer) {
+    public Boson createBoson(ByteBuffer byteBuffer) {
         return new Boson(
                 Option.apply(null),
                 Option.apply(byteBuffer),
@@ -33,12 +32,12 @@ public class JavaInterface {
 
     private Function1<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
-    public BsValue parse(Boson netty, String key, String expression) {
+    public BsValue parse(Boson boson, String key, String expression) {
         TinyLanguage parser = new TinyLanguage();
         try {
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if (pr.successful()) {
-                Interpreter interpreter = new Interpreter(netty, key, (Program) pr.get());
+                Interpreter interpreter = new Interpreter(boson, key, (Program) pr.get());
                 return interpreter.run();
             } else {
                 return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply(writer));

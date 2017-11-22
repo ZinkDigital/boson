@@ -16,7 +16,7 @@ val boson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes))
 
 //  Call extract method on boson, the arguments being the netty byteBuf of Boson object,
 //  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
-val result: Option[Any] = boson.extract(nettyBson.getByteBuf, "AnualSalary", "first")
+val result: Option[Any] = boson.extract(boson.getByteBuf, "AnualSalary", "first")
 ```
 
 ### Extracting a Json (Java)
