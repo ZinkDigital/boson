@@ -4,7 +4,7 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ## Basic Usage
 
-### Extracting a Bson (Scala)
+### Extracting a Value from a BsonObject (Scala)
 
 ```scala
 //  Create a BsonObject/BsonArray
