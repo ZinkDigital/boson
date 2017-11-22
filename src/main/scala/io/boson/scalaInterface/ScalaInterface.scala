@@ -1,6 +1,5 @@
 package io.boson.scalaInterface
 
-import java.nio.ByteBuffer
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.nettyboson.Boson
 import io.netty.buffer.ByteBuf
@@ -16,15 +15,7 @@ class ScalaInterface {
   def createNettyBson(byteArray: Array[Byte]):Boson = {
      new Boson(byteArray = Option(byteArray))
   }
-  def createNettyBson(byteBuf: ByteBuf):Boson = {
-    new Boson(byteBuf = Option(byteBuf))
-  }
-  def createNettyBson(byteBuffer: ByteBuffer):Boson = {
-    new Boson(javaByteBuf = Option(byteBuffer))
-  }
-  def createNettyBson(vertxBuffer: Buffer):Boson = {
-    new Boson(vertxBuff = Option(vertxBuffer))
-  }
+
   def createNettyBson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
     new Boson(scalaArrayBuf = Option(arrayBuffer))
   }

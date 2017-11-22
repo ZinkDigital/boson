@@ -51,7 +51,7 @@ object TinyLanguageTest {
 
 
       val arrTest: BsonArray = new BsonArray().add(2.2).add(2.4).add(2.6)
-      val netty: Boson = new Boson(vertxBuff = Option(bsonEvent.encode()))
+      val netty: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
       val key: String = "José"
       val language: String = "[0 to end] size"
       val parser = new TinyLanguage

@@ -704,6 +704,22 @@ public class BsonObject implements Iterable<Map.Entry<String, Object>> {
         }
     }
 
+    /**
+     * Encode the BSON object as a Byte Array
+     *
+     * @return the Byte Array
+     */
+    public byte[] encodeToBarray(){
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            Bson.encode(map, os);
+            os.flush();
+            return os.toByteArray();
+        } catch (IOException e) {
+            throw new VertxException(e);
+        }
+    }
+
 
     /**
      * Copy the JSON object

@@ -11,8 +11,13 @@ Streaming Data Access for BSON and JSON encoded documents
 val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L)
     .put("Unemployed", false).put("Residence", "Lisboa").putNull("Experience")
 
+<<<<<<< HEAD
 //  Instantiate a Boson that receives a buffer containing the Bson encoded
 val boson: Boson = new Boson(vertxBuff = Option(globalObj.encode()))
+=======
+//  Instantiate a NettyBson that receives a buffer containing the Bson encoded
+val nettyBson: NettyBson = new NettyBson(byteArray = Option(globalObj.encode().getBytes))
+>>>>>>> 108b4fa05962e256de05729ecb7519756c19135e
 
 //  Call extract method on boson, the arguments being the netty byteBuf of Boson object,
 //  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
@@ -58,7 +63,11 @@ val expression: String = "first"
 //  Boson is an Object that encapsulates a certain type of buffer
 //  and transforms it into a Netty buffer.
 //  Available types are shown further down in the README document.
+<<<<<<< HEAD
 val boson: Boson = sI.createNettyBson(bsonObject.encode())
+=======
+val netty: NettyBson = sI.createNettyBson(bsonObject.encode().getBytes)
+>>>>>>> 108b4fa05962e256de05729ecb7519756c19135e
 
 //  To extract from the Netty buffer, method parse is called with the key and expression.
 //  The result can be one of three types depending on the used terms in expression.
@@ -141,8 +150,8 @@ Lastly its possible to join terms of tables 1, 2 and 3.
 
 ### Available Buffer Types
 * Array of Bytes
-* Netty ByteBuf
 * Java ByteBuffer
+<<<<<<< HEAD
 * Vertx Buffer
 * Scala ArrayBuffer
 
@@ -153,3 +162,6 @@ possible outputs of the parser.
 * BsSeq
 * BsBoolean
 * BsException
+=======
+* Scala ArrayBuffer
+>>>>>>> 108b4fa05962e256de05729ecb7519756c19135e
