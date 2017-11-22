@@ -15,16 +15,7 @@ import scala.io.Source
   * Created by Tiago Filipe on 20/11/2017.
   */
 @RunWith(classOf[JUnitRunner])
-class PerformanceTests extends FunSuite {
-
-  def time[R](block: => R): R = {
-    val t0 = System.nanoTime()
-    val result = block    // call-by-name
-    val t1 = System.nanoTime()
-    println("Elapsed time: " + (t1 - t0) + "ns")
-    result
-  }
-
+class LongInputTests extends FunSuite {
 
   val sI: ScalaInterface = new ScalaInterface
 
@@ -35,16 +26,10 @@ class PerformanceTests extends FunSuite {
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
 
-  println(bson)
-
-  test("extract field in beggining with first") {
-
+  test("extract top field") {
     val netty: NettyBson = sI.createNettyBson(bson.encode().getBytes)
-    val result = time { sI.parse(netty, "Epoch", "first") }
-    println(bson.getInteger("Epoch"))
-    println(result)
+    val result: BsValue = sI.parse(netty, "Epoch", "first")
     assert(bson.getInteger("Epoch") === result.asInstanceOf[BsSeq].value.head)
-
   }
 
 }

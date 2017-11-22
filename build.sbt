@@ -30,8 +30,8 @@ crossPaths := false
     "org.glassfish" % "javax.json" % "1.1",
     "de.undercouch" % "bson4jackson" % "2.7.0",
     "io.vertx" % "vertx-core" % "3.5.0",
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
-
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    "com.storm-enroute" % "scalameter-core_2.12" % "0.8.2"
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),

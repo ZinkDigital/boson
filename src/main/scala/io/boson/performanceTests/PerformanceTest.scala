@@ -5,6 +5,7 @@ import io.boson.bsonValue.{BsNumber, BsSeq}
 import io.boson.nettybson.NettyBson
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
+import org.scalameter._
 
 import scala.io.Source
 
@@ -24,57 +25,70 @@ object PerformanceTest extends App{
 
   val netty: NettyBson = sI.createNettyBson(bson.encode().getBytes)
 
-  def time[R](block: => R): R = {
-    val t0 = System.nanoTime()
-    val result = block    // call-by-name
-    val t1 = System.nanoTime()
-    println("Elapsed time: " + (t1 - t0) + "ns -> " + (t1 - t0)*scala.math.pow(10, -9) + "s" )
-    result
+  def bestTimeMeasure[R](block: => R): Quantity[Double] = {
+    val time = withWarmer( new Warmer.Default ) measure {
+      block
+    }
+    time
   }
+
+  /**
+    * Testing performance of extracting a top value of a BsonObject
+    */
+  val result1 = bestTimeMeasure { sI.parse(netty.duplicate, "Epoch", "first") }
+  println()
+  println("result1: " + sI.parse(netty.duplicate, "Epoch", "first").asInstanceOf[BsSeq].getValue.head)
+  println(s"Benchmark for this test: $result1")
+  println()
 
 
   /**
     * Testing performance of extracting a bottom value of a BsonObject
     */
-  val result2 = time { sI.parse(netty.duplicate, "SSLNLastName", "last") }
-  println("result2: " + new String(result2.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]))
+  val result2 = bestTimeMeasure { sI.parse(netty.duplicate, "SSLNLastName", "last") }
   println()
-
-  /**
-    * Testing performance of extracting a top value of a BsonObject
-    */
-  val result1 = time { sI.parse(netty.duplicate, "Epoch", "first") }
-  println("result1: " + result1.asInstanceOf[BsSeq].getValue.head)
+  println("result2: " + new String(sI.parse(netty.duplicate, "SSLNLastName", "last")
+    .asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]))
+  println(s"Benchmark for this test: $result2")
   println()
 
   /**
     * Testing performance of extracting all 'Tags' values
     */
-  val result3 = time { sI.parse(netty.duplicate, "Tags", "all") }
-  println("result3: " + result3.asInstanceOf[BsSeq].getValue)
+  val result3 = bestTimeMeasure { sI.parse(netty.duplicate, "Tags", "all") }
+  println()
+  println("result3: " + sI.parse(netty.duplicate, "Tags", "all").asInstanceOf[BsSeq].getValue)
+  println(s"Benchmark for this test: $result3")
   println()
 
   /**
     * Testing performance of extracting values of some positions of a BsonArray
     */
-  val result4 = time { sI.parse(netty.duplicate, "Markets", "[3 to 5]") }
-  result4.asInstanceOf[BsSeq].getValue.asInstanceOf[Seq[BsonArray]].head.forEach(e => println("result4: " + e))
+  val result4 = bestTimeMeasure { sI.parse(netty.duplicate, "Markets", "[3 to 5]") }
+  println()
+  sI.parse(netty.duplicate, "Markets", "[3 to 5]").asInstanceOf[BsSeq]
+    .getValue.asInstanceOf[Seq[BsonArray]].head.forEach(e => println("result4: " + e))
+  println(s"Benchmark for this test: $result4")
   println()
 
   /**
     * Testing performance of extracting values of some positions of a BsonArray and selecting one
     */
-  val result5 = time { sI.parse(netty.duplicate, "Markets", "last [3 to 5]") }
-  println("result5: " + result5.asInstanceOf[BsSeq].getValue.head.asInstanceOf[BsonObject])
+  val result5 = bestTimeMeasure { sI.parse(netty.duplicate, "Markets", "last [50 to 55]") }
+  println()
+  println("result5: " + sI.parse(netty.duplicate, "Markets", "last [50 to 55]")
+    .asInstanceOf[BsSeq].getValue.head.asInstanceOf[BsonObject])
+  println(s"Benchmark for this test: $result5")
   println()
 
   /**
     * Testing performance of getting size of all occurrences of a key
     */
-  val result6 = time { sI.parse(netty.duplicate, "Price", "all size") }
-  println("result6: " + result6.asInstanceOf[BsNumber].value)
+  val result6 = bestTimeMeasure { sI.parse(netty.duplicate, "Price", "all size") }
   println()
-
+  println("result6: " + sI.parse(netty.duplicate, "Price", "all size").asInstanceOf[BsNumber].value)
+  println(s"Benchmark for this test: $result6")
+  println()
 }
 
 
