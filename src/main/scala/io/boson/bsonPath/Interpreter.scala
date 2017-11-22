@@ -1,13 +1,13 @@
 package io.boson.bsonPath
 
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
-class Interpreter(netty: NettyBson, key: String, program: Program) {
+class Interpreter(netty: Boson, key: String, program: Program) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)
@@ -99,7 +99,11 @@ class Interpreter(netty: NettyBson, key: String, program: Program) {
           }
         } else {
           grammar.selectType match {
+            case "first" if value.asInstanceOf[Seq[BsonArray]].size == 1 =>
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getValue(0))
             case "first" => Seq(value.asInstanceOf[Seq[BsonArray]].head)
+            case "last" if value.asInstanceOf[Seq[BsonArray]].size == 1 =>
+              Seq(value.asInstanceOf[Seq[BsonArray]].head.getValue(value.asInstanceOf[Seq[BsonArray]].head.size()-1))
             case "last" => Seq(value.asInstanceOf[Seq[BsonArray]].last)
             case "all" => value.asInstanceOf[Seq[BsonArray]]
           }

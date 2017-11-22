@@ -2,7 +2,7 @@ package io.boson.scalaInterface
 
 import java.nio.ByteBuffer
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.netty.buffer.ByteBuf
 import io.vertx.core.buffer.Buffer
 import scala.collection.mutable.ArrayBuffer
@@ -13,24 +13,24 @@ import io.boson.bsonValue
   */
 class ScalaInterface {
 
-  def createNettyBson(byteArray: Array[Byte]):NettyBson = {
-     new NettyBson(byteArray = Option(byteArray))
+  def createNettyBson(byteArray: Array[Byte]):Boson = {
+     new Boson(byteArray = Option(byteArray))
   }
-  def createNettyBson(byteBuf: ByteBuf):NettyBson = {
-    new NettyBson(byteBuf = Option(byteBuf))
+  def createNettyBson(byteBuf: ByteBuf):Boson = {
+    new Boson(byteBuf = Option(byteBuf))
   }
-  def createNettyBson(byteBuffer: ByteBuffer):NettyBson = {
-    new NettyBson(javaByteBuf = Option(byteBuffer))
+  def createNettyBson(byteBuffer: ByteBuffer):Boson = {
+    new Boson(javaByteBuf = Option(byteBuffer))
   }
-  def createNettyBson(vertxBuffer: Buffer):NettyBson = {
-    new NettyBson(vertxBuff = Option(vertxBuffer))
+  def createNettyBson(vertxBuffer: Buffer):Boson = {
+    new Boson(vertxBuff = Option(vertxBuffer))
   }
-  def createNettyBson(arrayBuffer: ArrayBuffer[Byte]):NettyBson = {
-    new NettyBson(scalaArrayBuf = Option(arrayBuffer))
+  def createNettyBson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
+    new Boson(scalaArrayBuf = Option(arrayBuffer))
   }
 
 
-  def parse(netty: NettyBson, key: String, expression: String): bsonValue.BsValue = {
+  def parse(netty: Boson, key: String, expression: String): bsonValue.BsValue = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {

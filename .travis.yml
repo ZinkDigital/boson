@@ -2,9 +2,9 @@ matrix:
   include:
     - language: scala
       scala: 2.12.3
-      script: sbt "test-only *BuffersTest *ExtractorTests *HorribleTests *LanguageTests *ScalaInterfaceTests"
+      script: sbt clean "test-only *BuffersTest *ExtractorTests *HorribleTests *LanguageTests *LongInputTests *ScalaInterfaceTests"
 
 
     - language: java
       jdk: oraclejdk8
-      script: sbt "test-only *BuilderTest *ExtractorTest *JavaInterfaceTest"
+      script: sbt clean "test-only *BuilderTest *ExtractorTest *JavaInterfaceTest"

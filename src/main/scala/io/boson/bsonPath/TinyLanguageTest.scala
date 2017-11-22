@@ -1,6 +1,6 @@
 package io.boson.bsonPath
 
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.boson.bson.{BsonArray, BsonObject}
 import io.vertx.core.json.{JsonArray, JsonObject}
 
@@ -51,7 +51,7 @@ object TinyLanguageTest {
 
 
       val arrTest: BsonArray = new BsonArray().add(2.2).add(2.4).add(2.6)
-      val netty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
+      val netty: Boson = new Boson(vertxBuff = Option(bsonEvent.encode()))
       val key: String = "José"
       val language: String = "[0 to end] size"
       val parser = new TinyLanguage
