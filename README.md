@@ -145,3 +145,11 @@ Lastly its possible to join terms of tables 1, 2 and 3.
 * Java ByteBuffer
 * Vertx Buffer
 * Scala ArrayBuffer
+
+### BsValue
+BsValue is a trait representing any return type of the parser. This type is extended by case classes that represent the
+possible outputs of the parser.
+* BsNumber
+* BsSeq
+* BsBoolean
+* BsException
