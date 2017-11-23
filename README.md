@@ -1,4 +1,6 @@
 # boson
+[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
+
 Streaming Data Access for BSON and JSON encoded documents
 
 
