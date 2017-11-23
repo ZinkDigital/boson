@@ -35,9 +35,9 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "José";
         String expression = "[-8 to 5]";
-        Boson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
+        Boson boson = jI.createBoson(bsonEvent.encode().getBytes());
 
-        BsValue result = jI.parse(netty, key, expression);
+        BsValue result = jI.parse(boson, key, expression);
 
         assertEquals(BsException$.MODULE$.apply("Failure/Error parsing!"), result);
     }
@@ -51,9 +51,9 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "José";
         String expression = "[0 until 4]";
-        Boson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
+        Boson boson = jI.createBoson(bsonEvent.encode().getBytes());
 
-        BsValue result = jI.parse(netty, key, expression);
+        BsValue result = jI.parse(boson, key, expression);
 
         if(result instanceof BsSeq){
             BsSeq newResult = (BsSeq) result;
@@ -81,9 +81,9 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "";
         String expression = "all size";
-        Boson netty = jI.createNettyBson(arr.encode().getBytes());
+        Boson boson = jI.createBoson(arr.encode().getBytes());
 
-        BsValue result = jI.parse(netty, key, expression);
+        BsValue result = jI.parse(boson, key, expression);
 
         if(result instanceof BsNumber) {
             BsNumber newResult = (BsNumber) result;
@@ -101,9 +101,9 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "";
         String expression = "first isEmpty";
-        Boson netty = jI.createNettyBson(arr.encode().getBytes());
+        Boson boson = jI.createBoson(arr.encode().getBytes());
 
-        BsValue result = jI.parse(netty, key, expression);
+        BsValue result = jI.parse(boson, key, expression);
 
         if (result instanceof BsBoolean) {
             BsBoolean newResult = (BsBoolean) result;

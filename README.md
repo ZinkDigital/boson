@@ -1,4 +1,6 @@
 # boson
+[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
+
 Streaming Data Access for BSON and JSON encoded documents
 
 
@@ -16,7 +18,7 @@ val boson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes))
 
 //  Call extract method on boson, the arguments being the netty byteBuf of Boson object,
 //  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
-val result: Option[Any] = boson.extract(nettyBson.getByteBuf, "AnualSalary", "first")
+val result: Option[Any] = boson.extract(boson.getByteBuf, "AnualSalary", "first")
 ```
 
 ### Extracting a Json (Java)
@@ -58,7 +60,7 @@ val expression: String = "first"
 //  Boson is an Object that encapsulates a certain type of buffer
 //  and transforms it into a Netty buffer.
 //  Available types are shown further down in the README document.
-val boson: Boson = sI.createNettyBson(bsonObject.encode().getBytes)
+val boson: Boson = sI.createBoson(bsonObject.encode().getBytes)
 
 //  To extract from the Netty buffer, method parse is called with the key and expression.
 //  The result can be one of three types depending on the used terms in expression.
@@ -73,7 +75,7 @@ val result: BsValue = sI.parse(boson, key, expression)
 JavaInterface jI = new JavaInterface();
 String key = "Something";
 String expression = "all";
-Boson boson = jI.createNettyBson(bsonObject.encode().getBytes());
+Boson boson = jI.createBoson(bsonObject.encode().getBytes());
 BsValue result = jI.parse(boson, key, expression);
 ```
 

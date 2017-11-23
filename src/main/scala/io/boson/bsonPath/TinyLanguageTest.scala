@@ -51,13 +51,13 @@ object TinyLanguageTest {
 
 
       val arrTest: BsonArray = new BsonArray().add(2.2).add(2.4).add(2.6)
-      val netty: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
+      val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
       val key: String = "José"
       val language: String = "[0 to end] size"
       val parser = new TinyLanguage
       parser.parseAll(parser.program, language) match {
         case parser.Success(r, _) =>
-          val interpreter = new Interpreter(netty, key, r.asInstanceOf[Program])
+          val interpreter = new Interpreter(boson, key, r.asInstanceOf[Program])
           try {
             println("SUCCESS: " + interpreter.run())
           } catch {

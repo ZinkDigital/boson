@@ -7,7 +7,7 @@ import io.boson.bsonValue
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
-class Interpreter(netty: Boson, key: String, program: Program) {
+class Interpreter(boson: Boson, key: String, program: Program) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)
@@ -114,24 +114,24 @@ class Interpreter(netty: Boson, key: String, program: Program) {
   private def executeArraySelect(left: Int, mid: String, right: Any): Seq[Any] = {
     (left, mid, right) match {
       case (a, ("until" | "Until"), "end") =>
-        val midResult = netty.extract(netty.getByteBuf, key, "limit", Option(a), None)
+        val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
           midResult.map(v => {
             v.asInstanceOf[Seq[BsonArray]].foreach(elem => elem.remove(elem.size()-1))
             v.asInstanceOf[Seq[BsonArray]]
           }
           ).getOrElse(Seq.empty)
       case (a, _, "end") => // "[# .. end]"
-        netty.extract(netty.getByteBuf, key, "limit", Option(a), None).map( v =>
+        boson.extract(boson.getByteBuf, key, "limit", Option(a), None).map( v =>
         v.asInstanceOf[Seq[BsonArray]]).getOrElse(Seq.empty)
       case (a, expr, b) if b.isInstanceOf[Int] =>
         expr match {
           case ("to" | "To") =>
-            netty.extract(
-              netty.getByteBuf, key, "limit", Option(a), Option(b.asInstanceOf[Int])
+            boson.extract(
+              boson.getByteBuf, key, "limit", Option(a), Option(b.asInstanceOf[Int])
             ).map(v =>v.asInstanceOf[Seq[BsonArray]]).getOrElse(Seq.empty)
           case ("until" | "Until") =>
-            netty.extract(
-              netty.getByteBuf, key, "limit", Option(a), Option(b.asInstanceOf[Int] - 1)
+            boson.extract(
+              boson.getByteBuf, key, "limit", Option(a), Option(b.asInstanceOf[Int] - 1)
             ).map(v => v.asInstanceOf[Seq[BsonArray]]).getOrElse(Seq.empty)
         }
     }
@@ -158,7 +158,7 @@ class Interpreter(netty: Boson, key: String, program: Program) {
   }
 
   private def executeSelect(selectType: String): bsonValue.BsValue = {
-    val result = netty.extract(netty.getByteBuf, key, selectType)
+    val result = boson.extract(boson.getByteBuf, key, selectType)
     selectType match {
       case "first" =>
         if (key.isEmpty) {
@@ -181,7 +181,7 @@ class Interpreter(netty: Boson, key: String, program: Program) {
   }
 
   private def executeSizeOfSelected(grammar: Grammar, scndGrammar: ScndGrammar): bsonValue.BsValue = {
-    val result = netty.extract(netty.getByteBuf, key, grammar.selectType)
+    val result = boson.extract(boson.getByteBuf, key, grammar.selectType)
     grammar.selectType match {
       case "first" | "last" =>
         result match {
@@ -237,13 +237,13 @@ class Interpreter(netty: Boson, key: String, program: Program) {
     } else {
       term match {
         case "in" =>
-          val result = netty.extract(netty.getByteBuf, key, "first")
+          val result = boson.extract(boson.getByteBuf, key, "first")
           result match {
             case Some(_) => true
             case None => false
           }
         case "Nin" =>
-          val result = netty.extract(netty.getByteBuf, key, "first")
+          val result = boson.extract(boson.getByteBuf, key, "first")
           result match {
             case Some(_) => false
             case None => true

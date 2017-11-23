@@ -12,11 +12,11 @@ import io.boson.bsonValue
   */
 class ScalaInterface {
 
-  def createNettyBson(byteArray: Array[Byte]):Boson = {
+  def createBoson(byteArray: Array[Byte]):Boson = {
      new Boson(byteArray = Option(byteArray))
   }
 
-  def createNettyBson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
+  def createBoson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
     new Boson(scalaArrayBuf = Option(arrayBuffer))
   }
 
