@@ -18,22 +18,14 @@ class BuffersTest extends FunSuite {
   val bsonEvent: BsonObject = new BsonObject().put("kitchen", "dirty".getBytes).put("Grade", 'C').put("CharSequence", "It WORKS!!!")
   val exampleNetty: NettyBson = new NettyBson(vertxBuff = Option(bsonEvent.encode()))
 
-  test("Java ByteBuffer"){
-    val javaBuffer: ByteBuffer = ByteBuffer.allocate(256)
-    javaBuffer.put(bsonEvent.encode().getBytes)
-    javaBuffer.flip()
-    val nettyFromJava = new NettyBson(javaByteBuf = Option(javaBuffer))
-    assert(new String(javaBuffer.array()) === new String(nettyFromJava.getByteBuf.array())
-      , "Content from ByteBuffer(java) it's different from nettyFromJava")
-  }
-
-  test("Vertx ByteBuffer"){
-    val vertxBuf: Buffer = Buffer.buffer()
-    vertxBuf.appendBytes(exampleNetty.array)
-    val nettyFromVertx = new NettyBson(vertxBuff = Option(vertxBuf))
-    assert(new String(vertxBuf.getBytes) === new String(nettyFromVertx.getByteBuf.array())
-      , "Content from ByteBuffer(Vertx) it's different from nettyFromVertx")
-  }
+//  test("Java ByteBuffer"){
+//    val javaBuffer: ByteBuffer = ByteBuffer.allocate(256)
+//    javaBuffer.put(bsonEvent.encode().getBytes)
+//    javaBuffer.flip()
+//    val nettyFromJava = new NettyBson(javaByteBuf = Option(javaBuffer))
+//    assert(new String(javaBuffer.array()) === new String(nettyFromJava.getByteBuf.array())
+//      , "Content from ByteBuffer(java) it's different from nettyFromJava")
+//  }
 
   test("Scala ArrayBuffer[Byte]"){
     val scalaBuffer: ArrayBuffer[Byte] = new ArrayBuffer[Byte](256)

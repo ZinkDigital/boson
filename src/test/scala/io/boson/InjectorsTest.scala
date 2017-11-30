@@ -50,8 +50,8 @@ class InjectorsTest extends FunSuite {
   //val enum1 = EnumerationTest.B
   val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumJava", enumJava).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
   val objArray: BsonArray = new BsonArray().add(long).add(bytearray1).add(ins).add(float).add(double).add(obj).add(bool).add(bsonArray).add(enumJava).add(enum.A.toString)
-  val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode()))
-  val nettyArray: Option[NettyBson] = Some(ext.createNettyBson(objArray.encode()))
+  val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode().getBytes))
+  val nettyArray: Option[NettyBson] = Some(ext.createNettyBson(objArray.encode().getBytes))
 
   test("Injector: Int => Int") {
 

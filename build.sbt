@@ -1,12 +1,25 @@
-name := "boson"
 organization:="organization name"
+name := "boson"
 version := "version"
 
 scalaVersion := "2.12.3"
 
 javacOptions += "-g:none"
+
+scalacOptions in Test ++= Seq(
+  "-encoding",
+  "UTF-8"
+)
+
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
+
 compileOrder := CompileOrder.Mixed
 
+//  Creates a jar with all libraries necessary
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
 
 
   val libraries = Seq(
@@ -14,12 +27,13 @@ compileOrder := CompileOrder.Mixed
     "org.glassfish" % "javax.json" % "1.1",
     "de.undercouch" % "bson4jackson" % "2.7.0",
     "io.vertx" % "vertx-core" % "3.5.0",
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
-
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    "com.storm-enroute" % "scalameter-core_2.12" % "0.8.2"
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
-    "junit"             %  "junit"       % "4.12"  % Test
+    "junit"             %  "junit"       % "4.12"  % Test,
+    "com.novocode" % "junit-interface" % "0.11" % "test"
   )
 
 
