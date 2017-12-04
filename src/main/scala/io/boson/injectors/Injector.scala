@@ -1,6 +1,7 @@
 package io.boson.injectors
 
 import java.time.Instant
+
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.nettybson.NettyBson
 import io.netty.buffer.{ByteBuf, Unpooled}
@@ -8,7 +9,10 @@ import io.boson.nettybson.Constants._
 import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.json.JsonObject
+
 import scala.collection.mutable.ListBuffer
+import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -91,12 +95,22 @@ object Injector extends App {
 
   println(bsonEvent)
   println(bsonEvent.encode())
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "fanVelocity", _ => 15.0).get)
+
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val finale: String = bufferedSource.getLines.toSeq.head
+  bufferedSource.close
+  val json: JsonObject = new JsonObject(finale)
+  val bson: BsonObject = new BsonObject(json)
+  val boson: Option[NettyBson] = Some(ext.createNettyBson(bson.encode().getBytes))
+
+  val b1: Try[NettyBson] = Try(inj.modify(boson, "Epoch", _ => 10).get)
+
+  println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
 
 
   b1 match {
     case Success(v) =>
-      val s: Any = ext.parse(v, "fanVelocity", "all")
+      val s: Any = ext.parse(v, "Epoch", "first")
       //println(s.getClass.getSimpleName)
       println(s"size of result list afeter extraction: ${s.asInstanceOf[List[Any]].size}")
       println("-------------------------------------------------------- " + s.asInstanceOf[List[Any]].foreach(elem => println(elem)))
@@ -215,6 +229,60 @@ class Injector {
     }
   }
 
+  //  Este método é para a nova construção --------------------------------------------------------------------------
+  private def compareKeys(buffer: ByteBuf, key: String, indexOfFinish: Int): Boolean = {
+    val fieldBytes: ListBuffer[Byte] = new ListBuffer[Byte]
+    while (buffer.getByte(buffer.readerIndex()) != 0) {
+      fieldBytes.append(buffer.readByte())
+    }
+    buffer.readByte() // consume the end String byte
+
+    println(s"............... $key")
+    println(s"............... ${new String(fieldBytes.toArray)}")
+
+    key.toCharArray.deep == new String(fieldBytes.toArray).toCharArray.deep
+  }
+  //  Este método é para a nova construção --------------------------------------------------------------------------
+  def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any): ByteBuf = {
+    val startReaderIndex: Int = buffer.readerIndex()
+    if (startReaderIndex < (indexOfFinish - 1)) {
+      val seqType: Int = buffer.readByte().toInt
+      println(s"matcher...........seqType: $seqType")
+      if(compareKeys(buffer, fieldID, indexOfFinish)) {
+        val indexTillInterest: Int = buffer.readerIndex()
+        val bufTillInterest: ByteBuf = buffer.slice(0, indexTillInterest)
+        println("FOUND FIELD")
+        modifier(buffer.duplicate(), seqType, f)  // change the value
+        buffer  //  returns the buffer till the index where it will be changed
+        //val result: ByteBuf = Unpooled.wrappedBuffer()
+      } else {
+        println("DIDNT FOUND FIELD")
+        consume(seqType, buffer)  //  consume the bytes of value
+        matcher(buffer, fieldID, indexOfFinish, f)
+      }
+    } else {
+      println("OBJECT FINISHED")
+      buffer
+    }
+  }
+  //  Este método é para a nova construção --------------------------------------------------------------------------
+  def modifier(buffer: ByteBuf, seqType: Int, f: Any => Any): ByteBuf = {
+    val newBuffer: ByteBuf = Unpooled.buffer()
+    seqType match {
+      case D_FLOAT_DOUBLE => newBuffer.writeDoubleLE(buffer.readDoubleLE())
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val length: Int = buffer.readIntLE()
+        newBuffer.writeIntLE(length)
+        newBuffer.writeBytes(buffer.readBytes(length))
+      case D_BSONOBJECT => newBuffer
+      case D_BSONARRAY => newBuffer
+      case D_BOOLEAN => newBuffer.writeBoolean(buffer.readBoolean())
+      case D_NULL =>  newBuffer
+      case D_INT => newBuffer.writeIntLE(buffer.readIntLE())
+      case D_LONG =>  newBuffer.writeLongLE(buffer.readLongLE())
+    }
+  }
+
   def findFieldID(buffer: ByteBuf, fieldID: String, bufferSize: Int): (Int, Int) = {
 
     //    while(buffer.readerIndex()< buffer.writerIndex()){
@@ -223,7 +291,6 @@ class Injector {
     //val bufferSize: Int = buffer.readIntLE()  //getIntLE(0)
     println(s"findFieldID...........bufferSize: $bufferSize")
     val startReaderIndex: Int = buffer.readerIndex()
-    println(s"findFieldID...........startReaderIndex: $startReaderIndex")
     if (startReaderIndex < (bufferSize - 1)) {
       //buffer.readIntLE()// consume the size of the buffer
       val fieldBytes: ListBuffer[Byte] = new ListBuffer[Byte]
@@ -417,6 +484,15 @@ class Injector {
     }
   }
 
+  private def readArrayPos(netty: ByteBuf): Unit = {
+    var i = netty.readerIndex()
+    while(netty.getByte(i) != 0 ) {
+      netty.readByte()
+      i+=1
+    }
+    netty.readByte()  //  consume the end Pos byte
+  }
+
   def findBsonObjectWithinBsonArray(buffer: ByteBuf): List[(Int, Int)] = {
     //list result to keep the pairs for the bsonObjects positions
     val listResult: ListBuffer[(Int, Int)] = new ListBuffer[(Int, Int)]
@@ -428,8 +504,9 @@ class Injector {
       val seqType: Int = buffer.readByte()
       println(s"findBsonObjectWithinBsonArray____________________________seqType: $seqType")
       // get the index position of the array
-      buffer.readByte() //48 == 0
-      buffer.readByte() //byte 0
+      readArrayPos(buffer)
+//      buffer.readByte() //48 == 0
+//      buffer.readByte() //byte 0
       // match and treat each type
       processTypes(buffer, seqType).foreach(U => listResult.+=((U._1, U._2)))
     }
