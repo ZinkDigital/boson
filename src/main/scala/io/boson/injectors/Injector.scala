@@ -125,7 +125,7 @@ object Testing extends App {
     true
   }
 
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2)
+  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 2L)
   val inj: Injector = new Injector
 
   val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
@@ -135,12 +135,14 @@ object Testing extends App {
 
   netty.get.getByteBuf.forEachByte(bP)
 
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", _ => 1.1).get)
+  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", x => x.asInstanceOf[Long]+5L).get)
 
   b1 match {
     case Success(v) =>
       v.getByteBuf.forEachByte(bP)
-    case Failure(e) => println(e.getStackTrace.foreach(p => println(p.toString)))
+    case Failure(e) =>
+      println(e.getMessage)
+      println(e.getStackTrace.foreach(p => println(p.toString)))
   }
 
 
@@ -310,24 +312,26 @@ class Injector {
     val newBuffer: ByteBuf = Unpooled.buffer()  //  corresponds only to the new value
     seqType match {
       case D_FLOAT_DOUBLE =>
-        println("changing a float/double value")
-        val value = buffer.readDoubleLE()
-        println(s"value -> $value")
-        val newValue: Any = f(value)
-        println(s"newValue -> $newValue")
-        val finalValue: Double = newValue.asInstanceOf[Double]
-        println(s"finalValue -> $finalValue")
-        newBuffer.writeDoubleLE(finalValue)  //  review later the fact that im injecting a double only
+        val value = f(buffer.readDoubleLE())
+        newBuffer.writeDoubleLE(value.asInstanceOf[Double])  //  review later the fact that im injecting a double only
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-        newBuffer.writeIntLE(length)
-        newBuffer.writeBytes(buffer.readBytes(length))
+        val value: Any = f(new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
+        val finalValue = value.asInstanceOf[String].getBytes
+        newBuffer.writeIntLE(length + 1).writeBytes(finalValue).writeByte(0)
       case D_BSONOBJECT => newBuffer
       case D_BSONARRAY => newBuffer
-      case D_BOOLEAN => newBuffer.writeBoolean(buffer.readBoolean())
-      case D_NULL =>  newBuffer
-      case D_INT => newBuffer.writeIntLE(buffer.readIntLE())
-      case D_LONG =>  newBuffer.writeLongLE(buffer.readLongLE())
+      case D_BOOLEAN =>
+        val value: Any = f(buffer.readBoolean())
+        val finalValue: Boolean = value.asInstanceOf[Boolean]
+        newBuffer.writeBoolean(finalValue)
+      case D_NULL =>  newBuffer //  returns empty buffer
+      case D_INT =>
+        val value: Any = f(buffer.readIntLE())
+        newBuffer.writeIntLE(value.asInstanceOf[Int])
+      case D_LONG =>
+        val value: Any = f(buffer.readLongLE())
+        newBuffer.writeLongLE(value.asInstanceOf[Long])
     }
   }
 
