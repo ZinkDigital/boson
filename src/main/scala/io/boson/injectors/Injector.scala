@@ -124,8 +124,9 @@ object Testing extends App {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
     true
   }
-
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", new BsonArray().add("Hello"))
+  val obj2: BsonObject = new BsonObject().put("Its","Me!!!")
+  val obj1: BsonObject = new BsonObject().put("Hi", obj2)
+  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
   val inj: Injector = new Injector
 
   val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
@@ -135,7 +136,7 @@ object Testing extends App {
 
   netty.get.getByteBuf.forEachByte(bP)
 
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", _ =>new BsonArray().add("Hello!!!")).get)
+  val b1: Try[NettyBson] = Try(inj.modify(netty, "Its", _ => "Y").get)
 
   b1 match {
     case Success(v) =>
@@ -297,15 +298,17 @@ class Injector {
         val bufWithNewValue: ByteBuf = modifier(buffer, seqType, f) //  change the value
         val indexAfterInterest: Int = buffer.readerIndex()
         println(s"indexAfterInterest -> $indexAfterInterest")
-        val bufRemainder: ByteBuf = buffer.slice(indexAfterInterest, indexOfFinish - indexAfterInterest)
+        val bufRemainder: ByteBuf = buffer.slice(indexAfterInterest, buffer.capacity() - indexAfterInterest)
         val midResult: ByteBuf = Unpooled.wrappedBuffer(bufTillInterest, bufWithNewValue, bufRemainder)
         val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(midResult.capacity()+4)  //  the +4 corresponds to the size bytes that will be added after
         val result : ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult)
         result //  returns the buffer till the index where it will be changed
       } else {
         println("DIDNT FOUND FIELD")
-        consume(seqType, buffer) //  consume the bytes of value, NEED to check for bsobj and bsarray before consume
-        matcher(buffer, fieldID, indexOfFinish, f)
+        _consume(seqType, buffer, fieldID, f) match { //  consume the bytes of value, NEED to check for bsobj and bsarray before consume
+          case Some(buf) => buf
+          case None => matcher(buffer, fieldID, indexOfFinish, f)
+        }
       }
     } else {
       println("OBJECT FINISHED")
@@ -473,6 +476,53 @@ class Injector {
     //return a ByteBuf with the the values updated
 
     Unpooled.buffer(newBuffer.writerIndex()).writeBytes(newBuffer)
+  }
+
+  def _consume(seqType: Int, buffer: ByteBuf, fieldID: String, f: Any => Any): Option[ByteBuf] = {
+    seqType match {
+      case D_ZERO_BYTE => None
+      case D_FLOAT_DOUBLE =>
+        println("D_FLOAT_DOUBLE")
+        buffer.readDoubleLE()
+        None
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+        val valueLength: Int = buffer.readIntLE()
+        buffer.readBytes(valueLength)
+        None
+      case D_BSONOBJECT =>
+        println("BSONOBJECT ")
+        val startRegion: Int = buffer.readerIndex()
+        println(s"startRegion -> $startRegion")
+        val valueTotalLength: Int = buffer.readIntLE()
+        println(s"valueTotalLength -> $valueTotalLength")
+        val indexOfFinish: Int = startRegion + valueTotalLength
+        val result: ByteBuf = matcher(buffer, fieldID, indexOfFinish, f)
+        Some(result)
+      case D_BSONARRAY =>
+        println("D_BSONARRAY")
+        val valueLength: Int = buffer.readIntLE()
+        buffer.readBytes(valueLength - 4)
+        None
+      case D_BOOLEAN =>
+        println("D_BOOLEAN")
+        buffer.readByte()
+        None
+      case D_NULL =>
+        println("D_NULL")
+        None
+      case D_INT =>
+        println("D_INT")
+        buffer.readIntLE()
+        None
+      case D_LONG =>
+        println("D_LONG")
+        buffer.readLongLE()
+        None
+      case _ =>
+        println("Something happened")
+        None
+    }
   }
 
   def consume(seqType: Int, buffer: ByteBuf): Unit = {
