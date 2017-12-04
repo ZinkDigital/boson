@@ -118,6 +118,34 @@ object Injector extends App {
   }
 }
 
+object Testing extends App {
+
+  val bP: ByteProcessor = (value: Byte) => {
+    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+    true
+  }
+
+  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2)
+  val inj: Injector = new Injector
+
+  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+
+  println(bsonEvent)
+  println(bsonEvent.encode())
+
+  netty.get.getByteBuf.forEachByte(bP)
+
+  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", _ => 1.1).get)
+
+  b1 match {
+    case Success(v) =>
+      v.getByteBuf.forEachByte(bP)
+    case Failure(e) => println(e.getStackTrace.foreach(p => println(p.toString)))
+  }
+
+
+}
+
 class Injector {
 
   def modify(nettyOpt: Option[NettyBson], fieldID: String, f: (Any) => Any): Option[NettyBson] = {
@@ -170,24 +198,32 @@ class Injector {
                 //updateBsonArrayValue()
                 Option(new NettyBson())
               } else {
-                println("Input capacity = " + buffer.capacity())
 
-                println("BSONOBJECT ")
+                println("Input capacity = " + buffer.capacity())
                 val startRegion: Int = buffer.readerIndex()
                 println(s"startRegion -> $startRegion")
-                val valueTotalLength: Int = buffer.getIntLE(buffer.readerIndex())
+                val valueTotalLength: Int = buffer.readIntLE()
                 println(s"valueTotalLength -> $valueTotalLength")
-                val bsonObject: ByteBuf = buffer.duplicate().readBytes(valueTotalLength)
-                val finishRegion: Int = bsonObject.writerIndex()
-                println(s"finishRegion -> $finishRegion")
-
-                val indexesOfInterest: List[(Int, Int)] = findBsonObjectWithinBsonObject(buffer.duplicate()) //buffer is intact so far
-                val indexesOfInterestF =(startRegion, finishRegion) :: indexesOfInterest
-                println(indexesOfInterestF)
-
-                val result: ByteBuf = objectTreatment(buffer.duplicate(), fieldID, f, indexesOfInterestF.head) //buffer is intact so far
-                //result.forEachByte(bP)
-                println("Input capacity = " + result.capacity())
+                val indexOfFinish: Int = startRegion + valueTotalLength
+                println(s"indexOfFinish -> $indexOfFinish")
+                val result: ByteBuf = matcher(buffer, fieldID, indexOfFinish, f)
+//                println("Input capacity = " + buffer.capacity())
+//                println("BSONOBJECT ")
+//                val startRegion: Int = buffer.readerIndex()
+//                println(s"startRegion -> $startRegion")
+//                val valueTotalLength: Int = buffer.getIntLE(buffer.readerIndex())
+//                println(s"valueTotalLength -> $valueTotalLength")
+//                val bsonObject: ByteBuf = buffer.duplicate().readBytes(valueTotalLength)
+//                val finishRegion: Int = bsonObject.writerIndex()
+//                println(s"finishRegion -> $finishRegion")
+//
+//                val indexesOfInterest: List[(Int, Int)] = findBsonObjectWithinBsonObject(buffer.duplicate()) //buffer is intact so far
+//                val indexesOfInterestF =(startRegion, finishRegion) :: indexesOfInterest
+//                println(indexesOfInterestF)
+//
+//                val result: ByteBuf = objectTreatment(buffer.duplicate(), fieldID, f, indexesOfInterestF.head) //buffer is intact so far
+//                //result.forEachByte(bP)
+//                println("Input capacity = " + result.capacity())
 
                 //val result: ByteBuf = start(buffer.duplicate(), fieldID, f)
 
@@ -230,7 +266,7 @@ class Injector {
   }
 
   //  Este método é para a nova construção --------------------------------------------------------------------------
-  private def compareKeys(buffer: ByteBuf, key: String, indexOfFinish: Int): Boolean = {
+  private def compareKeys(buffer: ByteBuf, key: String): Boolean = {
     val fieldBytes: ListBuffer[Byte] = new ListBuffer[Byte]
     while (buffer.getByte(buffer.readerIndex()) != 0) {
       fieldBytes.append(buffer.readByte())
@@ -245,16 +281,20 @@ class Injector {
   //  Este método é para a nova construção --------------------------------------------------------------------------
   def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any): ByteBuf = {
     val startReaderIndex: Int = buffer.readerIndex()
-    if (startReaderIndex < (indexOfFinish - 1)) {
+    if (startReaderIndex < (indexOfFinish - 1)) { //  goes through entire object
       val seqType: Int = buffer.readByte().toInt
       println(s"matcher...........seqType: $seqType")
-      if(compareKeys(buffer, fieldID, indexOfFinish)) {
-        val indexTillInterest: Int = buffer.readerIndex()
-        val bufTillInterest: ByteBuf = buffer.slice(0, indexTillInterest)
+      if(compareKeys(buffer, fieldID)) {   //  changes value if keys match
         println("FOUND FIELD")
-        modifier(buffer.duplicate(), seqType, f)  // change the value
-        buffer  //  returns the buffer till the index where it will be changed
-        //val result: ByteBuf = Unpooled.wrappedBuffer()
+        val indexTillInterest: Int = buffer.readerIndex()
+        println(s"indexTillInterest -> $indexTillInterest")
+        val bufTillInterest: ByteBuf = buffer.slice(0, indexTillInterest)
+        val bufWithNewValue: ByteBuf = modifier(buffer, seqType, f)
+        val indexAfterInterest: Int = buffer.readerIndex()
+        println(s"indexAfterInterest -> $indexAfterInterest")
+        val bufRemainer: ByteBuf = buffer.slice(indexAfterInterest, indexOfFinish - indexAfterInterest)
+        val result: ByteBuf = Unpooled.wrappedBuffer(bufTillInterest, bufWithNewValue, bufRemainer)
+        result  //  returns the buffer till the index where it will be changed
       } else {
         println("DIDNT FOUND FIELD")
         consume(seqType, buffer)  //  consume the bytes of value
@@ -267,9 +307,17 @@ class Injector {
   }
   //  Este método é para a nova construção --------------------------------------------------------------------------
   def modifier(buffer: ByteBuf, seqType: Int, f: Any => Any): ByteBuf = {
-    val newBuffer: ByteBuf = Unpooled.buffer()
+    val newBuffer: ByteBuf = Unpooled.buffer()  //  corresponds only to the new value
     seqType match {
-      case D_FLOAT_DOUBLE => newBuffer.writeDoubleLE(buffer.readDoubleLE())
+      case D_FLOAT_DOUBLE =>
+        println("changing a float/double value")
+        val value = buffer.readDoubleLE()
+        println(s"value -> $value")
+        val newValue: Any = f(value)
+        println(s"newValue -> $newValue")
+        val finalValue: Double = newValue.asInstanceOf[Double]
+        println(s"finalValue -> $finalValue")
+        newBuffer.writeDoubleLE(finalValue)  //  review later the fact that im injecting a double only
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
         newBuffer.writeIntLE(length)
