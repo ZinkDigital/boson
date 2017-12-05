@@ -212,7 +212,7 @@ class Injector {
                 println(s"indexOfFinish -> $indexOfFinish")
 
                 val (midResult, diff): (ByteBuf, Int) = matcher(buffer, fieldID, indexOfFinish, f)
-                val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff)
+                val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
                 val result : ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult)
                 //                println("Input capacity = " + buffer.capacity())
                 //                println("BSONOBJECT ")
@@ -262,7 +262,6 @@ class Injector {
   def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any): (ByteBuf, Int) = {
     val startReaderIndex: Int = buffer.readerIndex()
     println(s"matcher..............startReaderIndex: $startReaderIndex")
-    val totalSize: Int = indexOfFinish - startReaderIndex //  size without sizebytes
     if (startReaderIndex < (indexOfFinish - 1)) { //  goes through entire object
       val seqType: Int = buffer.readByte().toInt
       println(s"matcher...........seqType: $seqType")
@@ -275,11 +274,8 @@ class Injector {
         val indexAfterInterest: Int = buffer.readerIndex()
         println(s"indexAfterInterest -> $indexAfterInterest")
         val bufRemainder: ByteBuf = buffer.slice(indexAfterInterest, buffer.capacity() - indexAfterInterest)
-        //val midResult: ByteBuf = Unpooled.wrappedBuffer(bufTillInterest, bufWithNewValue, bufRemainder)
         val midResult: ByteBuf = Unpooled.wrappedBuffer(bufTillInterest, bufWithNewValue, bufRemainder)
-        //val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(midResult.capacity()+4)  //  PROBABLY HAS TO BE DONE TOP LEVEL!!!!
-        //val result : ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult)
-        (midResult, diff)//.readerIndex(result.capacity()-bufRemainder.capacity()) //  returns the buffer till the index where it will be changed
+        (midResult, diff)
       } else {
         println("DIDNT FOUND FIELD")
         _consume(seqType, buffer, fieldID, f) match { //  consume the bytes of value, NEED to check for bsobj and bsarray before consume
@@ -305,7 +301,7 @@ class Injector {
         val length: Int = buffer.readIntLE()
         val value: Any = f(new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
         val finalValue = value.asInstanceOf[String].getBytes
-        (newBuffer.writeIntLE(finalValue.length + 1).writeBytes(finalValue).writeByte(0), (finalValue.length+1) - length)
+        (newBuffer.writeIntLE(finalValue.length + 1).writeBytes(finalValue).writeByte(0), (finalValue.length+1) - length) //  writes the correct length of "string", returns a difference between the sizes of changed values
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.readIntLE()
         val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
@@ -475,25 +471,24 @@ class Injector {
       case D_BSONOBJECT =>
         println("BSONOBJECT ")
         val startRegion: Int = buffer.readerIndex()
-        println(s"startRegion -> $startRegion")   //  starts at 16
+        println(s"startRegion -> $startRegion")
         val valueTotalLength: Int = buffer.readIntLE()  //  length of next BsonObject
-        println(s"valueTotalLength -> $valueTotalLength") //  29 length
+        println(s"valueTotalLength -> $valueTotalLength")
         val indexOfFinish: Int = startRegion + valueTotalLength //  where the next BsonObject ends
         val (midResult, diff): (ByteBuf, Int) = matcher(buffer, fieldID, indexOfFinish, f)
         val oneBuf: ByteBuf = midResult.slice(0,startRegion-4)  //previus till next object size
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
 //        oneBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
-        val twoBuf: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength+diff)
+        val twoBuf: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength+diff)  //  new size
 //        twoBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
-        val threeBuf: ByteBuf = midResult.slice(startRegion, midResult.capacity() - (startRegion))
+        val threeBuf: ByteBuf = midResult.slice(startRegion, midResult.capacity() - startRegion)  //  from size till end
 //        threeBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
         val fourBuf: ByteBuf = Unpooled.wrappedBuffer(oneBuf,twoBuf,threeBuf)
 //        fourBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
-        //val result : ByteBuf = Unpooled.wrappedBuffer(midResult)  //  complete this
         Some((fourBuf, diff))
       case D_BSONARRAY =>
         println("D_BSONARRAY")
