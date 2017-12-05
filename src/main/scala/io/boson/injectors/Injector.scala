@@ -1,7 +1,6 @@
 package io.boson.injectors
 
 import java.time.Instant
-
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.nettybson.NettyBson
 import io.netty.buffer.{ByteBuf, Unpooled}
@@ -10,7 +9,6 @@ import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
-
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
@@ -126,7 +124,7 @@ object Testing extends App {
   }
   val obj2: BsonObject = new BsonObject().put("Its","Me!!!")
   val obj1: BsonObject = new BsonObject().put("Hi", obj2)
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
+  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)//.put("sec", 1)//.put("bool", true)
   val inj: Injector = new Injector
 
   val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
@@ -141,6 +139,9 @@ object Testing extends App {
   b1 match {
     case Success(v) =>
       v.getByteBuf.forEachByte(bP)
+      val sI: ScalaInterface = new ScalaInterface
+      println("Extracting the field injected with value: "+sI.parse(v, "Its", "last"))
+
     case Failure(e) =>
       println(e.getMessage)
       println(e.getStackTrace.foreach(p => println(p.toString)))
@@ -236,34 +237,6 @@ class Injector {
                 //println("real result capacity = " + res.getByteBuf.capacity())
                 Some(res)
               }
-            //              val bP: ByteProcessor = new ByteProcessor {
-            //                override def process(value: Byte): Boolean = {
-            //                  println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value.toByte)
-            //                  true
-            //                }
-            //              }
-            //println("+++++++++++++++++++++")
-            //buffer.forEachByte(bP)
-            //println("+++++++++++++++++++++")
-            /* vertx buffer
-          val vertxBuffer: BufferImpl = {
-            val b: BufferImpl = new BufferImpl()
-            val array: Array[Byte] = new Array[Byte](test.capacity())
-            test.getBytes(0, array)
-            b.setBytes(0,array )
-            b
-          }
-          */
-            /* java buffer nio
-          val java: ByteBuffer = test.nioBuffer()
-          */
-            /* arrayByte => NEED TO CONVERT TO NIO AND THEN TO ARRAY[BYTE]
-          val array: Array[Byte] = test.nioBuffer().array()
-          */
-            /* scala buffer ArrayBuffer
-          val scala : ArrayBuffer[Byte] = new ArrayBuffer[Byte](test.capacity())
-          test.nioBuffer().array().foreach(b => scala.+=(b))
-          */
           }
       }
     }
@@ -327,7 +300,7 @@ class Injector {
         val length: Int = buffer.readIntLE()
         val value: Any = f(new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
         val finalValue = value.asInstanceOf[String].getBytes
-        newBuffer.writeIntLE(length + 1).writeBytes(finalValue).writeByte(0)
+        newBuffer.writeIntLE(finalValue.length + 1).writeBytes(finalValue).writeByte(0)
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.readIntLE()
         val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
@@ -494,10 +467,11 @@ class Injector {
         println("BSONOBJECT ")
         val startRegion: Int = buffer.readerIndex()
         println(s"startRegion -> $startRegion")
-        val valueTotalLength: Int = buffer.readIntLE()
+        val valueTotalLength: Int = buffer.readIntLE()  //  length of next BsonObject
         println(s"valueTotalLength -> $valueTotalLength")
-        val indexOfFinish: Int = startRegion + valueTotalLength
-        val result: ByteBuf = matcher(buffer, fieldID, indexOfFinish, f)
+        val indexOfFinish: Int = startRegion + valueTotalLength //  where the next BsonObject ends
+        val midResult: ByteBuf = matcher(buffer, fieldID, indexOfFinish, f)
+        val result : ByteBuf = Unpooled.wrappedBuffer(midResult)  //  complete this
         Some(result)
       case D_BSONARRAY =>
         println("D_BSONARRAY")
