@@ -82,7 +82,7 @@ object Injector extends App {
   }
 }
 
-object Testing extends App {
+object ChangeStrInsideManyObj extends App {
 
   val bP: ByteProcessor = (value: Byte) => {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
@@ -99,7 +99,6 @@ object Testing extends App {
   println(bsonEvent.encode())
 
   netty.get.getByteBuf.forEachByte(bP)
-
   val b1: Try[NettyBson] = Try(inj.modify(netty, "Its", _ => "Y").get)
 
   b1 match {
@@ -115,6 +114,40 @@ object Testing extends App {
 
 
 }
+
+object changeObj extends App {
+
+  val bP: ByteProcessor = (value: Byte) => {
+    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+    true
+  }
+  val obj1: BsonObject = new BsonObject().put("Hi", "Me!!!")
+  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)//.put("sec", 1)//.put("bool", true)
+  val inj: Injector = new Injector
+
+  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+
+  println(bsonEvent)
+  println(bsonEvent.encode())
+
+  netty.get.getByteBuf.forEachByte(bP)
+  val obj2: BsonObject = new BsonObject().put("Hi", "0123456789")
+  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", _ => obj2).get)
+
+  b1 match {
+    case Success(v) =>
+      v.getByteBuf.forEachByte(bP)
+      val sI: ScalaInterface = new ScalaInterface
+      println("Extracting the field injected with value: "+sI.parse(v, "fridgeTemp", "last").asInstanceOf[List[BsonObject]].head)
+
+    case Failure(e) =>
+      println(e.getMessage)
+      println(e.getStackTrace.foreach(p => println(p.toString)))
+  }
+
+
+}
+
 object Testing1 extends App {
 
   val bP: ByteProcessor = (value: Byte) => {
@@ -123,7 +156,7 @@ object Testing1 extends App {
   }
   val obj2: BsonObject = new BsonObject().put("Its","Me!!!")
   val obj1: BsonObject = new BsonObject().put("Hi", 10)
-  val array1: BsonArray = new BsonArray().add(obj2).add("oi").add(2).add(obj2)
+  val array1: BsonArray = new BsonArray().add(obj2).add("oi")//.add(2).add(obj2)
   val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
   val inj: Injector = new Injector
 
@@ -189,7 +222,10 @@ class Injector {
                 val indexOfFinishArray: Int = startRegionArray + valueTotalLength
                 println(s"indexOfFinish -> $indexOfFinishArray")
 
-                val result: ByteBuf = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f) //buffer is intact so far
+                val midResult: ByteBuf = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f) //buffer is intact so far
+                val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(midResult.capacity()+4) //  calculates total size
+                val result : ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult) //  adding the global size to result buffer
+
 
 
                 Option(new NettyBson(byteBuf = Option(result)))
@@ -211,9 +247,9 @@ class Injector {
                 val indexOfFinish: Int = startRegion + valueTotalLength
                 println(s"indexOfFinish -> $indexOfFinish")
 
-                val (midResult, diff): (ByteBuf, Int) = matcher(buffer, fieldID, indexOfFinish, f)
+                val (midResult, diff): (Option[ByteBuf],Int) = matcher(buffer, fieldID, indexOfFinish, f)
                 val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-                val result : ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult)
+                val result : ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult.get)
                 //                println("Input capacity = " + buffer.capacity())
                 //                println("BSONOBJECT ")
                 //                val startRegion: Int = buffer.readerIndex()
@@ -259,7 +295,7 @@ class Injector {
   }
 
   //  Este método é para a nova construção --------------------------------------------------------------------------
-  def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any): (ByteBuf, Int) = {
+  def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any): (Option[ByteBuf], Int) = {
     val startReaderIndex: Int = buffer.readerIndex()
     println(s"matcher..............startReaderIndex: $startReaderIndex")
     if (startReaderIndex < (indexOfFinish - 1)) { //  goes through entire object
@@ -275,18 +311,19 @@ class Injector {
         println(s"indexAfterInterest -> $indexAfterInterest")
         val bufRemainder: ByteBuf = buffer.slice(indexAfterInterest, buffer.capacity() - indexAfterInterest)
         val midResult: ByteBuf = Unpooled.wrappedBuffer(bufTillInterest, bufWithNewValue, bufRemainder)
-        (midResult, diff)
+        (Some(midResult), diff)
       } else {
         println("DIDNT FOUND FIELD")
         _consume(seqType, buffer, fieldID, f) match { //  consume the bytes of value, NEED to check for bsobj and bsarray before consume
-          case Some((buf, diff)) => (buf, diff)
+          case Some((buf, diff)) => (Some(buf),diff)
           case None => matcher(buffer, fieldID, indexOfFinish, f)
         }
       }
     } else {
       println("OBJECT FINISHED")
       buffer.readByte()
-      (buffer,0)
+      //(buffer,0)
+      (None,0)
     }
   }
 
@@ -303,11 +340,11 @@ class Injector {
         val finalValue = value.asInstanceOf[String].getBytes
         (newBuffer.writeIntLE(finalValue.length + 1).writeBytes(finalValue).writeByte(0), (finalValue.length+1) - length) //  writes the correct length of "string", returns a difference between the sizes of changed values
       case D_BSONOBJECT =>
-        val valueLength: Int = buffer.readIntLE()
+        val valueLength: Int = buffer.readIntLE() //  length of current obj
         val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
         val newValue: Any = f(bsonObject)
         val buf: Buffer = newValue.asInstanceOf[BsonObject].encode()
-        (newBuffer.writeBytes(buf.getByteBuf), 0) //  ZERO  for now, cant be zero
+        (newBuffer.writeBytes(buf.getByteBuf), buf.length() - valueLength)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.readIntLE()
         val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
@@ -453,10 +490,10 @@ class Injector {
 //  }
 
   def _consume(seqType: Int, buffer: ByteBuf, fieldID: String, f: Any => Any): Option[(ByteBuf, Int)] = {
-    val bP: ByteProcessor = (value: Byte) => {
-      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-      true
-    }
+//    val bP: ByteProcessor = (value: Byte) => {
+//      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//      true
+//    }
     seqType match {
       case D_ZERO_BYTE => None
       case D_FLOAT_DOUBLE =>
@@ -475,18 +512,18 @@ class Injector {
         val valueTotalLength: Int = buffer.readIntLE()  //  length of next BsonObject
         println(s"valueTotalLength -> $valueTotalLength")
         val indexOfFinish: Int = startRegion + valueTotalLength //  where the next BsonObject ends
-        val (midResult, diff): (ByteBuf, Int) = matcher(buffer, fieldID, indexOfFinish, f)
-        val oneBuf: ByteBuf = midResult.slice(0,startRegion-4)  //previus till next object size
+        val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f)
+        val oneBuf: ByteBuf = midResult.get.slice(0,startRegion-4)  //previous till next object size
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
 //        oneBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
         val twoBuf: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength+diff)  //  new size
 //        twoBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
-        val threeBuf: ByteBuf = midResult.slice(startRegion, midResult.capacity() - startRegion)  //  from size till end
+        val threeBuf: ByteBuf = midResult.get.slice(startRegion, midResult.get.capacity() - startRegion)  //  from size till end
 //        threeBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
-        val fourBuf: ByteBuf = Unpooled.wrappedBuffer(oneBuf,twoBuf,threeBuf)
+        val fourBuf: ByteBuf = Unpooled.wrappedBuffer(oneBuf,twoBuf,threeBuf) //  previous buffs together
 //        fourBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++")
         Some((fourBuf, diff))
@@ -593,7 +630,7 @@ class Injector {
 //    }
 //  }
 
-  private def readArrayPos(netty: ByteBuf): String = {
+  private def readArrayPos(netty: ByteBuf): Char = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = netty.readerIndex()
     while (netty.getByte(i) != 0) {
@@ -601,19 +638,19 @@ class Injector {
       i += 1
     }
     list.+=(netty.readByte()) //  consume the end Pos byte
-    val a: String = ""
-      list.foreach(b => b.toInt.toString)
-    println(a)
-    a
+    //val a: String = ""
+      val stringList = list.map(b => b.toInt.toChar)
+    println(list)
+    stringList.head
   }
 
   def findBsonObjectWithinBsonArray(buffer: ByteBuf, fieldID: String, f: Any => Any): ByteBuf = {
-    val bP: ByteProcessor = (value: Byte) => {
-      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-      true
-    }
-
-    buffer.forEachByte(bP)
+//    val bP: ByteProcessor = (value: Byte) => {
+//      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//      true
+//    }
+//
+//    buffer.forEachByte(bP)
       // get the type of the following value
       val seqType: Int = buffer.readByte()
 
@@ -621,9 +658,9 @@ class Injector {
       println(s"findBsonObjectWithinBsonArray____________________________seqType: $seqType")
 
     if(seqType==0){
-      buffer.readerIndex(0)
+      buffer.readerIndex(0) //  returns all buffer, including global size
     }else{      // get the index position of the array
-      val index: String = readArrayPos(buffer)
+      val index: Char = readArrayPos(buffer)
       println(s"findBsonObjectWithinBsonArray____________________________Index: $index")
       //      buffer.readByte() //48 == 0
       //      buffer.readByte() //byte 0
@@ -809,7 +846,10 @@ class Injector {
 //  }
 
   def processTypes(buffer: ByteBuf, seqType: Int, fieldID: String, f: Any => Any): ByteBuf = {
-
+        val bP: ByteProcessor = (value: Byte) => {
+          println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+          true
+        }
     seqType match {
       case D_ZERO_BYTE =>
         // process Zero Byte
@@ -836,9 +876,13 @@ class Injector {
         val indexOfFinish: Int = startRegion + valueTotalLength
         println(s"indexOfFinish -> $indexOfFinish")
 
-        val (result, diff): (ByteBuf,Int) = matcher(buffer, fieldID, indexOfFinish, f)
-        result.readByte() //  why this?
-        findBsonObjectWithinBsonArray(result, fieldID, f)
+        val (result, diff): (Option[ByteBuf],Int) = matcher(buffer, fieldID, indexOfFinish, f)
+        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        result.get.forEachByte(bP)
+        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        //result.readByte() //  why this?
+        //findBsonObjectWithinBsonArray(result, fieldID, f)
+        result getOrElse findBsonObjectWithinBsonArray(buffer, fieldID, f)
       case D_BSONARRAY =>
         // process BsonArrays
         println("D_BSONARRAY")
