@@ -1,7 +1,6 @@
 package io.boson
 
 import java.time.Instant
-
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.injectors.e.Value
 import io.boson.injectors.{EnumerationTest, Injector}
@@ -24,8 +23,8 @@ class InjectorsTest extends FunSuite {
   val ext = new ScalaInterface
 
   object enum extends Enumeration{
-    val A = Value("AAAA")
-    val B = Value("BBBBB")
+    val A: enum.Value = Value("AAAA")
+    val B: enum.Value = Value("BBBBB")
   }
 
   val bytearray1: Array[Byte] = "AlguresPorAi".getBytes()
@@ -52,6 +51,8 @@ class InjectorsTest extends FunSuite {
   val objArray: BsonArray = new BsonArray().add(long).add(bytearray1).add(ins).add(float).add(double).add(obj).add(bool).add(bsonArray)//.add(enum.A.toString)//.add(enumJava)
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode().getBytes))
   val nettyArray: Option[NettyBson] = Some(ext.createNettyBson(objArray.encode().getBytes))
+
+
 
   test("Injector: Int => Int") {
 
