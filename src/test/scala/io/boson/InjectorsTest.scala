@@ -52,7 +52,48 @@ class InjectorsTest extends FunSuite {
   val netty: Option[NettyBson] = Some(ext.createNettyBson(obj.encode().getBytes))
   val nettyArray: Option[NettyBson] = Some(ext.createNettyBson(objArray.encode().getBytes))
 
+  test("Injector: Deep Level bsonObject Root") {
+    val obj3: BsonObject = new BsonObject().put("John", "Nobody")
+    val obj2: BsonObject = new BsonObject().put("John", "Locke")
+    val arr2: BsonArray = new BsonArray().add(obj2)
+    val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
+    val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
+    val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
+    val inj: Injector = new Injector
 
+    val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+
+    val b1: Option[NettyBson] = inj.modify(netty, "John", _ => "Somebody")
+
+    val result: Any = b1 match {
+      case Some(v) =>
+        for (elem <- ext.parse(v, "John", "all").asInstanceOf[List[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
+      case None => List()
+    }
+    assert(List("Somebody","Nobody") === result)
+  }
+
+  test("Injector: Deep Level bsonArray Root") {
+    val obj3: BsonObject = new BsonObject().put("John", "Nobody")
+    val obj2: BsonObject = new BsonObject().put("John", "Locke")
+    val arr2: BsonArray = new BsonArray().add(obj2)
+    val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
+    val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
+    val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
+    val arrayEvent: BsonArray = new BsonArray().add("Dog").add(bsonEvent).addNull()
+    val inj: Injector = new Injector
+
+    val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(arrayEvent.encode().getBytes)))
+
+    val b1: Option[NettyBson] = inj.modify(netty, "John", _ => "Somebody")
+
+    val result: Any = b1 match {
+      case Some(v) =>
+        for (elem <- ext.parse(v, "John", "all").asInstanceOf[List[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
+      case None => List()
+    }
+    assert(List("Somebody","Nobody") === result)
+  }
 
   test("Injector: Int => Int") {
 

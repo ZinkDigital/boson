@@ -67,17 +67,20 @@ object Injector extends App {
   val bson: BsonObject = new BsonObject(json)
   val boson: Option[NettyBson] = Some(ext.createNettyBson(bson.encode().getBytes))
 
-  val b1: Try[NettyBson] = Try(inj.modify(boson, "Epoch", _ => 10).get)
+  val s: Any = ext.parse(boson.get, "Tags", "first")
+  println("Extracting first \"Tags\" ->" + s)
+  println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+
+  val b1: Try[NettyBson] = Try(inj.modify(boson, "Tags", _ => new BsonObject()).get)
 
   println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
 
 
   b1 match {
     case Success(v) =>
-      val s: Any = ext.parse(v, "Epoch", "first")
+      val s: Any = ext.parse(v, "Tags", "first")
       //println(s.getClass.getSimpleName)
-      println(s"size of result list afeter extraction: ${s.asInstanceOf[List[Any]].size}")
-      println("-------------------------------------------------------- " + s.asInstanceOf[List[Any]].foreach(elem => println(elem)))
+      println("Extracting first \"Tags\" ->" + s)
     case Failure(e) => println(e.getStackTrace.foreach(p => println(p.toString)))
   }
 }

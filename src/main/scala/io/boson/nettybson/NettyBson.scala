@@ -83,8 +83,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   private val arrKeyDecode: ListBuffer[Byte] = new ListBuffer[Byte]()
   private val arrKeyExtract: ListBuffer[Byte] = new ListBuffer[Byte]()
 
-  def extract(netty: ByteBuf, key: String, condition: String,
+  def extract(netty1: ByteBuf, key: String, condition: String,
               limitA: Option[Int] = None, limitB: Option[Int] = None): Option[Any] = {
+    val netty: ByteBuf = netty1.duplicate()
     val startReaderIndex: Int = netty.readerIndex()
     val size: Int = netty.getIntLE(startReaderIndex)
     val seqType: Int = netty.getByte(startReaderIndex+4).toInt
