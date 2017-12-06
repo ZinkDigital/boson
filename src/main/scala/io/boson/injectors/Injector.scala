@@ -306,13 +306,9 @@ class Injector {
           buffer.getByte(5).toInt match {
             case 48 => // root obj is BsonArray, call extractFromBsonArray
               println("Root is BsonArray")
-              //apply the given function to all bsonarray elements
               if (fieldID.isEmpty) {
-                // Operate on Root
-                //updateBsonArrayValue()
                 Option(new NettyBson())
               } else {
-
                 println("Input capacity = " + buffer.capacity())
                 val startRegionArray: Int = buffer.readerIndex()
                 println(s"startRegionArray -> $startRegionArray")
@@ -320,27 +316,21 @@ class Injector {
                 println(s"valueTotalLength -> $valueTotalLength")
                 val indexOfFinishArray: Int = startRegionArray + valueTotalLength
                 println(s"indexOfFinish -> $indexOfFinishArray")
-
                 val (midResult, diff): (Option[ByteBuf], Int) = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f) //buffer is intact so far
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
                   val result: ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
                   Some(new NettyBson(byteBuf = Option(result)))
                 } getOrElse {
-                  println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonarray as root, returning the original buffer")
-                  //Option(new NettyBson(byteBuf = Option(buffer))) }
+                  println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonarray as root, returning None")
                   None
                 }
               }
             case _ => // root obj isn't BsonArray, call extractFromBsonObj
               println("Root is BsonObject")
-
               if (fieldID.isEmpty) {
-                // Operate on Root
-                //updateBsonArrayValue()
                 Option(new NettyBson())
               } else {
-
                 println("Input capacity = " + buffer.capacity())
                 val startRegion: Int = buffer.readerIndex()
                 println(s"startRegion -> $startRegion")
@@ -348,15 +338,16 @@ class Injector {
                 println(s"valueTotalLength -> $valueTotalLength")
                 val indexOfFinish: Int = startRegion + valueTotalLength
                 println(s"indexOfFinish -> $indexOfFinish")
-
-                //  HANDLE CASE NONE ON MIDRESULT
                 val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f)
-                val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-                val result: ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, midResult.get)
-                //returning the resulting NettyBson
-                val res = new NettyBson(byteBuf = Option(result))
-                //println("real result capacity = " + res.getByteBuf.capacity())
-                Some(res)
+                midResult map { buf =>
+                  val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
+                  val result: ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, buf)
+                  val res = new NettyBson(byteBuf = Option(result))
+                  Some(res)
+                } getOrElse {
+                  println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonobject as root, returning None")
+                  None
+                }
               }
           }
       }
