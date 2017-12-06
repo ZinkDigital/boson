@@ -414,6 +414,7 @@ class Injector {
           case "Double" =>
             val aux: Double = value.asInstanceOf[Double]
             (newBuffer.writeDoubleLE(aux), 0)
+          case _ => ??? //  [IT,OT] => IT != OT
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
@@ -430,6 +431,7 @@ class Injector {
             val aux: Array[Byte] = value.asInstanceOf[Instant].toString.getBytes()
             (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
           //case "Enumerations" => //TODO
+          case _ => ??? //  [IT,OT] => IT != OT
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.readIntLE() //  length of current obj
