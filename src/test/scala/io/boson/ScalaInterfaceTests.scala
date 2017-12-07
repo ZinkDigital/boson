@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
       val language: String = "first"
       val boson: Boson = sI.createBoson(ba1.encode().getBytes)
       val result: BsValue = sI.parse(boson, key, language)
-
       assert(BsSeq(Seq("ArrayField")) === result)
     }
 

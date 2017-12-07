@@ -2,10 +2,9 @@ package io.boson.scalaInterface
 
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.nettyboson.Boson
-import io.netty.buffer.ByteBuf
-import io.vertx.core.buffer.Buffer
 import scala.collection.mutable.ArrayBuffer
 import io.boson.bsonValue
+
 
 /**
   * Created by Ricardo Martins on 03/11/2017.

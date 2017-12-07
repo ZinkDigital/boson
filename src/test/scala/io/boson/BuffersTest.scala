@@ -1,13 +1,11 @@
 package io.boson
 
 import java.nio.ByteBuffer
-
 import io.boson.bson.BsonObject
 import io.boson.nettyboson.Boson
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
 import scala.collection.mutable.ArrayBuffer
 /**
   * Created by Tiago Filipe on 26/09/2017.
@@ -17,7 +15,6 @@ class BuffersTest extends FunSuite {
   val bsonEvent: BsonObject = new BsonObject().put("kitchen", "dirty".getBytes).put("Grade", 'C').put("CharSequence", "It WORKS!!!")
 
   val exampleBoson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
-
 
   test("Java ByteBuffer"){
     val array: Array[Byte] = bsonEvent.encode().getBytes

@@ -1,5 +1,5 @@
-name := "boson"
 organization:="organization name"
+name := "boson"
 version := "version"
 
 scalaVersion := "2.12.3"
@@ -12,19 +12,14 @@ scalacOptions in Test ++= Seq(
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
-crossPaths := false
 
 compileOrder := CompileOrder.Mixed
 
-scalacOptions in Test ++= Seq(
-  "-encoding",
-  "UTF-8"
-)
-
-testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
-
-// Do not append Scala versions to the generated artifacts
-crossPaths := false
+//  Creates a jar with all libraries necessary
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
 
 
   val libraries = Seq(
