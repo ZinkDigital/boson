@@ -2,9 +2,9 @@ package io.boson.injectors
 
 import java.time.Instant
 import io.boson.bson.{BsonArray, BsonObject}
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.boson.nettybson.Constants._
+import io.boson.nettyboson.Constants._
 import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import io.vertx.core.buffer.Buffer
@@ -55,7 +55,7 @@ object Injector extends App {
   val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
 
   val obj: BsonArray = bsonArray
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
 
   println(bsonEvent)
   println(bsonEvent.encode())
@@ -65,13 +65,13 @@ object Injector extends App {
   bufferedSource.close
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
-  val boson: Option[NettyBson] = Some(ext.createNettyBson(bson.encode().getBytes))
+  val boson: Option[Boson] = Some(ext.createBoson(bson.encode().getBytes))
 
   val s: Any = ext.parse(boson.get, "Tags", "first")
   println("Extracting first \"Tags\" ->" + s)
   println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
 
-  val b1: Try[NettyBson] = Try(inj.modify(boson, "Tags", _ => new BsonObject()).get)
+  val b1: Try[Boson] = Try(inj.modify(boson, "Tags", _ => new BsonObject()).get)
 
   println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
 
@@ -97,13 +97,13 @@ object ChangeStrInsideManyObj extends App {
   //.put("sec", 1)//.put("bool", true)
   val inj: Injector = new Injector
 
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
 
   println(bsonEvent)
   println(bsonEvent.encode())
 
   netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "Its", _ => "Y").get)
+  val b1: Try[Boson] = Try(inj.modify(netty, "Its", _ => "Y").get)
 
   b1 match {
     case Success(v) =>
@@ -130,14 +130,14 @@ object changeObj extends App {
   //.put("sec", 1)//.put("bool", true)
   val inj: Injector = new Injector
 
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
 
   println(bsonEvent)
   println(bsonEvent.encode())
 
   netty.get.getByteBuf.forEachByte(bP)
   val obj2: BsonObject = new BsonObject().put("Hi", "0123456789")
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", _ => obj2).get)
+  val b1: Try[Boson] = Try(inj.modify(netty, "fridgeTemp", _ => obj2).get)
 
   b1 match {
     case Success(v) =>
@@ -163,14 +163,14 @@ object Testing1 extends App {
   val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
   val inj: Injector = new Injector
 
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(array1.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(array1.encode().getBytes)))
 
   println(array1)
   println(array1.encode())
 
   netty.get.getByteBuf.forEachByte(bP)
 
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "Its", _ => "Y").get)
+  val b1: Try[Boson] = Try(inj.modify(netty, "Its", _ => "Y").get)
 
   b1 match {
     case Success(v) =>
@@ -196,13 +196,13 @@ object ObjAsRoot extends App {
   val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", "Hi").put("bool", true)
   val inj: Injector = new Injector
 
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
 
   println(bsonEvent)
   println(bsonEvent.encode())
 
   netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "fridgeTemp", _ => "12345").get)
+  val b1: Try[Boson] = Try(inj.modify(netty, "fridgeTemp", _ => "12345").get)
 
   b1 match {
     case Success(v) =>
@@ -228,13 +228,13 @@ object ArrInsideObj extends App {
   val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!")
   val inj: Injector = new Injector
 
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
 
   println(bsonEvent)
   println(bsonEvent.encode())
 
   netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "bool", _ => "true").get)
+  val b1: Try[Boson] = Try(inj.modify(netty, "bool", _ => "true").get)
 
   b1 match {
     case Success(v) =>
@@ -264,13 +264,13 @@ object BsObjRootWithDeepMix extends App {
   val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
   val inj: Injector = new Injector
 
-  val netty: Option[NettyBson] = Some(new NettyBson(byteArray = Option(bsonEvent.encode().getBytes)))
+  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
 
   println(bsonEvent)
   println(bsonEvent.encode())
 
   //netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[NettyBson] = Try(inj.modify(netty, "John", _ => "SomeBody").get)
+  val b1: Try[Boson] = Try(inj.modify(netty, "John", _ => "SomeBody").get)
 
   b1 match {
     case Success(v) =>
@@ -288,12 +288,16 @@ object BsObjRootWithDeepMix extends App {
 
 class Injector {
 
-  def modify(nettyOpt: Option[NettyBson], fieldID: String, f: (Any) => Any): Option[NettyBson] = {
+  def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any): Option[Boson] = {
+    val bP: ByteProcessor = (value: Byte) => {
+      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+      true
+    }
     if (nettyOpt.isEmpty) {
-      println(s" Input NettyBson is Empty. ")
+      println(s" Input Boson is Empty. ")
       None
     } else {
-      val netty: NettyBson = nettyOpt.get
+      val netty: Boson = nettyOpt.get
       println(s"input buf size = ${netty.getByteBuf.capacity()} ")
       val buffer: ByteBuf = netty.getByteBuf.duplicate()
       val buff: ByteBuf = Unpooled.buffer(4)
@@ -310,7 +314,7 @@ class Injector {
             case 48 => // root obj is BsonArray, call extractFromBsonArray
               println("Root is BsonArray")
               if (fieldID.isEmpty) {
-                Option(new NettyBson())
+                Option(new Boson())
               } else {
                 println("Input capacity = " + buffer.capacity())
                 val startRegionArray: Int = buffer.readerIndex()
@@ -322,8 +326,8 @@ class Injector {
                 val (midResult, diff): (Option[ByteBuf], Int) = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f) //buffer is intact so far
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-                  val result: ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
-                  Some(new NettyBson(byteBuf = Option(result)))
+                  val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
+                  Some(new Boson(byteArray = Option(result.array())))
                 } getOrElse {
                   println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonarray as root, returning None")
                   None
@@ -332,7 +336,7 @@ class Injector {
             case _ => // root obj isn't BsonArray, call extractFromBsonObj
               println("Root is BsonObject")
               if (fieldID.isEmpty) {
-                Option(new NettyBson())
+                Option(new Boson())
               } else {
                 println("Input capacity = " + buffer.capacity())
                 val startRegion: Int = buffer.readerIndex()
@@ -344,8 +348,8 @@ class Injector {
                 val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f)
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-                  val result: ByteBuf = Unpooled.wrappedBuffer(bufNewTotalSize, buf)
-                  val res = new NettyBson(byteBuf = Option(result))
+                  val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
+                  val res = new Boson(byteArray = Option(result.array()))
                   Some(res)
                 } getOrElse {
                   println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonobject as root, returning None")

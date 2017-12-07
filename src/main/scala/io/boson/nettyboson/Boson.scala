@@ -36,6 +36,7 @@ class Boson(
     if(javaByteBuf.isDefined){
       javaByteBuf.get.getClass.getSimpleName
     } else if(byteArray.isDefined) {
+      println("inside array byte boson")
       byteArray.get.getClass.getSimpleName
     } else if(scalaArrayBuf.isDefined) {
       scalaArrayBuf.get.getClass.getSimpleName

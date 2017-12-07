@@ -1,7 +1,7 @@
 package io.boson.bsonPath
 
 import io.boson.nettyboson.Boson
-import io.boson.bson.{BsonArray, BsonObject}
+import io.boson.bson.BsonArray
 import io.boson.bsonValue
 
 /**
