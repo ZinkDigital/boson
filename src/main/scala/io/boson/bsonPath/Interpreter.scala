@@ -39,6 +39,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
 
   private def executeSizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar): bsonValue.BsValue = {
     val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
+    println(s"executeSizeOfArrayStatement -> midResult -> $midResult")
     val result =
     midResult match {
       case Seq() => Seq.empty
@@ -46,16 +47,16 @@ class Interpreter(boson: Boson, key: String, program: Program) {
         if(key.isEmpty) {
           grammar.selectType match {
             case "first" =>
-              Seq(new BsonArray().add(value.asInstanceOf[Seq[BsonArray]].head.getValue(0)))
+              Seq(value.head)
             case "last" =>
-              Seq(new BsonArray().add(value.asInstanceOf[Seq[BsonArray]].head.getValue(value.asInstanceOf[Seq[BsonArray]].head.size()-1)))
-            case "all" => value.asInstanceOf[Seq[BsonArray]]
+              Seq(value.last)
+            case "all" => value
           }
         } else {
           grammar.selectType match {
-            case "first" => Seq(value.asInstanceOf[Seq[BsonArray]].head)
-            case "last" => Seq(value.asInstanceOf[Seq[BsonArray]].last)
-            case "all" => value.asInstanceOf[Seq[BsonArray]]
+            case "first" => Seq(value.head)
+            case "last" => Seq(value.last)
+            case "all" => value
           }
         }
     }
@@ -75,9 +76,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
                 bsonValue.BsObject.toBson(result.size)
             }
           } else {    //("all")
-            val list =
-              for (elem <- result.asInstanceOf[Seq[BsonArray]]) yield elem.size()
-            bsonValue.BsObject.toBson(list)
+            bsonValue.BsObject.toBson(result.size)
           }
         case "isEmpty" => bsonValue.BsObject.toBson(false)
       }
@@ -121,7 +120,10 @@ class Interpreter(boson: Boson, key: String, program: Program) {
           }
           ).getOrElse(Seq.empty)
       case (a, _, "end") => // "[# .. end]"
-        boson.extract(boson.getByteBuf, key, "limit", Option(a), None).map( v =>
+        println("(all|first|last) [# .. #] (size|isEmpty)")
+        val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
+        println(s"executeArraySelect -> midResult -> $midResult")
+          midResult.map( v =>
         v.asInstanceOf[Seq[BsonArray]]).getOrElse(Seq.empty)
       case (a, expr, b) if b.isInstanceOf[Int] =>
         expr match {

@@ -132,7 +132,7 @@ class Boson(
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, new BsonArray(), limitA, limitB)) match {
+            Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], limitA, limitB)) match {
               case Some(value) if value.isEmpty => None
               case Some(value) => Some(value)
             }
@@ -205,7 +205,7 @@ class Boson(
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, key: String, condition: String, limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     key match {
       case "" => // Constructs a new BsonArray, BsonArray is Root
-        val result = Some(traverseBsonArray(netty, length, arrayFRIdx, new BsonArray(), limitA, limitB))
+        val result = Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], limitA, limitB))
         result match {
           case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
           case Some(_) => result
@@ -329,8 +329,8 @@ class Boson(
           //val value: CharSequence = netty.readCharSequence(valueLength - 1, charset)
           val value: CharSequence = netty.readCharSequence(valueLength, charset)
           mapper + (new String(arrKeyDecode.toArray) -> value)
-          //bsonObj.put(new String(arrKeyDecode.toArray), value)
-          //netty.readByte()
+        //bsonObj.put(new String(arrKeyDecode.toArray), value)
+        //netty.readByte()
         case D_BSONOBJECT =>
           extractKeys(netty)
           val bsonStartReaderIndex: Int = netty.readerIndex()
@@ -345,7 +345,7 @@ class Boson(
           val valueLength: Int = netty.readIntLE()
           val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
           //bsonObj.put(new String(arrKeyDecode.toArray), traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, new BsonArray()))
-          mapper + (new String(arrKeyDecode.toArray) -> traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, new BsonArray()))
+          mapper + (new String(arrKeyDecode.toArray) -> traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any]))
         case D_BOOLEAN =>
           extractKeys(netty)
           val value: Int = netty.readByte()
@@ -366,7 +366,7 @@ class Boson(
           //bsonObj.put(new String(arrKeyDecode.toArray), value)
           mapper + (new String(arrKeyDecode.toArray) -> value)
         case D_ZERO_BYTE =>
-          mapper + ("Zero" -> "Byte")
+          mapper
       }
     arrKeyDecode.clear()
     val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -379,154 +379,187 @@ class Boson(
   }
 
   // Constructs a new BsonArray with limits
-  private def traverseBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, bsonArr: BsonArray, limitA: Option[Int] = None, limitB: Option[Int] = None): BsonArray = {
+  private def traverseBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, seq: Seq[Any], limitA: Option[Int] = None, limitB: Option[Int] = None): Seq[Any] = {
 
-    def constructWithLimits(iter: Int): BsonArray = {
+    def constructWithLimits(iter: Int, seq: Seq[Any]): Seq[Any] = {
       val seqType2: Int = netty.readByte().toInt
       if (seqType2 != 0) {
         readArrayPos(netty)
       }
-      seqType2 match {
-        case D_FLOAT_DOUBLE =>
-          val value: Double = netty.readDoubleLE()
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(value)
-            case Some(_) =>
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(value)
-                case Some(_) =>
-                case None =>
-                  bsonArr.add(value)
-              }
-          }
-        case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          val valueLength: Int = netty.readIntLE()
-          val field: CharSequence = netty.readCharSequence(valueLength - 1, charset)
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(field)
-            case Some(_) =>
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(field)
-                case Some(_) =>
-                case None =>
-                  bsonArr.add(field)
-              }
-          }
-          netty.readByte()
-        case D_BSONOBJECT =>
-          val bsonStartReaderIndex: Int = netty.readerIndex()
-          val valueTotalLength: Int = netty.readIntLE()
-          val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-          val map = scala.collection.immutable.Map[Any, Any]()
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
-            case Some(_) =>
-              netty.readerIndex(bsonFinishReaderIndex)
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
-                case Some(_) => netty.readerIndex(bsonFinishReaderIndex)
-                case None =>
-                  bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
-              }
-          }
-        case D_BSONARRAY =>
-          val startReaderIndex: Int = netty.readerIndex()
-          val valueLength2: Int = netty.readIntLE()
-          val finishReaderIndex: Int = startReaderIndex + valueLength2
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
-            case Some(_) =>
-              netty.readerIndex(finishReaderIndex)
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
-                case Some(_) => netty.readerIndex(finishReaderIndex)
-                case None =>
-                  bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
-              }
-          }
-        case D_BOOLEAN =>
-          val value: Int = netty.readByte()
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(value == 1)
-            case Some(_) =>
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(value == 1)
-                case Some(_) =>
-                case None =>
-                  bsonArr.add(value == 1)
-              }
-          }
-        case D_NULL =>
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.addNull()
-            case Some(_) =>
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.addNull()
-                case Some(_) =>
-                case None =>
-                  bsonArr.addNull()
-              }
-          }
-        case D_INT =>
-          val value: Int = netty.readIntLE()
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(value)
-            case Some(_) =>
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(value)
-                case Some(_) =>
-                case None =>
-                  bsonArr.add(value)
-              }
-          }
-        case D_LONG =>
-          val value: Long = netty.readLongLE()
-          limitB match {
-            case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-              bsonArr.add(value)
-            case Some(_) =>
-            case None =>
-              limitA match {
-                case Some(_) if iter >= limitA.get =>
-                  bsonArr.add(value)
-                case Some(_) =>
-                case None =>
-                  bsonArr.add(value)
-              }
-          }
-        case D_ZERO_BYTE =>
-      }
+      val newSeq =
+        seqType2 match {
+          case D_FLOAT_DOUBLE =>
+            val value: Double = netty.readDoubleLE()
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(value)
+                seq.+:(value)
+              case Some(_) => seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(value)
+                    seq.+:(value)
+                  case Some(_) => seq
+                  case None =>
+                    //bsonArr.add(value)
+                    seq.+:(value)
+                }
+            }
+          case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+            val valueLength: Int = netty.readIntLE()
+            val field: CharSequence = netty.readCharSequence(valueLength - 1, charset)
+            netty.readByte()
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(field)
+                seq.+:(field)
+              case Some(_) => seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(field)
+                    seq.+:(field)
+                  case Some(_) => seq
+                  case None =>
+                    //bsonArr.add(field)
+                    seq.+:(field)
+                }
+            }
+          case D_BSONOBJECT =>
+            val bsonStartReaderIndex: Int = netty.readerIndex()
+            val valueTotalLength: Int = netty.readIntLE()
+            val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
+            val map = scala.collection.immutable.Map[Any, Any]()
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                seq.+:(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+              case Some(_) =>
+                netty.readerIndex(bsonFinishReaderIndex)
+                seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(m)
+                    seq.+:(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                  case Some(_) =>
+                    netty.readerIndex(bsonFinishReaderIndex)
+                    seq
+                  case None =>
+                    //bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                    seq.+:(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                }
+            }
+          case D_BSONARRAY =>
+            val startReaderIndex: Int = netty.readerIndex()
+            val valueLength2: Int = netty.readIntLE()
+            val finishReaderIndex: Int = startReaderIndex + valueLength2
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
+                seq.+:(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
+              case Some(_) =>
+                netty.readerIndex(finishReaderIndex)
+                seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
+                    seq.+:(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
+                  case Some(_) =>
+                    netty.readerIndex(finishReaderIndex)
+                    seq
+                  case None =>
+                    //bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
+                    seq.+:(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
+                }
+            }
+          case D_BOOLEAN =>
+            val value: Int = netty.readByte()
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(value == 1)
+                seq.+:(value == 1)
+              case Some(_) => seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(value == 1)
+                    seq.+:(value == 1)
+                  case Some(_) => seq
+                  case None =>
+                    //bsonArr.add(value == 1)
+                    seq.+:(value == 1)
+                }
+            }
+          case D_NULL =>
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.addNull()
+                seq.+:(null)
+              case Some(_) => seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.addNull()
+                    seq.+:(null)
+                  case Some(_) => seq
+                  case None =>
+                    //bsonArr.addNull()
+                    seq.+:(null)
+                }
+            }
+          case D_INT =>
+            val value: Int = netty.readIntLE()
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(value)
+                seq.+:(value)
+              case Some(_) => seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(value)
+                    seq.+:(value)
+                  case Some(_) => seq
+                  case None =>
+                    //bsonArr.add(value)
+                    seq.+:(value)
+                }
+            }
+          case D_LONG =>
+            val value: Long = netty.readLongLE()
+            limitB match {
+              case Some(_) if iter >= limitA.get && iter <= limitB.get =>
+                //bsonArr.add(value)
+                seq.+:(value)
+              case Some(_) => seq
+              case None =>
+                limitA match {
+                  case Some(_) if iter >= limitA.get =>
+                    //bsonArr.add(value)
+                    seq.+:(value)
+                  case Some(_) => seq
+                  case None =>
+                    //bsonArr.add(value)
+                    seq.+:(value)
+                }
+            }
+          case D_ZERO_BYTE =>
+            seq
+        }
       val actualPos2 = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
-          constructWithLimits(iter + 1)
+          constructWithLimits(iter + 1, newSeq)
         case 0 =>
-          bsonArr
+          println(s"ended constructing BsonArray -> Seq[Any] -> $newSeq")
+          newSeq
       }
     }
 
-    constructWithLimits(0)
+    constructWithLimits(0, seq)
   }
 
 

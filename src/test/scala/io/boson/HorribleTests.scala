@@ -196,7 +196,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "   all    [     0    to   end      ]   size  "
     val boson: Boson = new Boson(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, key, expression)
-    assert(BsSeq(Seq(3,1,1)) === result)
+    assert(BsNumber(5) === result)
   }
 
   test("array prob 2") {
@@ -204,6 +204,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "   all    [     0    to   end      ]   size  "
     val boson: Boson = new Boson(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, key, expression)
+    println(s"result in Test: $result")
     assert(BsNumber(4) === result)
   }
 
@@ -220,7 +221,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "   first    [     0    to   end      ]   size  "
     val boson: Boson = new Boson(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, key, expression)
-    assert(BsSeq(Seq(3)) === result)
+    assert(BsNumber(1) === result)
   }
 
 }
