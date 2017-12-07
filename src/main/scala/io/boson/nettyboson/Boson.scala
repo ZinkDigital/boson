@@ -1,12 +1,11 @@
-package io.boson.nettybson
+package io.boson.nettyboson
 
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
-import java.nio.charset.{Charset}
+import java.nio.charset.Charset
 import io.boson.bson.{BsonArray, BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.boson.nettybson.Constants._
-import io.vertx.core.buffer.Buffer
+import io.boson.nettyboson.Constants._
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -18,8 +17,11 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
   * This class encapsulates one Netty ByteBuf
   *
   */
-class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] = None, javaByteBuf: Option[ByteBuffer] = None,
-                vertxBuff: Option[Buffer] = None, scalaArrayBuf: Option[ArrayBuffer[Byte]] = None) {
+class Boson(
+             byteArray: Option[Array[Byte]] = None,
+            javaByteBuf: Option[ByteBuffer] = None,
+            scalaArrayBuf: Option[ArrayBuffer[Byte]] = None
+           ) {
 
   /*private val valueOfArgument: String = this match {
     case _ if javaByteBuf.isDefined => javaByteBuf.get.getClass.getSimpleName
@@ -35,46 +37,22 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       javaByteBuf.get.getClass.getSimpleName
     } else if(byteArray.isDefined) {
       byteArray.get.getClass.getSimpleName
-    } else if(byteBuf.isDefined) {
-      byteBuf.get.getClass.getSimpleName
-    } else if(vertxBuff.isDefined) {
-      vertxBuff.get.getClass.getSimpleName
     } else if(scalaArrayBuf.isDefined) {
       scalaArrayBuf.get.getClass.getSimpleName
     } else EMPTY_CONSTRUCTOR
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
-    case NETTY_READONLY_BUF => // Netty
-      val b = byteBuf.get.duplicate()
-        //Unpooled.buffer()
-      b//.writeBytes(byteBuf.get)
-    case NETTY_COMPOSITE_BUF =>
-      val b = byteBuf.get.duplicate()
-      //Unpooled.buffer()
-      b///.writeBytes(byteBuf.get)
-    case NETTY_DEFAULT_BUF => // Netty
-      val b = byteBuf.get.duplicate()
-        //Unpooled.buffer()
-      b///.writeBytes(byteBuf.get)
     case ARRAY_BYTE => // Array[Byte]
       val b = Unpooled.copiedBuffer(byteArray.get)
-     // b.writeBytes(byteArray.get)
+      // b.writeBytes(byteArray.get)
       b
     case JAVA_BYTEBUFFER => // Java ByteBuffer
       val b = Unpooled.copiedBuffer(javaByteBuf.get)
       javaByteBuf.get.clear()
       b
-    case VERTX_BUF => // Vertx Buffer
-      println("Vertx buffer")
-      val b = vertxBuff.get.getByteBuf
-      b//.writeBytes(vertxBuff.get.getBytes)
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
       val b = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
-      b//.writeBytes(scalaArrayBuf.get.toArray)
-    case NETTY_DUPLICATED_BUF => // Netty
-      val b = byteBuf.get.duplicate()
-        //Unpooled.buffer()
-      b//.writeBytes(byteBuf.get)
+      b
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
   }
@@ -97,7 +75,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             netty.readIntLE()
             val arrayFinishReaderIndex: Int = startReaderIndex + size
             val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, key, condition, limitA, limitB)
-            if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+            if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           case _ =>  // root obj isn't BsonArray, call extractFromBsonObj
             if(key.isEmpty){
               None  // Doens't make sense to pass "" as a key when root isn't a BsonArray
@@ -105,7 +83,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               netty.readIntLE()
               val bsonFinishReaderIndex: Int = startReaderIndex + size
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             }
         }
     }
@@ -146,7 +124,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             val valueTotalLength: Int = netty.readIntLE()
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             val midResult = extractFromBsonObj(netty, key, bFnshRdrIndex, condition, limitA, limitB)
-            if(midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+            if(midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           }
         case D_BSONARRAY =>
           if (compareKeys(netty, key)) {
@@ -162,7 +140,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             val midResult = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, key, condition, limitA, limitB)
-            if(midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+            if(midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           }
         case D_BOOLEAN =>
           if (compareKeys(netty, key) && !condition.equals("limit")) {
@@ -209,7 +187,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             None
         }
       case Some(value) if condition.equals("first") || condition.equals("limit")=>
-        netty.readerIndex(bsonFinishReaderIndex)
+        netty.readerIndex(bsonFinishReaderIndex)                                  //  TODO: review this line
         Some(value)
       case Some(_) =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -234,8 +212,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       case _ =>
         val seqType2: Int = netty.readByte().toInt
         if (seqType2 != 0) {
-          netty.readByte()
-          netty.readByte()
+          readArrayPos(netty)
         }
         val finalValue: Option[Any] =
           seqType2 match {
@@ -251,13 +228,13 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               val valueTotalLength: Int = netty.readIntLE()
               val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BSONARRAY =>
               val startReaderIndex: Int = netty.readerIndex()
               val valueLength2: Int = netty.readIntLE()
               val finishReaderIndex: Int = startReaderIndex + valueLength2
               val midResult = extractFromBsonArray(netty, valueLength2, finishReaderIndex, key, condition, limitA, limitB)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toList))
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BOOLEAN =>
               netty.readByte()
               None
@@ -281,7 +258,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
               case 0 =>
                 None
             }
-          case Some(value) =>
+          case Some(_) =>
             condition match {
               case "first" =>
                 finalValue
@@ -294,6 +271,15 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
             }
         }
     }
+  }
+
+  private def readArrayPos(netty: ByteBuf): Unit = {
+    var i = netty.readerIndex()
+    while(netty.getByte(i) != 0 ) {
+      netty.readByte()
+      i+=1
+    }
+    netty.readByte()  //  consume the end Pos byte
   }
 
   private def extractKeys(netty: ByteBuf): Unit = {
@@ -312,17 +298,16 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       i += 1
     }
     netty.readByte() // consume the end String byte
-
     key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep
   }
 
-  private def resultComposer(list: List[Any]): List[Any] = {
+  private def resultComposer(list: Seq[Any]): Seq[Any] = {
     list match {
-      case Nil => Nil
-      case x :: Nil if x.isInstanceOf[List[Any]] => (resultComposer(x.asInstanceOf[List[Any]]) :: Nil).flatten
-      case x :: Nil => x :: Nil
-      case x :: xs if x.isInstanceOf[List[Any]] => (resultComposer(x.asInstanceOf[List[Any]]) :: resultComposer(xs) :: Nil).flatten
-      case x :: xs => ((x :: Nil) :: resultComposer(xs) :: Nil).flatten
+      case Seq() => Seq.empty[Any]
+      case x :: Seq() if x.isInstanceOf[Seq[Any]] => (resultComposer(x.asInstanceOf[Seq[Any]]) +: Seq()).flatten
+      case x :: Nil => x +: Seq.empty[Any]
+      case x :: xs if x.isInstanceOf[Seq[Any]] => (resultComposer(x.asInstanceOf[Seq[Any]]) +: resultComposer(xs) +: Seq()).flatten
+      case x :: xs => ((x +: Seq()) +: resultComposer(xs) +: Seq()).flatten
     }
   }
 
@@ -386,8 +371,7 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
     def constructWithLimits(iter: Int): BsonArray = {
       val seqType2: Int = netty.readByte().toInt
       if (seqType2 != 0) {
-        netty.readByte()
-        netty.readByte()
+        readArrayPos(netty)
       }
       seqType2 match {
         case D_FLOAT_DOUBLE =>
@@ -531,7 +515,8 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   }
 
 
-
+  def duplicate: Boson =
+    new Boson(byteArray = Option(this.nettyBuffer.duplicate().array()))
 
   def getByteBuf: ByteBuf = this.nettyBuffer
 
@@ -555,8 +540,8 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
     nettyBuffer.capacity()
   }
 
-  def asReadOnly: NettyBson = {
-    new NettyBson(byteBuf = Option(nettyBuffer.asReadOnly()))
+  def asReadOnly: Boson = {
+    new Boson(byteArray = Option(nettyBuffer.asReadOnly().array()))
   }
 
   def isReadOnly: Boolean = {
@@ -584,60 +569,60 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       nettyBuffer.readByte()
   }
 
-  def readBytes(arr: Array[Byte]): NettyBson = {
-      new NettyBson(Option(nettyBuffer.readBytes(arr).array()))
+  def readBytes(arr: Array[Byte]): Boson = {
+      new Boson(Option(nettyBuffer.readBytes(arr).array()))
   }
 
-  def readBytes(arr: Array[Byte], dstIndex: Int, length: Int): NettyBson = {
-      new NettyBson(Option(nettyBuffer.readBytes(arr, dstIndex, length).array()))
+  def readBytes(arr: Array[Byte], dstIndex: Int, length: Int): Boson = {
+      new Boson(Option(nettyBuffer.readBytes(arr, dstIndex, length).array()))
   }
 
-  def readBytes(buf: NettyBson): NettyBson = {
+  def readBytes(buf: Boson): Boson = {
       buf.writerIndex match {
         case 0 =>
           val byteBuf: ByteBuf = Unpooled.buffer()
           nettyBuffer.readBytes(byteBuf)
-          new NettyBson(Option(byteBuf.array()))
+          new Boson(Option(byteBuf.array()))
         case length =>
           val byteBuf: ByteBuf = Unpooled.buffer()
           byteBuf.writeBytes(buf.array, 0, length)
           nettyBuffer.readBytes(byteBuf)
-          new NettyBson(Option(byteBuf.array()))
+          new Boson(Option(byteBuf.array()))
       }
   }
 
-  def readBytes(buf: NettyBson, length: Int): NettyBson = {
+  def readBytes(buf: Boson, length: Int): Boson = {
       buf.writerIndex match {
         case 0 =>
           val byteBuf: ByteBuf = Unpooled.buffer()
           nettyBuffer.readBytes(byteBuf, length)
-          new NettyBson(Option(byteBuf.array()))
+          new Boson(Option(byteBuf.array()))
         case _ =>
           val byteBuf: ByteBuf = Unpooled.buffer()
           byteBuf.writeBytes(buf.array, 0, buf.writerIndex)
           nettyBuffer.readBytes(byteBuf, length)
-          new NettyBson(Option(byteBuf.array()))
+          new Boson(Option(byteBuf.array()))
       }
   }
 
-  def readBytes(buf: NettyBson, dstIndex: Int, length: Int): NettyBson = {
+  def readBytes(buf: Boson, dstIndex: Int, length: Int): Boson = {
       buf.writerIndex match {
         case 0 =>
           val byteBuf: ByteBuf = Unpooled.buffer()
           nettyBuffer.readBytes(byteBuf, dstIndex, length)
-          new NettyBson(Option(byteBuf.array()))
+          new Boson(Option(byteBuf.array()))
         case _ =>
           val byteBuf: ByteBuf = Unpooled.buffer()
           byteBuf.writeBytes(buf.array, 0, buf.writerIndex)
           nettyBuffer.readBytes(byteBuf, dstIndex, length)
-          new NettyBson(Option(byteBuf.array()))
+          new Boson(Option(byteBuf.array()))
       }
   }
 
-  def readBytes(length: Int): NettyBson = {
+  def readBytes(length: Int): Boson = {
       val bB: ByteBuf = Unpooled.buffer()
       nettyBuffer.readBytes(bB, length)
-      new NettyBson(byteBuf = Option(bB))
+      new Boson(byteArray = Option(bB.array()))
   }
 
   def readChar: Char = {
@@ -652,8 +637,8 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       nettyBuffer.readDouble()
   }
 
-  def readerIndex(readerIndex: Int): NettyBson = {
-      new NettyBson(Option(nettyBuffer.readerIndex(readerIndex).array()))
+  def readerIndex(readerIndex: Int): Boson = {
+      new Boson(Option(nettyBuffer.readerIndex(readerIndex).array()))
   }
 
   def hasArray: Boolean = {
@@ -688,8 +673,8 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       nettyBuffer.readMediumLE()
   }
 
-  def readRetainedSlice(length: Int): NettyBson = {
-      new NettyBson(Option(nettyBuffer.readRetainedSlice(length).array()))
+  def readRetainedSlice(length: Int): Boson = {
+      new Boson(Option(nettyBuffer.readRetainedSlice(length).array()))
   }
 
   def readShort: Short = {
@@ -700,8 +685,8 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
       nettyBuffer.readShortLE()
   }
 
-  def readSlice(length: Int): NettyBson = {
-      new NettyBson(Option(nettyBuffer.readSlice(length).array()))
+  def readSlice(length: Int): Boson = {
+      new Boson(Option(nettyBuffer.readSlice(length).array()))
   }
 
   def readUnsignedByte: Short = {
@@ -741,9 +726,9 @@ class NettyBson(byteArray: Option[Array[Byte]] = None, byteBuf: Option[ByteBuf] 
   def toString(index: Int, length: Int, charset: Charset): String =
     nettyBuffer.toString(index, length, charset)
 
-  def touch: NettyBson = new NettyBson(Option(nettyBuffer.touch().array()))
+  def touch: Boson = new Boson(Option(nettyBuffer.touch().array()))
 
-  def touch(hint: Object): NettyBson = new NettyBson(Option(nettyBuffer.touch(hint).array()))
+  def touch(hint: Object): Boson = new Boson(Option(nettyBuffer.touch(hint).array()))
 
   def writableBytes: Int = {
     nettyBuffer.writableBytes()

@@ -1,8 +1,9 @@
 package io.boson.scalaInterface
 
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import scala.collection.mutable.ArrayBuffer
+import io.boson.bsonValue
 
 
 /**
@@ -10,26 +11,26 @@ import scala.collection.mutable.ArrayBuffer
   */
 class ScalaInterface {
 
-  def createNettyBson(byteArray: Array[Byte]):NettyBson = {
-     new NettyBson(byteArray = Option(byteArray))
+  def createBoson(byteArray: Array[Byte]):Boson = {
+     new Boson(byteArray = Option(byteArray))
   }
 
-  def createNettyBson(arrayBuffer: ArrayBuffer[Byte]):NettyBson = {
-    new NettyBson(scalaArrayBuf = Option(arrayBuffer))
+  def createBoson(arrayBuffer: ArrayBuffer[Byte]):Boson = {
+    new Boson(scalaArrayBuf = Option(arrayBuffer))
   }
 
 
-  def parse(netty: NettyBson, key: String, expression: String): Any = {
+  def parse(netty: Boson, key: String, expression: String): bsonValue.BsValue = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
           new Interpreter(netty, key, r.asInstanceOf[Program]).run()
-        case parser.Error(msg, _) =>  msg
-        case parser.Failure(msg, _) =>  msg
+        case parser.Error(msg, _) =>  bsonValue.BsObject.toBson(msg)
+        case parser.Failure(msg, _) =>  bsonValue.BsObject.toBson(msg)
       }
     } catch {
-      case e:RuntimeException => e.getMessage
+      case e:RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
     }
   }
 

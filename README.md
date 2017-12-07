@@ -1,8 +1,43 @@
 # boson
+[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
+
 Streaming Data Access for BSON and JSON encoded documents
 
 
 ## Basic Usage
+
+### Extracting a Value from a BsonObject (Scala)
+
+```scala
+//  Create a BsonObject/BsonArray
+val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L)
+    .put("Unemployed", false).put("Residence", "Lisboa").putNull("Experience")
+
+//  Instantiate a Boson that receives a buffer containing the Bson encoded
+val boson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes))
+
+//  Call extract method on boson, the arguments being the netty byteBuf of Boson object,
+//  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
+val result: Option[Any] = boson.extract(boson.getByteBuf, "AnualSalary", "first")
+```
+
+### Extracting a Json (Java)
+
+```java
+//  JsonObject represented by a String
+final String json = "{\"value\": 27, \"onclick\": \"CreateNewDoc()\", \"bool\": false }";
+
+//  Create a parser to read Strings and the argument being the json String
+JsonParser parser = Json.createParser(new StringReader(json));
+
+//  Knowing the JsonObject choose which value to be extracted with a key
+//  and an ObjectExtractor, specifying the type of the ObjectExtractor
+//  like in this case a StringExtractor.
+JsonExtractor<String> ext = new ObjectExtractor( new StringExtractor("onclick") );
+
+//  Apply the extractor to the parser to get the result
+String result = ext.apply(parser).getResult().toString();
+```
 
 ### Using ScalaInterface
 
@@ -22,14 +57,14 @@ val key: String = ""
 //  The available terms to use are shown further down in the README document.
 val expression: String = "first"
 
-//  NettyBson is an Object that encapsulates a certain type of buffer
+//  Boson is an Object that encapsulates a certain type of buffer
 //  and transforms it into a Netty buffer.
 //  Available types are shown further down in the README document.
-val netty: NettyBson = sI.createNettyBson(bsonObject.encode())
+val boson: Boson = sI.createBoson(bsonObject.encode().getBytes)
 
 //  To extract from the Netty buffer, method parse is called with the key and expression.
 //  The result can be one of three types depending on the used terms in expression.
-val result: Any = sI.parse(netty, key, expression)
+val result: BsValue = sI.parse(boson, key, expression)
 ```
 
 ### Using JavaInterface
@@ -40,8 +75,8 @@ val result: Any = sI.parse(netty, key, expression)
 JavaInterface jI = new JavaInterface();
 String key = "Something";
 String expression = "all";
-NettyBson netty = jI.createNettyBson(bsonObject.encode().getBytes());
-Object result = jI.parse(netty, key, expression);
+Boson boson = jI.createBoson(bsonObject.encode().getBytes());
+BsValue result = jI.parse(boson, key, expression);
 ```
 
 ## Extracting Available Terms
@@ -87,7 +122,7 @@ It is possible to mix terms of tables 1 and 2.
 
 Expression Terms | Output
 ---------------- | ------
-all size | Returns a list with sizes of the containing values
+all size | Returns the size of all elements filtered
 first isEmpty | Returns true/false depending on if the first occurrence is empty or not
 
 It is also possible to mix terms of tables 1 and 3.
@@ -108,7 +143,13 @@ Lastly its possible to join terms of tables 1, 2 and 3.
 
 ### Available Buffer Types
 * Array of Bytes
-* Netty ByteBuf
 * Java ByteBuffer
-* Vertx Buffer
 * Scala ArrayBuffer
+
+### BsValue
+BsValue is a trait representing any return type of the parser. This type is extended by case classes that represent the
+possible outputs of the parser.
+* BsNumber
+* BsSeq
+* BsBoolean
+* BsException

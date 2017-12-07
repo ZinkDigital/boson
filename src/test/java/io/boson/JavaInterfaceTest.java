@@ -2,17 +2,19 @@ package io.boson;
 
 import io.boson.bson.BsonArray;
 import io.boson.bson.BsonObject;
+import io.boson.bsonValue.*;
 import io.boson.javaInterface.JavaInterface;
-import io.boson.nettybson.NettyBson;
+import io.boson.nettyboson.Boson;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+
+import scala.collection.Seq;
+import scala.math.BigDecimal;
+
 import java.util.ArrayList;
-import java.util.List;
 
 
-/**
- * Created by Tiago Filipe on 03/11/2017.
- */
+
 public class JavaInterfaceTest {
 
     private BsonArray br4 = new BsonArray().add("Insecticida");
@@ -28,23 +30,86 @@ public class JavaInterfaceTest {
 
 
     @Test
-    public void extractWithJavaInterface() {
+    public void extractExceptionWithJavaInterface() {
 
         JavaInterface jI = new JavaInterface();
         String key = "José";
-        String expression = "all";
-        NettyBson netty = jI.createNettyBson(bsonEvent.encode().getBytes());
+        String expression = "[-8 to 5]";
+        Boson boson = jI.createBoson(bsonEvent.encode().getBytes());
 
-        Object result = jI.parse(netty, key, expression);
-        List list = jI.convert((scala.collection.Seq<Object>)result);
+        BsValue result = jI.parse(boson, key, expression);
 
+        assertEquals(BsException$.MODULE$.apply("Failure/Error parsing!"), result);
+    }
 
+    @Test
+    public void extractSetWithJavaInterface() {
+        Seq<Object> seq = null;
+        Boolean bool = null;
+        BigDecimal bD = null;
 
-        ArrayList<Object> myList =  new ArrayList<>();
-        myList.add(br1);
-        myList.add(br2);
-        myList.add(br3);
+        JavaInterface jI = new JavaInterface();
+        String key = "José";
+        String expression = "[0 until 4]";
+        Boson boson = jI.createBoson(bsonEvent.encode().getBytes());
 
-        assertEquals(myList, list);
+        BsValue result = jI.parse(boson, key, expression);
+
+        if(result instanceof BsSeq){
+            BsSeq newResult = (BsSeq) result;
+            seq = newResult.getValue();
+        } else if (result instanceof BsBoolean) {
+            BsBoolean newResult = (BsBoolean) result;
+            bool = newResult.getValue();
+        } else if(result instanceof BsNumber) {
+            BsNumber newResult = (BsNumber) result;
+            bD = newResult.getValue();
+        }
+
+        ArrayList<Object> list = new ArrayList<>();
+        list.add(br1);
+        list.add(br2);
+        list.add(br3);
+
+        assertEquals(list, jI.convert(seq));
+    }
+
+    @Test
+    public void extractIntWithJavaInterface() {
+        BigDecimal bD = null;
+
+        JavaInterface jI = new JavaInterface();
+        String key = "";
+        String expression = "all size";
+        Boson boson = jI.createBoson(arr.encode().getBytes());
+
+        BsValue result = jI.parse(boson, key, expression);
+
+        if(result instanceof BsNumber) {
+            BsNumber newResult = (BsNumber) result;
+            bD = newResult.getValue();
+        }
+        BigDecimal val = BigDecimal.binary(arr.size());
+
+        assertEquals(BsNumber$.MODULE$.apply(val).getValue(), bD);
+    }
+
+    @Test
+    public void extractBoolWithJavaInterface() {
+        Boolean bool = null;
+
+        JavaInterface jI = new JavaInterface();
+        String key = "";
+        String expression = "first isEmpty";
+        Boson boson = jI.createBoson(arr.encode().getBytes());
+
+        BsValue result = jI.parse(boson, key, expression);
+
+        if (result instanceof BsBoolean) {
+            BsBoolean newResult = (BsBoolean) result;
+            bool = newResult.getValue();
+        }
+        assertEquals(false, bool);
+        System.out.println("passed");
     }
 }

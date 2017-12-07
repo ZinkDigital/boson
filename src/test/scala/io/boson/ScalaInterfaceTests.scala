@@ -1,8 +1,8 @@
 package io.boson
 
-import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.nettybson.NettyBson
+import io.boson.nettyboson.Boson
 import io.boson.bson.{BsonArray, BsonObject}
+import io.boson.bsonValue._
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -18,14 +18,40 @@ import org.scalatest.junit.JUnitRunner
     val sI: ScalaInterface = new ScalaInterface
 
 
-    test("first") {
+    test("extractSeqWithScalaInterface") {
       val key: String = ""
       val language: String = "first"
-      val netty: NettyBson = sI.createNettyBson(ba1.encode().getBytes)
-      val result: Any = sI.parse(netty, key, language)
-
-      assert(List("ArrayField") === result)
+      val boson: Boson = sI.createBoson(ba1.encode().getBytes)
+      val result: BsValue = sI.parse(boson, key, language)
+      assert(BsSeq(Seq("ArrayField")) === result)
     }
 
+    test("extractIntWithScalaInterface") {
+      val key: String = ""
+      val language: String = "[5 until 6] size"
+      val boson: Boson = sI.createBoson(ba1.encode().getBytes)
+      val result: BsValue = sI.parse(boson, key, language)
+
+      assert(BsNumber(BigDecimal(0)) === result)
+    }
+
+    test("extractBoolWithScalaInterface") {
+      val key: String = ""
+      val language: String = "[5 to end] isEmpty"
+      val boson: Boson = sI.createBoson(ba1.encode().getBytes)
+      val result: BsValue = sI.parse(boson, key, language)
+
+      assert(BsBoolean(true) === result)
+    }
+
+    test("extractExceptionWithScalaInterface") {
+      val key: String = "field1"
+      val language: String = "last [0 until end] in"
+
+      val boson: Boson = sI.createBoson(ba1.encode().getBytes)
+      val result: BsValue = sI.parse(boson, key, language)
+
+      assert(BsException("`isEmpty' expected but `i' found") === result)
+    }
 
   }
