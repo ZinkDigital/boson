@@ -205,7 +205,7 @@ class Boson(
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, key: String, condition: String, limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     key match {
       case "" => // Constructs a new BsonArray, BsonArray is Root
-        val result = Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], limitA, limitB))
+        val result = Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], limitA, limitB).toArray[Any])
         result match {
           case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
           case Some(_) => result
