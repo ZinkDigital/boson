@@ -187,9 +187,9 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bObj", "all")
     }
-    val s: BsonObject = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[BsonObject]].head
+    val s: Any = result.asInstanceOf[BsSeq].value.head
 
-    assert(newbObj === s
+    assert(Map("newbsonObj" -> "newbsonObj") === s
       , "Contents are not equal")
   }
 
@@ -229,9 +229,9 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bsonArray", "all")
     }
-    val s: BsonArray = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[BsonArray]].head
+    val s: Any = result.asInstanceOf[BsSeq].value
 
-    assert(newbsonArray === s
+    assert(Seq(3, 4, "Bye") === s
       , "Contents are not equal")
   }
 
@@ -356,9 +356,9 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bObj", "all")
     }
-    val s: BsonObject = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[BsonObject]].head
+    val s: Any = result.asInstanceOf[BsSeq].value.head
 
-    assert(newbObj === s
+    assert(Map("newbsonObj" -> "newbsonObj") === s
       , "Contents are not equal")
   }
 
@@ -398,9 +398,9 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bsonArray", "all")
     }
-    val s: BsonArray = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[BsonArray]].head
+    val s: Any = result.asInstanceOf[BsSeq].value
 
-    assert(newbsonArray === s
+    assert(Seq(3, 4, "Bye") === s
       , "Contents are not equal")
   }
 

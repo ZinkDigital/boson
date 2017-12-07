@@ -327,10 +327,11 @@ class Boson(
           extractKeys(netty)
           val valueLength: Int = netty.readIntLE()
           //val value: CharSequence = netty.readCharSequence(valueLength - 1, charset)
-          val value: CharSequence = netty.readCharSequence(valueLength, charset)
+          val value: CharSequence = netty.readCharSequence(valueLength - 1, charset)
+          netty.readByte()
           mapper + (new String(arrKeyDecode.toArray) -> value)
         //bsonObj.put(new String(arrKeyDecode.toArray), value)
-        //netty.readByte()
+
         case D_BSONOBJECT =>
           extractKeys(netty)
           val bsonStartReaderIndex: Int = netty.readerIndex()
