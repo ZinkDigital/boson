@@ -393,17 +393,17 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(value)
-                seq.+:(value)
+                seq.:+(value)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(value)
-                    seq.+:(value)
+                    seq.:+(value)
                   case Some(_) => seq
                   case None =>
                     //bsonArr.add(value)
-                    seq.+:(value)
+                    seq.:+(value)
                 }
             }
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -413,17 +413,17 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(field)
-                seq.+:(field)
+                seq.:+(field)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(field)
-                    seq.+:(field)
+                    seq.:+(field)
                   case Some(_) => seq
                   case None =>
                     //bsonArr.add(field)
-                    seq.+:(field)
+                    seq.:+(field)
                 }
             }
           case D_BSONOBJECT =>
@@ -434,7 +434,7 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
-                seq.+:(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex))
               case Some(_) =>
                 netty.readerIndex(bsonFinishReaderIndex)
                 seq
@@ -442,13 +442,13 @@ class Boson(
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(m)
-                    seq.+:(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                    seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex))
                   case Some(_) =>
                     netty.readerIndex(bsonFinishReaderIndex)
                     seq
                   case None =>
                     //bsonArr.add(traverseBsonObj(netty, map, bsonFinishReaderIndex))
-                    seq.+:(traverseBsonObj(netty, map, bsonFinishReaderIndex))
+                    seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex))
                 }
             }
           case D_BSONARRAY =>
@@ -458,7 +458,7 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
-                seq.+:(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
+                seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
               case Some(_) =>
                 netty.readerIndex(finishReaderIndex)
                 seq
@@ -466,13 +466,13 @@ class Boson(
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
-                    seq.+:(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
+                    seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
                   case Some(_) =>
                     netty.readerIndex(finishReaderIndex)
                     seq
                   case None =>
                     //bsonArr.add(traverseBsonArray(netty, valueLength2, finishReaderIndex, new BsonArray()))
-                    seq.+:(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
+                    seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any]))
                 }
             }
           case D_BOOLEAN =>
@@ -480,34 +480,34 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(value == 1)
-                seq.+:(value == 1)
+                seq.:+(value == 1)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(value == 1)
-                    seq.+:(value == 1)
+                    seq.:+(value == 1)
                   case Some(_) => seq
                   case None =>
                     //bsonArr.add(value == 1)
-                    seq.+:(value == 1)
+                    seq.:+(value == 1)
                 }
             }
           case D_NULL =>
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.addNull()
-                seq.+:(null)
+                seq.:+(null)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.addNull()
-                    seq.+:(null)
+                    seq.:+(null)
                   case Some(_) => seq
                   case None =>
                     //bsonArr.addNull()
-                    seq.+:(null)
+                    seq.:+(null)
                 }
             }
           case D_INT =>
@@ -515,17 +515,17 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(value)
-                seq.+:(value)
+                seq.:+(value)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(value)
-                    seq.+:(value)
+                    seq.:+(value)
                   case Some(_) => seq
                   case None =>
                     //bsonArr.add(value)
-                    seq.+:(value)
+                    seq.:+(value)
                 }
             }
           case D_LONG =>
@@ -533,17 +533,17 @@ class Boson(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 //bsonArr.add(value)
-                seq.+:(value)
+                seq.:+(value)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     //bsonArr.add(value)
-                    seq.+:(value)
+                    seq.:+(value)
                   case Some(_) => seq
                   case None =>
                     //bsonArr.add(value)
-                    seq.+:(value)
+                    seq.:+(value)
                 }
             }
           case D_ZERO_BYTE =>
