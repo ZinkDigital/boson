@@ -1,7 +1,4 @@
-package io.boson.json;
-
-
-import io.boson.json.JsonExtractor;
+package io.boson.json.extractors;
 
 
 //   ExtractorBuilder<T> Obj() ;
@@ -18,19 +15,4 @@ import io.boson.json.JsonExtractor;
 //   ExtractorBuilder<T> Str(String name);
 //   ExtractorBuilder<T> Bool(String name);
 
-/**
- * Extractor is the base for a structured assembly of Extractors for various types
- */
- public abstract class JsonChainedExtractor<O> implements JsonExtractor<O> {
 
-    private final JsonExtractor<O> next;
-
-    public JsonChainedExtractor(JsonExtractor<O> extractor) {
-        this.next =  extractor;
-    }
-
-    public boolean hasNext() { return true; }
-
-    public JsonExtractor<O> getNext() { return next; }
-
-}

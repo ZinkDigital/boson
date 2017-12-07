@@ -12,7 +12,7 @@ import scala.collection.Seq;
 import scala.math.BigDecimal;
 
 import java.util.ArrayList;
-
+import java.util.concurrent.CompletableFuture;
 
 
 public class JavaInterfaceTest {
@@ -112,4 +112,8 @@ public class JavaInterfaceTest {
         assertEquals(false, bool);
         System.out.println("passed");
     }
+
+
+
+
 }

@@ -11,7 +11,7 @@ import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import io.boson.bsonValue.*;
 
-
+@Deprecated
 public class JavaInterface {
 
     public Boson createBoson(byte[] byteArray) {
