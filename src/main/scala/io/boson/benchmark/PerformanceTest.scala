@@ -1,4 +1,4 @@
-package io.boson.benchMarck
+package io.boson.benchmark
 
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue.{BsNumber, BsSeq}
