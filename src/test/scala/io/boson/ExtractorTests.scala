@@ -87,7 +87,12 @@ class ExtractorTests extends FunSuite {
 
   test("Extract BsonArray") {
     val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes()))
-    assert(Map("André" -> 975, "António" -> 975) === bosonBson.extract(bosonBson.getByteBuf, "Colleagues", "first").get.asInstanceOf[List[Any]].head)
+    val result = bosonBson.extract(bosonBson.getByteBuf, "Colleagues", "first").get.asInstanceOf[List[Array[Any]]]
+    assert(Seq(
+      Map("André" -> 975, "António" -> 975),
+        Map("Pedro" -> 1250, "José" -> false),
+        Map("Américo" -> 1500, "Amadeu" -> null))
+     === result.head)
   }
 
   test("Extract deep layer") {
@@ -95,7 +100,10 @@ class ExtractorTests extends FunSuite {
     val arr2: BsonArray = new BsonArray().add("Day3").add("Day20").add("Day31")
     obj2.put("JoséMonthLeave", arr2)
     val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes()))
-    assert("Day3" === bosonBson.extract(bosonBson.getByteBuf, "JoséMonthLeave", "first").get.asInstanceOf[List[Any]].head)
+    assert(
+      Seq("Day3", "Day20", "Day31")
+        === bosonBson.extract(bosonBson.getByteBuf, "JoséMonthLeave", "first").get.asInstanceOf[List[Any]].head
+    )
   }
 
   test("Extract nonexistent key") {

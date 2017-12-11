@@ -222,17 +222,16 @@ class InjectorsTest extends FunSuite {
   }
 
   test("Injector: BsonArray => BsonArray") {
-
     val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray)
 
     val result: Any = b1 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "bsonArray", "all")
     }
-    val s: Any = result.asInstanceOf[BsSeq].value
+    val s: Any = result.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Any]].toSeq
 
-    assert(Seq(3, 4, "Bye") === s
-      , "Contents are not equal")
+    assert(Array(3, 4, "Bye").toSeq === s,
+      "Contents are not equal")
   }
 
 
@@ -398,7 +397,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bsonArray", "all")
     }
-    val s: Any = result.asInstanceOf[BsSeq].value
+    val s: Any = result.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Any]].toSeq
 
     assert(Seq(3, 4, "Bye") === s
       , "Contents are not equal")

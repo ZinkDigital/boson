@@ -132,7 +132,7 @@ class Boson(
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], limitA, limitB)) match {
+            Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], limitA, limitB).toArray[Any]) match {
               case Some(value) if value.isEmpty => None
               case Some(value) => Some(value)
             }
