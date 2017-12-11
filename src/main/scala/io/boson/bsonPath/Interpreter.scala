@@ -1,10 +1,7 @@
 package io.boson.bsonPath
 
 import io.boson.nettyboson.Boson
-import io.boson.bson.BsonArray
 import io.boson.bsonValue
-
-import scala.collection.mutable
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -41,7 +38,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
 
   private def executeSizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar): bsonValue.BsValue = {
     val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
-    println(s"executeSizeOfArrayStatement -> midResult -> $midResult")
+    println(s"executeSizeOfArrayStatement -> midResult -> ${midResult.asInstanceOf[Seq[Array[Any]]]}")
     val result =
       midResult match {
         case Seq() => Seq.empty
@@ -57,11 +54,11 @@ class Interpreter(boson: Boson, key: String, program: Program) {
             }
           } else {
             grammar.selectType match {
-              case "first" => Seq(value.head.asInstanceOf[Array[Any]].head)
-              case "last" => Seq(value.head.asInstanceOf[Array[Any]].last)
-              case "all" =>
-                println(s"case all: ${Seq(value.head.asInstanceOf[Array[Any]])}")
-                Seq(value.head.asInstanceOf[Array[Any]])
+              case "first" => Seq(value.asInstanceOf[Seq[Array[Any]]].head)
+              case "last" =>
+                println(s"last -> ${value.asInstanceOf[Seq[Array[Any]]].last.toSeq}")
+                Seq(value.asInstanceOf[Seq[Array[Any]]].last)
+              case "all" => value.asInstanceOf[Seq[Array[Any]]]
             }
           }
       }
@@ -128,7 +125,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
         val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         println(s"bla [# to end] -> midResult: $midResult")
         midResult.map { v =>
-          Seq(v.asInstanceOf[Seq[Array[Any]]].head)
+          v.asInstanceOf[Seq[Array[Any]]]
         }.getOrElse (Seq.empty)
       case (a, expr, b) if b.isInstanceOf[Int] =>
         expr match {
@@ -149,7 +146,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
 
   private def executeSizeOfArraySelect(arrEx: ArrExpr, scndGrammar: ScndGrammar): bsonValue.BsValue = {
     val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
-    println(s"executeSizeOfArraySelect -> midresult: $midResult")
+    //println(s"executeSizeOfArraySelect -> midresult: ${midResult.asInstanceOf[Seq[Array[Any]]].head.toSeq}")
     midResult match {
       case Seq() =>
         scndGrammar.selectType match {
@@ -188,10 +185,6 @@ class Interpreter(boson: Boson, key: String, program: Program) {
       case "last" =>
         if (key.isEmpty) {
           bsonValue.BsObject.toBson(result.map(v => Seq(v.asInstanceOf[Seq[Array[Any]]].head.last)).getOrElse(Seq.empty))
-//          bsonValue.BsObject.toBson(result.map(v => {
-//            val list: Seq[BsonArray] = v.asInstanceOf[Seq[BsonArray]]
-//            Seq(list.head.getValue(list.head.size - 1))
-//          }).getOrElse(Seq.empty))
         } else {
           result.map {elem =>
             elem.asInstanceOf[Seq[Any]].last match {

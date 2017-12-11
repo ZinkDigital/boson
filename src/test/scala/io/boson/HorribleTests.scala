@@ -221,7 +221,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "   first    [     0    to   end      ]   size  "
     val boson: Boson = new Boson(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(1) === result)
+    assert(BsNumber(3) === result)
   }
 
 }

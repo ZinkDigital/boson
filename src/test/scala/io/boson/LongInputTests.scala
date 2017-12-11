@@ -70,16 +70,12 @@ class LongInputTests extends FunSuite {
     //the output should contain List[List[Any]] but it doesn't TODO:review this situation
     val result: BsValue = sI.parse(boson.duplicate, "Selections", "[1 to 2] size")
     println(result)
-    assert(Seq(2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 2, 2, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2)===
-      result.asInstanceOf[BsSeq].value)
+    assert(Seq(2)=== result.asInstanceOf[BsSeq].value)
   }
 
   test("size of specific filtered arrays") {
     val result: BsValue = sI.parse(boson.duplicate, "Selections", "last [0 until end] size")
-    assert(BsNumber(1).value === result.asInstanceOf[BsNumber].value)
+    assert(BsNumber(2).value === result.asInstanceOf[BsNumber].value)
   }
 
   test("emptiness of filtered Array") {
