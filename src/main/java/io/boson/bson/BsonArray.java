@@ -43,6 +43,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@Deprecated
 public class BsonArray implements Iterable<Object> {
 
     private List<Object> list;

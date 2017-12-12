@@ -42,6 +42,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@Deprecated
 public class Bson {
 
     public static ObjectMapper mapper = new ObjectMapper(new BsonFactory());
