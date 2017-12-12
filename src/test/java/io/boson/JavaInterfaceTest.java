@@ -12,7 +12,7 @@ import scala.collection.Seq;
 import scala.math.BigDecimal;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 
 public class JavaInterfaceTest {
@@ -65,14 +65,21 @@ public class JavaInterfaceTest {
             BsNumber newResult = (BsNumber) result;
             bD = newResult.getValue();
         }
-        System.out.println("seq: " + seq);
-        //System.out.println("seq converted: " + jI.convert(seq));
-        ArrayList<Object> list = new ArrayList<>();
-        list.add(br1);
-        list.add(br2);
-        list.add(br3);
 
-        assertEquals(list, jI.convert(seq));
+        ArrayList<Object> list = new ArrayList<>(); ArrayList<Object> list1 = new ArrayList<>(); ArrayList<Object> list2 = new ArrayList<>();
+        ArrayList<Object> list3 = new ArrayList<>(); ArrayList<Object> list4 = new ArrayList<>();
+        list1.add("Tarantula"); list1.add("Aracnídius"); list2.add("Insecticida"); list1.add(list2);
+        list.add(list1);
+        list3.add("Spider");
+        list.add(list3);
+        list4.add("Fly");
+        list.add(list4);
+
+        System.out.println("JavaList -> " + list);
+        List<Object> convertedList = jI.convert(seq);
+        System.out.println("List converted from Scala ->" + convertedList);
+
+        assertEquals(list, convertedList);
     }
 
     @Test
