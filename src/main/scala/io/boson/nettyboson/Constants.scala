@@ -2,7 +2,6 @@ package io.boson.nettyboson
 
 import java.nio.charset.Charset
 
-
 object Constants {
   val EMPTY_CONSTRUCTOR: String = "EmptyConstructor"
   val SCALA_ARRAYBUF: String = "ArrayBuffer"

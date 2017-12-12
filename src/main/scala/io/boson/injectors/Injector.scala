@@ -5,286 +5,286 @@ import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.nettyboson.Boson
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.boson.nettyboson.Constants._
-import io.boson.scalaInterface.ScalaInterface
+//import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.json.JsonObject
+//import io.vertx.core.json.JsonObject
 import scala.collection.mutable.ListBuffer
-import scala.io.Source
-import scala.util.{Failure, Success, Try}
+//import scala.io.Source
+//import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Ricardo Martins on 07/11/2017.
   */
 
 
-object e extends Enumeration {
-  val A: e.Value = Value("Asdghrt")
-  val B: e.Value = Value("Bdysrtyry")
-}
-
-object Injector extends App {
-
-  val bytearray1: Array[Byte] = "AlguresPorAi".getBytes()
-  val bytearray2: Array[Byte] = "4".getBytes()
-  val float: Float = 11.toFloat
-  val newFloat: Float = 15.toFloat
-  val bObj: BsonObject = new BsonObject().put("bsonObj", "ola")
-  val newbObj: BsonObject = new BsonObject().put("newbsonObj", "newbsonObj")
-  val bool: Boolean = true
-  val newBool: Boolean = false
-  val long: Long = 100000001.toLong
-  val newLong: Long = 200000002.toLong
-  val bsonArray: BsonArray = new BsonArray().add(new BsonObject().put("field", "1")).add(new BsonObject().put("hg", 2)).add(new BsonObject().put("field", "2"))
-  //.add(1).add(2).add("Hi")
-  val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
-  val enumJava = io.boson.injectors.EnumerationTest.A
-  val newEnumJava = io.boson.injectors.EnumerationTest.B
-  val charseq: CharSequence = "charSequence"
-  val anotherCharseq: CharSequence = "AnothercharSequence"
-  val inj: Injector = new Injector
-  val ext = new ScalaInterface
-  val ins: Instant = Instant.now()
-  val ins1: Instant = Instant.now()
-  //val obj1: BsonObject = new BsonObject().put("bsonArray", bsonArray).putNull("null").put("enum", e.A.toString)//.put("field", 0).put("bool", bool).put("long", long).put("no", "ok").put("float", float).put("bObj",bObj).put("charS", charseq).put("array", bytearray1).put("inst", ins)
-
-  val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
-  val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
-  val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
-  val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
-
-  val obj: BsonArray = bsonArray
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
-
-  println(bsonEvent)
-  println(bsonEvent.encode())
-
-  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
-  val finale: String = bufferedSource.getLines.toSeq.head
-  bufferedSource.close
-  val json: JsonObject = new JsonObject(finale)
-  val bson: BsonObject = new BsonObject(json)
-  val boson: Option[Boson] = Some(ext.createBoson(bson.encode().getBytes))
-
-  val s: Any = ext.parse(boson.get, "Tags", "first")
-  println("Extracting first \"Tags\" ->" + s)
-  println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-
-  val b1: Try[Boson] = Try(inj.modify(boson, "Tags", _ => new BsonObject()).get)
-
-  println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-
-
-  b1 match {
-    case Success(v) =>
-      val s: Any = ext.parse(v, "Tags", "first")
-      //println(s.getClass.getSimpleName)
-      println("Extracting first \"Tags\" ->" + s)
-    case Failure(e) => println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-}
-
-object ChangeStrInsideManyObj extends App {
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-  val obj2: BsonObject = new BsonObject().put("Its", "Me!!!")
-  val obj1: BsonObject = new BsonObject().put("Hi", obj2)
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
-  //.put("sec", 1)//.put("bool", true)
-  val inj: Injector = new Injector
-
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
-
-  println(bsonEvent)
-  println(bsonEvent.encode())
-
-  netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[Boson] = Try(inj.modify(netty, "Its", _ => "Y").get)
-
-  b1 match {
-    case Success(v) =>
-      v.getByteBuf.forEachByte(bP)
-      val sI: ScalaInterface = new ScalaInterface
-      println("Extracting the field injected with value: " + new String(sI.parse(v, "Its", "last").asInstanceOf[List[Array[Byte]]].head))
-
-    case Failure(e) =>
-      println(e.getMessage)
-      println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-
-
-}
-
-object changeObj extends App {
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-  val obj1: BsonObject = new BsonObject().put("Hi", "Me!!!")
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
-  //.put("sec", 1)//.put("bool", true)
-  val inj: Injector = new Injector
-
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
-
-  println(bsonEvent)
-  println(bsonEvent.encode())
-
-  netty.get.getByteBuf.forEachByte(bP)
-  val obj2: BsonObject = new BsonObject().put("Hi", "0123456789")
-  val b1: Try[Boson] = Try(inj.modify(netty, "fridgeTemp", _ => obj2).get)
-
-  b1 match {
-    case Success(v) =>
-      v.getByteBuf.forEachByte(bP)
-      val sI: ScalaInterface = new ScalaInterface
-      println("Extracting the field injected with value: " + sI.parse(v, "fridgeTemp", "last").asInstanceOf[List[BsonObject]].head)
-
-    case Failure(e) =>
-      println(e.getMessage)
-      println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-}
-
-object Testing1 extends App {
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-  val obj2: BsonObject = new BsonObject().put("Its", "Me!!!")
-  val obj1: BsonObject = new BsonObject().put("Hi", 10)
-  val array1: BsonArray = new BsonArray().add(obj2).add("oi").add(2).add(obj2)
-  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
-  val inj: Injector = new Injector
-
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(array1.encode().getBytes)))
-
-  println(array1)
-  println(array1.encode())
-
-  netty.get.getByteBuf.forEachByte(bP)
-
-  val b1: Try[Boson] = Try(inj.modify(netty, "Its", _ => "Y").get)
-
-  b1 match {
-    case Success(v) =>
-      v.getByteBuf.forEachByte(bP)
-      val sI: ScalaInterface = new ScalaInterface
-      println("Extracting the field injected with value: ")
-      sI.parse(v, "Its", "all").asInstanceOf[List[Array[Byte]]].foreach(elem => println("-> " + new String(elem)))
-
-    case Failure(e) =>
-      println(e.getMessage)
-      println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-
-
-}
-
-object ObjAsRoot extends App {
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-  val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", "Hi").put("bool", true)
-  val inj: Injector = new Injector
-
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
-
-  println(bsonEvent)
-  println(bsonEvent.encode())
-
-  netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[Boson] = Try(inj.modify(netty, "fridgeTemp", _ => "12345").get)
-
-  b1 match {
-    case Success(v) =>
-      v.getByteBuf.forEachByte(bP)
-      val sI: ScalaInterface = new ScalaInterface
-      println("Extracting the field injected with value: " + new String(sI.parse(v, "fridgeTemp", "all").asInstanceOf[List[Array[Byte]]].head))
-
-    case Failure(e) =>
-      println(e.getMessage)
-      println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-
-
-}
-
-object ArrInsideObj extends App {
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-  val array1: BsonArray = new BsonArray().add(1).add(2)
-  val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!")
-  val inj: Injector = new Injector
-
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
-
-  println(bsonEvent)
-  println(bsonEvent.encode())
-
-  netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[Boson] = Try(inj.modify(netty, "bool", _ => "true").get)
-
-  b1 match {
-    case Success(v) =>
-      v.getByteBuf.forEachByte(bP)
-      val sI: ScalaInterface = new ScalaInterface
-      println("Extracting the field injected with value: " + new String(sI.parse(v, "bool", "all").asInstanceOf[List[Array[Byte]]].head))
-
-    case Failure(e) =>
-      println(e.getMessage)
-      println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-
-
-}
-
-object BsObjRootWithDeepMix extends App {
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-  val obj3: BsonObject = new BsonObject().put("John", "NoBody")
-  val obj2: BsonObject = new BsonObject().put("John", "Locke")
-  val arr2: BsonArray = new BsonArray().add(obj2)
-  val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
-  val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
-  val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
-  val inj: Injector = new Injector
-
-  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
-
-  println(bsonEvent)
-  println(bsonEvent.encode())
-
-  //netty.get.getByteBuf.forEachByte(bP)
-  val b1: Try[Boson] = Try(inj.modify(netty, "John", _ => "SomeBody").get)
-
-  b1 match {
-    case Success(v) =>
-      //v.getByteBuf.forEachByte(bP)
-      val sI: ScalaInterface = new ScalaInterface
-      println("Extracting values of key \"John\" : ")
-      sI.parse(v, "John", "all").asInstanceOf[List[Array[Byte]]].foreach(elem => println("-> " +new String(elem)))
-    case Failure(e) =>
-      println(e.getMessage)
-      println(e.getStackTrace.foreach(p => println(p.toString)))
-  }
-
-
-}
+//object e extends Enumeration {
+//  val A: e.Value = Value("Asdghrt")
+//  val B: e.Value = Value("Bdysrtyry")
+//}
+//
+//object Injector extends App {
+//
+//  val bytearray1: Array[Byte] = "AlguresPorAi".getBytes()
+//  val bytearray2: Array[Byte] = "4".getBytes()
+//  val float: Float = 11.toFloat
+//  val newFloat: Float = 15.toFloat
+//  val bObj: BsonObject = new BsonObject().put("bsonObj", "ola")
+//  val newbObj: BsonObject = new BsonObject().put("newbsonObj", "newbsonObj")
+//  val bool: Boolean = true
+//  val newBool: Boolean = false
+//  val long: Long = 100000001.toLong
+//  val newLong: Long = 200000002.toLong
+//  val bsonArray: BsonArray = new BsonArray().add(new BsonObject().put("field", "1")).add(new BsonObject().put("hg", 2)).add(new BsonObject().put("field", "2"))
+//  //.add(1).add(2).add("Hi")
+//  val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
+//  val enumJava = io.boson.injectors.EnumerationTest.A
+//  val newEnumJava = io.boson.injectors.EnumerationTest.B
+//  val charseq: CharSequence = "charSequence"
+//  val anotherCharseq: CharSequence = "AnothercharSequence"
+//  val inj: Injector = new Injector
+//  val ext = new ScalaInterface
+//  val ins: Instant = Instant.now()
+//  val ins1: Instant = Instant.now()
+//  //val obj1: BsonObject = new BsonObject().put("bsonArray", bsonArray).putNull("null").put("enum", e.A.toString)//.put("field", 0).put("bool", bool).put("long", long).put("no", "ok").put("float", float).put("bObj",bObj).put("charS", charseq).put("array", bytearray1).put("inst", ins)
+//
+//  val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
+//  val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
+//  val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
+//  val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
+//  val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
+//
+//  val obj: BsonArray = bsonArray
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+//
+//  println(bsonEvent)
+//  println(bsonEvent.encode())
+//
+//  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+//  val finale: String = bufferedSource.getLines.toSeq.head
+//  bufferedSource.close
+//  val json: JsonObject = new JsonObject(finale)
+//  val bson: BsonObject = new BsonObject(json)
+//  val boson: Option[Boson] = Some(ext.createBoson(bson.encode().getBytes))
+//
+//  val s: Any = ext.parse(boson.get, "Tags", "first")
+//  println("Extracting first \"Tags\" ->" + s)
+//  println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+//
+//  val b1: Try[Boson] = Try(inj.modify(boson, "Tags", _ => new BsonObject()).get)
+//
+//  println("-----------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+//
+//
+//  b1 match {
+//    case Success(v) =>
+//      val s: Any = ext.parse(v, "Tags", "first")
+//      //println(s.getClass.getSimpleName)
+//      println("Extracting first \"Tags\" ->" + s)
+//    case Failure(e) => println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//}
+//
+//object ChangeStrInsideManyObj extends App {
+//
+//  val bP: ByteProcessor = (value: Byte) => {
+//    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//    true
+//  }
+//  val obj2: BsonObject = new BsonObject().put("Its", "Me!!!")
+//  val obj1: BsonObject = new BsonObject().put("Hi", obj2)
+//  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
+//  //.put("sec", 1)//.put("bool", true)
+//  val inj: Injector = new Injector
+//
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+//
+//  println(bsonEvent)
+//  println(bsonEvent.encode())
+//
+//  netty.get.getByteBuf.forEachByte(bP)
+//  val b1: Try[Boson] = Try(inj.modify(netty, "Its", _ => "Y").get)
+//
+//  b1 match {
+//    case Success(v) =>
+//      v.getByteBuf.forEachByte(bP)
+//      val sI: ScalaInterface = new ScalaInterface
+//      println("Extracting the field injected with value: " + new String(sI.parse(v, "Its", "last").asInstanceOf[List[Array[Byte]]].head))
+//
+//    case Failure(e) =>
+//      println(e.getMessage)
+//      println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//
+//
+//}
+//
+//object changeObj extends App {
+//
+//  val bP: ByteProcessor = (value: Byte) => {
+//    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//    true
+//  }
+//  val obj1: BsonObject = new BsonObject().put("Hi", "Me!!!")
+//  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
+//  //.put("sec", 1)//.put("bool", true)
+//  val inj: Injector = new Injector
+//
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+//
+//  println(bsonEvent)
+//  println(bsonEvent.encode())
+//
+//  netty.get.getByteBuf.forEachByte(bP)
+//  val obj2: BsonObject = new BsonObject().put("Hi", "0123456789")
+//  val b1: Try[Boson] = Try(inj.modify(netty, "fridgeTemp", _ => obj2).get)
+//
+//  b1 match {
+//    case Success(v) =>
+//      v.getByteBuf.forEachByte(bP)
+//      val sI: ScalaInterface = new ScalaInterface
+//      println("Extracting the field injected with value: " + sI.parse(v, "fridgeTemp", "last").asInstanceOf[List[BsonObject]].head)
+//
+//    case Failure(e) =>
+//      println(e.getMessage)
+//      println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//}
+//
+//object Testing1 extends App {
+//
+//  val bP: ByteProcessor = (value: Byte) => {
+//    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//    true
+//  }
+//  val obj2: BsonObject = new BsonObject().put("Its", "Me!!!")
+//  val obj1: BsonObject = new BsonObject().put("Hi", 10)
+//  val array1: BsonArray = new BsonArray().add(obj2).add("oi").add(2).add(obj2)
+//  val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", obj1)
+//  val inj: Injector = new Injector
+//
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(array1.encode().getBytes)))
+//
+//  println(array1)
+//  println(array1.encode())
+//
+//  netty.get.getByteBuf.forEachByte(bP)
+//
+//  val b1: Try[Boson] = Try(inj.modify(netty, "Its", _ => "Y").get)
+//
+//  b1 match {
+//    case Success(v) =>
+//      v.getByteBuf.forEachByte(bP)
+//      val sI: ScalaInterface = new ScalaInterface
+//      println("Extracting the field injected with value: ")
+//      sI.parse(v, "Its", "all").asInstanceOf[List[Array[Byte]]].foreach(elem => println("-> " + new String(elem)))
+//
+//    case Failure(e) =>
+//      println(e.getMessage)
+//      println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//
+//
+//}
+//
+//object ObjAsRoot extends App {
+//
+//  val bP: ByteProcessor = (value: Byte) => {
+//    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//    true
+//  }
+//  val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", "Hi").put("bool", true)
+//  val inj: Injector = new Injector
+//
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+//
+//  println(bsonEvent)
+//  println(bsonEvent.encode())
+//
+//  netty.get.getByteBuf.forEachByte(bP)
+//  val b1: Try[Boson] = Try(inj.modify(netty, "fridgeTemp", _ => "12345").get)
+//
+//  b1 match {
+//    case Success(v) =>
+//      v.getByteBuf.forEachByte(bP)
+//      val sI: ScalaInterface = new ScalaInterface
+//      println("Extracting the field injected with value: " + new String(sI.parse(v, "fridgeTemp", "all").asInstanceOf[List[Array[Byte]]].head))
+//
+//    case Failure(e) =>
+//      println(e.getMessage)
+//      println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//
+//
+//}
+//
+//object ArrInsideObj extends App {
+//
+//  val bP: ByteProcessor = (value: Byte) => {
+//    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//    true
+//  }
+//  val array1: BsonArray = new BsonArray().add(1).add(2)
+//  val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!")
+//  val inj: Injector = new Injector
+//
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+//
+//  println(bsonEvent)
+//  println(bsonEvent.encode())
+//
+//  netty.get.getByteBuf.forEachByte(bP)
+//  val b1: Try[Boson] = Try(inj.modify(netty, "bool", _ => "true").get)
+//
+//  b1 match {
+//    case Success(v) =>
+//      v.getByteBuf.forEachByte(bP)
+//      val sI: ScalaInterface = new ScalaInterface
+//      println("Extracting the field injected with value: " + new String(sI.parse(v, "bool", "all").asInstanceOf[List[Array[Byte]]].head))
+//
+//    case Failure(e) =>
+//      println(e.getMessage)
+//      println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//
+//
+//}
+//
+//object BsObjRootWithDeepMix extends App {
+//
+//  val bP: ByteProcessor = (value: Byte) => {
+//    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+//    true
+//  }
+//  val obj3: BsonObject = new BsonObject().put("John", "NoBody")
+//  val obj2: BsonObject = new BsonObject().put("John", "Locke")
+//  val arr2: BsonArray = new BsonArray().add(obj2)
+//  val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
+//  val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
+//  val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
+//  val inj: Injector = new Injector
+//
+//  val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+//
+//  println(bsonEvent)
+//  println(bsonEvent.encode())
+//
+//  //netty.get.getByteBuf.forEachByte(bP)
+//  val b1: Try[Boson] = Try(inj.modify(netty, "John", _ => "SomeBody").get)
+//
+//  b1 match {
+//    case Success(v) =>
+//      //v.getByteBuf.forEachByte(bP)
+//      val sI: ScalaInterface = new ScalaInterface
+//      println("Extracting values of key \"John\" : ")
+//      sI.parse(v, "John", "all").asInstanceOf[List[Array[Byte]]].foreach(elem => println("-> " +new String(elem)))
+//    case Failure(e) =>
+//      println(e.getMessage)
+//      println(e.getStackTrace.foreach(p => println(p.toString)))
+//  }
+//
+//
+//}
 
 class Injector {
 
