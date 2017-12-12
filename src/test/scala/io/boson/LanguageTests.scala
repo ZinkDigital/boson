@@ -58,6 +58,7 @@ class LanguageTests extends FunSuite {
     val key: String = "fridgeTemp"
     val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, key, "all")
+
     assert(BsSeq(List(5.2f, 5.0f, 3.854f)) === resultParser)
   }
 
@@ -288,7 +289,7 @@ class LanguageTests extends FunSuite {
       Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)))) === resultParser)
   }
 
-  test("Last [# .. end] w/key") {
+  test("All [# .. end] w/key") {
     val expression: String = "all [0 to end]"
     val key: String = ""
     val boson: Boson = new Boson(byteArray = Option(arrEvent.encode().getBytes))

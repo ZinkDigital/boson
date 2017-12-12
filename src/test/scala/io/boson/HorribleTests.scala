@@ -224,4 +224,14 @@ class HorribleTests extends FunSuite {
     assert(BsNumber(3) === result)
   }
 
+  test("array prob 5") {
+    br3.add("Wrong")
+    br2.add("some")
+    val key: String = "José"
+    val expression: String = "[0 until end]  "
+    val boson: Boson = new Boson(byteArray = Option(bsonEvent1.encode().getBytes))
+    val result: BsValue = callParse(boson, key, expression)
+    assert(BsSeq(List(List("Tarantula", "Aracnídius"), List("Spider"), List("Fly"))) === result)
+  }
+
 }

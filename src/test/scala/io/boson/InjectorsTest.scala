@@ -228,9 +228,10 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bsonArray", "all")
     }
-    val s: Any = result.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Any]].toSeq
+    println("nheee " + result)
+    val s: Any = result.asInstanceOf[BsSeq].value
 
-    assert(Array(3, 4, "Bye").toSeq === s,
+    assert(List(List(3, 4, "Bye")) === s,
       "Contents are not equal")
   }
 
@@ -397,9 +398,9 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => ext.parse(nb, "bsonArray", "all")
     }
-    val s: Any = result.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Any]].toSeq
+    val s: Any = result.asInstanceOf[BsSeq].value
 
-    assert(Seq(3, 4, "Bye") === s
+    assert(Seq(Seq(3, 4, "Bye")) === s
       , "Contents are not equal")
   }
 
