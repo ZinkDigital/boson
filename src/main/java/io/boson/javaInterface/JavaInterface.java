@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import io.boson.bsonValue.*;
 
-
+@Deprecated
 public class JavaInterface {
 
     public Boson createBoson(byte[] byteArray) {

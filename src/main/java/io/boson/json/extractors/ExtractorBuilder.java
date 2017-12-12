@@ -1,4 +1,4 @@
-package io.boson;
+package io.boson.json.extractors;
 
 public interface ExtractorBuilder<T> {
 
