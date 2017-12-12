@@ -255,6 +255,7 @@ class LanguageTests extends FunSuite {
     val key: String = ""
     val boson: Boson = new Boson(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, key, expression)
+    println(s"resultParser: $resultParser")
     assert(BsSeq(List(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true))) === resultParser)
   }

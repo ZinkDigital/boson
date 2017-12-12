@@ -8,7 +8,11 @@ import io.boson.nettyboson.Boson;
 import scala.Function1;
 import scala.Option;
 import scala.util.parsing.combinator.Parsers;
+
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+
 import io.boson.bsonValue.*;
 
 
@@ -47,9 +51,18 @@ public class JavaInterface {
         }
     }
 
-
     public java.util.List<Object> convert(scala.collection.Seq<Object> seq) {
-        return scala.collection.JavaConverters.seqAsJavaList(seq);
+        List<Object> globalList = scala.collection.JavaConverters.seqAsJavaList(seq);
+        List<Object> scndList = new ArrayList<>();
+        for (int i = 0; i < globalList.size(); i++) {
+            Object elem = globalList.get(i);
+            if (elem instanceof scala.collection.Seq) {
+                scndList.add(convert((scala.collection.Seq<Object>) elem));
+            } else {
+                scndList.add(elem);
+            }
+        }
+        return scndList;
     }
 }
 

@@ -24,7 +24,10 @@ class Interpreter(boson: Boson, key: String, program: Program) {
         case ArrExpr(left: Int, mid: String, right: Any) => // "[# .. #]"
           executeArraySelect(left, mid, right) match {
             case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-            case v => bsonValue.BsObject.toBson(v.asInstanceOf[Seq[Array[Any]]].head.toSeq)
+            case v =>
+              bsonValue.BsObject.toBson {
+                for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+              }
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect(selectType)
@@ -119,7 +122,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
       case (a, ("until" | "Until"), "end") =>
         val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult.map(v => {
-          Seq(v.asInstanceOf[Seq[Array[Any]]].head.take(v.asInstanceOf[Seq[Array[Any]]].head.length - 1))
+          Seq(v.asInstanceOf[Seq[Array[Any]]].head.take(v.asInstanceOf[Seq[Array[Any]]].head.length - 1)) // TODO:review here the array(array-1,array-1,array-1)
         }).getOrElse(Seq.empty)
       case (a, _, "end") => // "[# .. end]"
         val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
@@ -134,12 +137,15 @@ class Interpreter(boson: Boson, key: String, program: Program) {
               boson.getByteBuf, key, "limit", Option(a), Option(b.asInstanceOf[Int])
             ).map { v =>
               println("blaa "+Seq(v.asInstanceOf[Seq[Array[Any]]].head.toSeq))
-              Seq(v.asInstanceOf[Seq[Array[Any]]].head)
+              v.asInstanceOf[Seq[Array[Any]]]
             }.getOrElse(Seq.empty)
           case ("until" | "Until") =>
             boson.extract(
               boson.getByteBuf, key, "limit", Option(a), Option(b.asInstanceOf[Int] - 1)
-            ).map(v => Seq(v.asInstanceOf[Seq[Array[Any]]].head)).getOrElse(Seq.empty)
+            ).map{v =>
+              println(s"until: ${v.asInstanceOf[Seq[Array[Any]]]}")
+              v.asInstanceOf[Seq[Array[Any]]]
+            }.getOrElse(Seq.empty)
         }
     }
   }

@@ -65,7 +65,8 @@ public class JavaInterfaceTest {
             BsNumber newResult = (BsNumber) result;
             bD = newResult.getValue();
         }
-
+        System.out.println("seq: " + seq);
+        //System.out.println("seq converted: " + jI.convert(seq));
         ArrayList<Object> list = new ArrayList<>();
         list.add(br1);
         list.add(br2);
