@@ -4,8 +4,7 @@ import java.time.Instant
 
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue.BsSeq
-import io.boson.injectors.Testing1.{b1, bP}
-import io.boson.injectors.{EnumerationTest, Injector}
+import io.boson.injectors.Injector
 import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith

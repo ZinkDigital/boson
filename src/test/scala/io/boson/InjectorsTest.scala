@@ -182,7 +182,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj)
+    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj.getMap)
 
     val result: Any = b1 match {
       case None => List()
@@ -223,7 +223,7 @@ class InjectorsTest extends FunSuite {
   }
 
   test("Injector: BsonArray => BsonArray") {
-    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray)
+    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray.getList)
 
     val result: Any = b1 match {
       case None => List()
@@ -351,7 +351,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj)
+    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj.getMap)
 
     val result: Any = b1 match {
       case None => List()
@@ -393,7 +393,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonArray => BsonArray") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray)
+    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray.getList)
 
     val result: Any = b1 match {
       case None => List()
