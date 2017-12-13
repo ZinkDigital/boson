@@ -36,6 +36,7 @@ class InjectorsTest extends FunSuite {
   val newFloat: Float = 15.toFloat
   val double: Double = 21.toDouble
   val newDouble: Double = 25.toDouble
+
   val bObj: BsonObject = new BsonObject().put("bsonObj", "ola")
   val newbObj: BsonObject = new BsonObject().put("newbsonObj", "newbsonObj")
   val bool: Boolean = true
