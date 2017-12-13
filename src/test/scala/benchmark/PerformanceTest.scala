@@ -1,6 +1,6 @@
 package benchmark
 
-import bsonLib.{BsonArray, BsonObject}
+import bsonLib.BsonObject
 import io.boson.bsonValue.{BsNumber, BsSeq}
 import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
