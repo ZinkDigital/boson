@@ -511,6 +511,7 @@ class Boson(
                 }
             }
           case D_INT =>
+            println("FOUND AN INT")
             val value: Int = netty.readIntLE()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
@@ -549,6 +550,7 @@ class Boson(
           case D_ZERO_BYTE =>
             seq
         }
+      println(s"iteration of newSeq: $newSeq")
       val actualPos2 = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>

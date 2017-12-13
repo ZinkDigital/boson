@@ -2,14 +2,17 @@ package io.boson
 
 import java.time.Instant
 
-import io.boson.bson.{BsonArray, BsonObject}    //  TODO: make injector independent from project bson library before change this import to the newone
+import bsonLib.{BsonArray,BsonObject}
 import io.boson.bsonValue.BsSeq
 import io.boson.injectors.{EnumerationTest, Injector}
 import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
+import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
+import scala.collection.JavaConverters._
 
 /**
   * Created by Ricardo Martins on 09/11/2017.
@@ -181,7 +184,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj)
+    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj.getMap)  //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -222,13 +225,12 @@ class InjectorsTest extends FunSuite {
   }
 
   test("Injector: BsonArray => BsonArray") {
-    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray)
+    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray.getList) //  .asScala.toArray[Any]
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => ext.parse(nb, "bsonArray", "all")
+      case Some(nb) =>  ext.parse(nb, "bsonArray", "all")
     }
-    println("nheee " + result)
     val s: Any = result.asInstanceOf[BsSeq].value
 
     assert(List(List(3, 4, "Bye")) === s,
@@ -350,7 +352,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj)
+    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj.getMap) //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -392,7 +394,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonArray => BsonArray") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray)
+    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray.getList)
 
     val result: Any = b1 match {
       case None => List()

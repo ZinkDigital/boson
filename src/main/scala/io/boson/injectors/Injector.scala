@@ -1,17 +1,21 @@
 package io.boson.injectors
 
 import java.time.Instant
-import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.nettyboson.Boson
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.boson.nettyboson.Constants._
+import java.io.ByteArrayOutputStream
 //import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import io.vertx.core.buffer.Buffer
 //import io.vertx.core.json.JsonObject
 import scala.collection.mutable.ListBuffer
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import de.undercouch.bson4jackson.BsonFactory
+
 //import scala.io.Source
-//import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Ricardo Martins on 07/11/2017.
@@ -286,6 +290,23 @@ import scala.collection.mutable.ListBuffer
 //
 //}
 
+object Mapper {
+
+  val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
+
+  def encode(obj: Any): Array[Byte] = {
+    val os: ByteArrayOutputStream = new ByteArrayOutputStream()
+    Try(mapper.writeValue(os, obj)) match {
+      case Success(_) =>
+        os.flush()
+        os.toByteArray
+      case Failure(e) =>
+        throw new RuntimeException(e)
+    }
+  }
+
+}
+
 class Injector {
 
   def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any): Option[Boson] = {
@@ -439,16 +460,17 @@ class Injector {
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.readIntLE() //  length of current obj
-      val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
+        val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
         val newValue: Any = f(bsonObject)
-        val buf: Buffer = newValue.asInstanceOf[BsonObject].encode()
-        (newBuffer.writeBytes(buf.getByteBuf), buf.length() - valueLength)
+        //val buf: Buffer = newValue.asInstanceOf[BsonObject].encode()
+        val arr: Array[Byte] = Mapper.encode(newValue.asInstanceOf[java.util.Map[String,_]])//Map[String,_]
+        (newBuffer.writeBytes(arr), arr.size - valueLength)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.readIntLE()
         val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
         val newValue: Any = f(bsonArray)
-        val buf: Buffer = newValue.asInstanceOf[BsonArray].encode()
-        (newBuffer.writeBytes(buf.getByteBuf), 0) //  ZERO  for now, cant be zero
+        val arr: Array[Byte] = Mapper.encode(newValue.asInstanceOf[java.util.List[_]])//Array[Any]
+        (newBuffer.writeBytes(arr), 0) //  ZERO  for now, cant be zero
       case D_BOOLEAN =>
         val value: Any = f(buffer.readBoolean())
         val finalValue: Boolean = value.asInstanceOf[Boolean]

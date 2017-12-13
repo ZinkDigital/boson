@@ -1,6 +1,6 @@
 package bsonPath
 
-import io.boson.bson.{BsonArray, BsonObject}
+import bsonLib.{BsonArray,BsonObject}
 import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.nettyboson.Boson
 import io.vertx.core.json.{JsonArray, JsonObject}

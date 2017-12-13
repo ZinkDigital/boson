@@ -210,7 +210,6 @@ class Interpreter(boson: Boson, key: String, program: Program) {
         }
       case "all" =>
         if (key.isEmpty) {
-          println(s"result: ${result.get.asInstanceOf[Seq[Array[Any]]].head.toSeq}")
           bsonValue.BsObject.toBson(result.map(v => v.asInstanceOf[Seq[Array[Any]]].head.toList).getOrElse(Seq.empty))
         } else {
           bsonValue.BsObject.toBson(result.map{v =>
