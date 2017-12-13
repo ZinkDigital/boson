@@ -205,7 +205,12 @@ class Injector {
             (newBuffer.writeDoubleLE(n), 0)
           case n: Double =>
             (newBuffer.writeDoubleLE(n), 0)
-          case _ => throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE") //  [IT,OT] => IT != OT
+          case _ =>
+            if(value == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE") //  [IT,OT] => IT != OT
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE") //  [IT,OT] => IT != OT
+            }
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
@@ -220,7 +225,12 @@ class Injector {
           case n: Instant =>
             val aux: Array[Byte] = n.toString.getBytes()
             (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
-          case _ => throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
+          case _ =>
+            if(value == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
+            }
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.readIntLE() //  length of current obj
@@ -234,7 +244,12 @@ class Injector {
             val buf: Array[Byte] = Mapper.encode(bsonObject2)
             (newBuffer.writeBytes(buf), buf.length - valueLength)
           case _ =>
-            throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            if(newValue == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            }
+
         }
       case D_BSONARRAY =>
         val valueLength: Int = buffer.readIntLE()
@@ -248,7 +263,12 @@ class Injector {
             val arr: Array[Byte] = Mapper.encode(bsonArray2)
             (newBuffer.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
           case _ =>
-            throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
+            if(newValue == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
+            }
+
         }
       case D_BOOLEAN =>
         val value: Any = f(buffer.readBoolean())
@@ -256,7 +276,11 @@ class Injector {
           case bool: Boolean =>
             (newBuffer.writeBoolean(bool), 0)
           case _ =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_BOOLEAN")
+            if(value == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BOOLEAN")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_BOOLEAN")
+            }
         }
       case D_NULL => (newBuffer, 0) //  returns empty buffer
       case D_INT =>
@@ -265,7 +289,11 @@ class Injector {
           case n: Int =>
             (newBuffer.writeIntLE(n), 0)
           case _ =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_INT")
+            if(value == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_INT")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_INT")
+            }
         }
       case D_LONG =>
         val value: Any = f(buffer.readLongLE())
@@ -273,7 +301,11 @@ class Injector {
           case n: Long =>
             (newBuffer.writeLongLE(n), 0)
           case _ =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_LONG")
+            if(value == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_LONG")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_LONG")
+            }
         }
     }
   }
