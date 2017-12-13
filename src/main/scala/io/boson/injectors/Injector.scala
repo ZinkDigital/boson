@@ -200,30 +200,26 @@ class Injector {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value: Any = f(buffer.readDoubleLE())
-        value.getClass.getSimpleName match {
-          case "Float" =>
-            val aux: Float = value.asInstanceOf[Float]
-            (newBuffer.writeDoubleLE(aux), 0)
-          case "Double" =>
-            val aux: Double = value.asInstanceOf[Double]
-            (newBuffer.writeDoubleLE(aux), 0)
+        value match {
+          case n: Float =>
+            (newBuffer.writeDoubleLE(n), 0)
+          case n: Double =>
+            (newBuffer.writeDoubleLE(n), 0)
           case _ => throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE") //  [IT,OT] => IT != OT
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
         val value: Any = f(new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
         println("returning type = " + value.getClass.getSimpleName)
-        value.getClass.getSimpleName match {
-          case "byte[]" =>
-            val aux: Array[Byte] = value.asInstanceOf[Array[Byte]]
+        value match {
+          case n: Array[Byte] =>
+            (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeByte(0), (n.length + 1) - length)
+          case n: String =>
+            val aux: Array[Byte] = n.getBytes()
             (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
-          case "String" =>
-            val aux: Array[Byte] = value.asInstanceOf[String].getBytes()
+          case n: Instant =>
+            val aux: Array[Byte] = n.toString.getBytes()
             (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
-          case "Instant" =>
-            val aux: Array[Byte] = value.asInstanceOf[Instant].toString.getBytes()
-            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
-          //case "Enumerations" => //TODO
           case _ => throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
         }
       case D_BSONOBJECT =>
@@ -232,10 +228,10 @@ class Injector {
         val newValue: Any = f(bsonObject)
         newValue match {
           case bsonObject1: java.util.Map[_, _] =>
-            val buf: Array[Byte] = Mapper.encode(bsonObject1.asInstanceOf[java.util.Map[String, _]])
+            val buf: Array[Byte] = Mapper.encode(bsonObject1)
             (newBuffer.writeBytes(buf), buf.length - valueLength)
           case bsonObject2: scala.collection.immutable.Map[_, Any] =>
-            val buf: Array[Byte] = Mapper.encode(bsonObject2.asInstanceOf[Map[String, Any]])
+            val buf: Array[Byte] = Mapper.encode(bsonObject2)
             (newBuffer.writeBytes(buf), buf.length - valueLength)
           case _ =>
             throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
@@ -246,10 +242,10 @@ class Injector {
         val newValue: Any = f(bsonArray)
         newValue match {
           case bsonArray1: java.util.List[_] =>
-            val arr: Array[Byte] = Mapper.encode(bsonArray1.asInstanceOf[java.util.List[_]])
+            val arr: Array[Byte] = Mapper.encode(bsonArray1)
             (newBuffer.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
           case bsonArray2: Array[Any] =>
-            val arr: Array[Byte] = Mapper.encode(newValue.asInstanceOf[Array[Any]])
+            val arr: Array[Byte] = Mapper.encode(bsonArray2)
             (newBuffer.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
           case _ =>
             throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
@@ -258,8 +254,7 @@ class Injector {
         val value: Any = f(buffer.readBoolean())
         value match {
           case bool: Boolean =>
-            val finalValue: Boolean = value.asInstanceOf[Boolean]
-            (newBuffer.writeBoolean(finalValue), 0)
+            (newBuffer.writeBoolean(bool), 0)
           case _ =>
             throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_BOOLEAN")
         }
@@ -268,8 +263,7 @@ class Injector {
         val value: Any = f(buffer.readIntLE())
         value match {
           case n: Int =>
-            val finalValue: Int = n.asInstanceOf[Int]
-            (newBuffer.writeIntLE(value.asInstanceOf[Int]), 0)
+            (newBuffer.writeIntLE(n), 0)
           case _ =>
             throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_INT")
         }
@@ -277,8 +271,7 @@ class Injector {
         val value: Any = f(buffer.readLongLE())
         value match {
           case n: Long =>
-            val finalValue: Long = n.asInstanceOf[Long]
-            (newBuffer.writeLongLE(value.asInstanceOf[Long]), 0)
+            (newBuffer.writeLongLE(n), 0)
           case _ =>
             throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_LONG")
         }
