@@ -470,7 +470,7 @@ class Injector {
         val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
         val newValue: Any = f(bsonArray)
         val arr: Array[Byte] = Mapper.encode(newValue.asInstanceOf[java.util.List[_]])//Array[Any]
-        (newBuffer.writeBytes(arr), 0) //  ZERO  for now, cant be zero
+        (newBuffer.writeBytes(arr), arr.size - valueLength)
       case D_BOOLEAN =>
         val value: Any = f(buffer.readBoolean())
         val finalValue: Boolean = value.asInstanceOf[Boolean]

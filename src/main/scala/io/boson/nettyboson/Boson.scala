@@ -3,8 +3,11 @@ package io.boson.nettyboson
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.nio.charset.Charset
+
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.boson.nettyboson.Constants._
+import io.netty.util.ReferenceCountUtil._
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 
@@ -104,9 +107,15 @@ class Boson(
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           if (compareKeys(netty, key) && !condition.equals("limit")) {
             val valueLength: Int = netty.readIntLE()
-            val help: ByteBuf = Unpooled.buffer()
-            help.writeBytes(netty.readBytes(valueLength))
-            Some(help.array())
+            //val help: ByteBuf = Unpooled.buffer()
+            //safeRelease(help.writeBytes(netty.readBytes(valueLength)))
+            val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readBytes(valueLength)).array()
+            //println(s"----------------------------------------------------------------------------------> ${b.hasArray}")
+            //help.writeBytes(netty.readBytes(valueLength))
+            //val arr: Array[Byte] = b.array()
+            //release(help)
+            //ReferenceCountUtil.safeRelease(help)  //  there was a memory leak by not releasing this buf
+            Some(arr)
           } else {
             netty.readCharSequence(netty.readIntLE(), charset)
             None
