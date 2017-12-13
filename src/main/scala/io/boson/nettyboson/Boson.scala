@@ -34,7 +34,6 @@ class Boson(
     if (javaByteBuf.isDefined) {
       javaByteBuf.get.getClass.getSimpleName
     } else if (byteArray.isDefined) {
-      println("inside array byte boson")
       byteArray.get.getClass.getSimpleName
     } else if (scalaArrayBuf.isDefined) {
       scalaArrayBuf.get.getClass.getSimpleName
@@ -321,49 +320,39 @@ class Boson(
           extractKeys(netty)
           val value: Double = netty.readDoubleLE()
           mapper + (new String(arrKeyDecode.toArray) -> value)
-        //bsonObj.put(new String(arrKeyDecode.toArray), value)
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           extractKeys(netty)
           val valueLength: Int = netty.readIntLE()
-          //val value: CharSequence = netty.readCharSequence(valueLength - 1, charset)
           val value: CharSequence = netty.readCharSequence(valueLength - 1, charset)
           netty.readByte()
           mapper + (new String(arrKeyDecode.toArray) -> value)
-        //bsonObj.put(new String(arrKeyDecode.toArray), value)
-
         case D_BSONOBJECT =>
           extractKeys(netty)
           val bsonStartReaderIndex: Int = netty.readerIndex()
           val valueTotalLength: Int = netty.readIntLE()
           val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
           val map = scala.collection.immutable.Map[Any, Any]()
-          //bsonObj.put(new String(arrKeyDecode.toArray), traverseBsonObj(netty, map, bsonFinishReaderIndex))
           mapper + (new String(arrKeyDecode.toArray) -> traverseBsonObj(netty, map, bsonFinishReaderIndex))
         case D_BSONARRAY =>
           extractKeys(netty)
           val arrayStartReaderIndex: Int = netty.readerIndex()
           val valueLength: Int = netty.readIntLE()
           val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-          //bsonObj.put(new String(arrKeyDecode.toArray), traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, new BsonArray()))
           mapper + (new String(arrKeyDecode.toArray) -> traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any]))
         case D_BOOLEAN =>
           extractKeys(netty)
           val value: Int = netty.readByte()
-          //bsonObj.put(new String(arrKeyDecode.toArray), value == 1)
           mapper + (new String(arrKeyDecode.toArray) -> (value == 1))
         case D_NULL =>
           extractKeys(netty)
-          //bsonObj.putNull(new String(arrKeyDecode.toArray))
           mapper + (new String(arrKeyDecode.toArray) -> null)
         case D_INT =>
           extractKeys(netty)
           val value: Int = netty.readIntLE()
-          //bsonObj.put(new String(arrKeyDecode.toArray), value)
           mapper + (new String(arrKeyDecode.toArray) -> value)
         case D_LONG =>
           extractKeys(netty)
           val value: Long = netty.readLongLE()
-          //bsonObj.put(new String(arrKeyDecode.toArray), value)
           mapper + (new String(arrKeyDecode.toArray) -> value)
         case D_ZERO_BYTE =>
           mapper
@@ -550,13 +539,11 @@ class Boson(
           case D_ZERO_BYTE =>
             seq
         }
-      println(s"iteration of newSeq: $newSeq")
       val actualPos2 = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
           constructWithLimits(iter + 1, newSeq)
         case 0 =>
-          println(s"ended constructing BsonArray -> Seq[Any] -> $newSeq")
           newSeq
       }
     }

@@ -67,7 +67,7 @@ object PerformanceTest extends App{
   val result4 = bestTimeMeasure { sI.parse(boson.duplicate, "Markets", "[3 to 5]") }
   println()
   sI.parse(boson.duplicate, "Markets", "[3 to 5]").asInstanceOf[BsSeq]
-    .getValue.asInstanceOf[Seq[BsonArray]].head.forEach(e => println("result4: " + e))
+    .getValue.head.asInstanceOf[Seq[Any]].foreach(elem => println(s"result4: $elem"))
   println(s"Benchmark for this test: $result4")
   println()
 
@@ -77,7 +77,7 @@ object PerformanceTest extends App{
   val result5 = bestTimeMeasure { sI.parse(boson.duplicate, "Markets", "last [50 to 55]") }
   println()
   println("result5: " + sI.parse(boson.duplicate, "Markets", "last [50 to 55]")
-    .asInstanceOf[BsSeq].getValue.head.asInstanceOf[BsonObject])
+    .asInstanceOf[BsSeq].getValue.head.asInstanceOf[Map[_,_]])
   println(s"Benchmark for this test: $result5")
   println()
 
