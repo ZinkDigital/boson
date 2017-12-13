@@ -109,10 +109,11 @@ class Boson(
             val valueLength: Int = netty.readIntLE()
             //val help: ByteBuf = Unpooled.buffer()
             //safeRelease(help.writeBytes(netty.readBytes(valueLength)))
-            val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readBytes(valueLength)).array()
+            val b = Unpooled.copiedBuffer(netty.readCharSequence(valueLength,charset),charset)
+            //val b = Unpooled.copiedBuffer(netty.readBytes(valueLength))
             //println(s"----------------------------------------------------------------------------------> ${b.hasArray}")
             //help.writeBytes(netty.readBytes(valueLength))
-            //val arr: Array[Byte] = b.array()
+            val arr: Array[Byte] = b.array()
             //release(help)
             //ReferenceCountUtil.safeRelease(help)  //  there was a memory leak by not releasing this buf
             Some(arr)
