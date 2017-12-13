@@ -7,6 +7,7 @@ import io.boson.bsonValue.BsSeq
 import io.boson.injectors.Injector
 import io.boson.nettyboson.Boson
 import io.boson.scalaInterface.ScalaInterface
+import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -18,11 +19,15 @@ import scala.util.{Failure, Success, Try}
 @RunWith(classOf[JUnitRunner])
 class TypeConsistencyTests extends FunSuite {
 
+  val bP: ByteProcessor = (value: Byte) => {
+    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+    true
+  }
   val inj: Injector = new Injector
   val ext = new ScalaInterface
 
 
-  test("Injector: Type Consistency Ints") {
+  test("Injector: Type Consistency Int") {
    val bson: BsonObject = new BsonObject().put("Hi", 1).put("Bye", 2)
     val netty: Option[Boson] = Option(ext.createBoson(bson.encode().getBytes))
     val b1: Try[Boson] = Try(inj.modify(netty, "Hi", _ => "w").get)
@@ -148,4 +153,40 @@ class TypeConsistencyTests extends FunSuite {
     assert("Wrong inject type. Injecting type Integer. Value type require D_FLOAT_DOUBLE" === result)
   }
 
+  test("Horrible Simple Injector: Type Consistency Int") {
+    val bson: BsonObject = new BsonObject().put("Hi", new BsonArray().add(0).add(1).add(2).add(new BsonObject().put("key", "code").put("key1", new BsonArray().add(new BsonArray().add(1000L)).add(new BsonObject().put("key2", 10))))).put("Bye",25.1f)
+    val netty: Option[Boson] = Option(ext.createBoson(bson.encode().getBytes))
+    val b1: Try[Boson] = Try(inj.modify(netty, "key2", _ => 23.0f).get)
+    val result: Any = b1 match {
+      case Success(v) =>
+        val sI: ScalaInterface = new ScalaInterface
+        println("Extracting the field injected with value: ")
+        val value: Any = sI.parse(v, "key2", "all").asInstanceOf[BsSeq].value.head
+        println(value)
+        value
+      case Failure(e) =>
+        println(e.getMessage)
+        e.getMessage
+    }
+    assert("Wrong inject type. Injecting type Float. Value type require D_INT" === result)
+  }
+
+  test("Horrible Simple Injector: Type Consistency BsonObject") {
+    val bson: BsonObject = new BsonObject().put("Hi", new BsonArray().add(0).add(1).add(2).add(new BsonObject().put("key", "code").put("key1", new BsonArray().add(new BsonArray().add(1000L)).add(new BsonObject().put("key2",new BsonObject().put("key3", "code3")))))).put("Bye",25.1f)
+    val netty: Option[Boson] = Option(ext.createBoson(bson.encode().getBytes))
+    val b1: Try[Boson] = Try(inj.modify(netty, "key2", _ => new BsonArray().add(2).getList).get)
+   // b1.get.getByteBuf.forEachByte(bP)
+    val result: Any = b1 match {
+      case Success(v) =>
+        val sI: ScalaInterface = new ScalaInterface
+        println("Extracting the field injected with value: ")
+        val value: Any = sI.parse(v, "key2", "all").asInstanceOf[BsSeq].value.head
+        println(value)
+        value
+      case Failure(e) =>
+        println(e.getMessage)
+        e.getMessage
+    }
+    assert("Wrong inject type. Injecting type ArrayList. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])" === result)
+  }
 }
