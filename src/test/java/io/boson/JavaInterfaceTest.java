@@ -1,7 +1,7 @@
 package io.boson;
 
-import io.boson.bson.BsonArray;
-import io.boson.bson.BsonObject;
+import bsonLib.BsonObject;
+import bsonLib.BsonArray;
 import io.boson.bsonValue.*;
 import io.boson.javaInterface.JavaInterface;
 import io.boson.nettyboson.Boson;

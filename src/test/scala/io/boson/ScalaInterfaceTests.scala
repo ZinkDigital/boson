@@ -1,7 +1,7 @@
 package io.boson
 
 import io.boson.nettyboson.Boson
-import io.boson.bson.{BsonArray, BsonObject}
+import bsonLib.{BsonArray,BsonObject}
 import io.boson.bsonValue._
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith

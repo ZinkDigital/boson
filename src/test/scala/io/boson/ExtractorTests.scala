@@ -3,7 +3,7 @@ package io.boson
 import java.time.Instant
 
 import io.boson.nettyboson.Boson
-import io.boson.bson.{BsonArray, BsonObject}
+import bsonLib.{BsonArray,BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith

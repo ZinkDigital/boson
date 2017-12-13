@@ -14,6 +14,7 @@ scalacOptions in Test ++= Seq(
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
 
 compileOrder := CompileOrder.Mixed
+compileOrder in Test:= CompileOrder.Mixed
 
 //  Creates a jar with all libraries necessary
 assemblyMergeStrategy in assembly := {

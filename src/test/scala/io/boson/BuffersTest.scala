@@ -1,7 +1,7 @@
 package io.boson
 
 import java.nio.ByteBuffer
-import io.boson.bson.BsonObject
+import bsonLib.BsonObject
 import io.boson.nettyboson.Boson
 import org.junit.runner.RunWith
 import org.scalatest._

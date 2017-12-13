@@ -1,7 +1,7 @@
 package io.boson
 
 import io.boson.nettyboson.Boson
-import io.boson.bson.{BsonArray, BsonObject}
+import bsonLib.{BsonArray,BsonObject}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner

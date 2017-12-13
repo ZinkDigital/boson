@@ -2,7 +2,7 @@ package io.boson
 
 import java.time.Instant
 
-import io.boson.bson.{BsonArray, BsonObject}
+import io.boson.bson.{BsonArray, BsonObject}    //  TODO: make injector independent from project bson library before change this import to the newone
 import io.boson.bsonValue.BsSeq
 import io.boson.injectors.{EnumerationTest, Injector}
 import io.boson.nettyboson.Boson
