@@ -1,14 +1,18 @@
-package io.boson.injectors
+package io.boson.bson.bsonImpl.injectors
 
 import java.time.Instant
-import io.boson.nettyboson.Boson
+
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.boson.nettyboson.Constants._
+import io.boson.bson.bsonImpl.Constants._
 import java.io.ByteArrayOutputStream
+
 import io.netty.util.ByteProcessor
+
 import scala.collection.mutable.ListBuffer
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.undercouch.bson4jackson.BsonFactory
+import io.boson.bson.bsonImpl.Boson
+
 import scala.util.{Failure, Success, Try}
 
 /**

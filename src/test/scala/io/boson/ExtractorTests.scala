@@ -2,8 +2,8 @@ package io.boson
 
 import java.time.Instant
 
-import io.boson.nettyboson.Boson
-import bsonLib.{BsonArray,BsonObject}
+import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.Boson
 import io.netty.buffer.{ByteBuf, Unpooled}
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith

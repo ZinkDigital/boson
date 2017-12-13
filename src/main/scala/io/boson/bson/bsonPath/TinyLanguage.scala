@@ -1,4 +1,4 @@
-package io.boson.bsonPath
+package io.boson.bson.bsonPath
 
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers

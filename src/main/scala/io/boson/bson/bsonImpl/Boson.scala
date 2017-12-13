@@ -1,10 +1,11 @@
-package io.boson.nettyboson
+package io.boson.bson.bsonImpl
 
-
-import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.nio.charset.Charset
+import java.nio.{ByteBuffer, ReadOnlyBufferException}
+
+import Constants.{charset, _}
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.boson.nettyboson.Constants._
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 

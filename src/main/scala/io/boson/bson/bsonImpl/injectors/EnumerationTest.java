@@ -1,4 +1,4 @@
-package io.boson.injectors;
+package io.boson.bson.bsonImpl.injectors;
 
 /**
  * Created by Ricardo Martins on 10/11/2017.

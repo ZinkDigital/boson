@@ -2,10 +2,10 @@ package io.boson
 
 import java.time.Instant
 
-import bsonLib.{BsonArray,BsonObject}
-import io.boson.bsonValue.BsSeq
-import io.boson.injectors.{EnumerationTest, Injector}
-import io.boson.nettyboson.Boson
+import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonValue.BsSeq
+import io.boson.bson.bsonImpl.injectors.{EnumerationTest, Injector}
 import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
@@ -47,8 +47,8 @@ class InjectorsTest extends FunSuite {
   val newLong: Long = 200000002.toLong
   val bsonArray: BsonArray = new BsonArray().add(1).add(2).add("Hi")
   val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
-  val enumJava: EnumerationTest = io.boson.injectors.EnumerationTest.A
-  val newEnumJava = io.boson.injectors.EnumerationTest.B
+  val enumJava: EnumerationTest = io.boson.bson.bsonImpl.injectors.EnumerationTest.A
+  val newEnumJava = io.boson.bson.bsonImpl.injectors.EnumerationTest.B
   //val enum = EnumerationTest.A
   //val enum1 = EnumerationTest.B
   val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)//.put("enumJava", enumJava)

@@ -1,12 +1,13 @@
 package io.boson
 
-import io.boson.nettyboson.Boson
-import bsonLib.{BsonArray,BsonObject}
+import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.Boson
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.bsonValue.{BsException, BsNumber, BsSeq, BsValue}
+import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import io.boson.bson.bsonValue.{BsException, BsNumber, BsSeq, BsValue}
+import io.boson.bson.bsonValue
 
 /**
   * Created by Tiago Filipe on 25/10/2017.

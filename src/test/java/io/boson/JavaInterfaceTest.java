@@ -2,9 +2,9 @@ package io.boson;
 
 import bsonLib.BsonObject;
 import bsonLib.BsonArray;
-import io.boson.bsonValue.*;
+import io.boson.bson.bsonValue.*;
 import io.boson.javaInterface.JavaInterface;
-import io.boson.nettyboson.Boson;
+import io.boson.bson.bsonImpl.Boson;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -13,7 +13,6 @@ import scala.math.BigDecimal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 
 public class JavaInterfaceTest {

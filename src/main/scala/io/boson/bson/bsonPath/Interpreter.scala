@@ -1,7 +1,7 @@
-package io.boson.bsonPath
+package io.boson.bson.bsonPath
 
-import io.boson.nettyboson.Boson
-import io.boson.bsonValue
+import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonValue
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
