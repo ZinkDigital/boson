@@ -155,7 +155,7 @@ class Injector {
     }
   }
 
-  def modifier[T](buffer: ByteBuf, seqType: Int, f: T => T): (ByteBuf, Int) = {
+  def modifier(buffer: ByteBuf, seqType: Int, f: Any => Any): (ByteBuf, Int) = {
     val newBuffer: ByteBuf = Unpooled.buffer() //  corresponds only to the new value
     seqType match {
       case D_FLOAT_DOUBLE =>
