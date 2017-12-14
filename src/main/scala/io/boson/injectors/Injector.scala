@@ -282,7 +282,7 @@ class Injector {
               throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_BOOLEAN")
             }
         }
-      case D_NULL => (newBuffer, 0) //  returns empty buffer
+      case D_NULL =>  throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
         val value: Any = f(buffer.readIntLE())
         value match {

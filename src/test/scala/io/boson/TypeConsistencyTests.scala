@@ -1414,4 +1414,23 @@ class TypeConsistencyTests extends FunSuite {
     assert("Wrong inject type. Injecting type Double. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])" === result)
   }
 
+
+  test("Horrible Simple Injector: Type Consistency Null -> Double") {
+    val bson: BsonObject = new BsonObject().putNull("Null").put("Hi", new BsonArray().add(0).add(1).add(2).add(new BsonObject().put("key", "code").put("key1", new BsonArray().add(new BsonArray().add(1000L)).add(new BsonObject().put("key2",new BsonObject().put("key3", "code3")))))).put("Bye",25.1f)
+    val netty: Option[Boson] = Option(ext.createBoson(bson.encode().getBytes))
+    val b1: Try[Boson] = Try(inj.modify(netty, "Null", _ => 52.0).get)
+
+    val result: Any = b1 match {
+      case Success(v) =>
+        val sI: ScalaInterface = new ScalaInterface
+        println("Extracting the field injected with value: ")
+        val value: Any = sI.parse(v, "Null", "all").asInstanceOf[BsSeq].value.head
+        println(value)
+        value
+      case Failure(e) =>
+        println(e.getMessage)
+        e.getMessage
+    }
+    assert("NULL field. Can not be changed" === result)
+  }
 }
