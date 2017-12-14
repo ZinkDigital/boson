@@ -215,7 +215,7 @@ class Injector {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
         val value: Any = f(new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
-        println("returning type = " + value.getClass.getSimpleName)
+        //println("returning type = " + value.getClass.getSimpleName)
         value match {
           case n: Array[Byte] =>
             (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeByte(0), (n.length + 1) - length)
