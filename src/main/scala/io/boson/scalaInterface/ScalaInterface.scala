@@ -1,9 +1,10 @@
 package io.boson.scalaInterface
 
-import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.nettyboson.Boson
+import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+
 import scala.collection.mutable.ArrayBuffer
-import io.boson.bsonValue
+import io.boson.bson.bsonValue
 
 
 /**

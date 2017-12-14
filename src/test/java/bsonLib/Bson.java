@@ -16,7 +16,7 @@
  * Derived from original file Json.java from Vert.x
  */
 
-package io.boson.bson;
+package bsonLib;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -24,6 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import de.undercouch.bson4jackson.BsonFactory;
+import bsonLib.BsonObject;
+import bsonLib.BsonArray;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +44,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@Deprecated
+
 public class Bson {
 
     public static ObjectMapper mapper = new ObjectMapper(new BsonFactory());

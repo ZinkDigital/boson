@@ -1,17 +1,17 @@
 package io.boson.javaInterface;
 
 
-import io.boson.bsonPath.Interpreter;
-import io.boson.bsonPath.Program;
-import io.boson.bsonPath.TinyLanguage;
-import io.boson.nettyboson.Boson;
+import io.boson.bson.bsonPath.Interpreter;
+import io.boson.bson.bsonPath.Program;
+import io.boson.bson.bsonPath.TinyLanguage;
+import io.boson.bson.bsonImpl.Boson;
 import scala.Function1;
 import scala.Option;
 import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import io.boson.bsonValue.*;
+import io.boson.bson.bsonValue.*;
 
 @Deprecated
 public class JavaInterface {

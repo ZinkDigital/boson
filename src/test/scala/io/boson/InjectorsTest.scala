@@ -2,14 +2,17 @@ package io.boson
 
 import java.time.Instant
 
-import io.boson.bson.{BsonArray, BsonObject}
-import io.boson.bsonValue.BsSeq
-import io.boson.injectors.{EnumerationTest, Injector}
-import io.boson.nettyboson.Boson
+import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonValue.BsSeq
+import io.boson.bson.bsonImpl.injectors.{EnumerationTest, Injector}
 import io.boson.scalaInterface.ScalaInterface
+import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
+import scala.collection.JavaConverters._
 
 /**
   * Created by Ricardo Martins on 09/11/2017.
@@ -44,8 +47,8 @@ class InjectorsTest extends FunSuite {
   val newLong: Long = 200000002.toLong
   val bsonArray: BsonArray = new BsonArray().add(1).add(2).add("Hi")
   val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
-  val enumJava: EnumerationTest = io.boson.injectors.EnumerationTest.A
-  val newEnumJava = io.boson.injectors.EnumerationTest.B
+  val enumJava: EnumerationTest = io.boson.bson.bsonImpl.injectors.EnumerationTest.A
+  val newEnumJava = io.boson.bson.bsonImpl.injectors.EnumerationTest.B
   //val enum = EnumerationTest.A
   //val enum1 = EnumerationTest.B
   val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)//.put("enumJava", enumJava)
@@ -181,7 +184,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj)
+    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj.getMap)  //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -222,13 +225,12 @@ class InjectorsTest extends FunSuite {
   }
 
   test("Injector: BsonArray => BsonArray") {
-    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray)
+    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray.getList) //  .asScala.toArray[Any]
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => ext.parse(nb, "bsonArray", "all")
+      case Some(nb) =>  ext.parse(nb, "bsonArray", "all")
     }
-    println("nheee " + result)
     val s: Any = result.asInstanceOf[BsSeq].value
 
     assert(List(List(3, 4, "Bye")) === s,
@@ -350,7 +352,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj)
+    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj.getMap) //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -392,7 +394,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonArray => BsonArray") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray)
+    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray.getList)
 
     val result: Any = b1 match {
       case None => List()

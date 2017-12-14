@@ -17,7 +17,8 @@
  * Derived from original file JsonObject.java from Vert.x
  */
 
-package io.boson.bson;
+package bsonLib;
+
 
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
@@ -43,7 +44,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@Deprecated
+
 public class BsonObject implements Iterable<Map.Entry<String, Object>> {
 
     private Map<String, Object> map;

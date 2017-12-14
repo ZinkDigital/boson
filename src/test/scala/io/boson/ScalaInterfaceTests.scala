@@ -1,8 +1,8 @@
 package io.boson
 
-import io.boson.nettyboson.Boson
-import io.boson.bson.{BsonArray, BsonObject}
-import io.boson.bsonValue._
+import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonValue._
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite

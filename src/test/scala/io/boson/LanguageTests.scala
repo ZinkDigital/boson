@@ -1,12 +1,13 @@
 package io.boson
 
-import io.boson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.nettyboson.Boson
-import io.boson.bson.{BsonArray, BsonObject}
+import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.Boson
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import io.boson.bsonValue._
+import io.boson.bson.bsonValue._
+import io.boson.bson.bsonValue
 
 /**
   * Created by Tiago Filipe on 18/10/2017.
@@ -23,7 +24,7 @@ class LanguageTests extends FunSuite {
 
   val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
 
-  def callParse(boson: Boson, key: String, expression: String): bsonValue.BsValue = {
+  def callParse(boson: Boson, key: String, expression: String): io.boson.bson.bsonValue.BsValue = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {

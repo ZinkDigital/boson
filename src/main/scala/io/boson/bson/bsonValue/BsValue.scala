@@ -1,4 +1,4 @@
-package io.boson.bsonValue
+package io.boson.bson.bsonValue
 
 /**
   * Created by Tiago Filipe on 08/11/2017.

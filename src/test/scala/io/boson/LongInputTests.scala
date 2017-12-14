@@ -1,13 +1,14 @@
 package io.boson
 
-import io.boson.bson.{BsonArray, BsonObject}
-import io.boson.bsonValue.{BsBoolean, BsNumber, BsSeq, BsValue}
-import io.boson.nettyboson.Boson
+import bsonLib.BsonObject
+import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonValue.{BsBoolean, BsNumber, BsSeq, BsValue}
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
 import scala.io.Source
 
 /**
