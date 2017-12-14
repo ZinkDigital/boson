@@ -1,5 +1,8 @@
 package io.boson.bson;
 
+import io.boson.bson.bsonImpl.BosonExtractor;
+import io.boson.bson.bsonImpl.BosonInjector;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -18,7 +21,7 @@ public interface BosonJava {
      */
     static <T> BosonJava extractor(String expression, Consumer<T> extractFunction) {    //BosonJava is the BosonExtractor
         // TODO construct an extractor
-        return null;
+        return new BosonExtractor(expression,extractFunction);
     }
 
     /**
@@ -31,7 +34,7 @@ public interface BosonJava {
      */
         static <T> BosonJava injector(String expression, Function<T,T> injectFunction) {    ////BosonJava is the BosonInjector
         // TODO construct an injector
-        return null;
+        return new BosonInjector(expression,injectFunction);
     }
 
     /**
