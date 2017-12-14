@@ -1,7 +1,5 @@
 package io.boson
 
-import java.time.Instant
-
 import io.boson.bson.{BsonArray, BsonObject}
 import io.boson.bsonValue.BsSeq
 import io.boson.injectors.Injector
@@ -11,8 +9,6 @@ import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-
-import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 /**
   * Created by Ricardo Martins on 13/12/2017.
@@ -1413,7 +1409,6 @@ class TypeConsistencyTests extends FunSuite {
     }
     assert("Wrong inject type. Injecting type Double. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])" === result)
   }
-
 
   test("Horrible Simple Injector: Type Consistency Null -> Double") {
     val bson: BsonObject = new BsonObject().putNull("Null").put("Hi", new BsonArray().add(0).add(1).add(2).add(new BsonObject().put("key", "code").put("key1", new BsonArray().add(new BsonArray().add(1000L)).add(new BsonObject().put("key2",new BsonObject().put("key3", "code3")))))).put("Bye",25.1f)
