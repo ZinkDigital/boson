@@ -37,7 +37,7 @@ object Mapper {
 
 class Injector {
 
-  def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any): Option[Boson] = {
+  def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any, selectType: String): Option[Boson] = {
     val bP: ByteProcessor = (value: Byte) => {
       println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
