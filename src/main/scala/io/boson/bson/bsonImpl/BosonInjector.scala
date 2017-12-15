@@ -4,9 +4,10 @@ import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 
-import io.boson.bson.BosonJava
+import io.boson.bson
+import io.boson.bson.Boson
 
-class BosonInjector[T](expression: String, injectFunction: Function[T,T]) extends BosonJava{
+class BosonInjector[T](expression: String, injectFunction: Function[T,T]) extends bson.Boson{
 
   override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
     val boson: io.boson.bson.bsonImpl.Boson = new Boson(byteArray = Option(bsonByteEncoding))
@@ -28,5 +29,5 @@ class BosonInjector[T](expression: String, injectFunction: Function[T,T]) extend
     future
   }
 
-  override def fuse(boson: BosonJava): BosonJava = ??? //  return typpe is wrong
+  override def fuse(boson: bson.Boson): bson.Boson = ??? //  return typpe is wrong
 }

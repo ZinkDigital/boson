@@ -500,7 +500,6 @@ class Boson(
                 }
             }
           case D_INT =>
-            println("FOUND AN INT")
             val value: Int = netty.readIntLE()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>

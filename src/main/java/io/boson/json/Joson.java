@@ -13,7 +13,7 @@ public interface Joson {
      * @param expression
      * @param extractFunction
      * @param <T>
-     * @return a BosonJava that is a BosonExtractor
+     * @return a Boson that is a BosonExtractor
      */
     static <T> Joson extractor(String expression, Consumer<T> extractFunction) {
         // TODO construct an extractor
