@@ -10,7 +10,7 @@ import io.boson.bson.Boson
 class BosonInjector[T](expression: String, injectFunction: Function[T,T]) extends bson.Boson{
 
   override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
-    val boson: io.boson.bson.bsonImpl.Boson = new Boson(byteArray = Option(bsonByteEncoding))
+    val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
     val future: CompletableFuture[Array[Byte]] =
       CompletableFuture.supplyAsync(
         () => boson.extract(boson.getByteBuf,expression,"SomethingForNow").get.asInstanceOf[Array[Byte]]  //  asInstance works to test, must be injector
@@ -20,7 +20,7 @@ class BosonInjector[T](expression: String, injectFunction: Function[T,T]) extend
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer] = {
-    val boson: io.boson.bson.bsonImpl.Boson = new Boson(javaByteBuf = Option(bsonByteBufferEncoding))
+    val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
     val future: CompletableFuture[ByteBuffer] =
       CompletableFuture.supplyAsync(
         () => boson.extract(boson.getByteBuf,expression,"SomethingForNow").get.asInstanceOf[ByteBuffer] //  asInstance works to test, must be injector

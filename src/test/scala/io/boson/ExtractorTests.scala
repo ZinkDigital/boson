@@ -3,7 +3,7 @@ package io.boson
 import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.netty.buffer.{ByteBuf, Unpooled}
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
@@ -30,35 +30,35 @@ class ExtractorTests extends FunSuite {
 
   test("Extract Int") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     assert(1500 === bosonBson.extract(bosonBson.getByteBuf, "Américo", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Long") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     assert(1250L === bosonBson.extract(bosonBson.getByteBuf, "Pedro", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Boolean") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
     assert(false === bosonBson.extract(bosonBson.getByteBuf, "José", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Null") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
     assert("Null" === bosonBson.extract(bosonBson.getByteBuf, "Amadeu", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract Instant") {
-    val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
     assertEquals(now.toString, new String(bosonBson.extract(bosonBson.getByteBuf, "UpdatedOn", "first").get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
   }
 
   test("Extract String") {
-    val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes))
     assertEquals("Lisboa", new String(bosonBson.extract(bosonBson.getByteBuf, "Residence", "first")
       .get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
   }
@@ -66,14 +66,14 @@ class ExtractorTests extends FunSuite {
   test("Extract Array[Byte] w/ Netty") {
     val help: ByteBuf = Unpooled.buffer()
     val finalBuf: ByteBuf = Unpooled.buffer()
-    val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
     help.writeBytes(bosonBson.extract(bosonBson.getByteBuf, "FavoriteSentence", "first").get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]])
     finalBuf.writeBytes(io.netty.handler.codec.base64.Base64.decode(help))
     assert("Be the best".getBytes === new String(finalBuf.array()).replaceAll("\\p{C}", "").getBytes)
   }
 
   test("Extract Array[Byte] w/ String") {
-    val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes))
     assert("Be the best".getBytes === new String(java.util.Base64.getMimeDecoder
       .decode(new String(bosonBson.extract(bosonBson.getByteBuf, "FavoriteSentence", "first")
         .get.asInstanceOf[List[Any]].head.asInstanceOf[Array[Byte]]))).getBytes)
@@ -81,12 +81,12 @@ class ExtractorTests extends FunSuite {
 
   test("Extract BsonObject") {
     val bsonEvent: BsonObject = new BsonObject().put("First", obj1).put("Second", obj2).put("Third", obj3)
-    val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
     assert(Map("Pedro" -> 1250, "José" -> false) === bosonBson.extract(bosonBson.getByteBuf, "Second", "first").get.asInstanceOf[List[Any]].head)
   }
 
   test("Extract BsonArray") {
-    val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
     val result = bosonBson.extract(bosonBson.getByteBuf, "Colleagues", "first").get.asInstanceOf[List[Array[Any]]]
     assert(Seq(
       Map("André" -> 975, "António" -> 975),
@@ -99,7 +99,7 @@ class ExtractorTests extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
     val arr2: BsonArray = new BsonArray().add("Day3").add("Day20").add("Day31")
     obj2.put("JoséMonthLeave", arr2)
-    val bosonBson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
     assert(
       Seq("Day3", "Day20", "Day31")
         === bosonBson.extract(bosonBson.getByteBuf, "JoséMonthLeave", "first").get.asInstanceOf[List[Any]].head
@@ -107,7 +107,7 @@ class ExtractorTests extends FunSuite {
   }
 
   test("Extract nonexistent key") {
-    val bosonBson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes()))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
     assert(None === bosonBson.extract(bosonBson.getByteBuf, "Random", "first"))
   }
 }

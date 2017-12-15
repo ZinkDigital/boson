@@ -1,7 +1,7 @@
 package io.boson
 
 import bsonLib.BsonObject
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue.{BsBoolean, BsNumber, BsSeq, BsValue}
 import io.boson.scalaInterface.ScalaInterface
 import io.vertx.core.json.JsonObject
@@ -26,7 +26,7 @@ class LongInputTests extends FunSuite {
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
 
-  val boson: Boson = sI.createBoson(bson.encode().getBytes)
+  val boson: BosonImpl = sI.createBoson(bson.encode().getBytes)
 
   test("extract top field") {
     val result: BsValue = sI.parse(boson.duplicate, "Epoch", "first")

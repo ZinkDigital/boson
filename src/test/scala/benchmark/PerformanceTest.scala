@@ -1,7 +1,7 @@
 package benchmark
 
 import bsonLib.BsonObject
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue.{BsNumber, BsSeq}
 import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ResourceLeakDetector
@@ -24,7 +24,7 @@ object PerformanceTest extends App {
     val json: JsonObject = new JsonObject(finale)
     val bson: BsonObject = new BsonObject(json)
 
-    val boson: Boson = sI.createBoson(bson.encode().getBytes)
+    val boson: BosonImpl = sI.createBoson(bson.encode().getBytes)
 
     def bestTimeMeasure[R](block: => R): Quantity[Double] = {
       val time = withWarmer(new Warmer.Default) measure {

@@ -4,7 +4,7 @@ package io.boson.javaInterface;
 import io.boson.bson.bsonPath.Interpreter;
 import io.boson.bson.bsonPath.Program;
 import io.boson.bson.bsonPath.TinyLanguage;
-import io.boson.bson.bsonImpl.Boson;
+import io.boson.bson.bsonImpl.BosonImpl;
 import scala.Function1;
 import scala.Option;
 import scala.util.parsing.combinator.Parsers;
@@ -16,16 +16,16 @@ import io.boson.bson.bsonValue.*;
 @Deprecated
 public class JavaInterface {
 
-    public Boson createBoson(byte[] byteArray) {
-        return new Boson(
+    public BosonImpl createBoson(byte[] byteArray) {
+        return new BosonImpl(
                 Option.apply(byteArray),
                 Option.apply(null),
                 Option.apply(null)
         );
     }
 
-    public Boson createBoson(ByteBuffer byteBuffer) {
-        return new Boson(
+    public BosonImpl createBoson(ByteBuffer byteBuffer) {
+        return new BosonImpl(
                 Option.apply(null),
                 Option.apply(byteBuffer),
                 Option.apply(null)
@@ -34,7 +34,7 @@ public class JavaInterface {
 
     private Function1<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
-    public BsValue parse(Boson boson, String key, String expression) {
+    public BsValue parse(BosonImpl boson, String key, String expression) {
         TinyLanguage parser = new TinyLanguage();
         try {
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);

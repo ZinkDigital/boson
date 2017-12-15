@@ -2,7 +2,6 @@ package io.boson
 
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
-
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
 import io.boson.bson.bsonValue.{BsSeq, BsValue}

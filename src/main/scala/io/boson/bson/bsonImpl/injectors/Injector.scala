@@ -11,7 +11,7 @@ import io.netty.util.ByteProcessor
 import scala.collection.mutable.ListBuffer
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.undercouch.bson4jackson.BsonFactory
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 
 import scala.util.{Failure, Success, Try}
 
@@ -37,16 +37,16 @@ object Mapper {
 
 class Injector {
 
-  def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any): Option[Boson] = {
+  def modify(nettyOpt: Option[BosonImpl], fieldID: String, f: (Any) => Any): Option[BosonImpl] = {
     val bP: ByteProcessor = (value: Byte) => {
       println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
     }
     if (nettyOpt.isEmpty) {
-      println(s" Input Boson is Empty. ")
+      println(s" Input BosonImpl is Empty. ")
       None
     } else {
-      val netty: Boson = nettyOpt.get
+      val netty: BosonImpl = nettyOpt.get
       println(s"input buf size = ${netty.getByteBuf.capacity()} ")
       val buffer: ByteBuf = netty.getByteBuf.duplicate()
       val buff: ByteBuf = Unpooled.buffer(4)
@@ -63,7 +63,7 @@ class Injector {
             case 48 => // root obj is BsonArray, call extractFromBsonArray
               println("Root is BsonArray")
               if (fieldID.isEmpty) {
-                Option(new Boson())
+                Option(new BosonImpl())
               } else {
                 println("Input capacity = " + buffer.capacity())
                 val startRegionArray: Int = buffer.readerIndex()
@@ -76,7 +76,7 @@ class Injector {
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
                   val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
-                  Some(new Boson(byteArray = Option(result.array())))
+                  Some(new BosonImpl(byteArray = Option(result.array())))
                 } getOrElse {
                   println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonarray as root, returning None")
                   None
@@ -85,7 +85,7 @@ class Injector {
             case _ => // root obj isn't BsonArray, call extractFromBsonObj
               println("Root is BsonObject")
               if (fieldID.isEmpty) {
-                Option(new Boson())
+                Option(new BosonImpl())
               } else {
                 println("Input capacity = " + buffer.capacity())
                 val startRegion: Int = buffer.readerIndex()
@@ -98,7 +98,7 @@ class Injector {
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
                   val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
-                  val res = new Boson(byteArray = Option(result.array()))
+                  val res = new BosonImpl(byteArray = Option(result.array()))
                   Some(res)
                 } getOrElse {
                   println("DIDN'T FOUND THE FIELD OF CHOICE TO INJECT, bsonobject as root, returning None")

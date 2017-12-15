@@ -3,7 +3,7 @@ package io.boson
 import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue.BsSeq
 import io.boson.bson.bsonImpl.injectors.{EnumerationTest, Injector}
 import io.boson.scalaInterface.ScalaInterface
@@ -53,8 +53,8 @@ class InjectorsTest extends FunSuite {
   //val enum1 = EnumerationTest.B
   val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)//.put("enumJava", enumJava)
   val objArray: BsonArray = new BsonArray().add(long).add(bytearray1).add(ins).add(float).add(double).add(obj).add(bool).add(bsonArray)//.add(enum.A.toString)//.add(enumJava)
-  val netty: Option[Boson] = Some(ext.createBoson(obj.encode().getBytes))
-  val nettyArray: Option[Boson] = Some(ext.createBoson(objArray.encode().getBytes))
+  val netty: Option[BosonImpl] = Some(ext.createBoson(obj.encode().getBytes))
+  val nettyArray: Option[BosonImpl] = Some(ext.createBoson(objArray.encode().getBytes))
 
   test("Injector: Deep Level bsonObject Root") {
     val obj3: BsonObject = new BsonObject().put("John", "Nobody")
@@ -65,9 +65,9 @@ class InjectorsTest extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
     val inj: Injector = new Injector
 
-    val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+    val netty: Option[BosonImpl] = Some(new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes)))
 
-    val b1: Option[Boson] = inj.modify(netty, "John", _ => "Somebody")
+    val b1: Option[BosonImpl] = inj.modify(netty, "John", _ => "Somebody")
 
     val result: Any = b1 match {
       case Some(v) =>
@@ -87,9 +87,9 @@ class InjectorsTest extends FunSuite {
     val arrayEvent: BsonArray = new BsonArray().add("Dog").add(bsonEvent).addNull()
     val inj: Injector = new Injector
 
-    val netty: Option[Boson] = Some(new Boson(byteArray = Option(bsonEvent.encode().getBytes)))
+    val netty: Option[BosonImpl] = Some(new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes)))
 
-    val b1: Option[Boson] = inj.modify(netty, "John", _ => "Somebody")
+    val b1: Option[BosonImpl] = inj.modify(netty, "John", _ => "Somebody")
 
     val result: Any = b1 match {
       case Some(v) =>
@@ -101,10 +101,10 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Int => Int") {
 
-    val b1: Option[Boson] = inj.modify(netty, "field", x => x.asInstanceOf[Int]+1 )
+    val b1: Option[BosonImpl] = inj.modify(netty, "field", x => x.asInstanceOf[Int]+1 )
     //println("test "+b1.getByteBuf.capacity())
-    val b2: Option[Boson] = inj.modify(b1, "field", x => x.asInstanceOf[Int]+1)
-    val b3: Option[Boson] = inj.modify(b2, "field", x => x.asInstanceOf[Int]*4)
+    val b2: Option[BosonImpl] = inj.modify(b1, "field", x => x.asInstanceOf[Int]+1)
+    val b3: Option[BosonImpl] = inj.modify(b2, "field", x => x.asInstanceOf[Int]*4)
     val result: Any = b3 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "field", "all")
@@ -116,7 +116,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: String/CharSequence => String/CharSequence") {
 
-    val b1: Option[Boson] = inj.modify(netty, "no", _ => "maybe")
+    val b1: Option[BosonImpl] = inj.modify(netty, "no", _ => "maybe")
     val result: Any = b1 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "no", "all")
@@ -127,9 +127,9 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Array[Byte] => Array[Byte]") {
 
-    val b1: Option[Boson] = inj.modify(netty, "array", _ => bytearray1)
-    val b2: Option[Boson] = inj.modify(b1, "array", _ => bytearray2)
-    val b3: Option[Boson] = inj.modify(b2, "array", _ => bytearray1)
+    val b1: Option[BosonImpl] = inj.modify(netty, "array", _ => bytearray1)
+    val b2: Option[BosonImpl] = inj.modify(b1, "array", _ => bytearray2)
+    val b3: Option[BosonImpl] = inj.modify(b2, "array", _ => bytearray1)
     val result: Any = b3 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "array", "all")
@@ -140,7 +140,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Instant => Instant") {
 
-    val b1: Option[Boson] = inj.modify(netty, "inst", _ => ins1)
+    val b1: Option[BosonImpl] = inj.modify(netty, "inst", _ => ins1)
 
     val result: Any = b1 match {
       case None => List()
@@ -155,7 +155,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Float => Float") {
 
-    val b1: Option[Boson] = inj.modify(netty, "float", _ => newFloat)
+    val b1: Option[BosonImpl] = inj.modify(netty, "float", _ => newFloat)
 
     val result: Any = b1 match {
       case None => List()
@@ -170,7 +170,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Double => Double") {
 
-      val b1: Option[Boson] = inj.modify(netty, "double", _ => newDouble)
+      val b1: Option[BosonImpl] = inj.modify(netty, "double", _ => newDouble)
 
       val result: Any = b1 match {
         case None => List()
@@ -184,7 +184,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(netty, "bObj", _ => newbObj.getMap)  //  .asScala.toMap
+    val b1: Option[BosonImpl] = inj.modify(netty, "bObj", _ => newbObj.getMap)  //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -198,7 +198,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Boolean => Boolean") {
 
-    val b1: Option[Boson] = inj.modify(netty, "bool", _ => newBool)
+    val b1: Option[BosonImpl] = inj.modify(netty, "bool", _ => newBool)
 
     val result: Any = b1 match {
       case None => List()
@@ -212,7 +212,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: Long => Long") {
 
-    val b1: Option[Boson] = inj.modify(netty, "long", _ => newLong)
+    val b1: Option[BosonImpl] = inj.modify(netty, "long", _ => newLong)
 
     val result: Any = b1 match {
       case None => List()
@@ -225,7 +225,7 @@ class InjectorsTest extends FunSuite {
   }
 
   test("Injector: BsonArray => BsonArray") {
-    val b1: Option[Boson] = inj.modify(netty, "bsonArray", _ => newbsonArray.getList) //  .asScala.toArray[Any]
+    val b1: Option[BosonImpl] = inj.modify(netty, "bsonArray", _ => newbsonArray.getList) //  .asScala.toArray[Any]
 
     val result: Any = b1 match {
       case None => List()
@@ -240,7 +240,7 @@ class InjectorsTest extends FunSuite {
 
 //  test("Injector: JavaEnum => JavaEnum") {
 //
-//    val b1: Option[Boson] = inj.modify(netty, "enumJava", _ => newEnumJava)
+//    val b1: Option[BosonImpl] = inj.modify(netty, "enumJava", _ => newEnumJava)
 //
 //    val result: Any = b1 match {
 //      case None => List()
@@ -255,7 +255,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector: ScalaEnum => ScalaEnum") {
 
-    val b1: Option[Boson] = inj.modify(netty, "enumScala", _ => enum.B.toString)
+    val b1: Option[BosonImpl] = inj.modify(netty, "enumScala", _ => enum.B.toString)
 
     val result: Any = b1 match {
       case None => List()
@@ -269,9 +269,9 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Int => Int") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "field", _ => 1)
-    val b2: Option[Boson] = inj.modify(b1, "field", _ => 2)
-    val b3: Option[Boson] = inj.modify(b2, "field", _ => 3)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "field", _ => 1)
+    val b2: Option[BosonImpl] = inj.modify(b1, "field", _ => 2)
+    val b3: Option[BosonImpl] = inj.modify(b2, "field", _ => 3)
     val result: Any = b3 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "field", "all")
@@ -282,9 +282,9 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: String/CharSequence => String/CharSequence") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "no", _ => "maybe")
-    val b2: Option[Boson] = inj.modify(b1, "no", _ => "yes")
-    val b3: Option[Boson] = inj.modify(b2, "no", _ => "maybe")
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "no", _ => "maybe")
+    val b2: Option[BosonImpl] = inj.modify(b1, "no", _ => "yes")
+    val b3: Option[BosonImpl] = inj.modify(b2, "no", _ => "maybe")
     val result: Any = b3 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "no", "all")
@@ -295,9 +295,9 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Array[Byte] => Array[Byte]") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "array", _ => bytearray1)
-    val b2: Option[Boson] = inj.modify(b1, "array", _ => bytearray2)
-    val b3: Option[Boson] = inj.modify(b2, "array", _ => bytearray1)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "array", _ => bytearray1)
+    val b2: Option[BosonImpl] = inj.modify(b1, "array", _ => bytearray2)
+    val b3: Option[BosonImpl] = inj.modify(b2, "array", _ => bytearray1)
     val result: Any = b3 match {
       case None => List()
       case Some(nb) => ext.parse(nb, "array", "all")
@@ -308,7 +308,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Instant => Instant") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "inst", _ => ins1)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "inst", _ => ins1)
 
     val result: Any = b1 match {
       case None => List()
@@ -323,7 +323,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Float => Float") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "float", _ => newFloat)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "float", _ => newFloat)
 
     val result: Any = b1 match {
       case None => List()
@@ -338,7 +338,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Double => Double") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "double", _ => newDouble)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "double", _ => newDouble)
 
     val result: Any = b1 match {
       case None => List()
@@ -352,7 +352,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bObj", _ => newbObj.getMap) //  .asScala.toMap
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "bObj", _ => newbObj.getMap) //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -366,7 +366,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Boolean => Boolean") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bool", _ => newBool)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "bool", _ => newBool)
 
     val result: Any = b1 match {
       case None => List()
@@ -380,7 +380,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Long => Long") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "long", _ => newLong)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "long", _ => newLong)
 
     val result: Any = b1 match {
       case None => List()
@@ -394,7 +394,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: BsonArray => BsonArray") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray.getList)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "bsonArray", _ => newbsonArray.getList)
 
     val result: Any = b1 match {
       case None => List()
@@ -408,7 +408,7 @@ class InjectorsTest extends FunSuite {
 
 //  test("Injector BsonArray: JavaEnum => JavaEnum") {
 //
-//    val b1: Option[Boson] = inj.modify(nettyArray, "enumJava", x => newEnumJava)
+//    val b1: Option[BosonImpl] = inj.modify(nettyArray, "enumJava", x => newEnumJava)
 //
 //    val result: Any = b1 match {
 //      case None => List()
@@ -423,7 +423,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: ScalaEnum => ScalaEnum") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray,"enumScala", _ => enum.B.toString)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray,"enumScala", _ => enum.B.toString)
 
     val result: Any = b1 match {
       case None => List()
@@ -437,7 +437,7 @@ class InjectorsTest extends FunSuite {
 
   test("Injector BsonArray: Failure") {
 
-    val b1: Option[Boson] = inj.modify(nettyArray, "noField", _ => enum.B.toString)
+    val b1: Option[BosonImpl] = inj.modify(nettyArray, "noField", _ => enum.B.toString)
 
     val result: Any = b1 match {
       case None => List()
@@ -448,7 +448,7 @@ class InjectorsTest extends FunSuite {
   }
   /*test("Injector: Enumeration => Enumeration") {
 
-    val b1: Option[Boson] = inj.modify(netty, "enum", x => enum1)
+    val b1: Option[BosonImpl] = inj.modify(netty, "enum", x => enum1)
 
     val result: Any = b1 match {
       case None => List()

@@ -4,7 +4,7 @@ import bsonLib.BsonObject;
 import bsonLib.BsonArray;
 import io.boson.bson.bsonValue.*;
 import io.boson.javaInterface.JavaInterface;
-import io.boson.bson.bsonImpl.Boson;
+import io.boson.bson.bsonImpl.BosonImpl;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -35,7 +35,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "José";
         String expression = "[-8 to 5]";
-        Boson boson = jI.createBoson(bsonEvent.encode().getBytes());
+        BosonImpl boson = jI.createBoson(bsonEvent.encode().getBytes());
 
         BsValue result = jI.parse(boson, key, expression);
 
@@ -51,7 +51,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "José";
         String expression = "[0 until 4]";
-        Boson boson = jI.createBoson(bsonEvent.encode().getBytes());
+        BosonImpl boson = jI.createBoson(bsonEvent.encode().getBytes());
 
         BsValue result = jI.parse(boson, key, expression);
 
@@ -89,7 +89,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "";
         String expression = "all size";
-        Boson boson = jI.createBoson(arr.encode().getBytes());
+        BosonImpl boson = jI.createBoson(arr.encode().getBytes());
 
         BsValue result = jI.parse(boson, key, expression);
 
@@ -109,7 +109,7 @@ public class JavaInterfaceTest {
         JavaInterface jI = new JavaInterface();
         String key = "";
         String expression = "first isEmpty";
-        Boson boson = jI.createBoson(arr.encode().getBytes());
+        BosonImpl boson = jI.createBoson(arr.encode().getBytes());
 
         BsValue result = jI.parse(boson, key, expression);
 
