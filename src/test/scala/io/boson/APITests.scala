@@ -42,11 +42,11 @@ class APITests extends FunSuite {
 
   test("Use extraction in a loop") {
     val expression: String = "[2 to end]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
 
     val randomInt = scala.util.Random
     for(range <- 0 until 5) {
+      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+      val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
       boson.go(arr.encodeToBarray())
       println(s"Result$range -> ${future.join()}")
       arr.add(randomInt.nextInt(10))
