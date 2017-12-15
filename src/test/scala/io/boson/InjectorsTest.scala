@@ -5,7 +5,7 @@ import java.time.Instant
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.Boson
 import io.boson.bson.bsonValue.BsSeq
-import io.boson.bson.bsonImpl.injectors.{EnumerationTest, Injector}
+import io.boson.bson.bsonImpl.injectors.EnumerationTest
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -22,7 +22,6 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
-  val inj: Injector = new Injector
   val ext = new ScalaInterface
 
   object enum extends Enumeration{
@@ -62,7 +61,6 @@ class InjectorsTest extends FunSuite {
     val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
     val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
     val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
-    val inj: Injector = new Injector
 val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val netty: Option[Boson] = Some(boson)
 
@@ -84,7 +82,6 @@ val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
     val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
     val arrayEvent: BsonArray = new BsonArray().add("Dog").add(bsonEvent).addNull()
-    val inj: Injector = new Injector
     val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val netty: Option[Boson] = Some(boson)
 
