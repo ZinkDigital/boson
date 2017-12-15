@@ -3,7 +3,6 @@ package io.boson
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonValue.BsSeq
 import io.boson.bson.bsonImpl.Boson
-import io.boson.bson.bsonImpl.injectors.Injector
 import io.boson.scalaInterface.ScalaInterface
 import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
