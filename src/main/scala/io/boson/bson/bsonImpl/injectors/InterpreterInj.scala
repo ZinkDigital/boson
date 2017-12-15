@@ -28,7 +28,7 @@ class InterpreterInj(boson: Boson, key: String, f: Any => Any, program: ProgramI
     selectType match {
       case "first" =>
         val inj = new Injector()
-        val result: Try[Boson] = Try(inj.modify(Option(boson), key, f).get)
+        val result: Try[Boson] = Try(inj.modify(Option(boson), key, f, selectType).get)
         result match {
           case Success(v) =>
             bsonValue.BsObject.toBson(v)

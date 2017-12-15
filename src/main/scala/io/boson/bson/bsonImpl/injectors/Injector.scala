@@ -38,11 +38,11 @@ object Mapper {
 
 class Injector {
 
-  def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any): Option[Boson] = {
-    val bP: ByteProcessor = (value: Byte) => {
+  def modify(nettyOpt: Option[Boson], fieldID: String, f: (Any) => Any, selectType: String = ""): Option[Boson] = {
+    /*val bP: ByteProcessor = (value: Byte) => {
       println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
-    }
+    }*/
     if (nettyOpt.isEmpty) {
       println(s" Input Boson is Empty. ")
       None
@@ -95,7 +95,7 @@ class Injector {
                 println(s"valueTotalLength -> $valueTotalLength")
                 val indexOfFinish: Int = startRegion + valueTotalLength
                 println(s"indexOfFinish -> $indexOfFinish")
-                val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f)
+                val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f, selectType)
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
                   val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
@@ -111,7 +111,7 @@ class Injector {
     }
   }
 
-  private def compareKeys(buffer: ByteBuf, key: String): Boolean = {
+  private def compareKeysInj(buffer: ByteBuf, key: String): Boolean = {
     val fieldBytes: ListBuffer[Byte] = new ListBuffer[Byte]
     while (buffer.getByte(buffer.readerIndex()) != 0) {
       fieldBytes.append(buffer.readByte())
@@ -124,14 +124,14 @@ class Injector {
     key.toCharArray.deep == new String(fieldBytes.toArray).toCharArray.deep
   }
 
-  private def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any): (Option[ByteBuf], Int) = {
+  private def matcher(buffer: ByteBuf, fieldID: String, indexOfFinish: Int, f: Any => Any, selectType: String = ""): (Option[ByteBuf], Int) = {
     val startReaderIndex: Int = buffer.readerIndex()
     //    val totalSize = indexOfFinish - startReaderIndex
     println(s"matcher..............startReaderIndex: $startReaderIndex")
     if (startReaderIndex < (indexOfFinish - 1)) { //  goes through entire object
       val seqType: Int = buffer.readByte().toInt
       println(s"matcher...........seqType: $seqType")
-      if (compareKeys(buffer, fieldID)) { //  changes value if keys match
+      if (compareKeysInj(buffer, fieldID)) { //  changes value if keys match
         println("FOUND FIELD")
         val indexTillInterest: Int = buffer.readerIndex()
         println(s"indexTillInterest -> $indexTillInterest")
@@ -336,7 +336,7 @@ class Injector {
     }
   }
 
-  private def readArrayPos(netty: ByteBuf): Char = {
+  private def readArrayPosInj(netty: ByteBuf): Char = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = netty.readerIndex()
     while (netty.getByte(i) != 0) {
@@ -358,7 +358,7 @@ class Injector {
       //buffer.readerIndex(0) //  returns all buffer, including global size
       (None,0)
     } else { // get the index position of the array
-      val index: Char = readArrayPos(buffer)
+      val index: Char = readArrayPosInj(buffer)
       println(s"findBsonObjectWithinBsonArray____________________________Index: $index")
       // match and treat each type
       processTypes(buffer, seqType, fieldID, f) match {
