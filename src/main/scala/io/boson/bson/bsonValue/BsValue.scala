@@ -1,6 +1,6 @@
 package io.boson.bson.bsonValue
 
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 
 /**
   * Created by Tiago Filipe on 08/11/2017.
@@ -31,4 +31,4 @@ case class BsException(value: String) extends BsValue { def getValue: String = v
 /**
   * Represent a Bson Boson value.
   */
-case class BsBoson(value: Boson) extends BsValue { def getValue: Boson = value}
+case class BsBoson(value: BosonImpl) extends BsValue { def getValue: BosonImpl = value}

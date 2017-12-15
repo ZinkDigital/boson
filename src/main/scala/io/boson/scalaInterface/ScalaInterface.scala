@@ -36,7 +36,7 @@ class ScalaInterface {
     }
   }
 
-  def parseInj(netty: Boson, key: String, expression: String):bsonValue.BsValue = {
+  def parseInj(netty: BosonImpl, key: String, expression: String):bsonValue.BsValue = {
     val parser = new TinyLanguageInj
     try{
       parser.parseAll(parser.program, expression) match {
