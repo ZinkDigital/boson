@@ -48,7 +48,6 @@ public interface Boson {
      * the future with the resulting byte array. In the case of an Extractor tis will result in
      * the immutable byte array being returned unmodified.
      * @param bsonByteBufferEncoding
-     * @param <T>
      * @return
      */
     CompletableFuture<ByteBuffer> go(final ByteBuffer bsonByteBufferEncoding);
