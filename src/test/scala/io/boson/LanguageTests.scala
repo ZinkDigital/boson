@@ -112,7 +112,7 @@ class LanguageTests extends FunSuite {
 //  }
 
   test("[# .. end]") {
-    val expression: String = "[1 until end]"
+    val expression: String = "fridgeReadings.[1 until end]"
     val key: String = "fridgeReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, key, expression)
@@ -121,7 +121,7 @@ class LanguageTests extends FunSuite {
   }
 
   test("[# to #]") {
-    val expression: String = "[1 to 1]"
+    val expression: String = "fridgeReadings.[1 to 1]"
     val key: String = "fridgeReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, key, expression)
@@ -129,7 +129,7 @@ class LanguageTests extends FunSuite {
   }
 
   test("[# until #]") {
-    val expression: String = "[1 until 2]"
+    val expression: String = "fridgeReadings.[1 until 2]"
     val key: String = "fridgeReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, key, expression)

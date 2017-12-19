@@ -52,7 +52,7 @@ class LongInputTests extends FunSuite {
   }
 
   test("select one Pos of array extraction") {
-    val result: BsValue = sI.parse(boson.duplicate, "Markets", "[50 to 55]")
+    val result: BsValue = sI.parse(boson.duplicate, "Markets", "Markets.[50 to 55]")
     println(result.asInstanceOf[BsSeq].getValue.head)
     assert(true)
   }

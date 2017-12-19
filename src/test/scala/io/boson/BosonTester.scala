@@ -44,6 +44,7 @@ object BosonTester extends App {
   //val arr: BsonArray = new BsonArray().add(1.1.toFloat).add(2.2).add("END")
   //val validatedByteArray: Array[Byte] = arr.encodeToBarray()
   //val obj1: BsonObject = new BsonObject().put("string", "Hi").put("bytearray", "ola".getBytes)
+  val validatedByteArray2: Array[Byte] = arr.encodeToBarray()
   val validatedByteArray: Array[Byte] = bsonEvent.encodeToBarray()
   //val buffer: ByteBuf = Unpooled.copiedBuffer(validatedByteArray2)
   //buffer.forEachByte(bP)
@@ -85,5 +86,10 @@ object BosonTester extends App {
   val boson2: Boson = Boson.extractor(expression2, (in: BsValue) => future2.complete(in))
   boson2.go(validatedByteArray)
   println("result of extracting \"" + expression2 + "\" -> " + future2.join())
-
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression3: String = "[1 to 1]"
+  val future3: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson3: Boson = Boson.extractor(expression3, (in: BsValue) => future3.complete(in))
+  boson3.go(validatedByteArray2)
+  println("result of extracting \"" + expression3 + "\" -> " + future3.join())
 }
