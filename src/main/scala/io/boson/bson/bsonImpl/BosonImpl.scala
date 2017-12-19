@@ -60,7 +60,6 @@ class BosonImpl(
     if (javaByteBuf.isDefined) {
       javaByteBuf.get.getClass.getSimpleName
     } else if (byteArray.isDefined) {
-      println("defined a bosomimpl with a bytearray")
       byteArray.get.getClass.getSimpleName
     } else if (scalaArrayBuf.isDefined) {
       scalaArrayBuf.get.getClass.getSimpleName
@@ -105,9 +104,11 @@ class BosonImpl(
             if (key.isEmpty) {
               None // Doens't make sense to pass "" as a key when root isn't a BsonArray
             } else {
+              println("BsonObject as Root with Key")
               netty.readIntLE()
               val bsonFinishReaderIndex: Int = startReaderIndex + size
               val midResult = extractFromBsonObj(netty, key, bsonFinishReaderIndex, condition, limitA, limitB)
+              println(s"result before it gets composed: $midResult")
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             }
         }
@@ -153,12 +154,17 @@ class BosonImpl(
           }
         case D_BSONARRAY =>
           if (compareKeys(netty, key)) {
+            println("KEY matched with a BsonArray")
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], limitA, limitB).toArray[Any]) match {
-              case Some(value) if value.isEmpty => None
-              case Some(value) => Some(value)
+              case Some(value) if value.isEmpty =>
+                println("returned empty from construction with limits")
+                None
+              case Some(value) =>
+                println(s"returned something from construction: $value")
+                Some(value)
             }
           } else {
             val arrayStartReaderIndex: Int = netty.readerIndex()

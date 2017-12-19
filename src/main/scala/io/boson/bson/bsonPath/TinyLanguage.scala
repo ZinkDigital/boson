@@ -12,6 +12,7 @@ import scala.util.parsing.combinator.RegexParsers
 sealed trait Statement
 case class Grammar(selectType: String) extends Statement
 case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
+case class KeyWithArrExpr(key: String,arrEx: ArrExpr) extends Statement
 //case class ScndGrammar(selectType: String)
 //case class Exists(term: String) extends Statement
 case class ArrExpr(leftArg: Int, midArg: String, rightArg: Any) extends Statement
@@ -26,12 +27,14 @@ class Program(val statement: List[Statement])
 class TinyLanguage extends RegexParsers {
 
   private val number: Regex = """\d+(\.\d*)?""".r
-  private val word: Regex =  """[a-z]+""".r
+  //private val word: Regex =  """[a-z]+""".r
+  def word: Parser[String] = """[a-zA-Z\d_-]+""".r
 
   def program: Parser[Program] =
     ( keyWithGrammar
       ||| arrEx
-      ||| grammar) ^^ { s => new Program(List(s))}
+      ||| grammar
+      ||| keyWithArrEx) ^^ { s => new Program(List(s))}
   //     ||| sizeOfArrayStatement
   //     ||| exists
 //      ||| sizeOfSelected
@@ -44,6 +47,10 @@ class TinyLanguage extends RegexParsers {
 
   private def keyWithGrammar: Parser[KeyWithGrammar] = word ~ ("." ~> grammar) ^^ {
     case k ~ g  => KeyWithGrammar(k,g)
+  }
+
+  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ^^ {
+    case k ~ a => KeyWithArrExpr(k,a)
   }
 
   private def grammar: Parser[Grammar] = ("first" | "last" | "all") ^^ {

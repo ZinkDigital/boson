@@ -10,12 +10,12 @@ import io.netty.util.ByteProcessor
 
 class BosonExtractor[T](expression: String, extractFunction: java.util.function.Consumer[T]) extends bson.Boson {
 
-  def callParse(boson: BosonImpl, key: String, expression: String): io.boson.bson.bsonValue.BsValue = {
+  private def callParse(boson: BosonImpl, expression: String): io.boson.bson.bsonValue.BsValue = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, key, r.asInstanceOf[Program]).run()
+          new Interpreter(boson, "", r.asInstanceOf[Program]).run()
         case parser.Error(msg, _) => bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) => bsonValue.BsObject.toBson(msg)
       }
@@ -37,7 +37,7 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
         val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
 //        boson.getByteBuf.forEachByte(bP)
 //        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        callParse(boson, "", expression) match {
+        callParse(boson, expression) match {
           case (res: BsValue) =>
             extractFunction.accept(res.asInstanceOf[T])
           case _ => throw new RuntimeException("BosonExtractor -> go() default case!!!")
@@ -51,7 +51,7 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
     val future: CompletableFuture[ByteBuffer] =
       CompletableFuture.supplyAsync(() => {
         val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-          callParse(boson, "", expression) match {
+          callParse(boson,expression) match {
             case (res: BsValue) =>
               extractFunction.accept(res.asInstanceOf[T])
             case _ => throw new RuntimeException("BosonExtractor -> go() default case!!!")
