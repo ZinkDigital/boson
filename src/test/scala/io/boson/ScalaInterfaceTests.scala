@@ -46,12 +46,12 @@ import org.scalatest.junit.JUnitRunner
 
     test("extractExceptionWithScalaInterface") {
       val key: String = "field1"
-      val language: String = "last [0 until end] in"
+      val language: String = "last [0 until "
 
       val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
       val result: BsValue = sI.parse(boson, key, language)
 
-      assert(BsException("`isEmpty' expected but `i' found") === result)
+      assert(BsException("`end' expected but end of source found") === result)
     }
 
   }
