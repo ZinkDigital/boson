@@ -3,12 +3,9 @@ package io.boson.bson.bsonImpl
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
-
 import io.boson.bson
 import io.netty.util.ByteProcessor
-
 import scala.compat.java8.FunctionConverters._
-import scala.util.Try
 
 
 class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends bson.Boson {

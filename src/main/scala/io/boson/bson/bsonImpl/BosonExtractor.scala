@@ -2,7 +2,6 @@ package io.boson.bson.bsonImpl
 
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
-
 import io.boson.bson
 import io.boson.bson.bsonValue
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}

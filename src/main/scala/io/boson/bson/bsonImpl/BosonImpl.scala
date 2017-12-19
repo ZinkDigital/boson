@@ -918,7 +918,6 @@ class BosonImpl(
   def apply[T](f: T => T)(value: T): T = f(value)
 
   private def modifier[T <: Any](buffer: ByteBuf, seqType: Int, f: T => T): (ByteBuf, Int) = {
-    println("inside modifier!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111")
     val newBuffer: ByteBuf = Unpooled.buffer() //  corresponds only to the new value
     seqType match {
         //  TODO: rethink and write it in a proper way
@@ -926,13 +925,11 @@ class BosonImpl(
         val value: Double =
           Try(f(buffer.getDoubleLE(buffer.readerIndex()).toFloat.asInstanceOf[T])) match {
             case Success(v) =>
-              println("value selected has same type as provided being Float")
               buffer.readDoubleLE() //consume
               v.asInstanceOf[Float].toDouble
             case Failure(_) =>
               Try(f(buffer.getDoubleLE(buffer.readerIndex()).asInstanceOf[T])) match {
                 case Success(v) =>
-                  println(s"value selected has same type as provided being Double")
                   buffer.readDoubleLE()  //consume
                   v.asInstanceOf[Double]
                 case Failure(m) =>
