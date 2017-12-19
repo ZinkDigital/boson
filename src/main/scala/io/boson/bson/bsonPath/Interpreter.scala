@@ -15,8 +15,10 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
       statement.head match {
-        case ArraySelectStatement(grammar, arrEx) => // "(all|first|last) [# .. #]"
-          bsonValue.BsObject.toBson(executeArraySelectStatement(grammar, arrEx))
+//        case ArraySelectStatement(grammar, arrEx) => // "(all|first|last) [# .. #]"
+//          bsonValue.BsObject.toBson(executeArraySelectStatement(grammar, arrEx))
+        case KeyWithGrammar(k,grammar) => //key.grammar
+          bsonValue.BsObject.toBson(boson.extract(boson.getByteBuf, k, grammar.selectType).get.asInstanceOf[Seq[Any]])
 //        case SizeOfArrayStatement(grammar, arrEx, scndGrammar) => // "(all|first|last) [# .. #] (size|isEmpty)"
 //          executeSizeOfArrayStatement(grammar, arrEx, scndGrammar)
 //        case Exists(term) => // "(in|Nin)"
@@ -86,42 +88,42 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
 //    }
 //  }
 
-  private def executeArraySelectStatement(grammar: Grammar, arrEx: ArrExpr): Seq[Any] = {
-    val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
-    midResult match {
-      case Seq() => Seq.empty
-      case value =>
-        if (key.isEmpty) {
-          grammar.selectType match {
-            case "first" =>
-              Seq(value.asInstanceOf[Seq[Array[Any]]].head.head)
-            case "last" =>
-              Seq(value.asInstanceOf[Seq[Array[Any]]].head.last)
-            case "all" =>
-              value.asInstanceOf[Seq[Array[Any]]].head
-          }
-        } else {
-          grammar.selectType match {
-            case "first" =>
-              value.asInstanceOf[Seq[Array[Any]]].size match {
-                case 1 =>
-                  Seq(value.asInstanceOf[Seq[Array[Any]]].head.head)
-                case _ =>
-                  Seq(value.asInstanceOf[Seq[Array[Any]]].head.toList)
-              }
-            case "last" =>
-              value.asInstanceOf[Seq[Array[Any]]].size match {
-                case 1 =>
-                  Seq(value.asInstanceOf[Seq[Array[Any]]].head.last)
-                case _ =>
-                  Seq(value.asInstanceOf[Seq[Array[Any]]].last.toList)
-              }
-            case "all" =>
-              for(elem <- value.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
-          }
-        }
-    }
-  } //  (all|first|last) [#..#]
+//  private def executeArraySelectStatement(grammar: Grammar, arrEx: ArrExpr): Seq[Any] = {
+//    val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
+//    midResult match {
+//      case Seq() => Seq.empty
+//      case value =>
+//        if (key.isEmpty) {
+//          grammar.selectType match {
+//            case "first" =>
+//              Seq(value.asInstanceOf[Seq[Array[Any]]].head.head)
+//            case "last" =>
+//              Seq(value.asInstanceOf[Seq[Array[Any]]].head.last)
+//            case "all" =>
+//              value.asInstanceOf[Seq[Array[Any]]].head
+//          }
+//        } else {
+//          grammar.selectType match {
+//            case "first" =>
+//              value.asInstanceOf[Seq[Array[Any]]].size match {
+//                case 1 =>
+//                  Seq(value.asInstanceOf[Seq[Array[Any]]].head.head)
+//                case _ =>
+//                  Seq(value.asInstanceOf[Seq[Array[Any]]].head.toList)
+//              }
+//            case "last" =>
+//              value.asInstanceOf[Seq[Array[Any]]].size match {
+//                case 1 =>
+//                  Seq(value.asInstanceOf[Seq[Array[Any]]].head.last)
+//                case _ =>
+//                  Seq(value.asInstanceOf[Seq[Array[Any]]].last.toList)
+//              }
+//            case "all" =>
+//              for(elem <- value.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+//          }
+//        }
+//    }
+//  } //  (all|first|last) [#..#]
 
   private def executeArraySelect(left: Int, mid: String, right: Any): Seq[Any] = {
     (left, mid, right) match {

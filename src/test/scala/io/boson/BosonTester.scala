@@ -29,33 +29,41 @@ object BosonTester extends App {
     true
   }
 
+  val obj1: BsonObject = new BsonObject().put("fridgetemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
+  val obj2: BsonObject = new BsonObject().put("fridgetemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
+  val obj3: BsonObject = new BsonObject().put("fridgetemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
+
+  val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
+
+  val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
+
 
   //val newField: Double = 3.4
   //println(s"value -> ${tester[Double]((_: Double) => newField )}")
 
-  val arr: BsonArray = new BsonArray().add(1.1.toFloat).add(2.2).add("END")
-  val validatedByteArray: Array[Byte] = arr.encodeToBarray()
-  val obj1: BsonObject = new BsonObject().put("string", "Hi").put("bytearray", "ola".getBytes)
-  val validatedByteArray2: Array[Byte] = obj1.encodeToBarray()
-  val buffer: ByteBuf = Unpooled.copiedBuffer(validatedByteArray2)
+  //val arr: BsonArray = new BsonArray().add(1.1.toFloat).add(2.2).add("END")
+  //val validatedByteArray: Array[Byte] = arr.encodeToBarray()
+  //val obj1: BsonObject = new BsonObject().put("string", "Hi").put("bytearray", "ola".getBytes)
+  val validatedByteArray2: Array[Byte] = bsonEvent.encodeToBarray()
+  //val buffer: ByteBuf = Unpooled.copiedBuffer(validatedByteArray2)
   //buffer.forEachByte(bP)
-  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-  println("totalSize: "+buffer.readIntLE())
-  println("type: " + buffer.readByte())
-  println("key: " + buffer.readCharSequence(6,charset))
-  //buffer.forEachByte(bP)
-  println("value: " + buffer.readCharSequence(3,charset))
-  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+//  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+//  println("totalSize: "+buffer.readIntLE())
+//  println("type: " + buffer.readByte())
+//  println("key: " + buffer.readCharSequence(6,charset))
+//  //buffer.forEachByte(bP)
+//  println("value: " + buffer.readCharSequence(3,charset))
+//  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 //  val expression: String = "[0 to end]"
 //  val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
 //  val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
 //  boson.go(validatedByteArray)
 //  println("result of extracting \""+ expression+ "\" -> " + future.join())
-  println("-------------------------------------------------------------------------------------------------------------")
-  val expression2: String = "all"
-  val boson2: Boson = Boson.injector(expression2, (_:String) => "Hi!!!")
-  val result: CompletableFuture[Array[Byte]] = boson2.go(validatedByteArray2)
-  println("result of extracting \""+ expression2+ "\" -> " + result.join())
+//  println("-------------------------------------------------------------------------------------------------------------")
+//  val expression2: String = "all"
+//  val boson2: Boson = Boson.injector(expression2, (_:String) => "Hi!!!")
+//  val result: CompletableFuture[Array[Byte]] = boson2.go(validatedByteArray2)
+//  println("result of extracting \""+ expression2+ "\" -> " + result.join())
 
 //  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 //  val buf: ByteBuf = Unpooled.copiedBuffer(result.join())
@@ -66,10 +74,10 @@ object BosonTester extends App {
 //  println("value: " + buf.readDoubleLE())
 //  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-    val expression: String = "all"
+    val expression: String = "fridgetemp.all"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(result.join())
+    boson.go(validatedByteArray2)
     println("result of extracting \""+ expression+ "\" -> " + future.join())
 
 

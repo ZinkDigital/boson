@@ -46,7 +46,7 @@ import org.scalatest.junit.JUnitRunner
 
     test("extractExceptionWithScalaInterface") {
       val key: String = "field1"
-      val language: String = "last [0 until "
+      val language: String = "[0 until "
 
       val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
       val result: BsValue = sI.parse(boson, key, language)
