@@ -978,8 +978,6 @@ class BosonImpl(
                   }
               }
           }
-        //val value: Any = f.asInstanceOf[String => String](new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
-        //println("returning type = " + value.getClass.getSimpleName)
         value match {
           case n: Array[Byte] =>
             (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeByte(0), (n.length + 1) - length)
@@ -989,12 +987,6 @@ class BosonImpl(
           case n: Instant =>
             val aux: Array[Byte] = n.toString.getBytes()
             (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
-//          case _ =>
-//            if (value == null) {
-//              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
-//            } else {
-//              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
-//            }
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.readIntLE() //  length of current obj
@@ -1035,42 +1027,36 @@ class BosonImpl(
 
         }
       case D_BOOLEAN =>
-        val value: Any = f.asInstanceOf[Boolean => Boolean](buffer.readBoolean())
-        value match {
-          case bool: Boolean =>
-            (newBuffer.writeBoolean(bool), 0)
-          case _ =>
-            if (value == null) {
-              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BOOLEAN")
-            } else {
-              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_BOOLEAN")
-            }
-        }
+        val value:Boolean =
+          Try(f(buffer.readBoolean().asInstanceOf[T])) match {
+            case Success(v) =>
+              v.asInstanceOf[Boolean]
+            case Failure(m) =>
+              println("value selected DOESNT MATCH with the provided")
+              throw new RuntimeException(m)
+          }
+        (newBuffer.writeBoolean(value), 0)
       case D_NULL => throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
-        val value: Any = f.asInstanceOf[Int => Int](buffer.readIntLE())
-        value match {
-          case n: Int =>
-            (newBuffer.writeIntLE(n), 0)
-          case _ =>
-            if (value == null) {
-              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_INT")
-            } else {
-              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_INT")
-            }
-        }
+        val value: Int =
+          Try(f(buffer.readIntLE().asInstanceOf[T])) match {
+            case Success(v) =>
+              v.asInstanceOf[Int]
+            case Failure(m) =>
+              println("value selected DOESNT MATCH with the provided")
+              throw new RuntimeException(m)
+          }
+        (newBuffer.writeIntLE(value), 0)
       case D_LONG =>
-        val value: Any = f.asInstanceOf[Long => Long](buffer.readLongLE())
-        value match {
-          case n: Long =>
-            (newBuffer.writeLongLE(n), 0)
-          case _ =>
-            if (value == null) {
-              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_LONG")
-            } else {
-              throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_LONG")
-            }
-        }
+        val value: Long =
+          Try(f(buffer.readLongLE().asInstanceOf[T])) match {
+            case Success(v) =>
+              v.asInstanceOf[Long]
+            case Failure(m) =>
+              println("value selected DOESNT MATCH with the provided")
+              throw new RuntimeException(m)
+          }
+        (newBuffer.writeLongLE(value), 0)
     }
   }
 
