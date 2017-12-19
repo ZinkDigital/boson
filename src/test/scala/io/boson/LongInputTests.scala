@@ -56,35 +56,25 @@ class LongInputTests extends FunSuite {
     println(result.asInstanceOf[BsSeq].getValue.head)
     assert(true)
   }
+    //  TODO:remake this tests
+//  test("size of all occurrences of Key") {
+//    val result: BsValue = sI.parse(boson.duplicate, "Price", "all size")
+//    assert(283 === result.asInstanceOf[BsNumber].value)
+//  }
 
-  test("size of all occurrences of Key") {
-    val result: BsValue = sI.parse(boson.duplicate, "Price", "all size")
-    assert(283 === result.asInstanceOf[BsNumber].value)
-  }
+//  test("sizes of filtered arrays") {
+//    val result: BsValue = sI.parse(boson.duplicate, "Selections", "[1 to 2] size")
+//    println(result)
+//    assert(Seq(2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+//      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+//      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+//      1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 2, 2, 1,
+//      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+//      1, 1, 1, 1, 1, 1, 1, 2)=== result.asInstanceOf[BsSeq].value)
+//  }
 
-  test("existence of a Key") {
-    val result: BsValue = sI.parse(boson.duplicate, "WrongKey", "in")
-    assert(false === result.asInstanceOf[BsBoolean].value)
-  }
-
-  test("sizes of filtered arrays") {
-    val result: BsValue = sI.parse(boson.duplicate, "Selections", "[1 to 2] size")
-    println(result)
-    assert(Seq(2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 2, 2, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 2)=== result.asInstanceOf[BsSeq].value)
-  }
-
-  test("size of specific filtered arrays") {
-    val result: BsValue = sI.parse(boson.duplicate, "Selections", "last [0 until end] size")
-    assert(BsNumber(2).value === result.asInstanceOf[BsNumber].value)
-  }
-
-  test("emptiness of filtered Array") {
-    val result: BsValue = sI.parse(boson.duplicate, "Selections", "[5 to end] isEmpty")
-    assert(false === result.asInstanceOf[BsBoolean].value)
-  }
+//  test("size of specific filtered arrays") {
+//    val result: BsValue = sI.parse(boson.duplicate, "Selections", "last [0 until end] size")
+//    assert(BsNumber(2).value === result.asInstanceOf[BsNumber].value)
+//  }
 }

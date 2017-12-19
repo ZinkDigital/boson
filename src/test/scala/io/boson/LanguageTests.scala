@@ -136,70 +136,6 @@ class LanguageTests extends FunSuite {
     assert(BsSeq(List(List(Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false)))) === resultParser)
   }
 
-  test("In") {
-    val expression: String = "in"
-    val key: String = "fridgeTemp"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(true) === resultParser)
-  }
-
-  test("Nin") {
-    val expression: String = "Nin"
-    val key: String = "fridgeTemp"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(false) === resultParser)
-  }
-
-  test("(all|first|last) size") {
-    val expression: String = "all size"
-    val key: String = "fanVelocity"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(4) === resultParser)
-  }
-
-  test("(all|first|last) isEmpty") {
-    val expression: String = "first isEmpty"
-    val key: String = "fanVelocity"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(false) === resultParser)
-  }
-
-  test("[# .. #] size") {
-    val expression: String = "[1 to 2] size"
-    val key: String = "fridgeReadings"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsSeq(List(2)) === resultParser)
-  }
-
-  test("[# .. #] isEmpty") {
-    val expression: String = "[1 until end] isEmpty"
-    val key: String = "fridgeTemp"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(true) === resultParser)
-  }
-
-  test("(all|first|last) [# .. #] size") {
-    val expression: String = "all [0 to 1] size"
-    val key: String = "fridgeReadings"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(2) === resultParser)
-  }
-
-  test("(all|first|last) [# .. #] isEmpty") {
-    val expression: String = "first [0 to 1] isEmpty"
-    val key: String = "doorOpen"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(true) === resultParser)
-  }
-
   test("First w/key BobjRoot") {
     val key: String = ""
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
@@ -328,54 +264,6 @@ class LanguageTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, key, expression)
     assert(BsSeq(List(List(Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true)))) === resultParser)
-  }
-
-  test("(all|first|last) size w/key") {
-    val expression: String = "all size"
-    val key: String = ""
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(4) === resultParser)
-  }
-
-  test("(all|first|last) isEmpty w/key") {
-    val expression: String = "first isEmpty"
-    val key: String = ""
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(false) === resultParser)
-  }
-
-  test("[# .. #] size w/key") {
-    val expression: String = "[1 to 2] size"
-    val key: String = ""
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsSeq(List(2)) === resultParser)
-  }
-
-  test("[# .. #] isEmpty w/key") {
-    val expression: String = "[1 until end] isEmpty"
-    val key: String = ""
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(false) === resultParser)
-  }
-
-  test("(all|first|last) [# .. #] size w/key") {
-    val expression: String = "all [0 to 1] size"
-    val key: String = ""
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(2) === resultParser)
-  }
-
-  test("(all|first|last) [# .. #] isEmpty w/key") {
-    val expression: String = "first [0 to 1] isEmpty"
-    val key: String = ""
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultParser: BsValue = callParse(boson, key, expression)
-    assert(BsBoolean(true) === resultParser)
   }
 
 }

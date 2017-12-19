@@ -152,38 +152,6 @@ class HorribleTests extends FunSuite {
     assert(BsSeq(Seq()) === resultParser)
   }
 
-  test("Check if key exists when key is empty") {
-    val key: String = ""
-    val expression: String = "in"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsException("Expressions in/Nin aren't available with Empty Key") === result)
-  }
-
-  test("Check if key  doesn't exists when key is empty") {
-    val key: String = ""
-    val expression: String = "Nin"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsException("Expressions in/Nin aren't available with Empty Key") === result)
-  }
-
-  test("Mixing in/Nin with other expressions") {
-    val key: String = ""
-    val expression: String = "all > 5 Nin"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsException("Failure parsing!") === result)
-  }
-
-  test("Mixing size/isEmpty with other expressions") {
-    val key: String = ""
-    val expression: String = "all size Nin"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsException("Failure parsing!") === result)
-  }
-
   test("Only WhiteSpaces in Expression") {
     val key: String = ""
     val expression: String = "  "
@@ -191,39 +159,39 @@ class HorribleTests extends FunSuite {
     val result: BsValue = callParse(boson, key, expression)
     assert(BsException("Failure parsing!") === result)
   }
-
-  test("array prob 1") {
-    val key: String = "José"
-    val expression: String = "   all    [     0    to   end      ]   size  "
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(3) === result)
-  }
-
-  test("array prob 2") {
-    val key: String = ""
-    val expression: String = "   all    [     0    to   end      ]   size  "
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    println(s"result in Test: $result")
-    assert(BsNumber(4) === result)
-  }
-
-  test("array prob 3") {
-    val key: String = ""
-    val expression: String = "   first    [     0    to   end      ]   size  "
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(1) === result)
-  }
-
-  test("array prob 4") {
-    val key: String = "José"
-    val expression: String = "   first    [     0    to   end      ]   size  "
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
-    val result: BsValue = callParse(boson, key, expression)
-    assert(BsNumber(3) === result)
-  }
+    //  TODO:remake this 4 tests without size expression
+//  test("array prob 1") {
+//    val key: String = "José"
+//    val expression: String = "   all    [     0    to   end      ]   size  "
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
+//    val result: BsValue = callParse(boson, key, expression)
+//    assert(BsNumber(3) === result)
+//  }
+//
+//  test("array prob 2") {
+//    val key: String = ""
+//    val expression: String = "   all    [     0    to   end      ]   size  "
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
+//    val result: BsValue = callParse(boson, key, expression)
+//    println(s"result in Test: $result")
+//    assert(BsNumber(4) === result)
+//  }
+//
+//  test("array prob 3") {
+//    val key: String = ""
+//    val expression: String = "   first    [     0    to   end      ]   size  "
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
+//    val result: BsValue = callParse(boson, key, expression)
+//    assert(BsNumber(1) === result)
+//  }
+//
+//  test("array prob 4") {
+//    val key: String = "José"
+//    val expression: String = "   first    [     0    to   end      ]   size  "
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
+//    val result: BsValue = callParse(boson, key, expression)
+//    assert(BsNumber(3) === result)
+//  }
 
   test("array prob 5") {
     br3.add("Wrong")

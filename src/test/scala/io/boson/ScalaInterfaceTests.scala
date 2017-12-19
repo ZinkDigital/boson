@@ -26,23 +26,23 @@ import org.scalatest.junit.JUnitRunner
       assert(BsSeq(Seq("ArrayField")) === result)
     }
 
-    test("extractIntWithScalaInterface") {
-      val key: String = ""
-      val language: String = "[5 until 6] size"
-      val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
-      val result: BsValue = sI.parse(boson, key, language)
+//    test("extractIntWithScalaInterface") {
+//      val key: String = ""
+//      val language: String = "[5 until 6] size"
+//      val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
+//      val result: BsValue = sI.parse(boson, key, language)
+//
+//      assert(BsNumber(BigDecimal(0)) === result)
+//    }
 
-      assert(BsNumber(BigDecimal(0)) === result)
-    }
-
-    test("extractBoolWithScalaInterface") {
-      val key: String = ""
-      val language: String = "[5 to end] isEmpty"
-      val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
-      val result: BsValue = sI.parse(boson, key, language)
-
-      assert(BsBoolean(true) === result)
-    }
+//    test("extractBoolWithScalaInterface") {
+//      val key: String = ""
+//      val language: String = "[5 to end] isEmpty"
+//      val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
+//      val result: BsValue = sI.parse(boson, key, language)
+//
+//      assert(BsBoolean(true) === result)
+//    }
 
     test("extractExceptionWithScalaInterface") {
       val key: String = "field1"
