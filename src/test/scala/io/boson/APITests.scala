@@ -1,10 +1,11 @@
 package io.boson
 
 import java.nio.ByteBuffer
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{CompletableFuture, CountDownLatch}
+
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
-import io.boson.bson.bsonValue.{BsSeq, BsValue}
+import io.boson.bson.bsonValue._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -42,25 +43,32 @@ class APITests extends FunSuite {
 
   test("Use extraction in a loop") {
     val expression: String = "[2 to end]"
+    val latch: CountDownLatch = new CountDownLatch(5)
 
-    val randomInt = scala.util.Random
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
+      println(s"result of extraction -> ${in.getValue}")
+      assertEquals(
+        List(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
+        in.getValue
+      )
+      latch.countDown()
+    })
+
     for(range <- 0 until 5) {
-      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-      val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+      arr.add(range)
       boson.go(arr.encodeToBarray())
-      println(s"Result$range -> ${future.join()}")
-      arr.add(randomInt.nextInt(10))
     }
-    assertEquals(true,true)
   }
 
-//  test("extract last occurrence with Array[Byte]") {
-//    val expression: String = "last"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-//    boson.go(validatedByteArray)
-//    assertEquals(BsSeq(Seq()))
-//  }
+  test("extract last occurrence with Array[Byte]") {
+    val expression: String = "last"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray)
+    assertEquals(
+      BsSeq(Seq(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true))),
+      future.join())
+  }
 
   test("extract pos from array with ByteBuffer") {
     val expression: String = "[1 to 2]"
