@@ -22,12 +22,12 @@ class ScalaInterface {
   }
 
 
-  def parse(netty: BosonImpl, key: String, expression: String): bsonValue.BsValue = {
+  def parse(netty: BosonImpl, expression: String): bsonValue.BsValue = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(netty, key, r.asInstanceOf[Program]).run()
+          new Interpreter(netty, "", r.asInstanceOf[Program]).run()
         case parser.Error(msg, _) =>  bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) =>  bsonValue.BsObject.toBson(msg)
       }

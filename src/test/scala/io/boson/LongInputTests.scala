@@ -29,30 +29,30 @@ class LongInputTests extends FunSuite {
   val boson: BosonImpl = sI.createBoson(bson.encode().getBytes)
 
   test("extract top field") {
-    val result: BsValue = sI.parse(boson.duplicate, "Epoch", "first")
+    val result: BsValue = sI.parse(boson.duplicate, "Epoch.first")
     assert(bson.getInteger("Epoch") === result.asInstanceOf[BsSeq].value.head)
   }
 
   test("extract bottom field") {
-    val result: BsValue = sI.parse(boson.duplicate, "SSLNLastName", "last")
+    val result: BsValue = sI.parse(boson.duplicate, "SSLNLastName.last")
     assert( "de Huanuco" ===
       new String(result.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
   }
 
   test("extract all occurrences of Key") {
-    val result: BsValue = sI.parse(boson.duplicate, "Tags", "all")
+    val result: BsValue = sI.parse(boson.duplicate, "Tags.all")
     println(result.asInstanceOf[BsSeq].value)
     assert(true)
   }
 
   test("extract positions of an Array") {
-    val result: BsValue = sI.parse(boson.duplicate, "Markets", "[3 to 5]")
+    val result: BsValue = sI.parse(boson.duplicate, "Markets.[3 to 5]")
     println(result.asInstanceOf[BsSeq].getValue)
     assert(true)
   }
 
   test("select one Pos of array extraction") {
-    val result: BsValue = sI.parse(boson.duplicate, "Markets", "Markets.[50 to 55]")
+    val result: BsValue = sI.parse(boson.duplicate, "Markets.[50 to 55]")
     println(result.asInstanceOf[BsSeq].getValue.head)
     assert(true)
   }

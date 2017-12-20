@@ -22,7 +22,7 @@ import org.scalatest.junit.JUnitRunner
       val key: String = ""
       val language: String = "first"
       val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
-      val result: BsValue = sI.parse(boson, key, language)
+      val result: BsValue = sI.parse(boson, language)
       assert(BsSeq(Seq("ArrayField")) === result)
     }
 
@@ -45,11 +45,10 @@ import org.scalatest.junit.JUnitRunner
 //    }
 
     test("extractExceptionWithScalaInterface") {
-      val key: String = "field1"
-      val language: String = "[0 until "
+      val language: String = "field1.[0 until "
 
       val boson: BosonImpl = sI.createBoson(ba1.encode().getBytes)
-      val result: BsValue = sI.parse(boson, key, language)
+      val result: BsValue = sI.parse(boson, language)
 
       assert(BsException("`end' expected but end of source found") === result)
     }

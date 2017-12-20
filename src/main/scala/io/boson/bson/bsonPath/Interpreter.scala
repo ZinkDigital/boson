@@ -18,7 +18,7 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
 //        case ArraySelectStatement(grammar, arrEx) => // "(all|first|last) [# .. #]"
 //          bsonValue.BsObject.toBson(executeArraySelectStatement(grammar, arrEx))
         case KeyWithGrammar(k,grammar) => //key.grammar
-          bsonValue.BsObject.toBson(boson.extract(boson.getByteBuf, k, grammar.selectType).get.asInstanceOf[Seq[Any]])
+          executeSelect(k,grammar.selectType)
         case KeyWithArrExpr(k,arrEx) => //key.[#..#]
           executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
             case Seq() => bsonValue.BsObject.toBson(Seq.empty)
@@ -27,10 +27,6 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
                 for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
               }
           }
-//        case SizeOfArrayStatement(grammar, arrEx, scndGrammar) => // "(all|first|last) [# .. #] (size|isEmpty)"
-//          executeSizeOfArrayStatement(grammar, arrEx, scndGrammar)
-//        case Exists(term) => // "(in|Nin)"
-//          bsonValue.BsObject.toBson(executeExists(term))
         case ArrExpr(left: Int, mid: String, right: Any) => // "[# .. #]"
           executeArraySelect("",left, mid, right) match {
             case Seq() => bsonValue.BsObject.toBson(Seq.empty)
@@ -40,7 +36,7 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
               }
           }
         case Grammar(selectType) => // "(all|first|last)"
-          executeSelect(selectType)
+          executeSelect("",selectType)
 //        case SizeOfSelected(grammar, scndGrammar) => // "(all|first|last) (size|isEmpty)"
 //          executeSizeOfSelected(grammar, scndGrammar)
 //        case SizeOfArray(arrEx, scndGrammar) => // "[# .. #] (size|isEmpty)"
@@ -182,11 +178,11 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
 //    }
 //  }
 
-  private def executeSelect(selectType: String): bsonValue.BsValue = {
-    val result = boson.extract(boson.getByteBuf, key, selectType)
+  private def executeSelect(k: String, selectType: String): bsonValue.BsValue = {
+    val result = boson.extract(boson.getByteBuf, k, selectType)
     selectType match {
       case "first" =>
-        if (key.isEmpty) {
+        if (k.isEmpty) {
           bsonValue.BsObject.toBson(result.map(v => Seq(v.asInstanceOf[Seq[Array[Any]]].head.head)).getOrElse(Seq.empty))
         } else {
           result.map { elem =>
@@ -199,7 +195,7 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
           } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
         }
       case "last" =>
-        if (key.isEmpty) {
+        if (k.isEmpty) {
           bsonValue.BsObject.toBson(result.map(v => Seq(v.asInstanceOf[Seq[Array[Any]]].head.last)).getOrElse(Seq.empty))
         } else {
           result.map {elem =>
@@ -212,7 +208,7 @@ class Interpreter(boson: BosonImpl, key: String, program: Program) {
           } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
         }
       case "all" =>
-        if (key.isEmpty) {
+        if (k.isEmpty) {
           bsonValue.BsObject.toBson(result.map(v => v.asInstanceOf[Seq[Array[Any]]].head.toList).getOrElse(Seq.empty))
         } else {
           bsonValue.BsObject.toBson(result.map{v =>

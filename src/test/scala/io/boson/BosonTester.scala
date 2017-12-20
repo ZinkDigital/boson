@@ -92,4 +92,10 @@ object BosonTester extends App {
   val boson3: Boson = Boson.extractor(expression3, (in: BsValue) => future3.complete(in))
   boson3.go(validatedByteArray2)
   println("result of extracting \"" + expression3 + "\" -> " + future3.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression4: String = "first"
+  val future4: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson4: Boson = Boson.extractor(expression4, (in: BsValue) => future4.complete(in))
+  boson4.go(validatedByteArray2)
+  println("result of extracting \"" + expression4 + "\" -> " + future4.join())
 }
