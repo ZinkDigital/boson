@@ -1,7 +1,7 @@
 package bsonPath
 
 import bsonLib.{BsonArray, BsonObject}
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.vertx.core.json.{JsonArray, JsonObject}
 
@@ -52,13 +52,12 @@ object TinyLanguageTest {
 
 
       val arrTest: BsonArray = new BsonArray().add(2.2).add(2.4).add(2.6)
-      val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
-      val key: String = "José"
-      val language: String = "[0 to end]"
+      val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+      val language: String = "José.[0 to end]"
       val parser = new TinyLanguage
       parser.parseAll(parser.program, language) match {
         case parser.Success(r, _) =>
-          val interpreter = new Interpreter(boson, key, r.asInstanceOf[Program])
+          val interpreter = new Interpreter(boson, r.asInstanceOf[Program])
           try {
             println("SUCCESS: " + interpreter.run())
           } catch {

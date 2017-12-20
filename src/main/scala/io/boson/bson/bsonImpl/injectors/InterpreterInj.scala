@@ -1,6 +1,6 @@
 package io.boson.bson.bsonImpl.injectors
 
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue
 
 import scala.util.{Failure, Success, Try}
@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Ricardo Martins on 14/12/2017.
   */
-class InterpreterInj(boson: Boson, key: String, f: Any => Any, program: ProgramInj) {
+class InterpreterInj(boson: BosonImpl, key: String, f: Any => Any, program: ProgramInj) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)
@@ -28,7 +28,7 @@ class InterpreterInj(boson: Boson, key: String, f: Any => Any, program: ProgramI
     selectType match {
       case "first" =>
 
-        val result: Try[Boson] = Try(boson.modify(Option(boson), key, f, selectType).get)
+        val result: Try[BosonImpl] = Try(boson.modify(Option(boson), key, f, selectType).get)
         result match {
           case Success(v) =>
             bsonValue.BsObject.toBson(v)
