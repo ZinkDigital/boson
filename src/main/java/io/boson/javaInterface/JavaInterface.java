@@ -39,7 +39,7 @@ public class JavaInterface {
         try {
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if (pr.successful()) {
-                Interpreter interpreter = new Interpreter(boson, key, (Program) pr.get());
+                Interpreter interpreter = new Interpreter(boson, (Program) pr.get());
                 return interpreter.run();
             } else {
                 return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply(writer));

@@ -6,7 +6,7 @@ import io.boson.bson.bsonValue
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
-class Interpreter(boson: BosonImpl, key: String, program: Program) {
+class Interpreter(boson: BosonImpl, program: Program) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)

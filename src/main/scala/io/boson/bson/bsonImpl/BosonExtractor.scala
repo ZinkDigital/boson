@@ -15,7 +15,7 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, "", r.asInstanceOf[Program]).run()
+          new Interpreter(boson, r.asInstanceOf[Program]).run()
         case parser.Error(msg, _) => bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) => bsonValue.BsObject.toBson(msg)
       }
