@@ -97,27 +97,16 @@ object PerformanceTest extends App {
     println()
 
     /**
-      * Testing performance of extracting values of some positions of a BsonArray and selecting one
-      */  // TODO:redo both tests
-//    val result5 = bestTimeMeasure {
-//      sI.parse(boson.duplicate, "Markets", "last [50 to 55]")
-//    }
-//    println()
-//    println("result5: " + sI.parse(boson.duplicate, "Markets", "last [50 to 55]")
-//      .asInstanceOf[BsSeq].getValue.head.asInstanceOf[Map[_, _]])
-//    println(s"Benchmark for this test: $result5")
-//    println()
-
-    /**
-      * Testing performance of getting size of all occurrences of a key
+      * Testing performance of extracting values of some positions further of a BsonArray
       */
-//    val result6 = bestTimeMeasure {
-//      sI.parse(boson.duplicate, "Price", "all size")
-//    }
-//    println()
-//    println("result6: " + sI.parse(boson.duplicate, "Price", "all size").asInstanceOf[BsNumber].value)
-//    println(s"Benchmark for this test: $result6")
-//    println()
+    val result5 = bestTimeMeasure {
+      callParse(boson.duplicate, "Markets.[50 to 55]")
+    }
+    println()
+    println("result5: " + callParse(boson.duplicate, "Markets.[50 to 55]")
+      .asInstanceOf[BsSeq].getValue.head)
+    println(s"Benchmark for this test: $result5")
+    println()
   }
 }
 

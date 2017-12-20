@@ -65,30 +65,15 @@ class LongInputTests extends FunSuite {
     assert(true)
   }
 
-  test("select one Pos of array extraction") {
+  test("extract further positions of an Array") {
     val result: BsValue = callParse(boson.duplicate, "Markets.[50 to 55]")
     println(result.asInstanceOf[BsSeq].getValue.head)
     assert(true)
   }
-    //  TODO:remake this tests
-//  test("size of all occurrences of Key") {
-//    val result: BsValue = sI.parse(boson.duplicate, "Price", "all size")
-//    assert(283 === result.asInstanceOf[BsNumber].value)
-//  }
 
-//  test("sizes of filtered arrays") {
-//    val result: BsValue = sI.parse(boson.duplicate, "Selections", "[1 to 2] size")
-//    println(result)
-//    assert(Seq(2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//      1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 2, 2, 1,
-//      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//      1, 1, 1, 1, 1, 1, 1, 2)=== result.asInstanceOf[BsSeq].value)
-//  }
+  test("size of all occurrences of Key") {
+    val result: BsValue = callParse(boson.duplicate, "Price.all")
+    assert(283 === result.asInstanceOf[BsSeq].value.size)
+  }
 
-//  test("size of specific filtered arrays") {
-//    val result: BsValue = sI.parse(boson.duplicate, "Selections", "last [0 until end] size")
-//    assert(BsNumber(2).value === result.asInstanceOf[BsNumber].value)
-//  }
 }

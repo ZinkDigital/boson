@@ -6,7 +6,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.bson.bsonValue.{BsException, BsNumber, BsSeq, BsValue}
+import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
 import io.boson.bson.bsonValue
 
 /**
@@ -145,39 +145,44 @@ class HorribleTests extends FunSuite {
     val result: BsValue = callParse(boson, expression)
     assert(BsException("Failure parsing!") === result)
   }
-    //  TODO:remake this 4 tests without size expression
-//  test("array prob 1") {
-//    val key: String = "José"
-//    val expression: String = "   all    [     0    to   end      ]   size  "
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
-//    val result: BsValue = callParse(boson, key, expression)
-//    assert(BsNumber(3) === result)
-//  }
-//
-//  test("array prob 2") {
-//    val key: String = ""
-//    val expression: String = "   all    [     0    to   end      ]   size  "
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
-//    val result: BsValue = callParse(boson, key, expression)
-//    println(s"result in Test: $result")
-//    assert(BsNumber(4) === result)
-//  }
-//
-//  test("array prob 3") {
-//    val key: String = ""
-//    val expression: String = "   first    [     0    to   end      ]   size  "
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
-//    val result: BsValue = callParse(boson, key, expression)
-//    assert(BsNumber(1) === result)
-//  }
-//
-//  test("array prob 4") {
-//    val key: String = "José"
-//    val expression: String = "   first    [     0    to   end      ]   size  "
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
-//    val result: BsValue = callParse(boson, key, expression)
-//    assert(BsNumber(3) === result)
-//  }
+
+  test("array prob 1") {
+    val expression: String = "   José.[     0    to   end      ]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assert(BsSeq(List(
+      List("Tarantula", "Aracnídius", List("Insecticida")),
+      List("Spider"),
+      List("Fly"))) === result)
+  }
+
+  test("array prob 2") {
+    val expression: String = "[     0    to   end      ]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    println(s"result in Test: $result")
+    assert(BsSeq(List(
+      List(
+        Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
+        Map("José" -> List("Spider")),
+        Map("José" -> List("Fly")),
+        List("Insecticida"))))=== result)
+  }
+
+  test("array prob 3") {
+    val expression: String = "first"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assert(BsSeq(List(
+      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))))) === result)
+  }
+
+  test("array prob 4") {
+    val expression: String = "   José . first"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assert(BsSeq(List("Tarantula", "Aracnídius", List("Insecticida"))) === result)
+  }
 
   test("array prob 5") {
     br3.add("Wrong")
