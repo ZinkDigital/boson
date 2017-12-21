@@ -145,7 +145,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
       bsonValue.BsObject.toBson("Not Done Yet")
     } else {
       val result: Seq[Any] =
-      boson.extract(boson.getByteBuf, key, "onePos", Some(left), None) map { v =>
+      boson.extract(boson.getByteBuf, List((key,"onePos")), Some(left), None) map { v =>
         v.asInstanceOf[Seq[Array[Any]]]
       } getOrElse Seq.empty
       result match {
@@ -161,14 +161,14 @@ class Interpreter(boson: BosonImpl, program: Program) {
   private def executeArraySelect(key: String, left: Int, mid: String, right: Any): Seq[Any] = {
     (left, mid, right) match {
       case (a, ("until" | "Until"), "end") =>
-        val midResult = boson.extract(boson.getByteBuf, key, "limit", Some(a), None)
+        val midResult = boson.extract(boson.getByteBuf, List((key,"limit")), Some(a), None)
         midResult.map(v => {
           for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
             elem.take(elem.length - 1)
           }
         }).getOrElse(Seq.empty)
       case (a, _, "end") => // "[# .. end]"
-        val midResult = boson.extract(boson.getByteBuf, key, "limit", Some(a), None)
+        val midResult = boson.extract(boson.getByteBuf, List((key,"limit")), Some(a), None)
         midResult.map { v =>
           v.asInstanceOf[Seq[Array[Any]]]
         }.getOrElse(Seq.empty)
@@ -176,13 +176,13 @@ class Interpreter(boson: BosonImpl, program: Program) {
         expr match {
           case ("to" | "To") =>
             boson.extract(
-              boson.getByteBuf, key, "limit", Some(a), Some(b.asInstanceOf[Int])
+              boson.getByteBuf, List((key,"limit")), Some(a), Some(b.asInstanceOf[Int])
             ).map { v =>
               v.asInstanceOf[Seq[Array[Any]]]
             }.getOrElse(Seq.empty)
           case ("until" | "Until") =>
             boson.extract(
-              boson.getByteBuf, key, "limit", Some(a), Some(b.asInstanceOf[Int] - 1)
+              boson.getByteBuf, List((key,"limit")), Some(a), Some(b.asInstanceOf[Int] - 1)
             ).map { v =>
               v.asInstanceOf[Seq[Array[Any]]]
             }.getOrElse(Seq.empty)
@@ -193,11 +193,46 @@ class Interpreter(boson: BosonImpl, program: Program) {
   private def executeArraySelectWithTwoKeys(key: String, left: Int,
                                              mid: String, right: Any,
                                              secondKey: String): bsonValue.BsValue = {
-    Seq(key,secondKey)
-    boson.extract(
-      boson.getByteBuf, key, "limit", Some(left), Some(right.asInstanceOf[Int])
-    )
-    bsonValue.BsObject.toBson("Not Done Yet")
+    val result =
+    (left,mid,right) match {
+      case (a, ("until" | "Until"), "end") =>
+        boson.extract(
+          boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), None
+        ) map {v => {
+          for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
+            elem.take(elem.length - 1)
+          }
+        }} getOrElse Seq.empty
+      case (a, _, "end") =>
+        boson.extract(
+          boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), None
+        ) map { v =>
+          println(s"executeArraySelectWithTwoKeys -> result: ${v.asInstanceOf[Seq[Array[Any]]].head.toList}")
+          v.asInstanceOf[Seq[Any]]
+        } getOrElse Seq.empty
+      case (a, expr, b) if b.isInstanceOf[Int] =>
+        expr match {
+          case ("to" | "To") =>
+            boson.extract(
+              boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), Some(b.asInstanceOf[Int])
+            ) map { v =>
+              v.asInstanceOf[Seq[Any]]
+            } getOrElse Seq.empty
+          case ("until" | "Until") =>
+            boson.extract(
+              boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), Some(b.asInstanceOf[Int]-1)
+            ) map { v =>
+              v.asInstanceOf[Seq[Any]]
+            } getOrElse Seq.empty
+        }
+    }
+    result match {
+      case Seq() =>bsonValue.BsObject.toBson(Seq.empty)
+      case v =>
+        bsonValue.BsObject.toBson {
+          for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+        }
+    }
   }
 
   // "[# .. #]"
@@ -221,7 +256,9 @@ class Interpreter(boson: BosonImpl, program: Program) {
   //  }
 
   private def executeSelect(key: String, selectType: String): bsonValue.BsValue = {
-    val result = boson.extract(boson.getByteBuf, key, selectType)
+    println(s"executeSelect(key.grammar) with key: $key")
+    val result = boson.extract(boson.getByteBuf, List((key,selectType)))
+    println("after")
     selectType match {
       case "first" =>
         if (key.isEmpty) {

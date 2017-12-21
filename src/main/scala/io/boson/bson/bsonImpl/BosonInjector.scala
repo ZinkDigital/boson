@@ -39,7 +39,12 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
     val future: CompletableFuture[ByteBuffer] =
       CompletableFuture.supplyAsync(
-        () => boson.extract(boson.getByteBuf, expression, "SomethingForNow").get.asInstanceOf[ByteBuffer] //  asInstance works to test, must be injector
+        () => //boson.extract(boson.getByteBuf, expression, "SomethingForNow").get.asInstanceOf[ByteBuffer] //  asInstance works to test, must be injector
+          boson.modify(Option(boson), "float", anon) map { b =>
+            b.getByteBuf.nioBuffer()
+          } getOrElse {
+            boson.getByteBuf.nioBuffer()
+          }
       )
     //val result = injectFunction("fridges") // this func is passed to the injector to be applied latter
     future
