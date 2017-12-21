@@ -286,7 +286,7 @@ class BosonImpl(
             condition match {
               case "first" =>
                 finalValue
-              case "last" | "all" | "max" | "min" | "limit" =>
+              case "last" | "all" | "limit" =>
                 if (seqType2 != 0) {
                   finalValue ++ extractFromBsonArray(netty, length, arrayFRIdx, key, condition, limitA, limitB)
                 } else {

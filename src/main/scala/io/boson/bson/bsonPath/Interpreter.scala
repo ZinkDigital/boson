@@ -51,10 +51,6 @@ class Interpreter(boson: BosonImpl, program: Program) {
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
-        //        case SizeOfSelected(grammar, scndGrammar) => // "(all|first|last) (size|isEmpty)"
-        //          executeSizeOfSelected(grammar, scndGrammar)
-        //        case SizeOfArray(arrEx, scndGrammar) => // "[# .. #] (size|isEmpty)"
-        //          executeSizeOfArraySelect(arrEx, scndGrammar)
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
@@ -197,6 +193,10 @@ class Interpreter(boson: BosonImpl, program: Program) {
   private def executeArraySelectWithTwoKeys(key: String, left: Int,
                                              mid: String, right: Any,
                                              secondKey: String): bsonValue.BsValue = {
+    Seq(key,secondKey)
+    boson.extract(
+      boson.getByteBuf, key, "limit", Some(left), Some(right.asInstanceOf[Int])
+    )
     bsonValue.BsObject.toBson("Not Done Yet")
   }
 

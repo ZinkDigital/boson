@@ -123,4 +123,5 @@ object BosonTester extends App {
   val boson7: Boson = Boson.extractor(expression7, (in: BsValue) => future7.complete(in))
   boson7.go(validatedByteArray2)
   println("result of extracting \"" + expression7 + "\" -> " + future7.join())
+
 }
