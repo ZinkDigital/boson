@@ -102,6 +102,9 @@ object BosonTester extends App {
   val boson4: Boson = Boson.extractor(expression4, (in: BsValue) => future4.complete(in))
   boson4.go(validatedByteArray2)
   println("result of extracting \"" + expression4 + "\" -> " + future4.join())
+  println()
+  println()
+  println()
   println("-------------------------------------------------------------------------------------------------------------")
   val expression5: String = "fridgeReadings.first.fridgeTemp"
   val future5: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -114,4 +117,10 @@ object BosonTester extends App {
   val boson6: Boson = Boson.extractor(expression6, (in: BsValue) => future6.complete(in))
   boson6.go(validatedByteArray)
   println("result of extracting \"" + expression6 + "\" -> " + future6.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression7: String = "[1]"
+  val future7: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson7: Boson = Boson.extractor(expression7, (in: BsValue) => future7.complete(in))
+  boson7.go(validatedByteArray2)
+  println("result of extracting \"" + expression7 + "\" -> " + future7.join())
 }

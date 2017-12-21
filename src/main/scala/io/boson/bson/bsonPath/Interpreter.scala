@@ -47,7 +47,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
                 }
             }
           } else {  //  [#]
-            bsonValue.BsObject.toBson("Not Done Yet")
+            executePosSelect("",left,None)
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
