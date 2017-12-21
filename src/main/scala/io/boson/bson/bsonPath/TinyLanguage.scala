@@ -11,11 +11,11 @@ import scala.util.parsing.combinator.RegexParsers
 
 sealed trait Statement
 case class Grammar(selectType: String) extends Statement
-case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
-case class KeyWithArrExpr(key: String,arrEx: ArrExpr) extends Statement
+case class KeyWithGrammar(key: String, grammar: Grammar, scndKey: Option[String]) extends Statement
+case class KeyWithArrExpr(key: String,arrEx: ArrExpr, scndKey: Option[String]) extends Statement
+case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any]) extends Statement
 //case class ScndGrammar(selectType: String)
 //case class Exists(term: String) extends Statement
-case class ArrExpr(leftArg: Int, midArg: String, rightArg: Any) extends Statement
 //case class ArraySelectStatement(grammar: Grammar, arrEx: ArrExpr) extends Statement
 //case class KeyStatement(key: String) extends Statement
 //case class SizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar) extends Statement
@@ -45,12 +45,14 @@ class TinyLanguage extends RegexParsers {
 //    w => KeyStatement(w)
 //  }
 
-  private def keyWithGrammar: Parser[KeyWithGrammar] = word ~ ("." ~> grammar) ^^ {
-    case k ~ g  => KeyWithGrammar(k,g)
+  private def keyWithGrammar: Parser[KeyWithGrammar] = word ~ ("." ~> grammar) ~ opt("." ~> word) ^^ {
+    case k ~ g ~ None  => KeyWithGrammar(k,g, None)
+    case k ~ g ~ Some(sK)  => KeyWithGrammar(k,g,Some(sK))
   }
 
-  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ^^ {
-    case k ~ a => KeyWithArrExpr(k,a)
+  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ~ opt("." ~> word) ^^ {
+    case k ~ a  ~ None => KeyWithArrExpr(k,a,None)
+    case k ~ a  ~ Some(sK) => KeyWithArrExpr(k,a,Some(sK))
   }
 
   private def grammar: Parser[Grammar] = ("first" | "last" | "all") ^^ {
@@ -59,8 +61,9 @@ class TinyLanguage extends RegexParsers {
 
 //  private def exists: Parser[Exists] = ("in" | "Nin") ^^ { d => Exists(d)}
 
-  private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {_.toInt}) ~ ("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end") <~ "]" ^^ {
-    case l ~ m ~ r => ArrExpr(l, m, r)
+  private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {_.toInt}) ~ opt(("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end")) <~ "]" ^^ {
+    case l ~ Some(m ~ r) => ArrExpr(l, Some(m), Some(r))
+    case l ~ None => ArrExpr(l, None, None)
   }
 
 //  private def scndGrammar: Parser[ScndGrammar] = ("size" | "isEmpty") ^^ {

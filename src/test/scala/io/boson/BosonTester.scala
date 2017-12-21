@@ -8,6 +8,7 @@ import io.boson.bson.bsonImpl.Constants._
 import io.boson.bson.bsonValue.BsValue
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ByteProcessor
+import io.vertx.core.json.{JsonArray, JsonObject}
 
 import scala.util.{Failure, Success, Try}
 
@@ -32,12 +33,15 @@ object BosonTester extends App {
   val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
   val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
-
   val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
-
   val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
-
-
+  //----------------------------------------------------------------------------------------------------------------------------
+  val alternativeBsonObj1: BsonObject = new BsonObject().put("fridgeReadings", obj1)
+  val alternativeBsonObj2: BsonObject = new BsonObject().put("fridgeReadings", obj2)
+  val alternativeBsonObj3: BsonObject = new BsonObject().put("fridgeReadings", obj3)
+  val alternativeBsonArr: BsonArray = new BsonArray().add(alternativeBsonObj1).add(alternativeBsonObj2).add(alternativeBsonObj3)
+  val validatedByteArray3: Array[Byte] = alternativeBsonArr.encodeToBarray()
+  //----------------------------------------------------------------------------------------------------------------------------
   //val newField: Double = 3.4
   //println(s"value -> ${tester[Double]((_: Double) => newField )}")
 
@@ -98,4 +102,16 @@ object BosonTester extends App {
   val boson4: Boson = Boson.extractor(expression4, (in: BsValue) => future4.complete(in))
   boson4.go(validatedByteArray2)
   println("result of extracting \"" + expression4 + "\" -> " + future4.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression5: String = "fridgeReadings.first.fridgeTemp"
+  val future5: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson5: Boson = Boson.extractor(expression5, (in: BsValue) => future5.complete(in))
+  boson5.go(validatedByteArray3)
+  println("result of extracting \"" + expression5 + "\" -> " + future5.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression6: String = "fridgeReadings.[1]"
+  val future6: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson6: Boson = Boson.extractor(expression6, (in: BsValue) => future6.complete(in))
+  boson6.go(validatedByteArray)
+  println("result of extracting \"" + expression6 + "\" -> " + future6.join())
 }
