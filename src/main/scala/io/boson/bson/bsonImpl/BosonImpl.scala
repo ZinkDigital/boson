@@ -143,10 +143,7 @@ class BosonImpl(
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             val map = scala.collection.immutable.Map[Any, Any]()
-            if(keyList.size <2) {
-              Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
-            } else Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList.drop(1)))
-
+            Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
           } else {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
@@ -241,7 +238,13 @@ class BosonImpl(
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String,String)], limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     keyList.head._1 match {
       case "" => // Constructs a new BsonArray, BsonArray is Root
-        val result = Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], keyList, limitA, limitB).toArray[Any])
+        println("key is Empty so BsonArray root")
+        val result =
+          if(keyList.size<2) {
+            Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], keyList, limitA, limitB).toArray[Any])
+          } else {
+            Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any])
+          }
         result match {
           case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
           case Some(_) => result

@@ -43,6 +43,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
         case ArrExpr(left, mid, right,secondKey) =>
           secondKey.isDefined match {
             case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
+              println("interpreter case [#..#].2ndKey")
               executeArraySelectWithTwoKeys("",left,mid.get,right.get,secondKey.get)
             case true => //[#].2ndKey
               executePosSelect("",left,secondKey)
