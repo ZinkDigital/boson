@@ -12,11 +12,11 @@ Streaming Data Access for BSON and JSON encoded documents
 //  This is the Bson encoded to a byte array
 val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
 
-//  Expression is a String with a key representing the value wished to be extracted
-//  followed by a term that in this case "says" that the key represents a BsonArray and
-//  only is needed the first position of the array, the last element is a second key
-//  that will filter this position looking for it. There are more combinations of expressions,
-//  further down in this document are tables with possible combinations and outputs.
+//  Expression is a String with a key representing the value to be extracted
+//  followed by a term that in this case implies that the key represents a BsonArray,
+//  the last element is a second key that will filter this position looking for it.
+//  There are more combinations of expressions, further down in this document are tables
+//  with possible combinations and outputs.
 val expression: String = "fridgeReadings.[1].fanVelocity"
 
 //  This CompletableFuture has the purpose of allowing asynchronicity.
@@ -96,7 +96,7 @@ key.[2 until 5].secondKey | Returns a list with elements filtered by the limits 
 [2 until end] | Returns a list representing the Root array with elements filtered by the limits
 [2].secondKey | Returns a list representing the Root array with element filtered by the limit and secondKey
 key.first | Returns a list with the first occurrence of a key
-[2] | Returns a list with an element of an array
+[2] | Returns a list with an element of the Root array
 all | Returns a list representing the Root Array
 
 ### Available Buffer Types
