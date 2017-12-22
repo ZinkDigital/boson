@@ -104,7 +104,6 @@ class BosonImpl(
             if (keyList.head._1.isEmpty) {
               None // Doens't make sense to pass "" as a key when root isn't a BsonArray
             } else {
-              println("key nonEmpty")
               netty.readIntLE()
               val bsonFinishReaderIndex: Int = startReaderIndex + size
               val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitA, limitB)
@@ -157,13 +156,11 @@ class BosonImpl(
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             if(keyList.size<2) {
-              println("extractFromBsonObj -> inside BsonArray match with keyList.size <2")
               Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList, limitA, limitB).toArray[Any]) match {
                 case Some(value) if value.isEmpty => None
                 case Some(value) => Some(value)
               }
             } else {
-              println("extractFromBsonObj -> inside BsonArray match with keyList.size greater than 1")
               Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any]) match {
                 case Some(value) if value.isEmpty => None
                 case Some(value) => Some(value)
@@ -238,7 +235,6 @@ class BosonImpl(
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String,String)], limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     keyList.head._1 match {
       case "" => // Constructs a new BsonArray, BsonArray is Root
-        println("key is Empty so BsonArray root")
         val result =
           if(keyList.size<2) {
             Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], keyList, limitA, limitB).toArray[Any])
@@ -268,7 +264,6 @@ class BosonImpl(
               val valueTotalLength: Int = netty.readIntLE()
               val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
               val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitA, limitB)
-              println(s"midresult from extractFromBsonObj inside extractFromBsonArray is: $midResult")
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BSONARRAY =>
               val startReaderIndex: Int = netty.readerIndex()

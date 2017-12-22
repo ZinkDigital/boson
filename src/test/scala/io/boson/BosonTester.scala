@@ -8,7 +8,6 @@ import io.boson.bson.bsonImpl.Constants._
 import io.boson.bson.bsonValue.BsValue
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ByteProcessor
-import io.vertx.core.json.{JsonArray, JsonObject}
 
 import scala.util.{Failure, Success, Try}
 

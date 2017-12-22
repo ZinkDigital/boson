@@ -218,7 +218,6 @@ class Interpreter(boson: BosonImpl, program: Program) {
         boson.extract(
           boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), None
         ) map { v =>
-          println(s"executeArraySelectWithTwoKeys -> result: ${v.asInstanceOf[Seq[Array[Any]]].head.toList}")
           v.asInstanceOf[Seq[Any]]
         } getOrElse Seq.empty
       case (a, expr, b) if b.isInstanceOf[Int] =>
