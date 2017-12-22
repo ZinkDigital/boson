@@ -36,15 +36,14 @@ object BosonTester extends App {
   val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
   val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
   //----------------------------------------------------------------------------------------------------------------------------
-  val alternativeBsonObj1: BsonObject = new BsonObject().put("fridgeReadings", obj1)
-  val alternativeBsonObj2: BsonObject = new BsonObject().put("fridgeReadings", obj2)
-  val alternativeBsonObj3: BsonObject = new BsonObject().put("fridgeReadings", obj3)
-  val alternativeBsonArr: BsonArray = new BsonArray().add(alternativeBsonObj1).add(alternativeBsonObj2).add(alternativeBsonObj3)
-  val validatedByteArray3: Array[Byte] = alternativeBsonArr.encodeToBarray()
+//  val alternativeBsonObj1: BsonObject = new BsonObject().put("fridgeReadings", obj1)
+//  val alternativeBsonObj2: BsonObject = new BsonObject().put("fridgeReadings", obj2)
+//  val alternativeBsonObj3: BsonObject = new BsonObject().put("fridgeReadings", obj3)
+//  val alternativeBsonArr: BsonArray = new BsonArray().add(alternativeBsonObj1).add(alternativeBsonObj2).add(alternativeBsonObj3)
+//  val validatedByteArray3: Array[Byte] = alternativeBsonArr.encodeToBarray()
   //----------------------------------------------------------------------------------------------------------------------------
   //val newField: Double = 3.4
   //println(s"value -> ${tester[Double]((_: Double) => newField )}")
-
   //val arr: BsonArray = new BsonArray().add(1.1.toFloat).add(2.2).add("END")
   //val validatedByteArray: Array[Byte] = arr.encodeToBarray()
   //val obj1: BsonObject = new BsonObject().put("string", "Hi").put("bytearray", "ola".getBytes)
@@ -79,55 +78,73 @@ object BosonTester extends App {
   //  println("value: " + buf.readDoubleLE())
   //  println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-//  val expression: String = "fridgeTemp.all"
-//  val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//  val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-//  boson.go(validatedByteArray)
-//  println("result of extracting \"" + expression + "\" -> " + future.join())
-//  println("-------------------------------------------------------------------------------------------------------------")
-//  val expression2: String = "fridgeReadings.[1 to 1]"
-//  val future2: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//  val boson2: Boson = Boson.extractor(expression2, (in: BsValue) => future2.complete(in))
-//  boson2.go(validatedByteArray)
-//  println("result of extracting \"" + expression2 + "\" -> " + future2.join())
-//  println("-------------------------------------------------------------------------------------------------------------")
-//  val expression3: String = "[1 to 1]"
-//  val future3: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//  val boson3: Boson = Boson.extractor(expression3, (in: BsValue) => future3.complete(in))
-//  boson3.go(validatedByteArray2)
-//  println("result of extracting \"" + expression3 + "\" -> " + future3.join())
-//  println("-------------------------------------------------------------------------------------------------------------")
-//  val expression4: String = "first"
-//  val future4: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//  val boson4: Boson = Boson.extractor(expression4, (in: BsValue) => future4.complete(in))
-//  boson4.go(validatedByteArray2)
-//  println("result of extracting \"" + expression4 + "\" -> " + future4.join())
-//  println()
-//  println()
-//  println()
+  val expression: String = "fridgeTemp.all"
+  val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+  boson.go(validatedByteArray)
+  println("result of extracting \"" + expression + "\" -> " + future.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression2: String = "fridgeReadings.[1 to 1]"
+  val future2: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson2: Boson = Boson.extractor(expression2, (in: BsValue) => future2.complete(in))
+  boson2.go(validatedByteArray)
+  println("result of extracting \"" + expression2 + "\" -> " + future2.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression3: String = "[1 to 1]"
+  val future3: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson3: Boson = Boson.extractor(expression3, (in: BsValue) => future3.complete(in))
+  boson3.go(validatedByteArray2)
+  println("result of extracting \"" + expression3 + "\" -> " + future3.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression4: String = "first"
+  val future4: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson4: Boson = Boson.extractor(expression4, (in: BsValue) => future4.complete(in))
+  boson4.go(validatedByteArray2)
+  println("result of extracting \"" + expression4 + "\" -> " + future4.join())
+  println()
+  println()
+  println()
 //  println("-------------------------------------------------------------------------------------------------------------")
 //  val expression5: String = "fridgeReadings.first.fridgeTemp"
 //  val future5: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
 //  val boson5: Boson = Boson.extractor(expression5, (in: BsValue) => future5.complete(in))
 //  boson5.go(validatedByteArray3)
 //  println("result of extracting \"" + expression5 + "\" -> " + future5.join())
-//  println("-------------------------------------------------------------------------------------------------------------")
-//  val expression6: String = "fridgeReadings.[1]"
-//  val future6: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//  val boson6: Boson = Boson.extractor(expression6, (in: BsValue) => future6.complete(in))
-//  boson6.go(validatedByteArray)
-//  println("result of extracting \"" + expression6 + "\" -> " + future6.join())
-//  println("-------------------------------------------------------------------------------------------------------------")
-//  val expression7: String = "[1]"
-//  val future7: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//  val boson7: Boson = Boson.extractor(expression7, (in: BsValue) => future7.complete(in))
-//  boson7.go(validatedByteArray2)
-//  println("result of extracting \"" + expression7 + "\" -> " + future7.join())
   println("-------------------------------------------------------------------------------------------------------------")
-  val expression8: String = "fridgeReadings.[1 to 1].fanVelocity"
+  val expression6: String = "fridgeReadings.[1]"
+  val future6: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson6: Boson = Boson.extractor(expression6, (in: BsValue) => future6.complete(in))
+  boson6.go(validatedByteArray)
+  println("result of extracting \"" + expression6 + "\" -> " + future6.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression7: String = "[1]"
+  val future7: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson7: Boson = Boson.extractor(expression7, (in: BsValue) => future7.complete(in))
+  boson7.go(validatedByteArray2)
+  println("result of extracting \"" + expression7 + "\" -> " + future7.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression8: String = "fridgeReadings.[0 to end].fanVelocity"
   val future8: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
   val boson8: Boson = Boson.extractor(expression8, (in: BsValue) => future8.complete(in))
   boson8.go(validatedByteArray)
   println("result of extracting \"" + expression8 + "\" -> " + future8.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression9: String = "fridgeReadings.[1].fanVelocity"
+  val future9: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson9: Boson = Boson.extractor(expression9, (in: BsValue) => future9.complete(in))
+  boson9.go(validatedByteArray)
+  println("result of extracting \"" + expression9 + "\" -> " + future9.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression10: String = "[1].fanVelocity"
+  val future10: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson10: Boson = Boson.extractor(expression10, (in: BsValue) => future10.complete(in))
+  boson10.go(validatedByteArray2)
+  println("result of extracting \"" + expression10 + "\" -> " + future10.join())
+  println("-------------------------------------------------------------------------------------------------------------")
+  val expression11: String = "[1 to end].fanVelocity"
+  val future11: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson11: Boson = Boson.extractor(expression11, (in: BsValue) => future11.complete(in))
+  boson11.go(validatedByteArray2)
+  println("result of extracting \"" + expression11 + "\" -> " + future11.join())
 
 }

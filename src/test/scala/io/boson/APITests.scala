@@ -185,6 +185,61 @@ class APITests extends FunSuite {
     ))), future.join())
   }
 
+  test("extract PosV5 go(Array[Byte])") {
+    val expression: String = "fridgeReadings.[1]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+
+    assertEquals(BsSeq(Seq(Seq(
+      Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false)
+    ))), future.join())
+  }
+
+  test("extract with 2nd Key PosV1 go(Array[Byte])") {
+    val expression: String = "fridgeReadings.[1 to 1].fanVelocity"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+
+    assertEquals(BsSeq(Seq(Seq(
+      Seq(20.6)
+    ))), future.join())
+  }
+
+  test("extract with 2nd Key PosV2 go(Array[Byte])") {
+    val expression: String = "fridgeReadings.[1 until 3].fanVelocity"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+
+    assertEquals(BsSeq(Seq(Seq(
+      Seq(20.6), Seq(20.5)
+    ))), future.join())
+  }
+
+  test("extract with 2nd Key PosV3 go(Array[Byte])") {
+    val expression: String = "fridgeReadings.[0 until end].fanVelocity"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+
+    assertEquals(BsSeq(Seq(Seq(
+      Seq(20.5), Seq(20.6)
+    ))), future.join())
+  }
+
+  test("extract with 2nd Key PosV4 go(Array[Byte])") {
+    val expression: String = "fridgeReadings.[2 to end].fridgeTemp"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+
+    assertEquals(BsSeq(Seq(Seq(
+      Seq(3.854f)
+    ))), future.join())
+  }
+
   test("extract last go(Array[Byte])") {
     val expression: String = "doorOpen.last"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
