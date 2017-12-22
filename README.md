@@ -6,19 +6,49 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ## Basic Usage
 
-### Extracting a Value from a BsonObject (Scala)
+### Extracting from an encoded Bson (Scala)
 
 ```scala
-//  Create a BsonObject/BsonArray
-val globalObj: BsonObject = new BsonObject().put("Salary", 1000).put("AnualSalary", 12000L)
-    .put("Unemployed", false).put("Residence", "Lisboa").putNull("Experience")
+//  This is the Bson encoded to a byte array
+val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
 
-//  Instantiate a Boson that receives a buffer containing the Bson encoded
-val boson: Boson = new Boson(byteArray = Option(globalObj.encode().getBytes))
+//  Expression is a String with a key representing the value wished to be extracted
+//  followed by a term that in this case "says" that the key represents a BsonArray and
+//  only is needed the first position of the array, the last element is a second key
+//  that will filter this position looking for it. There are more combinations of expressions,
+//  further down in this document are tables with possible combinations and outputs.
+val expression: String = "fridgeReadings.[1].fanVelocity"
 
-//  Call extract method on boson, the arguments being the netty byteBuf of Boson object,
-//  the key of the value to extract, and an expression from Table 1(shwon further down in this document).
-val result: Option[Any] = boson.extract(boson.getByteBuf, "AnualSalary", "first")
+//  This CompletableFuture has the purpose of allowing asynchronicity.
+val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+
+//  Next step is to construct the extractor object, it takes as arguments the previous expression
+//  and a Consumer. The value extracted will always be a BsValue so the CompletableFuture has to have
+//  the same type.
+val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+
+//  Calling this method triggers the extractor object to extract on the given byte array.
+//  This way it's possible to create only once the extractor object and call this method
+//  several times with different byte arrays.
+boson.go(validatedByteArray)
+
+// Final result
+val result: BsValue = future.join()
+```
+
+### Extracting from an encoded Bson (Java)
+```java
+final byte[] validBsonArray  = bsonEvent.encodeToBarray();
+
+final String expression = "fridges[3].serialCode";
+
+final CompletableFuture<String> result = new CompletableFuture<>();
+
+final Boson boson = Boson.extractor(expression, (String in) -> result.complete(in) );
+
+boson.go(validBsonArray);
+
+BsValue extracted = result.join()
 ```
 
 ### Extracting a Json (Java)
@@ -39,107 +69,35 @@ JsonExtractor<String> ext = new ObjectExtractor( new StringExtractor("onclick") 
 String result = ext.apply(parser).getResult().toString();
 ```
 
-### Using ScalaInterface
-
-```scala
-
-//  Creates a new instance of the Interface
-val sI: ScalaInterface = new ScalaInterface
-
-//  The key is the identifier of the value wished to be extracted.
-//  This key can be empty or filled depending on users choice.
-//  Since the BsonArray doesn't have the structure (key -> value) like
-//  the BsonObject, the key can be empty assuming that the Root Object is a BsonArray,
-//  otherwise the result will be an empty list.
-val key: String = ""
-
-//  The expression is a String containing the terms chosen by the user to extract something.
-//  The available terms to use are shown further down in the README document.
-val expression: String = "first"
-
-//  Boson is an Object that encapsulates a certain type of buffer
-//  and transforms it into a Netty buffer.
-//  Available types are shown further down in the README document.
-val boson: Boson = sI.createBoson(bsonObject.encode().getBytes)
-
-//  To extract from the Netty buffer, method parse is called with the key and expression.
-//  The result can be one of three types depending on the used terms in expression.
-val result: BsValue = sI.parse(boson, key, expression)
-```
-
-### Using JavaInterface
-
-```java
-
-//  Boson has a JavaInterface as well like the ScalaInterface implemented the same way
-JavaInterface jI = new JavaInterface();
-String key = "Something";
-String expression = "all";
-Boson boson = jI.createBoson(bsonObject.encode().getBytes());
-BsValue result = jI.parse(boson, key, expression);
-```
-
 ## Extracting Available Terms
 
 ### Table 1
 Expression Terms | Output
 ---------------- | ------
-all | Returns a list of all occurrences of a key
-first | Returns a list with the first occurrence of a key
-last | Returns a list with the last occurrence of a key
+all | List representing the Root Array
+first | List with the first element of the Root Array
+last | List with the last element of the Root Array
 
 ### Table 2
 Expression Terms | Output
 ---------------- | ------
-[2 to 5] | Returns a list with all of BsonArrays occurrences of a key, filtered by the limits established
+[2 to 5] | List with elements of an array, filtered by the limits established
 [2 until 5] | Instead of 'to' its possible to use 'until'
 [1 to end] | The ending limit can be 'end' instead of a number, it can be used with 'until' as well
+[2] |   List with an element of an array
 
-### Table 3
-Expression Terms | Output
----------------- | ------
-size | Returns the size of a value
-isEmpty | Returns true/false depending on if its empty or not
+Expressions terms of both tables don't work together in the same expression.
 
-The terms in table 3 can't be used alone, they can be used with terms in table 1, 2 or both.
-
-### Table 4
-Expression Terms | Output
----------------- | ------
-in | Returns true/false depending on if the buffer contains a certain key
-Nin | Returns true/false depending on if the buffer contains a certain key
-
-The terms in table 4 can't be used with other tables terms.
-
-#### A few examples of mixing terms:
-Expression Terms | Output
----------------- | ------
-first [2 to 5] | Returns a list with the first element filtered by the limits
-last [2 until 5] | Returns a list with the last element filtered by the limits
-all [2 until end] | Returns a list with all elements filtered by the limits
-
-It is possible to mix terms of tables 1 and 2.
-
-Expression Terms | Output
----------------- | ------
-all size | Returns the size of all elements filtered
-first isEmpty | Returns true/false depending on if the first occurrence is empty or not
-
-It is also possible to mix terms of tables 1 and 3.
-
-Expression Terms | Output
----------------- | ------
-[3 to 4] size | Returns a list with sizes of the filtered values
-[0 until end] isEmpty | Returns true/false depending on if the filtered list has content or not
-
-It is possible as well to join terms of tables 2 and 3.
-
-Expression Terms | Output
----------------- | ------
-all [2 until 5] size | Returns a list with sizes of all filtered values
-first [1 to end] isEmpty | Returns true/false depending if the filtered list is empty or not
-
-Lastly its possible to join terms of tables 1, 2 and 3.
+#### Examples of expressions:
+Expression  | Output
+----------- | ------
+key.[2 to 5] | Returns a list representing an array with elements filtered by the limits
+key.[2 until 5].secondKey | Returns a list with elements filtered by the limits and secondKey
+[2 until end] | Returns a list representing the Root array with elements filtered by the limits
+[2].secondKey | Returns a list representing the Root array with element filtered by the limit and secondKey
+key.first | Returns a list with the first occurrence of a key
+[2] | Returns a list with an element of an array
+all | Returns a list representing the Root Array
 
 ### Available Buffer Types
 * Array of Bytes
@@ -147,8 +105,8 @@ Lastly its possible to join terms of tables 1, 2 and 3.
 * Scala ArrayBuffer
 
 ### BsValue
-BsValue is a trait representing any return type of the parser. This type is extended by case classes that represent the
-possible outputs of the parser.
+BsValue is a trait representing any return type of the Boson. This type is extended by case classes that represent the
+possible outputs of the Boson.
 * BsNumber
 * BsSeq
 * BsBoolean
