@@ -49,9 +49,13 @@ class TinyLanguage extends RegexParsers {
     case k ~ g => KeyWithGrammar(k,g)
   }
 
-  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ~ opt("." ~> word) ^^ {
-    case k ~ a  ~ None => KeyWithArrExpr(k,a,None)  //Key.[#..]
-    case k ~ a  ~ Some(sK) => KeyWithArrExpr(k,a,Some(sK))  //Key.[#..].2ndKey
+  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ^^ {
+    case k ~ a if a.scndKey.isDefined =>
+      println("inside parser on method keyWithArrEx with secondKey")
+      KeyWithArrExpr(k,a,a.scndKey)  //Key.[#..].2ndKey
+    case k ~ a =>
+      println("inside parser on method keyWithArrEx")
+      KeyWithArrExpr(k,a,None)  //Key.[#..]
   }
 
   private def grammar: Parser[Grammar] = ("first" | "last" | "all") ^^ {

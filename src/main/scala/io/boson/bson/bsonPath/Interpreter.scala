@@ -20,12 +20,16 @@ class Interpreter(boson: BosonImpl, program: Program) {
         case KeyWithGrammar(key, grammar) =>
           executeSelect(key, grammar.selectType) //key.grammar
         case KeyWithArrExpr(key, arrEx, secondKey) =>
+          println("KeyWithArrExpr case")
           secondKey.isDefined match {
             case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined =>  //key.[#..#].secondKey
+              println("inside case key.[#..#].secondKey")
               executeArraySelectWithTwoKeys(key,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get,secondKey.get)
             case true =>   //key.[#].secondKey
+              println("inside case key.[#].secondKey")
               executePosSelect(key,arrEx.leftArg,secondKey)
             case false if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#]
+              println("inside case key.[#..#]")
               executeArraySelect(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get) match {
                 case Seq() => bsonValue.BsObject.toBson(Seq.empty)
                 case v =>
@@ -198,6 +202,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
   private def executeArraySelectWithTwoKeys(key: String, left: Int,
                                              mid: String, right: Any,
                                              secondKey: String): bsonValue.BsValue = {
+    println("executeArraySelectWithTwoKeys")
     val result =
     (left,mid,right) match {
       case (a, ("until" | "Until"), "end") =>
@@ -305,14 +310,14 @@ class Interpreter(boson: BosonImpl, program: Program) {
     }
   }
 
-  private def executeSelectWithTwoKeys(key: String, selectType: String, secondKey: String): bsonValue.BsValue = {
-    val keyList = List((key,selectType),(secondKey,"all"))
-    boson.extract(boson.getByteBuf, keyList, None, None) map { v =>
-      println(s"v--------> $v")
-      v.asInstanceOf[Seq[Array[Any]]]
-    } getOrElse Seq.empty
-    bsonValue.BsObject.toBson("Not Done Yet")
-  }
+//  private def executeSelectWithTwoKeys(key: String, selectType: String, secondKey: String): bsonValue.BsValue = {
+//    val keyList = List((key,selectType),(secondKey,"all"))
+//    boson.extract(boson.getByteBuf, keyList, None, None) map { v =>
+//      println(s"v--------> $v")
+//      v.asInstanceOf[Seq[Array[Any]]]
+//    } getOrElse Seq.empty
+//    bsonValue.BsObject.toBson("Not Done Yet")
+//  }
 
   //  (all|first|last)
 
