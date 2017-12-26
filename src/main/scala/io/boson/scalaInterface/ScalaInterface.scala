@@ -36,12 +36,12 @@ class ScalaInterface {
     }
   }
 
-  def parseInj(netty: Boson, key: String, expression: String):bsonValue.BsValue = {
+  def parseInj(netty: Boson, key: String,f: Any => Any, expression: String):bsonValue.BsValue = {
     val parser = new TinyLanguageInj
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          new InterpreterInj(netty, key, Any => Any, r.asInstanceOf[ProgramInj]).run()
+          new InterpreterInj(netty, key, f, r.asInstanceOf[ProgramInj]).run()
         case parser.Error(msg, _) => bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) => bsonValue.BsObject.toBson(msg)
       }

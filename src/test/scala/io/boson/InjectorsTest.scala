@@ -5,7 +5,7 @@ import java.time.Instant
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.Boson
 import io.boson.bson.bsonValue.BsSeq
-import io.boson.bson.bsonImpl.injectors.EnumerationTest
+import io.boson.bson.bsonImpl.injectors.{EnumerationTest}
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
