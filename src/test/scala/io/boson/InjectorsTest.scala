@@ -4,8 +4,8 @@ import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.Boson
-import io.boson.bson.bsonValue.BsSeq
-import io.boson.bson.bsonImpl.injectors.{EnumerationTest}
+import io.boson.bson.bsonValue.{BsException, BsSeq}
+import io.boson.bson.bsonImpl.injectors.EnumerationTest
 import io.boson.scalaInterface.ScalaInterface
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -63,12 +63,13 @@ class InjectorsTest extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
 val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val netty: Option[Boson] = Some(boson)
-
-    val b1: Option[Boson] = boson.modify(netty, "John", _ => "Somebody")
+    //val b1: Option[Boson] = boson.modify(netty, "John", _ => "Somebody")
+    val b1: Option[Boson] =Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))// boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody")._1
 
     val result: Any = b1 match {
       case Some(v) =>
         for (elem <- ext.parse(v, "John", "all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
+        //println("EXCEPTION= " + ext.parse(v, "John", "all").asInstanceOf[BsException].getValue)
       case None => List()
     }
     assert(List("Somebody","Nobody") === result)
@@ -85,8 +86,8 @@ val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
     val netty: Option[Boson] = Some(boson)
 
-    val b1: Option[Boson] = boson.modify(netty, "John", _ => "Somebody")
-
+    //val b1: Option[Boson] = boson.modify(netty, "John", _ => "Somebody")
+    val b1: Option[Boson] = Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))
     val result: Any = b1 match {
       case Some(v) =>
         for (elem <- ext.parse(v, "John", "all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")

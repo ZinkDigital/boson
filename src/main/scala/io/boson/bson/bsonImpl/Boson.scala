@@ -878,7 +878,7 @@ class Boson(
                 println(s"valueTotalLength -> $valueTotalLength")
                 val indexOfFinish: Int = startRegion + valueTotalLength
                 println(s"indexOfFinish -> $indexOfFinish")
-                val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer.duplicate(), fieldID, indexOfFinish, f)
+                val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f)
                 midResult map { buf =>
                   val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
                 val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
@@ -1048,13 +1048,13 @@ class Boson(
         //println("returning type = " + value.getClass.getSimpleName)
         value match {
           case n: Array[Byte] =>
-            (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeByte(0), (n.length + 1) - length)
+            (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeZero(1), (n.length + 1) - length)
           case n: String =>
             val aux: Array[Byte] = n.getBytes()
-            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
+            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1), (aux.length + 1) - length)
           case n: Instant =>
             val aux: Array[Byte] = n.toString.getBytes()
-            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
+            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1), (aux.length + 1) - length)
           case _ =>
             if(value == null){
               throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ") //  [IT,OT] => IT != OT
