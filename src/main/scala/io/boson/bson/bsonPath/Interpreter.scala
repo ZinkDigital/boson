@@ -3,6 +3,8 @@ package io.boson.bson.bsonPath
 import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
@@ -53,9 +55,11 @@ class Interpreter(boson: BosonImpl, program: Program) {
                 case v =>
                   bsonValue.BsObject.toBson {
                     for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+                    //composer(v.head)
                   }
               }
             case false => //[#]
+              println("case [#]")
               executePosSelect("",left,None)
           }
         case Grammar(selectType) => // "(all|first|last)"
@@ -149,14 +153,17 @@ class Interpreter(boson: BosonImpl, program: Program) {
   //  } //  (all|first|last) [#..#]
 
   private def executePosSelect(key: String, left: Int, secondKey: Option[String]): bsonValue.BsValue = {
+    println("executePosSelect")
     val keyList =
     if(secondKey.isDefined) {
       List((key,"onePos"),(secondKey.get,"onePos2nd"))
     } else {
+      println("no second key")
       List((key,"onePos"))
     }
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList, Some(left), None) map { v =>
+        println(s"v: $v")
         v.asInstanceOf[Seq[Array[Any]]]
       } getOrElse Seq.empty
     result match {
@@ -168,7 +175,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
     }
   }
 
-  private def executeArraySelect(key: String, left: Int, mid: String, right: Any): Seq[Any] = {
+  private def executeArraySelect(key: String, left: Int, mid: String, right: Any): Seq[Array[Any]] = {
     (left, mid, right) match {
       case (a, ("until" | "Until"), "end") =>
         val midResult = boson.extract(boson.getByteBuf, List((key,"limit")), Some(a), None)
@@ -213,35 +220,94 @@ class Interpreter(boson: BosonImpl, program: Program) {
           for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
             elem.take(elem.length - 1)
           }
-        }} getOrElse Seq.empty
+        }} getOrElse Seq.empty[Array[Any]]
       case (a, _, "end") =>
         boson.extract(
           boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), None
         ) map { v =>
-          v.asInstanceOf[Seq[Any]]
-        } getOrElse Seq.empty
+          v.asInstanceOf[Seq[Array[Any]]]
+        } getOrElse Seq.empty[Array[Any]]
       case (a, expr, b) if b.isInstanceOf[Int] =>
         expr match {
           case ("to" | "To") =>
             boson.extract(
               boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), Some(b.asInstanceOf[Int])
             ) map { v =>
-              v.asInstanceOf[Seq[Any]]
-            } getOrElse Seq.empty
+              v.asInstanceOf[Seq[Array[Any]]]
+            } getOrElse Seq.empty[Array[Any]]
           case ("until" | "Until") =>
             boson.extract(
               boson.getByteBuf, List((key,"limit"),(secondKey,"all")), Some(a), Some(b.asInstanceOf[Int]-1)
             ) map { v =>
-              v.asInstanceOf[Seq[Any]]
-            } getOrElse Seq.empty
+              v.asInstanceOf[Seq[Array[Any]]]
+            } getOrElse Seq.empty[Array[Any]]
         }
     }
     result match {
-      case Seq() =>bsonValue.BsObject.toBson(Seq.empty)
+      case Vector() =>bsonValue.BsObject.toBson(Seq.empty)
       case v =>
+        println(s"almost ended: $v")
+        println(s"his head: ${v.head}")
         bsonValue.BsObject.toBson {
-          for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+//          for {
+//            elem <- v.asInstanceOf[Seq[Array[Any]]]
+//          } yield elem.toList
+          //transformer(v)
+          composer(v.head)
         }
+    }
+  }
+
+  private def composer(value: Array[Any]): Seq[Any] = {
+    val help: ListBuffer[Any] = new ListBuffer[Any]
+    for(elem <- value) {
+      elem match {
+        case e: Array[Any] =>
+          println(s"elem is arr: $e")
+          help.append(composer(e))
+        case e: List[Any] =>
+          println(s"elem is list: $e")
+          for (elem <- e) {
+            elem match {
+              case v: Array[Any] =>
+                println(s" is arr: $v")
+                help.append(composer(v))
+              case v =>
+                println(s" is elem: $v")
+                help.append(v)
+            }
+          }
+        case e =>
+          println(s"elem is: $e")
+          help.append(e)
+      }
+      println(s"helpSeq: $help")
+    }
+    help.toList
+  }
+
+  private def transformer(value: Seq[Any]): Seq[Any] = {
+    value match {
+      case Seq() => Seq.empty
+      case x :: Nil if x.isInstanceOf[Seq[Any]] =>
+        println("case x :: Nil -> x is list")
+        transformer(x.asInstanceOf[Seq[Any]])
+      case x :: Nil  if x.isInstanceOf[Array[Any]] =>
+        println(s"case x :: Nil -> x is arr: ${x.asInstanceOf[Array[Any]].toList}")
+        transformer(x.asInstanceOf[Array[Any]].toList)
+        //x.asInstanceOf[Array[Any]].toList
+      case x :: Nil =>
+        println(s"case x :: Nil -> x is element: $x")
+        x +: Seq()
+      case x :: xs if x.isInstanceOf[Seq[Any]] =>
+        println("case x :: xs -> x is list")
+        transformer(x.asInstanceOf[Seq[Any]]) +: transformer(xs) +: Seq()
+      case x :: xs if x.isInstanceOf[Array[Any]] =>
+        println("case x :: xs -> x is arr")
+        x.asInstanceOf[Array[Any]].toList +: transformer(xs) +: Seq()
+      case x :: xs =>
+        println("case x :: xs -> x is element")
+        Seq(x) +: transformer(xs) +: Seq()
     }
   }
 
@@ -272,7 +338,10 @@ class Interpreter(boson: BosonImpl, program: Program) {
     selectType match {
       case "first" =>
         if (key.isEmpty) {
-          bsonValue.BsObject.toBson(result.map(v => Seq(v.asInstanceOf[Seq[Array[Any]]].head.head)).getOrElse(Seq.empty))
+          bsonValue.BsObject.toBson(result.map{v =>
+            println(s"asdfghjklçlkjhgfd ----> ${composer(v.asInstanceOf[Seq[Array[Any]]].head).head}")
+
+            Seq(composer(v.asInstanceOf[Seq[Array[Any]]].head).head)}.getOrElse(Seq.empty))
         } else {
           result.map { elem =>
             elem.asInstanceOf[Seq[Any]].head match {
