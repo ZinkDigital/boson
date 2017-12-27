@@ -191,10 +191,7 @@ class InjectorParserTests extends FunSuite {
   test("Last") {
     val key: String = "fridgeTemp"
     val netty: Option[Boson] = Some(si.createBoson(bsonEvent.encode().getBytes))
-
     val resultBoson: BsValue = si.parseInj(netty.get, key, x => x.asInstanceOf[Long]*4L,  "last")
-    // println(resultParser)
-
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
       case nb: BsBoson =>
@@ -202,29 +199,37 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(5, 24, 3)) === resultParser.asInstanceOf[BsSeq])
-
+    assert(BsSeq(List(5, 6, 12)) === resultParser.asInstanceOf[BsSeq])
   }
 
-  /*test("Encoding") {
+  test("Modify vs ModifyAll") {
+    val obj3: BsonObject = new BsonObject().put("John", "Nobody")
+    val obj2: BsonObject = new BsonObject().put("John", "Locke")
+    val arr2: BsonArray = new BsonArray().add(obj2)
+    val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
+    val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
+    val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
+    val arrayEvent: BsonArray = new BsonArray().add("Dog").add(bsonEvent).addNull()
+    val boson: Boson = new Boson(byteArray = Option(obj1.encode().getBytes))
+    val netty: Option[Boson] = Some(boson)
 
-    val buf0 = obj1.encode().getByteBuf.array()
+    val b1: Option[Boson] = boson.modify(netty, "John", _ => "Somebody")
+    val b2: Option[Boson] = Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))
 
-    val buf1 = new Boson().encode(Mapper.convert(obj1))
+    val buf0 = b1.get.getByteBuf
+    val buf1 = b2.get.getByteBuf
 
-    println("buf0 size = " + buf0.length + "    buf1 size = " + buf1.length)
+    println("Buf0 Size= " +  buf0.capacity() + " Buf1 Size= " + buf1.capacity())
+    println("Iguais? " + buf0.array().zip(buf1.array()).forall(b => b._1==b._2))
 
-    println("+++++++++++++++")
-   // buf0.foreach(b => println(b.toChar))
-
-    //println("+++++++++++++++")
-    //buf1.foreach(b => println(b.toChar))
-    val a2 = buf0.zip(buf1)
-    println("Bufs iguais= " + a2.forall( b => b._1==b._2))
+    buf0.array().zip(buf1.array()).foreach(b =>  println("char= " + b._1.toChar + " int= " + b._1.toInt + " byte= " + b._1 + "char= " + b._2.toChar + " int= " + b._2.toInt + " byte= " + b._2))
 
 
+    assert(buf0.array() === buf1.array())
+  }
 
-    a2.foreach(b2 => println("char= " + b2._1.toChar + " int= " + b2._1.toInt + " byte= " + b2._1 + "   char= " + b2._2.toChar + " int= " + b2._2.toInt + " byte= " + b2._2 ))
-  }*/
+  test("Encoding1") {
+
+  }
 
 }
