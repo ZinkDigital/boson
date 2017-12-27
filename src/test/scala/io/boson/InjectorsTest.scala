@@ -7,6 +7,7 @@ import io.boson.bson.bsonImpl.Boson
 import io.boson.bson.bsonValue.{BsException, BsSeq}
 import io.boson.bson.bsonImpl.injectors.EnumerationTest
 import io.boson.scalaInterface.ScalaInterface
+import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -53,7 +54,10 @@ class InjectorsTest extends FunSuite {
   val objArray: BsonArray = new BsonArray().add(long).add(bytearray1).add(ins).add(float).add(double).add(obj).add(bool).add(bsonArray)//.add(enum.A.toString)//.add(enumJava)
   val netty: Option[Boson] = Some(ext.createBoson(obj.encode().getBytes))
   val nettyArray: Option[Boson] = Some(ext.createBoson(objArray.encode().getBytes))
-
+  val bP: ByteProcessor = (value: Byte) => {
+    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+    true
+  }
   test("Injector: Deep Level bsonObject Root") {
     val obj3: BsonObject = new BsonObject().put("John", "Nobody")
     val obj2: BsonObject = new BsonObject().put("John", "Locke")
@@ -181,11 +185,13 @@ val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
 
   test("Injector: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = netty.get.modify(netty, "bObj", _ => newbObj.getMap)  //  .asScala.toMap
+    val b1: Option[Boson] = netty.get.modify(netty, "bObj", _ => Mapper.convert(newbObj))  //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => ext.parse(nb, "bObj", "all")
+      case Some(nb) =>
+        nb.getByteBuf.forEachByte(bP)
+        ext.parse(nb, "bObj", "all")
     }
     val s: Any = result.asInstanceOf[BsSeq].value.head
 

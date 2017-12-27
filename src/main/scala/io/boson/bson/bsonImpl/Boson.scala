@@ -5,6 +5,7 @@ import java.nio.charset.Charset
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
 import java.util
+import java.util.Map
 
 import Constants.{charset, _}
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -360,7 +361,7 @@ class Boson(
   }
 
   // Constructs a new BsonObject
-  private def traverseBsonObj(netty: ByteBuf, mapper: Map[Any, Any], bsonFinishReaderIndex: Int): Map[Any, Any] = {
+  private def traverseBsonObj(netty: ByteBuf, mapper: scala.collection.immutable.Map[Any, Any], bsonFinishReaderIndex: Int): scala.collection.immutable.Map[Any, Any] = {
     arrKeyDecode.clear()
     val seqType: Int = netty.readByte().toInt
     val newMap =
@@ -899,7 +900,8 @@ class Boson(
     * Se fieldID for vazia devolve o Boson Original
     *
     * */
-    var ocorrencias: Option[Int] = ocor
+    val ocorrencias: ListBuffer[Option[Int]] = new ListBuffer[Option[Int]]
+    ocorrencias.append(ocor)
     val originalSize: Int = buffer.readIntLE()
     val resultSizeBuffer: ByteBuf = Unpooled.buffer(4)
     while(buffer.readerIndex()<originalSize) {
@@ -933,14 +935,12 @@ class Boson(
               * */
               println(s"Found Field $fieldID == ${new String(x)}")
 
-              ocorrencias match{
+              ocorrencias.last match{
                 case None => modifierAll(buffer, dataType, f, result)
                 case Some(y: Int) if y == 0 =>modifierAll(buffer, dataType, f, result)
-                  ocorrencias = Option(ocorrencias.get-1)
+                  ocorrencias.append(Option(ocorrencias.last.get-1))
                 case Some(y: Int) if y != 0 =>
-                  ocorrencias = processTypesAll(dataType,buffer,result,fieldID,f, ocor = Option(ocorrencias.get-1))
-
-
+                  ocorrencias.append(processTypesAll(dataType,buffer,result,fieldID,f, ocor = Option(ocorrencias.last.get-1)))
               }
 
 
@@ -951,7 +951,7 @@ class Boson(
               * Consume value and check deeper Levels
               * */
               println(s"Didn't Found Field $fieldID == ${new String(x)}")
-              ocorrencias = processTypesAll(dataType,buffer,result,fieldID,f, ocor = ocorrencias)
+              ocorrencias.append(processTypesAll(dataType,buffer,result,fieldID,f, ocor = ocorrencias.last))
               //???
           }
       }
@@ -963,7 +963,7 @@ class Boson(
     * TODO - glue the bytebuf together [Size Result] - Not tested
     * */
     result.capacity(result.writerIndex())
-    (Unpooled.copiedBuffer(resultSizeBuffer.writeIntLE(result.capacity()+4), result), ocorrencias)
+    (Unpooled.copiedBuffer(resultSizeBuffer.writeIntLE(result.capacity()+4), result), ocorrencias.last)
   }
 
   private def compareKeysInj(buffer: ByteBuf, key: String): Boolean = {
@@ -1001,7 +1001,9 @@ class Boson(
 
         /* **************************** */
         val midResult: ByteBuf = Unpooled.wrappedBuffer(bufTillInterest, bufWithNewValue, bufRemainder)
+        println(s"iWHY STOP?")
         val newSi: Int = bufTillInterest.capacity()+bufWithNewValue.capacity()
+        println(s"iWHY STOP?")
         (Some(midResult), diff)
       } else {
         println("DIDNT FOUND FIELD")
@@ -1063,15 +1065,37 @@ class Boson(
             }
         }
       case D_BSONOBJECT =>
-        val valueLength: Int = buffer.readIntLE() //  length of current obj
-      val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
-        val newValue: Any = f(bsonObject)
+        val valueLength: Int = buffer.readIntLE()
+        val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
+        val newValue: Any = f(bsonArray)
         newValue match {
+          case x: util.Map[String, _]  =>
+            val res: (ByteBuf, Int) = Try(encode(x)) match {
+              case Success(v)=> (newBuffer.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }
+         /* case x: mutable.Map[String, _]  =>
+            Try(encode(newValue)) match {
+              case Success(v)=> (newBuffer.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }*/
+            res
+          case _ =>
+            if(newValue == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            }
+        }
+       /* val valueLength: Int = buffer.readIntLE()
+    val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
+    val newValue: Any = f(bsonArray)
+    newValue match {
           case bsonObject1: java.util.Map[_, _] =>
-            val buf: Array[Byte] = Mapper.encode(bsonObject1)
+            val buf: Array[Byte] = encode(bsonObject1)
             (newBuffer.writeBytes(buf), buf.length - valueLength)
           case bsonObject2: scala.collection.immutable.Map[_, Any] =>
-            val buf: Array[Byte] = Mapper.encode(bsonObject2)
+            val buf: Array[Byte] = encode(bsonObject2)
             (newBuffer.writeBytes(buf), buf.length - valueLength)
           case _ =>
             if(newValue == null){
@@ -1080,20 +1104,43 @@ class Boson(
               throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
             }
 
-        }
+        }*/
       case D_BSONARRAY =>
         val valueLength: Int = buffer.readIntLE()
         val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
         val newValue: Any = f(bsonArray)
         newValue match {
+          case x:util.List[_] =>
+            val res: (ByteBuf, Int) = Try(encode(x)) match {
+              case Success(v)=> (newBuffer.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }
+          /*case x:mutable.Buffer[_] =>
+            Try(encode(x)) match {
+              case Success(v)=> (newBuffer.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }*/
+            res
+          case _ =>
+            if(newValue == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
+            }
+        }
+
+       /* val valueLength: Int = buffer.readIntLE()
+        val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
+        val newValue: Any = f(bsonArray)
+        newValue match {
           case bsonArray1: java.util.List[_] =>
             // function to encode bsonArray list properly
-            val arr: Array[Byte] = Mapper.encode(bsonArray1)
+            val arr: Array[Byte] = encode(bsonArray1)
             arr.foreach(u => print(u.toChar))
             (newBuffer.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
 
           case bsonArray2: Array[Any] =>
-            val arr: Array[Byte] = Mapper.encode(bsonArray2)
+            val arr: Array[Byte] = encode(bsonArray2)
             (newBuffer.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
           case _ =>
             if(newValue == null){
@@ -1102,7 +1149,7 @@ class Boson(
               throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
             }
 
-        }
+        }*/
       case D_BOOLEAN =>
         val value: Any = f(buffer.readBoolean())
         value match {
@@ -1185,15 +1232,37 @@ class Boson(
             }
         }
       case D_BSONOBJECT =>
-        /*val valueLength: Int = buffer.readIntLE() //  length of current obj
-      val bsonObject: ByteBuf = buffer.readBytes(valueLength - 4)
-        val newValue: Any = f(bsonObject)
+        val valueLength: Int = buffer.readIntLE()
+        val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
+        val newValue: Any = f(bsonArray)
         newValue match {
+          case x: util.Map[String, _]  =>
+           val res: (ByteBuf, Int) = Try(encode(x)) match {
+              case Success(v)=> (result.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }
+          /*case x: mutable.Map[String, _]  =>
+            Try(encode(newValue)) match {
+              case Success(v)=> (result.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }*/
+            res
+          case _ =>
+            if(newValue == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
+            }
+        }
+        /*val valueLength: Int = buffer.readIntLE()
+      val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
+      val newValue: Any = f(bsonArray)
+      newValue match {
           case bsonObject1: java.util.Map[_, _] =>
-            val buf: Array[Byte] = Mapper.encode(bsonObject1)
+            val buf: Array[Byte] = encode(bsonObject1)
             (result.writeBytes(buf), buf.length - valueLength)
           case bsonObject2: scala.collection.immutable.Map[_, Any] =>
-            val buf: Array[Byte] = Mapper.encode(bsonObject2)
+            val buf: Array[Byte] = encode(bsonObject2)
             (result.writeBytes(buf), buf.length - valueLength)
           case _ =>
             if(newValue == null){
@@ -1203,18 +1272,40 @@ class Boson(
             }
         }*/
       case D_BSONARRAY =>
-       /* val valueLength: Int = buffer.readIntLE()
+        val valueLength: Int = buffer.readIntLE()
         val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
         val newValue: Any = f(bsonArray)
         newValue match {
-          case bsonArray1: java.util.List[_] =>
+          case x:util.List[_] =>
+           val res: (ByteBuf, Int) =  Try(encode(x)) match {
+              case Success(v)=> (result.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }
+          /*case x:mutable.Buffer[_] =>
+            Try(encode(x)) match {
+              case Success(v)=> (result.writeBytes(v), v.length-valueLength)
+              case Failure(e) => throw  CustomException(e.getMessage)
+            }*/
+            res
+          case _ =>
+            if(newValue == null){
+              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
+            }else{
+              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
+            }
+        }
+        /*val valueLength: Int = buffer.readIntLE()
+      val bsonArray: ByteBuf = buffer.readBytes(valueLength - 4)
+      val newValue: Any = f(bsonArray)
+        newValue match{
+          case bsonArray1: util.List[_] =>
             // function to encode bsonArray list properly
-            val arr: Array[Byte] = Mapper.encode(bsonArray1)
+            val arr: Array[Byte] = encode(bsonArray1)
             arr.foreach(u => print(u.toChar))
             (result.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
 
           case bsonArray2: Array[Any] =>
-            val arr: Array[Byte] = Mapper.encode(bsonArray2)
+            val arr: Array[Byte] = encode(bsonArray2)
             (result.writeBytes(arr), arr.length - valueLength) //  ZERO  for now, cant be zero
           case _ =>
             if(newValue == null){
@@ -1450,7 +1541,7 @@ class Boson(
       case D_ZERO_BYTE =>
         println("case zero_byte")
         result.writeZero(1)
-        None
+        ocor
       case D_FLOAT_DOUBLE =>
         // process Float or Double
         println("D_FLOAT_DOUBLE")
@@ -1501,7 +1592,6 @@ class Boson(
         ocor
     }
   }
-
 
   def findOcorrences(buf: ByteBuf, fieldID: String): ListBuffer[Int] = {
     val list: ListBuffer[Int] = new ListBuffer[Int]
@@ -1612,62 +1702,137 @@ class Boson(
     list
   }
 
-  private def encode(buffer: Array[Byte]): Array[Byte] = {
-    val sizeBuf: ByteBuf = Unpooled.buffer(4)
-    val originalBuf: ByteBuf = Unpooled.buffer().writeBytes(buffer).capacity(buffer.length)
-    val encodedBuf: ByteBuf = Unpooled.buffer()
-    println(originalBuf.getByte(originalBuf.readerIndex()).toChar)
-    originalBuf.readByte().toChar match {
-      case '[' => encodeBsonArray(originalBuf, encodedBuf, 0)
-      case '{' => encodeBsonObject(originalBuf, encodedBuf)
-      case _ => throw CustomException("Input should start with '[' or '{'")
+  def encode(bson: Any): Array[Byte] = {
+   val res: ByteBuf =  bson match {
+      case list: util.List[_] => encodeBsonArray(list)
+      //case list: mutable.Buffer[_] => encodeBsonArray(list)
+      case map : util.Map[String, _] => encodeBsonObject(map)
+      //case map : mutable.Map[String, _] => encodeBsonObject(map)
+      case _ => throw CustomException("Wrong input type.")
     }
-    encodedBuf.capacity(encodedBuf.writerIndex())
-    sizeBuf.writeIntLE(encodedBuf.capacity())
-    val result: ByteBuf = Unpooled.copiedBuffer(sizeBuf, encodedBuf)
-    if(result.hasArray){
-      result.array()
+    println("Has Array? " + res.hasArray)
+    if(res.hasArray) {
+      res.array()
     }else{
-      val resultByteArray: Array[Byte] = new Array[Byte](result.capacity())
-      result.readBytes(resultByteArray)
-      resultByteArray
+      res.duplicate().array()
     }
   }
 
-  def encodeBsonArray(buf: ByteBuf, buf1: ByteBuf, nextIdx: Int): ByteBuf = {
-    ???
-  }
+  private def encodeBsonArray(list: util.List[_]): ByteBuf = {
+    val bufSize: ByteBuf = Unpooled.buffer(4)
+    val buf: ByteBuf = Unpooled.buffer()
+    val numElems: Int = list.size
 
-  def encodeBsonObject(buf: ByteBuf, buf1: ByteBuf): ByteBuf = {
-    ???
-  }
-
-  def test(map: mutable.Map[String, AnyRef]): Unit ={
-
-    val json = new JsonObject(map.asJava)
-    println("json = " + json)
-
-    val value: AnyRef = json.getValue("fridgeTemp")
-    println("value = " +value)
-    val valueClass: String = value.getClass.getSimpleName
-    println("valueClass = " + valueClass)
-    valueClass match {
-      case "JsonObject" => {
-        //val json = new JsonObject(value)
-        println("BsonObject = " + json)
-        val valueBO = json.getValue("fridgeTemp")
-        println("valueBO = " +valueBO)
-        println("valueBO type = " + valueBO.getClass.getSimpleName)
-      }
-      case "JsonArray" => {
-        val json = new JsonArray(value.toString)
-        println("bsonArray = " + json)
-        println("BsonObject = " + json)
-        val valueBO = json.getValue(0)
-        println("valueBO = " +valueBO)
-        println("valueBO type = " + valueBO.getClass.getSimpleName)
+    for( num <- 0 until numElems){
+      val elem: Any = list.get(num)
+      elem match {
+      case x: Float =>
+        println("D_FLOAT_DOUBLE")
+        buf.writeByte(D_FLOAT_DOUBLE).writeBytes(num.toString.getBytes).writeZero(1).writeDoubleLE(x.toDouble)
+      case x: Double =>
+        println("D_FLOAT_DOUBLE")
+        buf.writeByte(D_FLOAT_DOUBLE).writeBytes(num.toString.getBytes).writeZero(1).writeDoubleLE(x)
+      case x: Array[Byte] =>
+        println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+        buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x).writeZero(1)
+      case x: Instant =>
+        println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+        buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.toString.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
+      case x: String =>
+        println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+        buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x.getBytes).writeZero(1)
+      case x: CharSequence =>
+        println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+        buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
+      case x: util.Map[String, _] =>
+        println("D_BSONOBJECT")
+        buf.writeByte(D_BSONOBJECT).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonObject(x))
+      /*case x: mutable.Map[String, _] =>
+        println("D_BSONOBJECT")
+        buf.writeByte(D_BSONOBJECT).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonObject(x))*/
+      case x: util.List[_] =>
+        println("D_BSONARRAY")
+        buf.writeByte(D_BSONARRAY).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonArray(x))
+      /*case x: mutable.Buffer[_] =>
+        println("D_BSONARRAY")
+        buf.writeByte(D_BSONARRAY).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonArray(x))*/
+      case x if Option(x).isEmpty  =>
+        buf.writeByte(D_NULL).writeBytes(num.toString.getBytes).writeZero(1)
+      case x: Int =>
+        println("D_INT")
+        buf.writeByte(D_INT).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x)
+      case x: Long =>
+       println("D_LONG")
+        buf.writeByte(D_LONG).writeBytes(num.toString.getBytes).writeZero(1).writeLongLE(x)
+      case x: Boolean =>
+        println("D_BOOLEAN")
+        buf.writeByte(D_BOOLEAN).writeBytes(num.toString.getBytes).writeZero(1).writeBoolean(x)
+      case _ =>
+        println("Something happened")
       }
     }
+    buf.writeZero(1)
+    buf.capacity(buf.writerIndex())
+    bufSize.writeIntLE(buf.capacity()+4)
+    Unpooled.copiedBuffer(bufSize, buf)
+  }
 
+  private def encodeBsonObject(map: util.Map[String, _]): ByteBuf = {
+    val bufSize: ByteBuf = Unpooled.buffer(4)
+    val buf: ByteBuf = Unpooled.buffer()
+    val numElems: List[(String, Any)] = map.asScala.toList
+
+    for( num <- numElems){
+      val elem: (String, Any) = num
+      elem._2 match {
+        case x: Float =>
+          println("D_FLOAT_DOUBLE")
+          buf.writeByte(D_FLOAT_DOUBLE).writeBytes(elem._1.getBytes()).writeZero(1).writeDoubleLE(x.toDouble)
+        case x: Double =>
+          println("D_FLOAT_DOUBLE")
+          buf.writeByte(D_FLOAT_DOUBLE).writeBytes(elem._1.getBytes()).writeZero(1).writeDoubleLE(x)
+        case x: Array[Byte] =>
+          println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.length+1).writeBytes(x).writeZero(1)
+        case x: Instant =>
+          println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.toString.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
+        case x: String =>
+          println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.length+1).writeBytes(x.getBytes).writeZero(1)
+        case x: CharSequence =>
+          println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
+        /*case x: mutable.Map[String, _] =>
+          println("D_BSONOBJECT")
+          buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))*/
+        case x: util.Map[String, _] =>
+          println("D_BSONOBJECT")
+          buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))
+        case x: util.List[_] =>
+          println("D_BSONARRAY")
+          buf.writeByte(D_BSONARRAY).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonArray(x))
+        /*case x: mutable.Buffer[_] =>
+          println("D_BSONARRAY")
+          buf.writeByte(D_BSONARRAY).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonArray(x))*/
+        case x if Option(x).isEmpty  =>
+          buf.writeByte(D_NULL).writeBytes(elem._1.getBytes()).writeZero(1)
+        case x: Int =>
+          println("D_INT")
+          buf.writeByte(D_INT).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x)
+        case x: Long =>
+          println("D_LONG")
+          buf.writeByte(D_LONG).writeBytes(elem._1.getBytes()).writeZero(1).writeLongLE(x)
+        case x: Boolean =>
+          println("D_BOOLEAN")
+          buf.writeByte(D_BOOLEAN).writeBytes(elem._1.getBytes()).writeZero(1).writeBoolean(x)
+        case _ =>
+          println("Something happened")
+      }
+    }
+    buf.writeZero(1)
+    buf.capacity(buf.writerIndex())
+    bufSize.writeIntLE(buf.capacity()+4)
+    Unpooled.copiedBuffer(bufSize, buf)
   }
 }
