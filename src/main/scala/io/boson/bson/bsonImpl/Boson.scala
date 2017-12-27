@@ -1246,7 +1246,7 @@ class Boson(
               case Success(v)=> (result.writeBytes(v), v.length-valueLength)
               case Failure(e) => throw  CustomException(e.getMessage)
             }*/
-            res
+
           case _ =>
             if(newValue == null){
               throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
