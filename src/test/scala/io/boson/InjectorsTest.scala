@@ -228,7 +228,7 @@ val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
   }
 
   test("Injector: BsonArray => BsonArray") {
-    val b1: Option[Boson] = netty.get.modify(netty, "bsonArray", _ => newbsonArray.getList) //  .asScala.toArray[Any]
+    val b1: Option[Boson] = netty.get.modify(netty, "bsonArray", _ => Mapper.convert(newbsonArray)) //  .asScala.toArray[Any]
 
     val result: Any = b1 match {
       case None => List()
@@ -355,7 +355,7 @@ val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
 
   test("Injector BsonArray: BsonObject => BsonObject") {
 
-    val b1: Option[Boson] = netty.get.modify(nettyArray, "bObj", _ => newbObj.getMap) //  .asScala.toMap
+    val b1: Option[Boson] = netty.get.modify(nettyArray, "bObj", _ => Mapper.convert(newbObj)) //  .asScala.toMap
 
     val result: Any = b1 match {
       case None => List()
@@ -397,7 +397,7 @@ val boson: Boson = new Boson(byteArray = Option(bsonEvent.encode().getBytes))
 
   test("Injector BsonArray: BsonArray => BsonArray") {
 
-    val b1: Option[Boson] = netty.get.modify(nettyArray, "bsonArray", _ => newbsonArray.getList)
+    val b1: Option[Boson] = netty.get.modify(nettyArray, "bsonArray", _ => Mapper.convert(newbsonArray))
 
     val result: Any = b1 match {
       case None => List()
