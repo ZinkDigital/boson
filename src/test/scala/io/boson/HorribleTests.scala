@@ -8,6 +8,7 @@ import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
 import io.boson.bson.bsonValue
+import org.junit.Assert.assertEquals
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
@@ -150,10 +151,11 @@ class HorribleTests extends FunSuite {
     val expression: String = "   José.[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List(
+    assertEquals(BsSeq(List(
       List("Tarantula", "Aracnídius", List("Insecticida")),
       List("Spider"),
-      List("Fly"))) === result)
+      List("Fly")
+    )), result)
   }
 
   test("array prob 2") {
@@ -161,27 +163,32 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     println(s"result in Test: $result")
-    assert(BsSeq(List(
-      List(
+    assertEquals(BsSeq(List(
         Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
         Map("José" -> List("Spider")),
         Map("José" -> List("Fly")),
-        List("Insecticida"))))=== result)
+        List("Insecticida")
+      )), result)
   }
 
   test("array prob 3") {
     val expression: String = "first"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List(
-      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))))) === result)
+    assertEquals(BsSeq(List(
+      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida")))
+    )), result)
   }
 
   test("array prob 4") {
     val expression: String = "   José . first"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List("Tarantula", "Aracnídius", List("Insecticida"))) === result)
+    assertEquals(BsSeq(List(
+      "Tarantula",
+      "Aracnídius",
+      List("Insecticida")
+    )), result)
   }
 
   test("array prob 5") {

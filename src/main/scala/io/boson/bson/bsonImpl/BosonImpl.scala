@@ -13,6 +13,8 @@ import io.netty.buffer.{ByteBuf, Unpooled}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.{Failure, Success, Try}
 
+import io.boson.bson.bsonPath.Compose
+
 
 /**
   * Created by Ricardo Martins on 18/09/2017.
@@ -382,7 +384,7 @@ class BosonImpl(
           val arrayStartReaderIndex: Int = netty.readerIndex()
           val valueLength: Int = netty.readIntLE()
           val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-          mapper + (new String(arrKeyDecode.toArray) -> traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList))
+          mapper + (new String(arrKeyDecode.toArray) -> Compose.composer(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList).toArray))
         case D_BOOLEAN =>
           extractKeys(netty)
           val value: Int = netty.readByte()
