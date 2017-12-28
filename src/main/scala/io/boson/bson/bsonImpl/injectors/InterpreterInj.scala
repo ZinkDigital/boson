@@ -1,9 +1,11 @@
 package io.boson.bson.bsonImpl.injectors
 
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.{Boson, CustomException}
 import io.boson.bson.bsonValue
+import io.boson.bson.bsonValue.BsBoson
 import io.boson.scalaInterface.ScalaInterface
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -24,13 +26,7 @@ class InterpreterInj(boson: Boson, key: String, f: Any => Any, program: ProgramI
           executeSelect(selectType)
 
         case ArrExpr(left: Int, mid: String, right: Any) => // "[# .. #]"
-          executeArraySelect(left, mid, right) match {
-            case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-            case v =>
-              bsonValue.BsObject.toBson {
-                for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
-              }
-          }
+          executeArraySelect(left, mid, right)
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
@@ -65,7 +61,56 @@ class InterpreterInj(boson: Boson, key: String, f: Any => Any, program: ProgramI
     }
   }
 
-  def executeArraySelect(left: Int, mid: String, right: Any): Seq[Any] = {
-    ???
+  def executeArraySelect(left: Int, mid: String, right: Any): bsonValue.BsValue = {
+
+    (left, mid.toLowerCase(), right) match {
+      case (a, "until", "end") =>
+
+        val list: ListBuffer[String] = boson.countArrayPositions
+        list.-=(list.last)
+        val midResult = Try(boson.modifyArrayWithList(list.toList, f))
+        //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
+
+        midResult match {
+          case Success(v) => bsonValue.BsObject.toBson(v)
+          case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+        }
+
+      case (a, "to", "end") => // "[# .. end]"
+        val list: ListBuffer[String] = boson.countArrayPositions
+        val midResult = Try(boson.modifyArrayWithList(list.toList, f))
+        //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
+        midResult match {
+          case Success(v) => bsonValue.BsObject.toBson(v)
+          case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+        }
+
+      case (a, expr, b) if b.isInstanceOf[Int] =>
+        expr match {
+          case "to" =>
+            val range: Range = a to b.asInstanceOf[Int]
+            val list: ListBuffer[String] = new ListBuffer[String]
+            range.foreach( c => list.append(c.toString))
+            val midResult = Try(boson.modifyArrayWithList(list.toList, f))
+            //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
+            midResult match {
+              case Success(v) => bsonValue.BsObject.toBson(v)
+              case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+            }
+          case "until" =>
+            val range: Range = a until b.asInstanceOf[Int]
+            val list: ListBuffer[String] = new ListBuffer[String]
+            range.foreach( c => list.append(c.toString))
+            val midResult = Try(boson.modifyArrayWithList(list.toList, f))
+            //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
+            midResult match {
+              case Success(v) => bsonValue.BsObject.toBson(v)
+              case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+            }
+        }
+      case _ => bsonValue.BsException.apply("Invalid Expression.")
+    }
   }
+
+
 }

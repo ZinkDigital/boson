@@ -41,7 +41,7 @@ class Interpreter(boson: Boson, key: String, program: Program) {
 
   private def executeSizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar): bsonValue.BsValue = {
     val midResult = executeArraySelect(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)
-    val result =
+    val result: Seq[Any] =
       midResult match {
         case Seq() => Seq.empty
         case value =>
