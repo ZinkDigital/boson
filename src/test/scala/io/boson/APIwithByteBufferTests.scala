@@ -30,6 +30,10 @@ class APIwithByteBufferTests extends FunSuite{
   validatedByteBuffer.put(validatedByteArray)
   validatedByteBuffer.flip()
 
+  val validatedByteBufferObj: ByteBuffer = ByteBuffer.allocate(validatedByteArrayObj.length)
+  validatedByteBufferObj.put(validatedByteArrayObj)
+  validatedByteBufferObj.flip()
+
   test("extract PosV1 w/ key") {
     val expression: String = "[2 to 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -84,9 +88,9 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Seq(
       Map("José" -> List("Fly"))
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV1 w/ key") {
@@ -132,8 +136,7 @@ class APIwithByteBufferTests extends FunSuite{
 
     assertEquals(BsSeq(Seq(
       Seq("Spider"),
-      Seq("Fly"),
-      Seq("Insecticida")
+      Seq("Fly")
     )), future.join())
   }
 
@@ -143,9 +146,194 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Seq(
       Map("José" -> List("Fly"))
-    ))), future.join())
+    )), future.join())
+  }
+
+  test("extract first w/ key") {
+    val expression: String = "first"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBuffer)
+
+    assertEquals(BsSeq(Seq(
+      2.2f
+    )), future.join())
+  }
+
+  test("extract last w/ key") {
+    val expression: String = "last"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBuffer)
+
+    assertEquals(BsSeq(Seq(
+      Seq("Insecticida")
+    )), future.join())
+  }
+
+  test("extract all w/ key") {
+    val expression: String = "all"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBuffer)
+
+    assertEquals(BsSeq(Seq(
+      2.2f,
+      Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
+      Map("José" -> Seq("Spider")),
+      Map("José" -> Seq("Fly")),
+      Seq("Insecticida")
+    )), future.join())
+  }
+
+  test("extract PosV1") {
+    val expression: String = "José.[0 until end]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+    assertEquals(BsSeq(Seq(
+      Seq("Tarantula", "Aracnídius"),
+      Seq(),
+      Seq()
+    )), future.join())
+  } // TODO: review this case
+
+  test("extract PosV2") {
+    val expression: String = "José.[0 to end]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBuffer)
+    assertEquals(BsSeq(Seq(
+      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
+  }
+
+  test("extract PosV3") {
+    val expression: String = "José.[1 to 2]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+    assertEquals(BsSeq(Seq(
+      "Aracnídius",
+      Seq("Insecticida")
+    )), future.join())
+  }
+
+  test("extract PosV4") {
+    val expression: String = "StartUp.[1 to 2]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+    assertEquals(BsSeq(Seq(
+      Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
+      Map("José" -> Seq("Spider"))
+    )), future.join())
+  }
+
+  test("extract PosV5") {
+    val expression: String = "StartUp.[3]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+
+    assertEquals(BsSeq(Seq(
+      Map("José" -> Seq("Fly"))
+    )), future.join())
+  }
+
+  test("extract with 2nd Key PosV1") {
+    val expression: String = "StartUp.[0 until end].José"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+    assertEquals(BsSeq(Seq(
+      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
+  }
+
+  test("extract with 2nd Key PosV2") {
+    val expression: String = "StartUp.[2 to end].José"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+    assertEquals(BsSeq(Seq(
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
+  }
+
+  test("extract with 2nd Key PosV3") {
+    val expression: String = "StartUp.[2 to 3].José"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+    assertEquals(BsSeq(Seq(
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
+  }
+
+  test("extract with 2nd Key PosV4") {
+    val expression: String = "StartUp.[2 until 3].José"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+    assertEquals(BsSeq(Seq(
+      Seq("Spider")
+    )), future.join())
+  }
+
+  test("extract with 2nd Key PosV5") {
+    val expression: String = "StartUp.[4].José"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj)
+    assertEquals(BsSeq(Seq()), future.join())
+  }
+
+  test("extract first") {
+    val expression: String = "StartUp.first"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+
+    assertEquals(BsSeq(Seq(
+      2.200000047683716,
+      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
+      Map("José" -> List("Spider")),
+      Map("José" -> List("Fly")),
+      List("Insecticida")
+    )), future.join())
+  }
+
+  test("extract last") {
+    val expression: String = "José.last"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+
+    assertEquals(BsSeq(Seq(
+      "Fly"
+    )), future.join())
+  }
+
+  test("extract all") {
+    val expression: String = "José.all"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+
+    assertEquals(BsSeq(Seq(
+      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
   }
 
 }

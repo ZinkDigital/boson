@@ -98,7 +98,6 @@ class BosonImpl(
       case _ =>
         netty.getByte(startReaderIndex + 5).toInt match {
           case 48 => // root obj is BsonArray, call extractFromBsonArray
-            println("Root BsonArray")
             netty.readIntLE()
             val arrayFinishReaderIndex: Int = startReaderIndex + size
             val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitA, limitB)
@@ -141,7 +140,6 @@ class BosonImpl(
           }
         case D_BSONOBJECT =>
           if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
-            println("match object")
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -156,18 +154,16 @@ class BosonImpl(
           }
         case D_BSONARRAY =>
           if (compareKeys(netty, keyList.head._1)) {
-            println("match an array")
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             if(keyList.size<2) {
-              println(s"construct array with only 1 keylist with limits: a -> $limitA, b -> $limitB")
               Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList, limitA, limitB).toArray[Any]) match {
                 case Some(value) if value.isEmpty => None
                 case Some(value) => Some(value)
               }
             } else {
-              Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any]) match {
+              Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any]) match { // limits here should probably None
                 case Some(value) if value.isEmpty => None
                 case Some(value) => Some(value)
               }
@@ -241,10 +237,8 @@ class BosonImpl(
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String,String)], limitA: Option[Int], limitB: Option[Int]): Iterable[Any] = {
     keyList.head._1 match {
       case "" => // Constructs a new BsonArray, BsonArray is Root
-        println("empty key")
         val result =
           if(keyList.size<2) {
-            println("empty key without secondKey")
             Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], keyList, limitA, limitB).toArray[Any])
           } else {
             Some(traverseBsonArray(netty, length, arrayFRIdx, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any])
@@ -379,7 +373,6 @@ class BosonImpl(
           val map = scala.collection.immutable.Map[Any, Any]()
           mapper + (new String(arrKeyDecode.toArray) -> traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
         case D_BSONARRAY =>
-          println("traverse bsonobject, found array")
           extractKeys(netty)
           val arrayStartReaderIndex: Int = netty.readerIndex()
           val valueLength: Int = netty.readIntLE()
@@ -417,7 +410,7 @@ class BosonImpl(
   private def traverseBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, seq: Seq[Any], keyList: List[(String,String)], limitA: Option[Int] = None, limitB: Option[Int] = None): Seq[Any] = {
 
     def constructWithLimits(iter: Int, seq: Seq[Any]): Seq[Any] = {
-      println(s"inside constructWithLimits with iter:$iter")
+      println(s"POS: $iter, keyList: $keyList")
       val seqType2: Int = netty.readByte().toInt
       val arrayPos: Int =
         if (seqType2 != 0) {
@@ -426,52 +419,53 @@ class BosonImpl(
       val newSeq =
         seqType2 match {
           case D_FLOAT_DOUBLE =>
+            println(s"traverseBsonArray, found double/float, limitB: $limitB, limitA: $limitA")
             val value: Double = netty.readDoubleLE()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                //bsonArr.add(value)
-                seq.:+(value)
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                else seq.:+(value)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    //bsonArr.add(value)
-                    seq.:+(value)
-                  case Some(_) => seq
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                    else seq.:+(value)
+                  case Some(_) =>
+                    println("didnt added")
+                    seq
                   case None =>
-                    //bsonArr.add(value)
                     seq.:+(value)
                 }
             }
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-            println("arrbyte")
+            println(s"traverseBsonArray, found string, limitB: $limitB, limitA: $limitA")
             val valueLength: Int = netty.readIntLE()
             val field: CharSequence = netty.readCharSequence(valueLength - 1, charset)
             netty.readByte()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                //bsonArr.add(field)
-                seq.:+(field)
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                else seq.:+(field)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    //bsonArr.add(field)
-                    seq.:+(field)
-                  case Some(_) => seq
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                    else seq.:+(field)
+                  case Some(_) =>
+                    println("didnt added")
+                    seq
                   case None =>
-                    println("added the field")
-                    //bsonArr.add(field)
                     seq.:+(field)
                 }
             }
           case D_BSONOBJECT =>
-            println("object in position arr")
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             val map = scala.collection.immutable.Map[Any, Any]()
-            println(s"limits: a -> $limitA, b -> $limitB")
+            println(s"traverseBsonArray, found BsonObject, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq.:+(extractFromBsonObj(netty,keyList,bsonFinishReaderIndex,None,None))
@@ -483,36 +477,40 @@ class BosonImpl(
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) {
-                      println("inside limits with condition all")
                       seq.:+(extractFromBsonObj(netty,keyList,bsonFinishReaderIndex,None,None))}
                     else {
-                      println("inside limits")
                       seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex,keyList))}
                   case Some(_) =>
                     netty.readerIndex(bsonFinishReaderIndex)
+                    println("didnt added")
                     seq
                   case None =>
-                    println("get entire object")
                     seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex,keyList))
                 }
             }
           case D_BSONARRAY =>
-            println("array in position arr")
             val startReaderIndex: Int = netty.readerIndex()
             val valueLength2: Int = netty.readIntLE()
             val finishReaderIndex: Int = startReaderIndex + valueLength2
-            println(s"limits: a -> $limitA, b -> $limitB, condition: ${keyList.head._2}")
+            println(s"traverseBsonArray, found BsonArray, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) {
+                  println("traverseBsonArray, found BsonArray, has limitB, inside limits, condition all")
+                  seq.:+(extractFromBsonArray(netty,valueLength2,finishReaderIndex,keyList,None,None))}
+                else seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
               case Some(_) =>
                 netty.readerIndex(finishReaderIndex)
                 seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) {
+                      println("traverseBsonArray, found BsonArray, None limitB, inside limits, condition all")
+                      seq.:+(extractFromBsonArray(netty,valueLength2,finishReaderIndex,keyList,None,None))}
+                    else seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
                   case Some(_) =>
+                    println("didnt added")
                     netty.readerIndex(finishReaderIndex)
                     seq
                   case None =>
@@ -521,86 +519,90 @@ class BosonImpl(
             }
           case D_BOOLEAN =>
             val value: Int = netty.readByte()
+            println(s"traverseBsonArray, found Boolean, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                //bsonArr.add(value == 1)
-                seq.:+(value == 1)
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                else seq.:+(value == 1)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    //bsonArr.add(value == 1)
-                    seq.:+(value == 1)
-                  case Some(_) => seq
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                    else seq.:+(value == 1)
+                  case Some(_) =>
+                    println("didnt added")
+                    seq
                   case None =>
-                    //bsonArr.add(value == 1)
                     seq.:+(value == 1)
                 }
             }
           case D_NULL =>
+            println(s"traverseBsonArray, found null, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                //bsonArr.addNull()
-                seq.:+(null)
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                else seq.:+(null)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    //bsonArr.addNull()
-                    seq.:+(null)
-                  case Some(_) => seq
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                    else seq.:+(null)
+                  case Some(_) =>
+                    println("didnt added")
+                    seq
                   case None =>
-                    //bsonArr.addNull()
                     seq.:+(null)
                 }
             }
           case D_INT =>
             val value: Int = netty.readIntLE()
+            println(s"traverseBsonArray, found Int, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                //bsonArr.add(value)
-                seq.:+(value)
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                else seq.:+(value)
               case Some(_) => seq
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    //bsonArr.add(value)
-                    seq.:+(value)
-                  case Some(_) => seq
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                    else seq.:+(value)
+                  case Some(_) =>
+                    println("didnt added")
+                    seq
                   case None =>
-                    //bsonArr.add(value)
                     seq.:+(value)
                 }
             }
           case D_LONG =>
             val value: Long = netty.readLongLE()
+            println(s"traverseBsonArray, found Long, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
-                //bsonArr.add(value)
-                seq.:+(value)
-              case Some(_) => seq
+                if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                else seq.:+(value)
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
-                    //bsonArr.add(value)
-                    seq.:+(value)
-                  case Some(_) => seq
+                    if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
+                    else seq.:+(value)
+                  case Some(_) =>
+                    println("didnt added")
+                    seq
                   case None =>
-                    //bsonArr.add(value)
                     seq.:+(value)
                 }
             }
           case D_ZERO_BYTE =>
             seq
         }
-      //println(s"keyList.head._2: ${keyList.head._2} with seq: $seq, limitA: ${limitA.get}")
       if(limitA.isDefined) {
         keyList.head._2 match {
-          case ("onePos" | "onePos2nd") if arrayPos == limitA.get =>  //  this .get is making problems
-            println("bsarray contruct onePos")
+          case ("onePos" | "onePos2nd") if arrayPos == limitA.get =>
             newSeq
           case _ =>
-            println("case not ended")
             val actualPos2 = arrayFRIdx - netty.readerIndex()
             actualPos2 match {
               case x if x > 0 =>
