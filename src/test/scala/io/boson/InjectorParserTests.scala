@@ -212,6 +212,7 @@ class InjectorParserTests extends FunSuite {
     val resultBoson: BsValue = si.parseInj(netty.get, key, x => x.asInstanceOf[Int]*4,  "[0 to end]")
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
+        ex
       case nb: BsBoson =>
         si.parse(nb.getValue, key, "all")
       case _ => List()
@@ -227,6 +228,7 @@ class InjectorParserTests extends FunSuite {
     val resultBoson: BsValue = si.parseInj(netty.get, key, x => x.asInstanceOf[Int]*4, condition)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
+        ex
       case nb: BsBoson =>
         si.parse(nb.getValue, key, "all")
       case _ => List()
@@ -242,6 +244,7 @@ class InjectorParserTests extends FunSuite {
     val resultBoson: BsValue = si.parseInj(netty.get, key, x => x.asInstanceOf[Int]*4, condition)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
+        ex
       case nb: BsBoson =>
         si.parse(nb.getValue, key, "all")
       case _ => List()
@@ -257,6 +260,7 @@ class InjectorParserTests extends FunSuite {
     val resultBoson: BsValue = si.parseInj(netty.get, key, x => x.asInstanceOf[Int]*4, condition)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
+        ex
       case nb: BsBoson =>
         si.parse(nb.getValue, key, "all")
       case _ => List()
@@ -269,16 +273,6 @@ class InjectorParserTests extends FunSuite {
     val key: String = ""
     val condition: String =  "[2 to 4]"
     val netty: Option[Boson] = Some(si.createBoson(bsonEventArray1.encode().getBytes))
-    val fn: (Any) => Int = (x:Any) => {
-      val s: Int = x.isInstanceOf[Int] match {
-        case true => x.asInstanceOf[Int]
-        case false => throw CustomException("Erro de tipos")
-      }
-s*4
-    }
-
-
-
     val resultBoson: BsValue = si.parseInj(netty.get, key, x => x.asInstanceOf[Int]*4, condition)
     val resultParser: Any = resultBoson match {
       case ex: BsException =>
@@ -292,7 +286,7 @@ s*4
     assert("Type Error. Cannot Cast boolean inside the Injector Function." === resultParser.asInstanceOf[BsException].getValue)
   }
 
-  test("Modify vs ModifyAll") {
+  /*test("Modify vs ModifyAll") {
     val obj3: BsonObject = new BsonObject().put("John", "Nobody")
     val obj2: BsonObject = new BsonObject().put("John", "Locke")
     val arr2: BsonArray = new BsonArray().add(obj2)
@@ -316,13 +310,16 @@ s*4
 
 
     assert(buf0.array() === buf1.array())
-  }
+  }*/
 
-  test("reverse") {
-
-
-
-
-  }
+  /*test("reverse") {
+    val fn: (Any) => Int = (x:Any) => {
+      val s: Int = x.isInstanceOf[Int] match {
+        case true => x.asInstanceOf[Int]
+        case false => throw CustomException("Erro de tipos")
+      }
+s*4
+    }
+  }*/
 
 }

@@ -966,18 +966,14 @@ class Boson(
     * */
     val buffer: ByteBuf = this.getByteBuf.duplicate()
     val ocorrencias: ListBuffer[String] = new ListBuffer[String]
-    //ocorrencias.append(ocor)
     val originalSize: Int = buffer.readIntLE()
     val resultSizeBuffer: ByteBuf = Unpooled.buffer(4)
     while(buffer.readerIndex()<originalSize && ocorrencias.length!=fieldID.length) {
       val dataType: Int = buffer.readByte().toInt
       println("Data Type= " + dataType)
-
-
       dataType match {
         case 0 =>
           result.writeByte(dataType)
-        //modifyAll(buffer, fieldID, f, result)
         case _ =>
           result.writeByte(dataType)
           val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
@@ -986,11 +982,9 @@ class Boson(
               val b: Byte = buffer.readByte()
               key.append(b)
             }
-
             val b: Byte = buffer.readByte()
             (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
           }
-
           println(s"isArray=$isArray  String=${new String(key)}")
           result.writeBytes(key).writeByte(b)
           new String(key) match {
@@ -1014,52 +1008,15 @@ class Boson(
               throw CustomException("Root is not a BsonArray")
           }
       }
-      /*
-      * modifyAll ??
-      * */
     }
-
     if(buffer.readerIndex()==originalSize && ocorrencias.length<fieldID.length){
       throw CustomException("Wrong Indexes values")
     }
-    /*
-    * TODO - glue the bytebuf together [Size Result] - Not tested
-    * */
-    //val remainder: Int = buffer.readableBytes()
     result.writeBytes(buffer.discardReadBytes())
     result.capacity(result.writerIndex())
     new Boson(byteArray = Option(Unpooled.copiedBuffer(resultSizeBuffer.writeIntLE(result.capacity()+4), result).array()))
   }
 
-  /*def modifyArrayWithAB(index1:Option[Int]=None, index2:Option[Int]=None, condition: String, f:(Any)=>Any, result:ByteBuf=Unpooled.buffer()):ByteBuf={
-    /*
-    * Se fieldID for vazia devolve o Boson Original
-    *
-    * */
-    val buffer: ByteBuf = this.getByteBuf.duplicate()
-
-    (index1, index2, condition.toLowerCase) match{
-      case (None, None, _) => throw CustomException("No valid values for indexes A and B [A ... B]")
-      case (Some(x:Int), Some(y:Int), "until") =>
-        val range: Range = x until y
-        val listValue: List[String] = range.toList.mapConserve(i => i.toString)
-        val result: ByteBuf = modifyArrayWithList(listValue, f)
-        result
-      case (Some(x:Int), Some(y:Int), "to") =>
-        val range: Range = x to y
-        val listValue: List[String] = range.toList.mapConserve(i => i.toString)
-        val result: ByteBuf = modifyArrayWithList(listValue, f)
-        result
-      case (Some(x:Int), None, "until") =>
-        val list: ListBuffer[String] = countArrayPositions
-
-      case (Some(x:Int), None, "to") =>
-        val list: ListBuffer[String] = countArrayPositions
-      case _ =>throw CustomException("No valid values for indexes A and B [A ... B] or condition. ")
-    }
-    result
-  }
-*/
   private def processTypesArray(dataType: Int, buffer: ByteBuf, result: ByteBuf) = {
     dataType match {
       case D_ZERO_BYTE =>
@@ -1296,6 +1253,7 @@ class Boson(
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
+
         val value: Any = applyFunction(f, new String(Unpooled.copiedBuffer(buffer.readBytes(length)).array()))
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
@@ -1398,6 +1356,7 @@ class Boson(
       case Failure(e) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
     }
   }
+
   private def readArrayPosInj(netty: ByteBuf): Char = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = netty.readerIndex()
@@ -1992,5 +1951,34 @@ newValue match {
        }
 
    }*/
+  /*def modifyArrayWithAB(index1:Option[Int]=None, index2:Option[Int]=None, condition: String, f:(Any)=>Any, result:ByteBuf=Unpooled.buffer()):ByteBuf={
+    /*
+    * Se fieldID for vazia devolve o Boson Original
+    *
+    * */
+    val buffer: ByteBuf = this.getByteBuf.duplicate()
+
+    (index1, index2, condition.toLowerCase) match{
+      case (None, None, _) => throw CustomException("No valid values for indexes A and B [A ... B]")
+      case (Some(x:Int), Some(y:Int), "until") =>
+        val range: Range = x until y
+        val listValue: List[String] = range.toList.mapConserve(i => i.toString)
+        val result: ByteBuf = modifyArrayWithList(listValue, f)
+        result
+      case (Some(x:Int), Some(y:Int), "to") =>
+        val range: Range = x to y
+        val listValue: List[String] = range.toList.mapConserve(i => i.toString)
+        val result: ByteBuf = modifyArrayWithList(listValue, f)
+        result
+      case (Some(x:Int), None, "until") =>
+        val list: ListBuffer[String] = countArrayPositions
+
+      case (Some(x:Int), None, "to") =>
+        val list: ListBuffer[String] = countArrayPositions
+      case _ =>throw CustomException("No valid values for indexes A and B [A ... B] or condition. ")
+    }
+    result
+  }
+*/
 
 }
