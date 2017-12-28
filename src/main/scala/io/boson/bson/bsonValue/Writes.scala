@@ -1,6 +1,6 @@
 package io.boson.bson.bsonValue
 
-import io.boson.bson.bsonImpl.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 
 /**
   * Created by Tiago Filipe on 08/11/2017.
@@ -45,7 +45,7 @@ trait DefaultWrites {
     def writes(o: BsValue) = o
   }
 
-  implicit object BsBosonWrites extends Writes[Boson] {
-    def writes(o: Boson) = BsBoson(o)
+  implicit object BsBosonWrites extends Writes[BosonImpl] {
+    def writes(o: BosonImpl) = BsBoson(o)
   }
 }
