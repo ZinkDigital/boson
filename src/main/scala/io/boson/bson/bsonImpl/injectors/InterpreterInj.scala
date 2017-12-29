@@ -10,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Ricardo Martins on 14/12/2017.
   */
-class InterpreterInj(boson: BosonImpl, key: String, f: Any => Any, program: ProgramInj) {
+class InterpreterInj[T](boson: BosonImpl, key: String, f: T => T, program: ProgramInj) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)
@@ -39,7 +39,7 @@ class InterpreterInj(boson: BosonImpl, key: String, f: Any => Any, program: Prog
            bsonValue.BsException.apply(e.getMessage)
         }
       case "all" =>
-        val result: Try[Boson] = Try(new Boson(byteArray = Option(boson.modifyAll(boson.getByteBuf, key, f)._1.array())))
+        val result: Try[BosonImpl] = Try(new BosonImpl(byteArray = Option(boson.modifyAll(boson.getByteBuf, key, f)._1.array())))
         result match {
           case Success(v) =>
             bsonValue.BsObject.toBson(v)
@@ -48,7 +48,7 @@ class InterpreterInj(boson: BosonImpl, key: String, f: Any => Any, program: Prog
         }
       case "last"=>
         val ocorrencias: Option[Int] = Option(boson.findOcorrences(boson.getByteBuf.duplicate(), key).size-1)
-        val result: Try[Boson] = Try(new Boson(byteArray = Option(boson.modifyAll(boson.getByteBuf.duplicate(), key, f, ocor = ocorrencias)._1.array())))
+        val result: Try[BosonImpl] = Try(new BosonImpl(byteArray = Option(boson.modifyAll(boson.getByteBuf.duplicate(), key, f, ocor = ocorrencias)._1.array())))
         result match {
           case Success(v) =>
             bsonValue.BsObject.toBson(v)

@@ -10,7 +10,7 @@ import io.boson.bson.bsonImpl.injectors.EnumerationTest
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
 import io.netty.util.ByteProcessor
-import io.boson.scalaInterface.ScalaInterface
+
 import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
