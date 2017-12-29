@@ -10,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Ricardo Martins on 14/12/2017.
   */
-class InterpreterInj[T](boson: BosonImpl, key: String, f: T => T, program: ProgramInj) {
+class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
 
   def run(): bsonValue.BsValue = {
     start(program.statement)
@@ -19,16 +19,18 @@ class InterpreterInj[T](boson: BosonImpl, key: String, f: T => T, program: Progr
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
       statement.head match {
+        case KeyWithGrammar(k,grammar) => //key.grammar
+          executeSelect(k,grammar.selectType)
         case Grammar(selectType) => // "(all|first|last)"
-          executeSelect(selectType)
+          executeSelect("",selectType)
 
         case ArrExpr(left: Int, mid: String, right: Any) => // "[# .. #]"
-          executeArraySelect(left, mid, right)
+          executeArraySelect("", left, mid, right)
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
 
-  def executeSelect(selectType: String):  bsonValue.BsValue = {
+  def executeSelect(key: String, selectType: String):  bsonValue.BsValue = {
     selectType match {
       case "first" =>
         val result: Try[BosonImpl] = Try(boson.modify(Option(boson), key, f).get)
@@ -58,7 +60,7 @@ class InterpreterInj[T](boson: BosonImpl, key: String, f: T => T, program: Progr
     }
   }
 
-  def executeArraySelect(left: Int, mid: String, right: Any): bsonValue.BsValue = {
+  def executeArraySelect(key: String,left: Int, mid: String, right: Any): bsonValue.BsValue = {
 
     (left, mid.toLowerCase(), right) match {
       case (a, "until", "end") =>

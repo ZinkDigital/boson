@@ -4,7 +4,6 @@ import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
 
-
 /**
   * Created by Tiago Filipe on 13/10/2017.
   */
