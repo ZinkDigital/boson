@@ -2,6 +2,9 @@ package io.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
 
+import io.vertx.core.json.{JsonArray, JsonObject}
+
+
 object Constants {
   val EMPTY_CONSTRUCTOR: String = "EmptyConstructor"
   val SCALA_ARRAYBUF: String = "ArrayBuffer"

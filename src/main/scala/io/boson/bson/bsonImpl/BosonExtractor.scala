@@ -22,21 +22,12 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
     } catch {
       case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
     }
-  } //  for now works
-
-
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
   }
 
   override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
     val future: CompletableFuture[Array[Byte]] =
       CompletableFuture.supplyAsync(() => {
-//        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-//        boson.getByteBuf.forEachByte(bP)
-//        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         callParse(boson, expression) match {
           case (res: BsValue) =>
             extractFunction.accept(res.asInstanceOf[T])
