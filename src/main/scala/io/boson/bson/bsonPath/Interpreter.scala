@@ -132,7 +132,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
   private def executeArraySelect(k: String, left: Int, mid: String, right: Any): Seq[Any] = {
     (left, mid, right) match {
       case (a, ("until" | "Until"), "end") =>
-        val midResult = boson.extract(boson.getByteBuf, k, "limit", Option(a), None)
+        val midResult: Option[Any] = boson.extract(boson.getByteBuf, k, "limit", Option(a), None)
         midResult.map(v => {
           for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield { elem.take(elem.length-1) }
         }).getOrElse(Seq.empty)
