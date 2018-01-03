@@ -56,7 +56,8 @@ class Interpreter(boson: BosonImpl, program: Program) {
       }
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList, Some(left), None) map { v =>
-        v.asInstanceOf[Seq[Array[Any]]]
+        println(s"after extraction of -> $v")
+        v.asInstanceOf[Seq[Any]]
       } getOrElse Seq.empty
     result match {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
@@ -70,8 +71,15 @@ class Interpreter(boson: BosonImpl, program: Program) {
           }
         }
         else {
+          println("else case")
           bsonValue.BsObject.toBson {
-            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
+            for (elem <- v) yield {
+              elem match {
+                case e: Array[Any] => Compose.composer(e)
+                case e => e
+              }
+              //Compose.composer(elem)
+            }
           }
         }
 
