@@ -19,7 +19,7 @@ class Program(val statement: List[Statement])
 class TinyLanguage extends RegexParsers {
 
   private val number: Regex = """\d+(\.\d*)?""".r
-  def word: Parser[String] = """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+""".r  //  TODO:further tests needed to prove this is the best regular-expression to use
+  def word: Parser[String] = """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+""".r  //  symbol "+" is parsed
 
   def program: Parser[Program] =
     ( keyWithGrammar

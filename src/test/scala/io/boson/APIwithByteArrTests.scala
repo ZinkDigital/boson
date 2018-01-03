@@ -29,10 +29,10 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV2 w/ key") {
@@ -41,10 +41,10 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV3 w/ key") {
@@ -53,9 +53,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV4 w/ key") {
@@ -64,9 +64,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV5 w/ key") {
@@ -75,12 +75,12 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
-  test("extract with 2nd Key PosV1 w/ key") { //TODO: find way to remove the last Seq
+  test("extract with 2nd Key PosV1 w/ key") {
     val expression: String = "[1 to 1].fanVelocity"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
@@ -124,7 +124,7 @@ class APIwithByteArrTests extends FunSuite {
     )), future.join())
   }
 
-  test("extract with 2nd Key PosV5 w/ key") { //  TODO: apply to onePos the same transformer
+  test("extract with 2nd Key PosV5 w/ key") {
     val expression: String = "[2].fridgeTemp"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
@@ -173,10 +173,10 @@ class APIwithByteArrTests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV2") {
@@ -185,10 +185,10 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV3") {
@@ -197,9 +197,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV4") {
@@ -208,9 +208,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract PosV5") {
@@ -219,9 +219,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false)
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV1") {

@@ -22,7 +22,7 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
     } catch {
       case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
     }
-  } //  for now works
+  }
 
   override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
     val future: CompletableFuture[Array[Byte]] =

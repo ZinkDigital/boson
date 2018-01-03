@@ -146,4 +146,13 @@ object BosonTester extends App {
   boson11.go(validatedByteArray2)
   println("result of extracting \"" + expression11 + "\" -> " + future11.join())
 
+  println("-------------------------------------------------------------------------------------------------------------")
+  val a: BsonArray = new BsonArray().add(1).add(new BsonObject().put("one", new BsonArray().add(1.1))).add(3)
+  val b: BsonObject = new BsonObject().put("one", 1).put("two", a).put("three", 3)
+  val expression12: String = "one.all"
+  val future12: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson12: Boson = Boson.extractor(expression12, (in: BsValue) => future12.complete(in))
+  boson12.go(b.encodeToBarray())
+  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
+
 }

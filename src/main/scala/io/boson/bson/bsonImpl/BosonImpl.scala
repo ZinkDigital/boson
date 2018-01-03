@@ -220,7 +220,7 @@ class BosonImpl(
             None
         }
       case Some(value) if keyList.head._2.equals("first") || keyList.head._2.equals("limit") =>
-        netty.readerIndex(bsonFinishReaderIndex) //  TODO: review this line
+        //netty.readerIndex(bsonFinishReaderIndex) //  removed this line of code cause it dsnt makes sense
         Some(value)
       case Some(_) =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -310,15 +310,6 @@ class BosonImpl(
         }
     }
   }
-
-//  private def readArrayPos(netty: ByteBuf): Unit = {
-//    var i = netty.readerIndex()
-//    while (netty.getByte(i) != 0) {
-//      netty.readByte()
-//      i += 1
-//    }
-//    netty.readByte() //  consume the end Pos byte
-//  }
 
   private def extractKeys(netty: ByteBuf): Unit = {
     var i = netty.readerIndex()
@@ -410,7 +401,6 @@ class BosonImpl(
   private def traverseBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, seq: Seq[Any], keyList: List[(String,String)], limitA: Option[Int] = None, limitB: Option[Int] = None): Seq[Any] = {
 
     def constructWithLimits(iter: Int, seq: Seq[Any]): Seq[Any] = {
-      println(s"POS: $iter, keyList: $keyList")
       val seqType2: Int = netty.readByte().toInt
       val arrayPos: Int =
         if (seqType2 != 0) {
@@ -419,7 +409,6 @@ class BosonImpl(
       val newSeq =
         seqType2 match {
           case D_FLOAT_DOUBLE =>
-            println(s"traverseBsonArray, found double/float, limitB: $limitB, limitA: $limitA")
             val value: Double = netty.readDoubleLE()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
@@ -432,14 +421,12 @@ class BosonImpl(
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
                     else seq.:+(value)
                   case Some(_) =>
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(value)
                 }
             }
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-            println(s"traverseBsonArray, found string, limitB: $limitB, limitA: $limitA")
             val valueLength: Int = netty.readIntLE()
             val field: CharSequence = netty.readCharSequence(valueLength - 1, charset)
             netty.readByte()
@@ -454,7 +441,6 @@ class BosonImpl(
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
                     else seq.:+(field)
                   case Some(_) =>
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(field)
@@ -465,7 +451,6 @@ class BosonImpl(
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             val map = scala.collection.immutable.Map[Any, Any]()
-            println(s"traverseBsonArray, found BsonObject, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq.:+(extractFromBsonObj(netty,keyList,bsonFinishReaderIndex,None,None))
@@ -482,7 +467,6 @@ class BosonImpl(
                       seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex,keyList))}
                   case Some(_) =>
                     netty.readerIndex(bsonFinishReaderIndex)
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex,keyList))
@@ -492,11 +476,9 @@ class BosonImpl(
             val startReaderIndex: Int = netty.readerIndex()
             val valueLength2: Int = netty.readIntLE()
             val finishReaderIndex: Int = startReaderIndex + valueLength2
-            println(s"traverseBsonArray, found BsonArray, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) {
-                  println("traverseBsonArray, found BsonArray, has limitB, inside limits, condition all")
                   seq.:+(extractFromBsonArray(netty,valueLength2,finishReaderIndex,keyList,None,None))}
                 else seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
               case Some(_) =>
@@ -506,11 +488,9 @@ class BosonImpl(
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) {
-                      println("traverseBsonArray, found BsonArray, None limitB, inside limits, condition all")
                       seq.:+(extractFromBsonArray(netty,valueLength2,finishReaderIndex,keyList,None,None))}
                     else seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
                   case Some(_) =>
-                    println("didnt added")
                     netty.readerIndex(finishReaderIndex)
                     seq
                   case None =>
@@ -519,7 +499,6 @@ class BosonImpl(
             }
           case D_BOOLEAN =>
             val value: Int = netty.readByte()
-            println(s"traverseBsonArray, found Boolean, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
@@ -531,14 +510,12 @@ class BosonImpl(
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
                     else seq.:+(value == 1)
                   case Some(_) =>
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(value == 1)
                 }
             }
           case D_NULL =>
-            println(s"traverseBsonArray, found null, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
@@ -550,7 +527,6 @@ class BosonImpl(
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
                     else seq.:+(null)
                   case Some(_) =>
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(null)
@@ -558,7 +534,6 @@ class BosonImpl(
             }
           case D_INT =>
             val value: Int = netty.readIntLE()
-            println(s"traverseBsonArray, found Int, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
@@ -570,7 +545,6 @@ class BosonImpl(
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
                     else seq.:+(value)
                   case Some(_) =>
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(value)
@@ -578,7 +552,6 @@ class BosonImpl(
             }
           case D_LONG =>
             val value: Long = netty.readLongLE()
-            println(s"traverseBsonArray, found Long, limitB: $limitB, limitA: $limitA")
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
@@ -589,7 +562,6 @@ class BosonImpl(
                     if(keyList.head._2.equals("all") || keyList.head._2.equals("onePos2nd")) seq
                     else seq.:+(value)
                   case Some(_) =>
-                    println("didnt added")
                     seq
                   case None =>
                     seq.:+(value)

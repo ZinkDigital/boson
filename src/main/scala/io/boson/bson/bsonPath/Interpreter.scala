@@ -52,22 +52,29 @@ class Interpreter(boson: BosonImpl, program: Program) {
       if (secondKey.isDefined) {
         List((key, "onePos"), (secondKey.get, "onePos2nd"))
       } else {
-        println("no second key")
         List((key, "onePos"))
       }
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList, Some(left), None) map { v =>
-        println(s"v: $v")
         v.asInstanceOf[Seq[Array[Any]]]
       } getOrElse Seq.empty
     result match {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
       case v =>
-        bsonValue.BsObject.toBson {
-          val res =
-            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-          if (res.size>1) res else res.head //  TODO: rethink this situation, extracting several BsonArr with BsonObj as root doesn't output it all inside a list
+
+        if(keyList.size>1) {
+          bsonValue.BsObject.toBson {
+            val res =
+              for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
+            if (res.size>1) res else res.head //  TODO: rethink this situation, using traverBsonArray several times outputs lists inside lists
+          }
         }
+        else {
+          bsonValue.BsObject.toBson {
+            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
+          }
+        }
+
     }
   }
 
@@ -77,9 +84,9 @@ class Interpreter(boson: BosonImpl, program: Program) {
         case (a, ("until" | "Until"), "end") =>
           val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), Some(a), None)
           midResult.map(v => {
-            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
+            (for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
               elem.take(elem.length - 1)
-            }
+            }).filter(p => p.nonEmpty)
           }).getOrElse(Seq.empty)
         case (a, _, "end") => // "[# .. end]"
           val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), Some(a), None)
@@ -104,10 +111,9 @@ class Interpreter(boson: BosonImpl, program: Program) {
       }
     result match {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-      case v => bsonValue.BsObject.toBson {
-        val res =
+      case v =>
+        bsonValue.BsObject.toBson {
           for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-        if (res.size>1) res else res.head //  TODO: rethink this situation, extracting several BsonArr with BsonObj as root doesn't output it all inside a list
       }
     }
   }
@@ -154,7 +160,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
         bsonValue.BsObject.toBson {
           val res =
             for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-          if (res.size>1) res else res.head //  TODO: rethink this situation, extracting several BsonArr with BsonObj as root doesn't output it all inside a list
+          if (res.size>1) res else res.head //  TODO: rethink this situation, using traverBsonArray several times outputs lists inside lists
         }
     }
   }
@@ -175,7 +181,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
                   Compose.composer(p.asInstanceOf[Array[Any]])
                 }
               case p =>
-                bsonValue.BsObject.toBson(Seq(p)) //  TODO:Check if composer is required, last aswell
+                bsonValue.BsObject.toBson(Seq(p))
             }
           } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
         }
