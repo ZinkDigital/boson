@@ -2615,23 +2615,28 @@ newValue match {
     }
   }
 
-  def modifyArrayEnd[T]( f:T=>T,limitInf:String = "0",limitSup:String = "end", result:ByteBuf=Unpooled.buffer(), resultCopy:ByteBuf=Unpooled.buffer()):(BosonImpl, BosonImpl)={
+  def modifyArrayEnd[T](buffer: ByteBuf, f:T=>T,limitInf:String = "0",limitSup:String = "end", result:ByteBuf=Unpooled.buffer(), resultCopy:ByteBuf=Unpooled.buffer()):(BosonImpl, BosonImpl)={
     /*
     * Se fieldID for vazia devolve o Boson Original
     *
     * */
-    val buffer: ByteBuf = this.getByteBuf.duplicate()
-
+println("modifyArrayEnd")
+    val startReaderIndex: Int = buffer.readerIndex()
     val originalSize: Int = buffer.readIntLE()
     val resultSizeBuffer: ByteBuf = Unpooled.buffer(4)
-    while(buffer.readerIndex()<originalSize) {
+
+    /////////
+
+
+    /////
+    while((buffer.readerIndex()-startReaderIndex)<originalSize) {
       val dataType: Int = buffer.readByte().toInt
       result.writeByte(dataType)
       resultCopy.writeByte(dataType)
       println("Data Type= " + dataType)
       dataType match {
         case 0 =>
-
+          println("End of BsonObject or BsonArray")
         case _ =>
 
           val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
@@ -2661,7 +2666,7 @@ newValue match {
             case (x, "end") if isArray && limitInf.toInt > keyString.toInt   =>
 
               println(s"Didn't Found Field : $keyString")
-              processTypesArrayEnd(dataType, buffer, f,  result, resultCopy)
+              processTypesArrayEnd("", dataType, buffer, f,limitInf, limitSup,  result, resultCopy)
 
             case (x, l) if isArray && limitInf.toInt <= keyString.toInt && limitSup.toInt >= keyString.toInt =>
               /*
@@ -2673,10 +2678,10 @@ newValue match {
               //modifierAll(buffer, dataType, f, result)
               modifierEnd(buffer, dataType, f, result, resultCopy)
 
-            case (x, l) if isArray && limitInf.toInt > new String(key).toInt  || limitSup.toInt < keyString.toInt =>
+            case (x, l) if isArray && limitInf.toInt > keyString.toInt  || limitSup.toInt < keyString.toInt =>
 
               println(s"Didn't Found Field : $keyString")
-              processTypesArrayEnd(dataType, buffer, f,  result, resultCopy)
+              processTypesArrayEnd("", dataType, buffer, f,limitInf, limitSup, result, resultCopy)
 
             case (x, l) if !isArray => throw CustomException("Root is not a BsonArray")
           }
@@ -2690,7 +2695,7 @@ newValue match {
     (new BosonImpl(byteArray = Option(a.array())),new BosonImpl(byteArray = Option(b.array())))
   }
 
-  private def processTypesArrayEnd[T](dataType: Int, buf: ByteBuf, f: (T) => T, result: ByteBuf, resultCopy: ByteBuf) = {
+  private def processTypesArrayEnd[T](fieldID: String, dataType: Int, buf: ByteBuf, f: (T) => T,limitInf:String = "0",limitSup:String = "end", result: ByteBuf, resultCopy: ByteBuf) = {
     dataType match {
       case D_FLOAT_DOUBLE =>
         // process Float or Double
@@ -2709,16 +2714,32 @@ newValue match {
         resultCopy.writeBytes(bytes)
       case D_BSONOBJECT =>
         // process BsonObjects
-        val length: Int = buf.getIntLE(buf.readerIndex())
-        val bsonBuf: ByteBuf = buf.readBytes(length)
-        result.writeBytes(bsonBuf)
-        resultCopy.writeBytes(bsonBuf)
+        if(fieldID==""){
+          println("FieldID == \"\" ")
+          val length: Int = buf.getIntLE(buf.readerIndex())
+          val bsonBuf: ByteBuf = buf.readBytes(length)
+          result.writeBytes(bsonBuf)
+          resultCopy.writeBytes(bsonBuf)
+        }else {
+          println("FieldID Diff \"\" ")
+          val res: (BosonImpl, BosonImpl) = modifyArrayEndWithKey(buf, fieldID, f, limitInf, limitSup)
+          result.writeBytes(res._1.getByteBuf)
+          resultCopy.writeBytes(res._2.getByteBuf)
+        }
       case D_BSONARRAY =>
         // process BsonArrays
-        val length: Int = buf.getIntLE(buf.readerIndex())
-        val bsonBuf: ByteBuf = buf.readBytes(length)
-        result.writeBytes(bsonBuf)
-        resultCopy.writeBytes(bsonBuf)
+        if(fieldID=="") {
+          println("FieldID == \"\" ")
+          val length: Int = buf.getIntLE(buf.readerIndex())
+          val bsonBuf: ByteBuf = buf.readBytes(length)
+          result.writeBytes(bsonBuf)
+          resultCopy.writeBytes(bsonBuf)
+        }else{
+          println("FieldID Diff \"\" ")
+          val res: (BosonImpl, BosonImpl) = modifyArrayEndWithKey(buf, fieldID, f, limitInf, limitSup)
+          result.writeBytes(res._1.getByteBuf)
+          resultCopy.writeBytes(res._2.getByteBuf)
+        }
       case D_NULL =>
         println("D_NULL")
       case D_INT =>
@@ -2746,25 +2767,29 @@ newValue match {
 
   }
 
-  def modifyArrayEndWithKey[T](fieldID: String, f:T=>T,limitInf:String = "0",limitSup:String = "end", result:ByteBuf=Unpooled.buffer(), resultCopy:ByteBuf=Unpooled.buffer()):(BosonImpl, BosonImpl)={
+  def modifyArrayEndWithKey[T](buffer: ByteBuf, fieldID: String, f:T=>T,limitInf:String = "0",limitSup:String = "end", result:ByteBuf=Unpooled.buffer(), resultCopy:ByteBuf=Unpooled.buffer()):(BosonImpl, BosonImpl)={
     /*
-    * Se fieldID for vazia devolve o Boson Original
-    *
+    * Se fieldID for vazia, então deve ser chamada a funcao modifyArrayEnd to work on Root
+    *ByteBuf tem de ser duplicado no input
     * */
-    val buffer: ByteBuf = this.getByteBuf.duplicate()
-
+    //Read the size of the section we want to work on
+    println("modifyArrayEndWithKey")
+    val startReaderIndex: Int = buffer.readerIndex()
     val originalSize: Int = buffer.readIntLE()
-    val resultSizeBuffer: ByteBuf = Unpooled.buffer(4)
-    while(buffer.readerIndex()<originalSize) {
+    println("Original Size = " + originalSize)
+    while((buffer.readerIndex()-startReaderIndex)<originalSize) {
+      //Read the DataType and write in resulting Buffers
       val dataType: Int = buffer.readByte().toInt
       result.writeByte(dataType)
       resultCopy.writeByte(dataType)
+      //Print the DataType
       println("Data Type= " + dataType)
+      //DataType Match
       dataType match {
         case 0 =>
-
+          println("End of BsonObject or BsonArray")
         case _ =>
-
+          //Read the Field
           val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
             val key: ListBuffer[Byte] = new ListBuffer[Byte]
             while (buffer.getByte(buffer.readerIndex()) != 0 || key.length<1) {
@@ -2774,27 +2799,36 @@ newValue match {
             val b: Byte = buffer.readByte()
             (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
           }
+          //Print the Key and save it in result buffer
           println(s"isArray=$isArray  String=${new String(key)}")
           result.writeBytes(key).writeByte(b)
           resultCopy.writeBytes(key).writeByte(b)
           val keyString: String = new String(key)
-          new String(key) match {
+
+          keyString match {
             case x if fieldID.toCharArray.deep == x.toCharArray.deep && dataType==D_BSONARRAY =>
               /*
               * Found a field equal to key
               * Perform Injection
               * */
               // resultCopy.clear().writeBytes(result)
-            val x: (BosonImpl, BosonImpl) = modifyArrayEnd(f, limitInf, limitSup, result, resultCopy)
+              println(s"Found Field $fieldID == $keyString")
+              val x: (BosonImpl, BosonImpl) = modifyArrayEnd(buffer, f, limitInf, limitSup)
+              //x = (b0, b1) => (To, Until)
+              result.writeBytes(x._1.getByteBuf)
+              resultCopy.writeBytes(x._2.getByteBuf)
 
             //???
+            case x if fieldID.toCharArray.deep == x.toCharArray.deep && dataType!=D_BSONARRAY =>
+              throw CustomException("Key given doesn't correspond to a BsonArray")
+
             case x if fieldID.toCharArray.deep != x.toCharArray.deep =>
               /*
               * Didn't found a field equal to key
               * Consume value and check deeper Levels
               * */
               println(s"Didn't Found Field $fieldID == ${new String(x)}")
-              processTypesArrayEnd(dataType, buffer, f, result, resultCopy)
+              processTypesArrayEnd(fieldID, dataType, buffer, f,limitInf, limitSup, result, resultCopy)
           }
       }
     }

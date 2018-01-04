@@ -9,7 +9,7 @@ import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonImpl.injectors.{InterpreterInj, ProgramInj, TinyLanguageInj}
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
-import io.boson.bson.bsonValue.{BsBoson, BsException, BsSeq, BsValue}
+import io.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ByteProcessor
 import io.vertx.core.buffer.Buffer
@@ -429,28 +429,48 @@ class InjectorParserTests extends FunSuite {
     assert(List(1, 8, 3, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
   }
 
-  /*test("mix"){
+  test("fridgeReadings.[1 until 2]"){
 
-    val key: String = ""
+    val key: String = "fridgeReadings"
     val expression: String = "[1 until 2]"
+    val expression1: String = "fridgeReadings.[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x: Int) => x * 4, expression)
+    //lazy val res: (BosonImpl, BosonImpl) = boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(), key,(x:Int) => x*4 , "1", "2")
+
+    lazy val resultBoson: BsValue = parseInj(boson,(x:Int) => x*4, expression1 )
+
+    lazy val result1: BsValue = Try(resultBoson) match {
+      case Success(v) => v
+      case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+    }
+
+    val result2: Any = result1 match {
+      case BsException(ex) =>
+        println(ex)
+        ex
+      case BsSeq(e) => e
+      case BsBoson(nb)=> callParse(nb, "fridgeReadings.all").asInstanceOf[BsSeq]
+      case BsNumber(n) => n
+      case BsBoolean(b) => b
+    }
+    val resultParser: Any = result2 match {
+      case BsException(ex) =>
+        println(ex)
+        ex
+      case BsSeq(e) => e
+      case BsBoson(nb)=> nb
+      case BsNumber(n) => n
+      case BsBoolean(b) => b
+    }
+    /*val resultBoson: BsValue = parseInj(boson, (x: Int) => x * 4, expression)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
       case nb: BsBoson => callParse(nb.getValue, "all")
       case _ => List()
-    }
-    assert(List(1, 8, 3, 4, 5) === resultParser)
-  }*/
+    }*/
+    assert(List(List(1, 8, 3), List(1, 8, 3), List(1, 8, 3)) === resultParser)
+  }
 
- /* test("wefewf"){
-    val buf: ByteBuf = Unpooled.buffer(50).writeBoolean(true)
-    val buf1: ByteBuf = buf.duplicate()
-
-    println(s"rI=${buf.readerIndex()}    wI=${buf.writerIndex()}")
-    println(s"rI=${buf1.readerIndex()}    wI=${buf1.writerIndex()}")
-
-  }*/
 
 }

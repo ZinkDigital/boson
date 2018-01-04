@@ -76,7 +76,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
     (key, left, mid.toLowerCase(), right) match {
       case ("", a, "until", "end") =>
 
-        val midResult = Try(boson.modifyArrayEnd( f, a.toString))
+        val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f, a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
 
         midResult match {
@@ -85,7 +85,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
         }
 
       case ("", a, "to", "end") => // "[# .. end]"
-        val midResult = Try(boson.modifyArrayEnd( f, a.toString))
+        val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f, a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
           case Success(v) => bsonValue.BsObject.toBson(v._1)
@@ -98,7 +98,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
             val range: Range = a to b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEnd( f, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f, a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
               case Success(v) => bsonValue.BsObject.toBson(v._1)
@@ -108,7 +108,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
             val range: Range = a until b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEnd( f, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f, a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
               case Success(v) => bsonValue.BsObject.toBson(v._2)
@@ -118,7 +118,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
       case (k, a, "until", "end") =>
 
 
-        val midResult = Try(boson.modifyArrayEndWithKey(k, f, a.toString))
+        val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k, f, a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
           case Success(v) => bsonValue.BsObject.toBson(v._2)
@@ -127,7 +127,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
       case (k, a, "to", "end") =>
 
 
-        val midResult = Try(boson.modifyArrayEndWithKey(k, f, a.toString))
+        val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k, f, a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
           case Success(v) => bsonValue.BsObject.toBson(v._1)
@@ -139,7 +139,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
             val range: Range = a to b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEndWithKey(k, f, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k, f, a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
               case Success(v) => bsonValue.BsObject.toBson(v._1)
@@ -149,7 +149,7 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
             val range: Range = a until b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEndWithKey(k,f, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k,f, a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
               case Success(v) => bsonValue.BsObject.toBson(v._2)
