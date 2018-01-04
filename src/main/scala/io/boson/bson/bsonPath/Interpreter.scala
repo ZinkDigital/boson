@@ -161,7 +161,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
         bsonValue.BsObject.toBson {
 //          val res =
 //            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-//          if (res.size>1) res else res.head //  TODO: rethink this situation, using traverBsonArray several times outputs lists inside lists
+//          if (res.size>1) res else res.head //
           for (elem <- v) yield {
             elem match {
               case e: Array[Any] => Compose.composer(e)

@@ -204,4 +204,55 @@ class HorribleTests extends FunSuite {
     )), result)
   }
 
+  val b1: BsonObject = new BsonObject().put("one",1).put("two",2).put("three",3)
+  val b2: BsonObject = new BsonObject().put("one",1.1).put("two",2.2).put("three",3.3)
+  val b3: BsonObject = new BsonObject().put("one",1f).put("two",2f).put("three",3f)
+  val a1: BsonArray = new BsonArray().add(b1).add(0.1).add(b2).add(0.2).add(b3).add(0.3)
+  val b4: BsonObject = new BsonObject().put("stuff",true).put("arr", a1).put("things",false)
+  val b5: BsonObject = new BsonObject().put("stuff",false).put("arr", a1).put("things",true)
+  val a2: BsonArray = new BsonArray().add(b4).add(b4).add(b5)
+
+  test("key doesn't match with an array") {
+    val expression: String = "things.[2]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq()), result)
+  }
+
+  test("1stKey exists many times") {
+    val expression: String = "arr.[2]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(
+      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3)),
+      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3)),
+      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3))
+    )), result)
+  }
+
+  test("1stKey exists many times, looking for another key") {
+    val expression: String = "arr.[2].two"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(
+      Seq(2.2),
+      Seq(2.2),
+      Seq(2.2)
+    )), result)
+  }
+
+  test("1stKey matches, 2ndKey doen't exists") {
+    val expression: String = "[2].zombie"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(Seq())), result)
+  }
+
+  test("key doesn't match with an array with 2ndKey") {
+    val expression: String = "things.[2].one"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq()), result)
+  }
+
 }
