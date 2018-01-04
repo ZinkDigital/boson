@@ -149,10 +149,10 @@ object BosonTester extends App {
   println("-------------------------------------------------------------------------------------------------------------")
   val a: BsonArray = new BsonArray().add(1).add(new BsonObject().put("one", "bla")).add(3)
   val b: BsonObject = new BsonObject().put("one", 1).put("two", a).put("three", 3)
-  val expression12: String = "two.[1].one"
+  val expression12: String = "[0 until end]"
   val future12: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
   val boson12: Boson = Boson.extractor(expression12, (in: BsValue) => future12.complete(in))
-  boson12.go(b.encodeToBarray())
+  boson12.go(a.encodeToBarray())
   println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
 }

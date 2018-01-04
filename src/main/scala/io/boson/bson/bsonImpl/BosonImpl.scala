@@ -122,7 +122,7 @@ class BosonImpl(
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             val value: Double = netty.readDoubleLE()
             Some(value)
           } else {
@@ -130,7 +130,7 @@ class BosonImpl(
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")&& !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             val valueLength: Int = netty.readIntLE()
             val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
             Some(arr)
@@ -139,7 +139,7 @@ class BosonImpl(
             None
           }
         case D_BSONOBJECT =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")&& !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -158,11 +158,7 @@ class BosonImpl(
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
-//              case "onePos" if keyList.size > 1 =>
-//                extractOnePos(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitA.get)
-//              case "onePos" =>
-//                extractOnePos(netty, valueLength, arrayFinishReaderIndex, keyList, limitA.get)
-              case _ if keyList.size > 1 =>   //  TODO:review this wildcard
+              case _ if keyList.size > 1 =>
                 Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any]) match { // limits here should probably None
                   case Some(value) if value.isEmpty => None
                   case Some(value) => Some(value)
@@ -181,7 +177,7 @@ class BosonImpl(
             if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
           }
         case D_BOOLEAN =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             val value: Int = netty.readByte()
             Some(value == 1)
           } else {
@@ -189,13 +185,13 @@ class BosonImpl(
             None
           }
         case D_NULL =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             Some("Null")
           } else {
             None
           }
         case D_INT =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             val value: Int = netty.readIntLE()
             Some(value)
           } else {
@@ -203,7 +199,7 @@ class BosonImpl(
             None
           }
         case D_LONG =>
-          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("onePos")) {
+          if (compareKeys(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
             val value: Long = netty.readLongLE()
             Some(value)
           } else {
@@ -213,7 +209,6 @@ class BosonImpl(
         case D_ZERO_BYTE =>
           None
       }
-
     arrKeyExtract.clear()
     finalValue match {
       case None =>
@@ -225,7 +220,6 @@ class BosonImpl(
             None
         }
       case Some(value) if keyList.head._2.equals("first") || keyList.head._2.equals("limit") =>
-        //netty.readerIndex(bsonFinishReaderIndex) //  removed this line of code cause it dsnt makes sense
         Some(value)
       case Some(_) =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -243,14 +237,6 @@ class BosonImpl(
     keyList.head._1 match {
       case "" => // Constructs a new BsonArray, BsonArray is Root
         keyList.head._2 match {
-          case "onePos" if keyList.size > 1 =>
-            extractOnePos(netty,length,arrayFRIdx,keyList.drop(1),limitA.get) map { value =>
-              Seq(value)
-            }
-          case "onePos" =>
-            extractOnePos(netty, length, arrayFRIdx, keyList, limitA.get) map { value =>
-              Seq(value)
-            }
           case _ =>
             val result =
               if (keyList.size < 2) {
@@ -369,8 +355,7 @@ class BosonImpl(
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           extractKeys(netty)
           val valueLength: Int = netty.readIntLE()
-          val value: CharSequence = netty.readCharSequence(valueLength - 1, charset)
-          netty.readByte()
+          val value: CharSequence = netty.readCharSequence(valueLength, charset)
           mapper + (new String(arrKeyDecode.toArray) -> value)
         case D_BSONOBJECT =>
           extractKeys(netty)
@@ -614,75 +599,6 @@ class BosonImpl(
     }
 
     constructWithLimits(0, seq)
-  }
-
-  private def extractOnePos(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], pos: Int): Option[Any] = {
-    val seqType2: Int = netty.readByte().toInt
-    val arrayPos: Int =
-      if (seqType2 != 0) {
-        readArrayPos(netty).toString.toInt
-      } else -1
-    val result: Option[Any] =
-      seqType2 match {
-        case D_FLOAT_DOUBLE =>
-          val value: Double = netty.readDoubleLE()
-          if (arrayPos == pos) Some(value) else None
-        case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          val size: Int = netty.readIntLE()
-          val chrSeq: CharSequence = netty.readCharSequence(size, charset)
-          if (arrayPos == pos) Some(chrSeq) else None
-        case D_BSONOBJECT =>
-          val bsonStartReaderIndex: Int = netty.readerIndex()
-          val valueTotalLength: Int = netty.readIntLE()
-          val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-          val map = scala.collection.immutable.Map[Any, Any]()
-          keyList.head._2 match {
-            case "onePos2nd" if arrayPos == pos =>
-              val midResult = extractFromBsonObj(netty,keyList,bsonFinishReaderIndex,None,None)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
-            case "onePos" if arrayPos == pos =>
-              Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
-            case _ =>
-              netty.readerIndex(bsonFinishReaderIndex)
-              None
-          }
-        case D_BSONARRAY =>
-          val startReaderIndex: Int = netty.readerIndex()
-          val size: Int = netty.readIntLE()
-          val finishReaderIndex: Int = startReaderIndex + size
-          keyList.head._2 match {
-            case "onePos2nd" if arrayPos == pos =>
-              val midResult = extractFromBsonArray(netty,size,finishReaderIndex,keyList,None,None)
-              if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
-            case "onePos" if arrayPos == pos =>
-              Some(traverseBsonArray(netty, size, finishReaderIndex, Seq.empty[Any], keyList))
-            case _ =>
-              netty.readerIndex(finishReaderIndex)
-              None
-          }
-        case D_BOOLEAN =>
-          val value: Int = netty.readByte().toInt
-          if (arrayPos == pos) Some(value == 1) else None
-        case D_NULL =>
-          if (arrayPos == pos) Some(null) else None
-        case D_INT =>
-          val value: Int = netty.readIntLE()
-          if (arrayPos == pos) Some(value) else None
-        case D_LONG =>
-          val value: Long = netty.readLongLE()
-          if (arrayPos == pos) Some(value) else None
-        case D_ZERO_BYTE =>
-          None
-      }
-    result map { r => Some(r) } getOrElse {
-      val actualPos = arrayFRIdx - netty.readerIndex()
-      actualPos match {
-        case x if x > 0 =>
-          extractOnePos(netty, length, arrayFRIdx, keyList, pos)
-        case 0 =>
-          None
-      }
-    }
   }
 
   def duplicate: BosonImpl =
