@@ -24,22 +24,26 @@ class Interpreter(boson: BosonImpl, program: Program) {
             case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#].secondKey
               executeArraySelectWithTwoKeys(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get, secondKey.get)
             case true => //key.[#].secondKey
-              executePosSelect(key, arrEx.leftArg, secondKey)
+              //executePosSelect(key, arrEx.leftArg, secondKey)
+              executeArraySelectWithTwoKeys(key,arrEx.leftArg,"to",arrEx.leftArg,secondKey.get)
             case false if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#]
               executeArraySelect(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get)
             case false => //key.[#]
-              executePosSelect(key, arrEx.leftArg, secondKey)
+              //executePosSelect(key, arrEx.leftArg, secondKey)
+              executeArraySelect(key,arrEx.leftArg,"to", arrEx.leftArg)
           }
         case ArrExpr(left, mid, right, secondKey) =>
           secondKey.isDefined match {
             case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
               executeArraySelectWithTwoKeys("", left, mid.get, right.get, secondKey.get)
             case true => //[#].2ndKey
-              executePosSelect("", left, secondKey)
+              //executePosSelect("", left, secondKey)
+              executeArraySelectWithTwoKeys("",left, "to", left,secondKey.get)
             case false if mid.isDefined && right.isDefined => //[#..#]
               executeArraySelect("", left, mid.get, right.get)
             case false => //[#]
-              executePosSelect("", left, None)
+              //executePosSelect("", left, None)
+              executeArraySelect("",left, "to", left)
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
@@ -62,27 +66,14 @@ class Interpreter(boson: BosonImpl, program: Program) {
     result match {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
       case v =>
-
-        if(keyList.size>1) {
-          bsonValue.BsObject.toBson {
-            val res =
-              for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-            if (res.size>1) res else res.head //  TODO: rethink this situation, using traverBsonArray several times outputs lists inside lists
-          }
-        }
-        else {
-          println("else case")
           bsonValue.BsObject.toBson {
             for (elem <- v) yield {
               elem match {
                 case e: Array[Any] => Compose.composer(e)
                 case e => e
               }
-              //Compose.composer(elem)
             }
           }
-        }
-
     }
   }
 
