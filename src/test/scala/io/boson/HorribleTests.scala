@@ -255,4 +255,14 @@ class HorribleTests extends FunSuite {
     assertEquals(BsSeq(Seq()), result)
   }
 
+  test("until end Problem") {
+    val array: BsonArray = new BsonArray().add(1.1).add(2.2).add(3.3).add(4.4)
+    val expression: String = "[1 until end]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(array.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(
+      Seq(2.2,3.3)
+    )), result)
+  }
+
 }
