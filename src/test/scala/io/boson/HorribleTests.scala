@@ -8,6 +8,7 @@ import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
 import io.boson.bson.bsonValue
+import org.junit.Assert.assertEquals
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
@@ -150,38 +151,43 @@ class HorribleTests extends FunSuite {
     val expression: String = "   José.[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List(
+    assertEquals(BsSeq(List(
       List("Tarantula", "Aracnídius", List("Insecticida")),
       List("Spider"),
-      List("Fly"))) === result)
+      List("Fly")
+    )), result)
   }
 
   test("array prob 2") {
     val expression: String = "[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    println(s"result in Test: $result")
-    assert(BsSeq(List(
-      List(
+    assertEquals(BsSeq(Seq(Seq(
         Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
         Map("José" -> List("Spider")),
         Map("José" -> List("Fly")),
-        List("Insecticida"))))=== result)
+        List("Insecticida")
+      ))), result)
   }
 
   test("array prob 3") {
     val expression: String = "first"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List(
-      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))))) === result)
+    assertEquals(BsSeq(List(
+      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida")))
+    )), result)
   }
 
   test("array prob 4") {
     val expression: String = "   José . first"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List("Tarantula", "Aracnídius", List("Insecticida"))) === result)
+    assertEquals(BsSeq(List(
+      "Tarantula",
+      "Aracnídius",
+      List("Insecticida")
+    )), result)
   }
 
   test("array prob 5") {
@@ -190,7 +196,72 @@ class HorribleTests extends FunSuite {
     val expression: String = "José.[0 until end]  "
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsSeq(List(List("Tarantula", "Aracnídius"), List("Spider"), List("Fly"))) === result)
+    assertEquals(BsSeq(List(
+      List("Tarantula", "Aracnídius"),
+      List("Spider"),
+      List("Fly")
+    )), result)
+  }
+
+  val b1: BsonObject = new BsonObject().put("one",1).put("two",2).put("three",3)
+  val b2: BsonObject = new BsonObject().put("one",1.1).put("two",2.2).put("three",3.3)
+  val b3: BsonObject = new BsonObject().put("one",1f).put("two",2f).put("three",3f)
+  val a1: BsonArray = new BsonArray().add(b1).add(0.1).add(b2).add(0.2).add(b3).add(0.3)
+  val b4: BsonObject = new BsonObject().put("stuff",true).put("arr", a1).put("things",false)
+  val b5: BsonObject = new BsonObject().put("stuff",false).put("arr", a1).put("things",true)
+  val a2: BsonArray = new BsonArray().add(b4).add(b4).add(b5)
+
+  test("key doesn't match with an array") {
+    val expression: String = "things.[2]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq()), result)
+  }
+
+  test("1stKey exists many times") {
+    val expression: String = "arr.[2]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(
+      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3)),
+      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3)),
+      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3))
+    )), result)
+  }
+
+  test("1stKey exists many times, looking for another key") {
+    val expression: String = "arr.[2].two"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(
+      Seq(2.2),
+      Seq(2.2),
+      Seq(2.2)
+    )), result)
+  }
+
+  test("1stKey matches, 2ndKey doen't exists") {
+    val expression: String = "[2].zombie"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(Seq())), result)
+  }
+
+  test("key doesn't match with an array with 2ndKey") {
+    val expression: String = "things.[2].one"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq()), result)
+  }
+
+  test("until end Problem") {
+    val array: BsonArray = new BsonArray().add(1.1).add(2.2).add(3.3).add(4.4)
+    val expression: String = "[1 until end]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(array.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq(
+      Seq(2.2,3.3)
+    )), result)
   }
 
 }
