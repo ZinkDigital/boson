@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
-
+import java.util
 import Constants.{charset, _}
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.undercouch.bson4jackson.BsonFactory
@@ -359,7 +359,7 @@ class BosonImpl(
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           extractKeys(netty)
           val valueLength: Int = netty.readIntLE()
-          val value: CharSequence = netty.readCharSequence(valueLength, charset)
+          val value: CharSequence = netty.readCharSequence(valueLength-1, charset)
           mapper + (new String(arrKeyDecode.toArray) -> value)
         case D_BSONOBJECT =>
           extractKeys(netty)
@@ -458,7 +458,7 @@ class BosonImpl(
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-            val map = scala.collection.immutable.Map[Any, Any]()
+            val map: Map[Any, Any] = scala.collection.immutable.Map[Any, Any]()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
@@ -2246,7 +2246,7 @@ class BosonImpl(
   }*/
 
 
-  /*private def readArrayPos(netty: ByteBuf): Char = {
+  private def readArrayPos(netty: ByteBuf): Char = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = netty.readerIndex()
     while (netty.getByte(i) != 0) {
@@ -2258,7 +2258,7 @@ class BosonImpl(
     val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
     //println(list)
     stringList.head
-  }*/
+  }
 
   /*private def findBsonObjectWithinBsonArray(buffer: ByteBuf, fieldID: String, f: Any => Any): (Option[ByteBuf], Int) = {
     val seqType: Int = buffer.readByte()
