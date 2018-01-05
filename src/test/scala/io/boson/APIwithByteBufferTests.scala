@@ -99,10 +99,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Spider"),
       Seq("Fly")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV2 w/ key") {
@@ -111,9 +111,9 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Spider")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV3 w/ key") {
@@ -122,10 +122,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
-      List("Spider"),
-      List("Fly")
-    )), future.join())
+    assertEquals(BsSeq(Seq(Seq(
+      Seq("Spider"),
+      Seq("Fly")
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV4 w/ key") {
@@ -134,10 +134,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Spider"),
       Seq("Fly")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV5 w/ key") {
@@ -146,9 +146,9 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Fly")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract first w/ key") {
@@ -248,11 +248,11 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
       Seq("Spider"),
       Seq("Fly")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV2") {
@@ -260,10 +260,10 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Spider"),
       Seq("Fly")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV3") {
@@ -271,10 +271,10 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Spider"),
       Seq("Fly")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV4") {
@@ -282,9 +282,9 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       Seq("Spider")
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV5") {
@@ -292,7 +292,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq()), future.join())
+    assertEquals(BsSeq(Seq(Seq())), future.join())
   }
 
   test("extract first") {

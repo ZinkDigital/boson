@@ -24,22 +24,22 @@ class Interpreter(boson: BosonImpl, program: Program) {
             case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#].secondKey
               executeArraySelectWithTwoKeys(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get, secondKey.get)
             case true => //key.[#].secondKey
-              executePosSelect(key, arrEx.leftArg, secondKey)
+              executeArraySelectWithTwoKeys(key,arrEx.leftArg,"to",arrEx.leftArg,secondKey.get)
             case false if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#]
               executeArraySelect(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get)
             case false => //key.[#]
-              executePosSelect(key, arrEx.leftArg, secondKey)
+              executeArraySelect(key,arrEx.leftArg,"to", arrEx.leftArg)
           }
         case ArrExpr(left, mid, right, secondKey) =>
           secondKey.isDefined match {
             case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
               executeArraySelectWithTwoKeys("", left, mid.get, right.get, secondKey.get)
             case true => //[#].2ndKey
-              executePosSelect("", left, secondKey)
+              executeArraySelectWithTwoKeys("",left, "to", left,secondKey.get)
             case false if mid.isDefined && right.isDefined => //[#..#]
               executeArraySelect("", left, mid.get, right.get)
             case false => //[#]
-              executePosSelect("", left, None)
+              executeArraySelect("",left, "to", left)
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
@@ -47,36 +47,31 @@ class Interpreter(boson: BosonImpl, program: Program) {
     } else throw new RuntimeException("List of statements is empty.")
   }
 
-  private def executePosSelect(key: String, left: Int, secondKey: Option[String]): bsonValue.BsValue = {
-    val keyList =
-      if (secondKey.isDefined) {
-        List((key, "onePos"), (secondKey.get, "onePos2nd"))
-      } else {
-        List((key, "onePos"))
-      }
-    val result: Seq[Any] =
-      boson.extract(boson.getByteBuf, keyList, Some(left), None) map { v =>
-        v.asInstanceOf[Seq[Array[Any]]]
-      } getOrElse Seq.empty
-    result match {
-      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-      case v =>
-
-        if(keyList.size>1) {
-          bsonValue.BsObject.toBson {
-            val res =
-              for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-            if (res.size>1) res else res.head //  TODO: rethink this situation, using traverBsonArray several times outputs lists inside lists
-          }
-        }
-        else {
-          bsonValue.BsObject.toBson {
-            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-          }
-        }
-
-    }
-  }
+//  private def executePosSelect(key: String, left: Int, secondKey: Option[String]): bsonValue.BsValue = {
+//    val keyList =
+//      if (secondKey.isDefined) {
+//        List((key, "onePos"), (secondKey.get, "onePos2nd"))
+//      } else {
+//        List((key, "onePos"))
+//      }
+//    val result: Seq[Any] =
+//      boson.extract(boson.getByteBuf, keyList, Some(left), None) map { v =>
+//        println(s"after extraction of -> $v")
+//        v.asInstanceOf[Seq[Any]]
+//      } getOrElse Seq.empty
+//    result match {
+//      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
+//      case v =>
+//          bsonValue.BsObject.toBson {
+//            for (elem <- v) yield {
+//              elem match {
+//                case e: Array[Any] => Compose.composer(e)
+//                case e => e
+//              }
+//            }
+//          }
+//    }
+//  }
 
   private def executeArraySelect(key: String, left: Int, mid: String, right: Any): bsonValue.BsValue = {
     val result =
@@ -91,7 +86,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
         case (a, _, "end") => // "[# .. end]"
           val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), Some(a), None)
           midResult.map { v =>
-            v.asInstanceOf[Seq[Array[Any]]]
+            v.asInstanceOf[Seq[Any]]
           }.getOrElse(Seq.empty)
         case (a, expr, b) if b.isInstanceOf[Int] =>
           expr match {
@@ -99,13 +94,13 @@ class Interpreter(boson: BosonImpl, program: Program) {
               boson.extract(
                 boson.getByteBuf, List((key, "limit")), Some(a), Some(b.asInstanceOf[Int])
               ).map { v =>
-                v.asInstanceOf[Seq[Array[Any]]]
+                v.asInstanceOf[Seq[Any]]
               }.getOrElse(Seq.empty)
             case ("until" | "Until") =>
               boson.extract(
                 boson.getByteBuf, List((key, "limit")), Some(a), Some(b.asInstanceOf[Int] - 1)
               ).map { v =>
-                v.asInstanceOf[Seq[Array[Any]]]
+                v.asInstanceOf[Seq[Any]]
               }.getOrElse(Seq.empty)
           }
       }
@@ -113,7 +108,12 @@ class Interpreter(boson: BosonImpl, program: Program) {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
       case v =>
         bsonValue.BsObject.toBson {
-          for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
+          for (elem <- v) yield {
+            elem match {
+              case e: Array[Any] => Compose.composer(e)
+              case e => e
+            }
+          }
       }
     }
   }
@@ -131,36 +131,42 @@ class Interpreter(boson: BosonImpl, program: Program) {
               elem.take(elem.length - 1)
             }
           }
-          } getOrElse Seq.empty[Array[Any]]
+          } getOrElse Seq.empty[Any]
         case (a, _, "end") =>
           boson.extract(
             boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), None
           ) map { v =>
-            v.asInstanceOf[Seq[Array[Any]]]
-          } getOrElse Seq.empty[Array[Any]]
+            v.asInstanceOf[Seq[Any]]
+          } getOrElse Seq.empty[Any]
         case (a, expr, b) if b.isInstanceOf[Int] =>
           expr match {
             case ("to" | "To") =>
               boson.extract(
                 boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), Some(b.asInstanceOf[Int])
               ) map { v =>
-                v.asInstanceOf[Seq[Array[Any]]]
-              } getOrElse Seq.empty[Array[Any]]
+                v.asInstanceOf[Seq[Any]]
+              } getOrElse Seq.empty[Any]
             case ("until" | "Until") =>
               boson.extract(
                 boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), Some(b.asInstanceOf[Int] - 1)
               ) map { v =>
-                v.asInstanceOf[Seq[Array[Any]]]
-              } getOrElse Seq.empty[Array[Any]]
+                v.asInstanceOf[Seq[Any]]
+              } getOrElse Seq.empty[Any]
           }
       }
     result match {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
       case v =>
         bsonValue.BsObject.toBson {
-          val res =
-            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-          if (res.size>1) res else res.head //  TODO: rethink this situation, using traverBsonArray several times outputs lists inside lists
+//          val res =
+//            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
+//          if (res.size>1) res else res.head //
+          for (elem <- v) yield {
+            elem match {
+              case e: Array[Any] => Compose.composer(e)
+              case e => e
+            }
+          }
         }
     }
   }

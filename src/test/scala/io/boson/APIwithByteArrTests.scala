@@ -86,9 +86,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       20.6
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV2 w/ key") {
@@ -97,9 +97,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       20.6, 20.5
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV3 w/ key") {
@@ -108,9 +108,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       20.5, 20.6
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV4 w/ key") {
@@ -119,9 +119,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       3.854f
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV5 w/ key") {
@@ -130,9 +130,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       3.854f
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract last w/ key") {
@@ -230,9 +230,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       20.6
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV2") {
@@ -241,9 +241,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       20.6, 20.5
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV3") {
@@ -252,9 +252,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       20.5, 20.6
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV4") {
@@ -263,9 +263,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       3.854f
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract with 2nd Key PosV5") {
@@ -274,9 +274,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Seq(Seq(
       3.854f
-    )), future.join())
+    ))), future.join())
   }
 
   test("extract last") {
@@ -314,7 +314,7 @@ class APIwithByteArrTests extends FunSuite {
     val latch: CountDownLatch = new CountDownLatch(5)
 
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
-      println(s"result of extraction -> ${in.getValue}")
+      //println(s"result of extraction -> ${in.getValue}")
       assertEquals(
         List(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
         in.getValue
