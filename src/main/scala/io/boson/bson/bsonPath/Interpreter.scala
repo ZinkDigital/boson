@@ -78,32 +78,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
       (left, mid, right) match {
         case (a, ("until" | "Until"), "end") =>
           val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), Some(a), None)
-//          midResult match {
-//            case Some(_) => println("size "+midResult.get.asInstanceOf[Seq[Any]].size)
-//            val help =
-//              for(elem <- midResult.get.asInstanceOf[Seq[Any]]) yield {
-//                elem match {
-//                  case e: Array[Any] => Compose.composer(e)
-//                  case e => e
-//                }
-//              }
-//              for(elem <- help)yield{
-//                elem match {
-//                  case e: Seq[Any] => e.take(e.size-1)
-//                  case e => e   //TODO:rework
-//                }
-//              }
-//              //println(s"after compose -> $help")
-////              if(help.size < 2) {
-////                (for (elem <- help.asInstanceOf[Seq[Seq[Any]]]) yield {
-////                  elem.take(elem.length - 1)
-////                }).filter(p => p.nonEmpty)
-////              } else help.take(help.size-1)
-//            case None => Seq.empty[Any]
-//          }
           midResult.map(v => {
-            println(s"# until end -> $v")
-            //v.asInstanceOf[Seq[Any]].take(v.asInstanceOf[Seq[Any]].length-1)
             (for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
               elem.take(elem.length - 1)
             }).filter(p => p.nonEmpty)
@@ -129,12 +104,10 @@ class Interpreter(boson: BosonImpl, program: Program) {
               }.getOrElse(Seq.empty)
           }
       }
-    println(s"result -> $result")
     result match {
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
       case v =>
         bsonValue.BsObject.toBson {
-          //for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
           for (elem <- v) yield {
             elem match {
               case e: Array[Any] => Compose.composer(e)
@@ -159,22 +132,6 @@ class Interpreter(boson: BosonImpl, program: Program) {
             }
           }
           } getOrElse Seq.empty[Any]
-//          midResult match {
-//            case Some(_) => println("size "+midResult.get.asInstanceOf[Seq[Any]].size)
-//              val help =
-//                for(elem <- midResult.get.asInstanceOf[Seq[Any]]) yield {
-//                  elem match {
-//                    case e: Array[Any] => Compose.composer(e)
-//                    case e => e
-//                  }
-//                }
-//              if(help.size < 2) {
-//                (for (elem <- help.asInstanceOf[Seq[Seq[Any]]]) yield {
-//                  elem.take(elem.length - 1)
-//                }).filter(p => p.nonEmpty)
-//              } else help.take(help.size-1)
-//            case None => Seq.empty[Any]
-//          }
         case (a, _, "end") =>
           boson.extract(
             boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), None

@@ -314,7 +314,7 @@ class APIwithByteArrTests extends FunSuite {
     val latch: CountDownLatch = new CountDownLatch(5)
 
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
-      println(s"result of extraction -> ${in.getValue}")
+      //println(s"result of extraction -> ${in.getValue}")
       assertEquals(
         List(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
         in.getValue

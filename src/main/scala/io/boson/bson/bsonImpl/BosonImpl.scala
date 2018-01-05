@@ -160,7 +160,7 @@ class BosonImpl(
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
               case _ if keyList.size > 1 =>
-                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any]) match { // limits here should probably None
+                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, Seq.empty[Any], keyList.drop(1), limitA, limitB).toArray[Any]) match {
                   case Some(value) if value.isEmpty => None
                   case Some(value) => Some(value)
                 }
@@ -411,33 +411,19 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" =>
-                    None
-                  //seq
-                  case _ =>
-                    Some(value)
-                  //seq.:+(value)
+                  case "all" => None
+                  case _ => Some(value)
                 }
-              case Some(_) =>
-                None
-              //seq
+              case Some(_) => None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" =>
-                        None
-                      //seq
-                      case _ =>
-                        Some(value)
-                      //seq.:+(value)
+                      case "all" => None
+                      case _ => Some(value)
                     }
-                  case Some(_) =>
-                    None
-                  //seq
-                  case None =>
-                    Some(value)
-                  //seq.:+(value)
+                  case Some(_) => None
+                  case None => Some(value)
                 }
             }
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -447,21 +433,19 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq*/None
-                  case _ => /*seq.:+(field)*/Some(field)
+                  case "all" => None
+                  case _ => Some(field)
                 }
-              case Some(_) => /*seq*/None
+              case Some(_) => None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq*/None
-                      case _ => /*seq.:+(field)*/Some(field)
+                      case "all" => None
+                      case _ => Some(field)
                     }
-                  case Some(_) =>
-                    /*seq*/None
-                  case None =>
-                    /*seq.:+(field)*/Some(field)
+                  case Some(_) => None
+                  case None => Some(field)
                 }
             }
           case D_BSONOBJECT =>
@@ -472,26 +456,23 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq.:+(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, None, None))*/Some(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, None, None))
-                  case _ => /*seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))*/Some(seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList)))
+                  case "all" => Some(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, None, None))
+                  case _ => Some(seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList)))
                 }
               case Some(_) =>
                 netty.readerIndex(bsonFinishReaderIndex)
-                //seq
                 None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq.:+(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, None, None))*/Some(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, None, None))
-                      case _ => /*seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))*/Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
+                      case "all" => Some(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, None, None))
+                      case _ => Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
                     }
                   case Some(_) =>
                     netty.readerIndex(bsonFinishReaderIndex)
-                    //seq
                     None
-                  case None =>
-                    /*seq.:+(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))*/Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
+                  case None => Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
                 }
             }
           case D_BSONARRAY =>
@@ -501,26 +482,23 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq.:+(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, None, None))*/Some(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, None, None))
-                  case _ => /*seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])*/Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
+                  case "all" => Some(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, None, None))
+                  case _ => Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
                 }
               case Some(_) =>
                 netty.readerIndex(finishReaderIndex)
-                //seq
                 None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq.:+(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, None, None))*/Some(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, None, None))
-                      case _ => /*seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])*/Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
+                      case "all" => Some(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, None, None))
+                      case _ => Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
                     }
                   case Some(_) =>
                     netty.readerIndex(finishReaderIndex)
-                    //seq
                     None
-                  case None =>
-                    /*seq.:+(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])*/Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
+                  case None => Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, Seq.empty[Any], keyList).toArray[Any])
                 }
             }
           case D_BOOLEAN =>
@@ -528,42 +506,38 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq*/None
-                  case _ => /*seq.:+(value == 1)*/Some(value == 1)
+                  case "all" => None
+                  case _ => Some(value == 1)
                 }
-              case Some(_) => /*seq*/None
+              case Some(_) => None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq*/None
-                      case _ => /*seq.:+(value == 1)*/Some(value == 1)
+                      case "all" => None
+                      case _ => Some(value == 1)
                     }
-                  case Some(_) =>
-                    /*seq*/None
-                  case None =>
-                    /*seq.:+(value == 1)*/Some(value == 1)
+                  case Some(_) => None
+                  case None => Some(value == 1)
                 }
             }
           case D_NULL =>
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq*/None
-                  case _ => /*seq.:+(null)*/Some(null)
+                  case "all" => None
+                  case _ => Some(null)
                 }
-              case Some(_) => /*seq*/None
+              case Some(_) => None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq*/None
-                      case _ => /*seq.:+(null)*/Some(null)
+                      case "all" => None
+                      case _ => Some(null)
                     }
-                  case Some(_) =>
-                    /*seq*/None
-                  case None =>
-                    /*seq.:+(null)*/Some(null)
+                  case Some(_) => None
+                  case None => Some(null)
                 }
             }
           case D_INT =>
@@ -571,21 +545,19 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq*/None
-                  case _ => /*seq.:+(value)*/Some(value)
+                  case "all" => None
+                  case _ => Some(value)
                 }
-              case Some(_) => /*seq*/None
+              case Some(_) => None
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq*/None
-                      case _ => /*seq.:+(value)*/None
+                      case "all" => None
+                      case _ => None
                     }
-                  case Some(_) =>
-                    /*seq*/None
-                  case None =>
-                    /*seq.:+(value)*/Some(value)
+                  case Some(_) => None
+                  case None => Some(value)
                 }
             }
           case D_LONG =>
@@ -593,20 +565,18 @@ class BosonImpl(
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
-                  case "all" => /*seq*/None
-                  case _ => /*seq.:+(value)*/Some(value)
+                  case "all" => None
+                  case _ => Some(value)
                 }
               case None =>
                 limitA match {
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
-                      case "all" => /*seq*/None
-                      case _ => /*seq.:+(value)*/Some(value)
+                      case "all" => None
+                      case _ => Some(value)
                     }
-                  case Some(_) =>
-                    /*seq*/None
-                  case None =>
-                    /*seq.:+(value)*/Some(value)
+                  case Some(_) => None
+                  case None => Some(value)
                 }
             }
           case D_ZERO_BYTE =>
@@ -615,9 +585,7 @@ class BosonImpl(
       val actualPos2 = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
-          println(s"newSeq: $newSeq")
           newSeq ++ constructWithLimits(iter+1)
-          //constructWithLimits(iter + 1, newSeq)
         case 0 =>
           newSeq
       }
