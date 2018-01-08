@@ -13,11 +13,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   def run(): bsonValue.BsValue = {
     f match {
-      case Some(func) => func /*Inejctor*/
-        println("INJECTOR")
+      case Some(func) => //func /*Inejctor*/
         startInjector(program.statement)
       case None => /*Extractor*/
-        println("EXTRACTOR")
         start(program.statement)
     }
   }
@@ -267,11 +265,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case Grammar(selectType) => // "(all|first|last)"
           executeSelectInjector("",selectType)
 
-        case ArrExpr(left: Int, mid: Option[String], right: Any, None) => // "[# .. #]"
-          executeArraySelectInjector("", left, mid.get, right)
+        case ArrExpr(left: Int, mid: Option[String], right: Option[Any], None) => // "[# .. #]"
+          println("ArrExpr")
+          executeArraySelectInjector("", left, mid.get, right.get)
         case KeyWithArrExpr(k,arrEx, None) =>    //key.[#..#]
 
-          executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg)
+          executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
 
         /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
           case Seq() => bsonValue.BsObject.toBson(Seq.empty)
@@ -315,7 +314,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   def executeArraySelectInjector(key: String,left: Int, mid: String, right: Any): bsonValue.BsValue = {
-
+println((key, left, mid.toLowerCase(), right))
     (key, left, mid.toLowerCase(), right) match {
       case ("", a, "until", "end") =>
 
@@ -328,7 +327,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         }
 
       case ("", a, "to", "end") => // "[# .. end]"
+
         val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f.get, a.toString))
+
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
           case Success(v) => bsonValue.BsObject.toBson(v._1)

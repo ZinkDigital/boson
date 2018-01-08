@@ -13,7 +13,7 @@ case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
 case class KeyWithArrExpr(key: String,arrEx: ArrExpr) extends Statement
 //case class ScndGrammar(selectType: String)
 //case class Exists(term: String) extends Statement
-case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any], scndKey: Option[String]) extends Statement
+case class ArrExpr(leftArg: Int, midArg: String, rightArg: Any) extends Statement
 //case class ArraySelectStatement(grammar: Grammar, arrEx: ArrExpr) extends Statement
 //case class KeyStatement(key: String) extends Statement
 //case class SizeOfArrayStatement(grammar: Grammar, arrEx: ArrExpr, scndGrammar: ScndGrammar) extends Statement
@@ -57,11 +57,8 @@ class TinyLanguageInj extends RegexParsers {
 
 //  private def exists: Parser[Exists] = ("in" | "Nin") ^^ { d => Exists(d)}
 
-  private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {_.toInt}) ~ opt(("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end")) ~ "]" ~ opt("." ~> word) ^^ {
-    case l ~ Some(m ~ r) ~ _ ~ None => ArrExpr(l, Some(m), Some(r), None)  //[#..#]
-    //case l ~ Some(m ~ r) ~ _ ~ Some(sK) => ArrExpr(l, Some(m), Some(r), Some(sK))  //[#..#].2ndKey
-    case l ~ None ~ _ ~ None => ArrExpr(l, None, None, None) //[#]
-    //case l ~ None ~ _ ~ Some(sK) => ArrExpr(l, None, None, Some(sK)) //[#].2ndKey
+  private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {_.toInt}) ~ ("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end") <~ "]" ^^ {
+    case l ~ m ~ r => ArrExpr(l, m, r)
   }
 
 }

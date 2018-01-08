@@ -27,13 +27,10 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          println("parser Success")
           new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
         case parser.Error(msg, _) =>
-          println("parser Error")
           bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) =>
-          println("parser Failure")
           bsonValue.BsObject.toBson(msg)
       }
     }catch {
@@ -53,13 +50,8 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
         case ex: BsException => println(ex.getValue)
           bsonByteEncoding
         case nb: BsBoson => nb.getValue.getByteBuf.array()
-        case bsS: BsSeq => println(bsS.getValue)
-          println(bsS.getValue.head.getClass)
-          bsS.getValue.head
-          bsonByteEncoding
         case x =>
-          println("Error")
-          println(x.getClass)
+
           bsonByteEncoding
       }
 
@@ -73,7 +65,6 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
   override def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer] = {
     val future: CompletableFuture[ByteBuffer] = new CompletableFuture[ByteBuffer]()
-    println("BYTE_BUFFER")
     /*val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
     val future: CompletableFuture[ByteBuffer] =
       CompletableFuture.supplyAsync(() =>{

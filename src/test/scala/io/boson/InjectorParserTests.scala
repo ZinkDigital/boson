@@ -195,13 +195,17 @@ class InjectorParserTests extends FunSuite {
   }
 
   def parseInj[T](netty: BosonImpl,f: T => T, expression: String):bsonValue.BsValue = {
-    val parser = new TinyLanguageInj
+    val parser = new TinyLanguage
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          new InterpreterInj(netty, f, r.asInstanceOf[ProgramInj]).run()
-        case parser.Error(msg, _) => bsonValue.BsObject.toBson(msg)
-        case parser.Failure(msg, _) => bsonValue.BsObject.toBson(msg)
+          new Interpreter(netty, r.asInstanceOf[Program], Option(f)).run()
+        case parser.Error(msg, _) => println("Error")
+          bsonValue.BsObject.toBson(msg)
+
+        case parser.Failure(msg, _) => println("Failure")
+          bsonValue.BsObject.toBson(msg)
+
       }
     }catch {
       case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
@@ -250,7 +254,7 @@ class InjectorParserTests extends FunSuite {
     val key: String = ""
     val expression: String = "[0 to end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEventArray.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Int]*4, expression)
+    val resultBoson: BsValue = parseInj(boson, (x:Int) => x*4, expression)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex

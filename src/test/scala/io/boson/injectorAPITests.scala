@@ -35,14 +35,11 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.injector(expression, (in: Double) => newFridgeSerialCode)
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 
-
     // apply an extractor to get the new serial code as above.
     val resultValue: Array[Byte] = result.join()
-
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
-
 
     assertEquals(List(1000.0), future.join().getValue )
   }

@@ -24,11 +24,11 @@ class InterpreterInj[T](boson: BosonImpl, f: T => T, program: ProgramInj) {
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("",selectType)
 
-        case ArrExpr(left: Int, mid: Option[String], right: Any, None) => // "[# .. #]"
-          executeArraySelect("", left, mid.get, right)
+        case ArrExpr(left: Int, mid: String, right: Any) => // "[# .. #]"
+          executeArraySelect("", left, mid, right)
         case KeyWithArrExpr(k,arrEx) =>    //key.[#..#]
 
-          executeArraySelect(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg)
+          executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg)
 
           /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
             case Seq() => bsonValue.BsObject.toBson(Seq.empty)
