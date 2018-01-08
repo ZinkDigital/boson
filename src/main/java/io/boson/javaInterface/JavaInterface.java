@@ -6,7 +6,9 @@ import io.boson.bson.bsonPath.Program;
 import io.boson.bson.bsonPath.TinyLanguage;
 import io.boson.bson.bsonImpl.BosonImpl;
 import scala.Function1;
+import scala.None;
 import scala.Option;
+import scala.Some;
 import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class JavaInterface {
         try {
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if (pr.successful()) {
-                Interpreter interpreter = new Interpreter(boson, (Program) pr.get());
+                Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), null);
                 return interpreter.run();
             } else {
                 return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply(writer));

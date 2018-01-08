@@ -1,8 +1,10 @@
 package io.boson
 
 import java.util.concurrent.{CompletableFuture, CountDownLatch}
+
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
+import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -304,7 +306,7 @@ class APIwithByteArrTests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
-    assertEquals(
+      assertEquals(
       BsSeq(Seq(20.5,20.6,20.5)),
       future.join())
   }
@@ -313,7 +315,7 @@ class APIwithByteArrTests extends FunSuite {
     val expression: String = "[2 to end]"
     val latch: CountDownLatch = new CountDownLatch(5)
 
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
+     val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
       //println(s"result of extraction -> ${in.getValue}")
       assertEquals(
         List(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
@@ -327,5 +329,6 @@ class APIwithByteArrTests extends FunSuite {
       boson.go(arr.encodeToBarray())
     }
   }
+
 
 }

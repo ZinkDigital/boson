@@ -350,7 +350,7 @@ class BosonImpl(
   private def traverseBsonObj(netty: ByteBuf, mapper: Map[Any, Any], bsonFinishReaderIndex: Int, keyList: List[(String, String)]): Map[Any, Any] = {
     arrKeyDecode.clear()
     val seqType: Int = netty.readByte().toInt
-    val newMap =
+    val newMap: Map[Any, Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
           extractKeys(netty)
@@ -371,7 +371,7 @@ class BosonImpl(
           val bsonStartReaderIndex: Int = netty.readerIndex()
           val valueTotalLength: Int = netty.readIntLE()
           val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-          val map = scala.collection.immutable.Map[Any, Any]()
+          val map: Map[Any, Any] = scala.collection.immutable.Map[Any, Any]()
           mapper + (new String(arrKeyDecode.toArray) -> traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
         case D_BSONARRAY =>
           extractKeys(netty)
@@ -415,7 +415,7 @@ class BosonImpl(
       if (seqType2 != 0) {
         readArrayPos(netty)
       }
-      val newSeq =
+      val newSeq: Option[Any] =
         seqType2 match {
           case D_FLOAT_DOUBLE =>
             val value: Double = netty.readDoubleLE()
@@ -597,7 +597,7 @@ class BosonImpl(
           case D_ZERO_BYTE =>
             None
         }
-      val actualPos2 = arrayFRIdx - netty.readerIndex()
+      val actualPos2: Int = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
           newSeq ++ constructWithLimits(iter+1)
