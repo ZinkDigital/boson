@@ -1,6 +1,7 @@
 package io.boson
 
 import java.time.Instant
+import java.util
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
@@ -8,6 +9,8 @@ import io.boson.bson.bsonValue.{BsSeq, BsValue}
 import io.boson.bson.bsonImpl.injectors.EnumerationTest
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
+import io.netty.util.ByteProcessor
+
 import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -79,12 +82,13 @@ class InjectorsTest extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val netty: Option[BosonImpl] = Some(boson)
-
     val b1: Option[BosonImpl] = boson.modify(netty, "John", (_: String) => "Somebody")
+    //val b1: Option[Boson] =Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))// boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody")._1
 
     val result: Any = b1 match {
       case Some(v) =>
         for (elem <- callParse(v, "John.all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
+        //println("EXCEPTION= " + ext.parse(v, "John", "all").asInstanceOf[BsException].getValue)
       case None => List()
     }
     assert(List("Somebody", "Nobody") === result)
@@ -102,7 +106,7 @@ class InjectorsTest extends FunSuite {
     val netty: Option[BosonImpl] = Some(boson)
 
     val b1: Option[BosonImpl] = boson.modify(netty, "John", (_: String) => "Somebody")
-
+    //val b1: Option[Boson] = Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))
     val result: Any = b1 match {
       case Some(v) =>
         for (elem <- callParse(v, "John.all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
@@ -246,7 +250,7 @@ class InjectorsTest extends FunSuite {
   }
   //  TODO:find a way to inject BsonArray
 //  test("Injector: BsonArray => BsonArray") {
-//    val b1: Option[BosonImpl] = netty.get.modify(netty, "bsonArray", (_: java.util.List[_]) => newbsonArray.getList) //  .asScala.toArray[Any]
+//    val b1: Option[BosonImpl] = netty.get.modify(netty, "bsonArray", (_: java.util.List[_]) => Mapper.convert(newbsonArray)) //  .asScala.toArray[Any]
 //
 //    val result: Any = b1 match {
 //      case None => List()
@@ -373,7 +377,7 @@ class InjectorsTest extends FunSuite {
   //  TODO:find a way to inject BsonObject
 //  test("Injector BsonArray: BsonObject => BsonObject") {
 //
-//    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bObj", (_: java.util.Map[String, Object]) => newbObj.getMap) //  .asScala.toMap
+//    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bObj", (_: java.util.Map[String, Object]) => Mapper.convert(newbObj)) //  .asScala.toMap
 //
 //    val result: Any = b1 match {
 //      case None => List()
@@ -415,7 +419,7 @@ class InjectorsTest extends FunSuite {
   //  TODO:find a way to inject BsonArray
 //  test("Injector BsonArray: BsonArray => BsonArray") {
 //
-//    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bsonArray", (_: java.util.List[_]) => newbsonArray.getList)
+//    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bsonArray", (_: java.util.List[_]) => Mapper.convert(newbsonArray))
 //
 //    val result: Any = b1 match {
 //      case None => List()

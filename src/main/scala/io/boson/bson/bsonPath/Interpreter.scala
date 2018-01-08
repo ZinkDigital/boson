@@ -69,7 +69,11 @@ class Interpreter(boson: BosonImpl, program: Program) {
 //                case e => e
 //              }
 //            }
+//          } else { //("all")
+//            bsonValue.BsObject.toBson(result.head.asInstanceOf[Array[Any]].length)
 //          }
+//        case "isEmpty" => bsonValue.BsObject.toBson(false)
+//      }
 //    }
 //  }
 
@@ -217,6 +221,7 @@ class Interpreter(boson: BosonImpl, program: Program) {
         }
     }
   }
+  //  (all|first|last)
 
   @Deprecated
   private def transformer(value: Seq[Any]): Seq[Any] = {
