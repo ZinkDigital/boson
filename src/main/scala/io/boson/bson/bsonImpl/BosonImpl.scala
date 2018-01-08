@@ -361,7 +361,12 @@ class BosonImpl(
           extractKeys(netty)
           val valueLength: Int = netty.readIntLE()
           val value: CharSequence = netty.readCharSequence(valueLength, charset)
-          mapper + (new String(arrKeyDecode.toArray) -> value)
+          /*
+          * filtrar value
+          * */
+          val newValue: String = value.toString.filter(p => p.!=(0))
+
+          mapper + (new String(arrKeyDecode.toArray) -> newValue)
         case D_BSONOBJECT =>
           extractKeys(netty)
           val bsonStartReaderIndex: Int = netty.readerIndex()
@@ -436,12 +441,16 @@ class BosonImpl(
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
             val valueLength: Int = netty.readIntLE()
             val field: CharSequence = netty.readCharSequence(valueLength - 1, charset)
+            /*
+            * filtrar field
+            * */
+            val newField: String = field.toString.filter(p => p != 0)
             netty.readByte()
             limitB match {
               case Some(_) if iter >= limitA.get && iter <= limitB.get =>
                 keyList.head._2 match {
                   case "all" => None
-                  case _ => Some(field)
+                  case _ => Some(newField)
                 }
               case Some(_) => None
               case None =>
@@ -449,10 +458,10 @@ class BosonImpl(
                   case Some(_) if iter >= limitA.get =>
                     keyList.head._2 match {
                       case "all" => None
-                      case _ => Some(field)
+                      case _ => Some(newField)
                     }
                   case Some(_) => None
-                  case None => Some(field)
+                  case None => Some(newField)
                 }
             }
           case D_BSONOBJECT =>
