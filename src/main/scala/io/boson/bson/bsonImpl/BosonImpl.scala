@@ -9,12 +9,13 @@ import Constants.{charset, _}
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.undercouch.bson4jackson.BsonFactory
 import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ByteProcessor
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
-import scala.collection.immutable.Map.Map4
 import scala.collection.mutable
+import scala.collection.immutable.Map.Map4
 import io.boson.bson.bsonPath.Compose
 
 import scala.collection.mutable

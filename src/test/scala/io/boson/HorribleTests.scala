@@ -183,10 +183,10 @@ class HorribleTests extends FunSuite {
     val expression: String = "   José . first"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(List(
+    assertEquals(BsSeq(Seq(
       "Tarantula",
       "Aracnídius",
-      List("Insecticida")
+      Seq("Insecticida")
     )), result)
   }
 
@@ -196,10 +196,10 @@ class HorribleTests extends FunSuite {
     val expression: String = "José.[0 until end]  "
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(List(
-      List("Tarantula", "Aracnídius"),
-      List("Spider"),
-      List("Fly")
+    assertEquals(BsSeq(Seq(
+      Seq("Tarantula", "Aracnídius"),
+      Seq("Spider"),
+      Seq("Fly")
     )), result)
   }
 
