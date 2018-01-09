@@ -311,6 +311,30 @@ class APIwithByteArrTests extends FunSuite {
       future.join())
   }
 
+  test("extract all elements containing partial key") {
+    val expression: String = "*city"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray)
+    assertEquals(
+      BsSeq(Seq(20.5,20.6,20.5)),
+      future.join())
+  }
+
+  test("extract everything") {
+    val expression: String = "*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray)
+    assertEquals(
+      BsSeq(Seq(
+        Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> false),
+        Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false),
+        Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)
+      )),
+      future.join())
+  }
+
   test("extract inside loop w/ key") {
     val expression: String = "[2 to end]"
     val latch: CountDownLatch = new CountDownLatch(5)

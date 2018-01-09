@@ -161,9 +161,18 @@ object BosonTester extends App {
   val wrong1: String = "1"
   val wrong2: String = "Ce"
 
-  println(s"$name contains $halfname -> ${name.contains(halfname)}")
-  println(s"$name contains $wrong -> ${name.contains(wrong)}")
-  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
-  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
+//  println(s"$name contains $halfname -> ${name.contains(halfname)}")
+//  println(s"$name contains $wrong -> ${name.contains(wrong)}")
+//  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
+//  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
+//  println("*" + wrong)
+//  println(("*" + wrong).charAt(0).equals('*'))
+
+    val expression: String = "*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray2)
+    println("result of extracting \""+ expression+ "\" -> " + future.join())
+    println("-------------------------------------------------------------------------------------------------------------")
 
 }

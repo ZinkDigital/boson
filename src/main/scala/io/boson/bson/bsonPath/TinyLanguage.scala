@@ -13,6 +13,8 @@ case class Grammar(selectType: String) extends Statement
 case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
 case class KeyWithArrExpr(key: String,arrEx: ArrExpr, scndKey: Option[String]) extends Statement
 case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any], scndKey: Option[String]) extends Statement
+case class HalfName(half: String) extends Statement
+case class Everything(key: String) extends Statement
 class Program(val statement: List[Statement])
 
 class TinyLanguage extends RegexParsers {
@@ -24,7 +26,13 @@ class TinyLanguage extends RegexParsers {
     ( keyWithGrammar
       ||| arrEx
       ||| grammar
-      ||| keyWithArrEx) ^^ { s => new Program(List(s))}
+      ||| keyWithArrEx
+      ||| halfName
+      ||| everything) ^^ { s => new Program(List(s))}
+
+  private def everything: Parser[Everything] = "*" ^^ { k => Everything(k) }
+
+  private def halfName: Parser[HalfName] = "*" ~> word ^^ { h => HalfName(h) }
 
   private def keyWithGrammar: Parser[KeyWithGrammar] = word ~ ("." ~> grammar) ^^ {
     case k ~ g => KeyWithGrammar(k,g)

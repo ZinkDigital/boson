@@ -334,4 +334,32 @@ class APIwithByteBufferTests extends FunSuite{
     )), future.join())
   }
 
+  test("extract all elements containing partial key") {
+    val expression: String = "*os"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj)
+
+    assertEquals(BsSeq(Seq(
+      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
+  }
+
+  test("extract everything") {
+    val expression: String = "*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBuffer)
+
+    assertEquals(BsSeq(Seq(
+      2.2f,
+      Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
+      Map("José" ->Seq("Spider")),
+      Map("José" ->Seq("Fly")),
+      Seq("Insecticida")
+    )), future.join())
+  }
+
 }

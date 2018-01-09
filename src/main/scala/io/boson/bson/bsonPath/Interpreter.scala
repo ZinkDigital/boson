@@ -49,6 +49,11 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
+        case HalfName(halfName) =>  //  "*halfname"
+          executeSelect("*"+halfName,"all")
+        case Everything(key) => //  *
+          executeSelect(key,"all")
+
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
