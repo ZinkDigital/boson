@@ -51,7 +51,7 @@ boson.go(validBsonArray);
 BsValue extracted = result.join()
 ```
 
-### Injecting from an encoded Bson (Scala)
+### Injecting in a encoded Bson (Scala)
 ```scala
 //  This is the Bson encoded to a byte array
 val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
@@ -78,7 +78,7 @@ val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 val resultValue: Array[Byte] = result.join()
 ```
 
-### Injecting from an encoded Bson (Java)
+### Injecting in a encoded Bson (Java)
 ```java
 byte[] validBsonArray = bson.encodeToBarray();
 
