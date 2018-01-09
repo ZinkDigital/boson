@@ -28,7 +28,7 @@ class injectorAPITests extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
     val newFridgeSerialCode: Double = 1000.0
     val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
-    val expression = "fanVelocity.first"
+    val expression = "fanVelocity..first"
     val boson: Boson = Boson.injector(expression, (in: Double) => newFridgeSerialCode)
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 
@@ -44,7 +44,7 @@ class injectorAPITests extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the")
     val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
-    val expression = "string.first"
+    val expression = "string..first"
     val boson: Boson = Boson.injector(expression, (in: String) => in.concat(newFridgeSerialCode))
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 
@@ -62,7 +62,7 @@ class injectorAPITests extends FunSuite {
 
     val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
-    val expression = "bson.first"
+    val expression = "bson..first"
     val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 
@@ -80,7 +80,7 @@ class injectorAPITests extends FunSuite {
 
     val newFridgeSerialCode: String = "MAIS EU"
     val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
-    val expression = "bson.first"
+    val expression = "bson..first"
     val boson: Boson = Boson.injector(expression, (in: List[Any]) => {
       val s: List[Any] = in.:+(newFridgeSerialCode)
       s})

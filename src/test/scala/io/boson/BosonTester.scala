@@ -168,10 +168,10 @@ object BosonTester extends App {
 //  println("*" + wrong)
 //  println(("*" + wrong).charAt(0).equals('*'))
 
-    val expression: String = "*"
+    val expression: String = "fridgeReadings.[@fridgeTemp]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteArray2)
+    boson.go(validatedByteArray)
     println("result of extracting \""+ expression+ "\" -> " + future.join())
     println("-------------------------------------------------------------------------------------------------------------")
 

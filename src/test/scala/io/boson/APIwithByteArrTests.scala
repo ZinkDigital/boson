@@ -138,7 +138,7 @@ class APIwithByteArrTests extends FunSuite {
   }
 
   test("extract last w/ key") {
-    val expression: String = "last"
+    val expression: String = ".last"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -148,7 +148,7 @@ class APIwithByteArrTests extends FunSuite {
   }
 
   test("extract first w/ key") {
-    val expression: String = "first"
+    val expression: String = ".first"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -158,7 +158,7 @@ class APIwithByteArrTests extends FunSuite {
   }
 
   test("extract all w/ key") {
-    val expression: String = "all"
+    val expression: String = ".all"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -282,7 +282,7 @@ class APIwithByteArrTests extends FunSuite {
   }
 
   test("extract last") {
-    val expression: String = "doorOpen.last"
+    val expression: String = "doorOpen..last"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -292,7 +292,7 @@ class APIwithByteArrTests extends FunSuite {
   }
 
   test("extract first") {
-    val expression: String = "fanVelocity.first"
+    val expression: String = "fanVelocity..first"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -302,7 +302,7 @@ class APIwithByteArrTests extends FunSuite {
   }
 
   test("extract all") {
-    val expression: String = "fanVelocity.all"
+    val expression: String = "fanVelocity..all"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)

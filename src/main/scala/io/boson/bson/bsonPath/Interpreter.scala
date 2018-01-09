@@ -49,11 +49,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
-        case HalfName(halfName) =>  //  "*halfname"
+        case HalfName(halfName) =>  //  "*halfName"
           executeSelect("*"+halfName,"all")
         case Everything(key) => //  *
           executeSelect(key,"all")
-
+        case HasElem(key, elem) =>  //  key.(@elem)
+          executeHasElem(key.key,elem)
+        case Key(key) =>  //  key
+          println("key case")
+          executeSelect(key,"all")
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
@@ -87,6 +91,24 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 //      }
 //    }
 //  }
+
+  private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
+    val result =
+      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "all")), None, None) map { v =>
+        v.asInstanceOf[Seq[Any]]
+      } getOrElse Seq.empty[Any]
+    result match {
+      case Seq() =>bsonValue.BsObject.toBson (Seq.empty[Any])
+      case v =>bsonValue.BsObject.toBson {
+        for (elem <- v) yield {
+          elem match {
+            case e: Array[Any] => Compose.composer(e)
+            case e => e
+          }
+        }
+      }
+    }
+  }
 
   private def executeArraySelect(key: String, left: Int, mid: String, right: Any): bsonValue.BsValue = {
     val result =
