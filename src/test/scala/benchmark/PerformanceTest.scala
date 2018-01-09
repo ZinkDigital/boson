@@ -43,7 +43,11 @@ object PerformanceTest extends App {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
 
     def bestTimeMeasure[R](block: => R): Quantity[Double] = {
-      val time = withWarmer(new Warmer.Default) measure {
+      val time: Quantity[Double] = config(
+        Key.exec.benchRuns -> 50
+      ) withWarmer {
+        new Warmer.Default
+      } measure {
         block
       }
       time
@@ -97,10 +101,10 @@ object PerformanceTest extends App {
     println()
 
     /**
-      * Testing performance of extracting values of some positions further of a BsonArray
-      */
-    val result5 = bestTimeMeasure {
-      callParse(boson.duplicate, "Markets.[50 to 55]")
+      *  Testing performance of extracting with two keys
+      * */
+    val result5: Quantity[Double] = bestTimeMeasure {
+      callParse(boson.duplicate, "Markets.[10].selectiongroupid")
     }
     println()
     println("result5: " + callParse(boson.duplicate, "Markets.[50 to 55]")
