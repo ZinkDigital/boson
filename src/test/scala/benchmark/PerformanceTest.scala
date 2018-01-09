@@ -31,7 +31,7 @@ object PerformanceTest extends App {
     }
   }
 
-  def run(): Unit = {
+  def run() = {
     val bufferedSource: Source = Source.fromURL(getClass.getResource("/longJsonString.txt"))
     val finale: String = bufferedSource.getLines.toSeq.head
     bufferedSource.close
@@ -43,7 +43,11 @@ object PerformanceTest extends App {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
 
     def bestTimeMeasure[R](block: => R): Quantity[Double] = {
-      val time: Quantity[Double] = withWarmer(new Warmer.Default) measure {
+      val time: Quantity[Double] = config(
+        Key.exec.benchRuns -> 50
+      ) withWarmer {
+        new Warmer.Default
+      } measure {
         block
       }
       time
@@ -52,7 +56,7 @@ object PerformanceTest extends App {
     /**
       * Testing performance of extracting a top value of a BsonObject
       */
-    val result1: Quantity[Double] = bestTimeMeasure {
+    val result1 = bestTimeMeasure {
       callParse(boson.duplicate, "Epoch.first")
     }
     println()
@@ -64,7 +68,7 @@ object PerformanceTest extends App {
     /**
       * Testing performance of extracting a bottom value of a BsonObject
       */
-    val result2: Quantity[Double] = bestTimeMeasure {
+    val result2 = bestTimeMeasure {
       callParse(boson.duplicate, "SSLNLastName.last")
     }
     println()
@@ -76,7 +80,7 @@ object PerformanceTest extends App {
     /**
       * Testing performance of extracting all 'Tags' values
       */
-    val result3: Quantity[Double] = bestTimeMeasure {
+    val result3 = bestTimeMeasure {
       callParse(boson.duplicate, "Tags.all")
     }
     println()
@@ -87,7 +91,7 @@ object PerformanceTest extends App {
     /**
       * Testing performance of extracting values of some positions of a BsonArray
       */
-    val result4: Quantity[Double] = bestTimeMeasure {
+    val result4 = bestTimeMeasure {
       callParse(boson.duplicate, "Markets.[3 to 5]")
     }
     println()
@@ -97,10 +101,10 @@ object PerformanceTest extends App {
     println()
 
     /**
-      * Testing performance of extracting values of some positions further of a BsonArray
-      */
+      *  Testing performance of extracting with two keys
+      * */
     val result5: Quantity[Double] = bestTimeMeasure {
-      callParse(boson.duplicate, "Markets.[50 to 55]")
+      callParse(boson.duplicate, "Markets.[10].selectiongroupid")
     }
     println()
     println("result5: " + callParse(boson.duplicate, "Markets.[50 to 55]")
