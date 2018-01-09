@@ -88,6 +88,12 @@ Expression Terms | Output
 
 Expressions terms of both tables don't work together in the same expression.
 
+### Table 3
+Expression Terms | Output
+---------------- | ------
+*halfKey | All elements of a Key containing the halfKey
+* | Everything
+
 #### Examples of expressions:
 Expression  | Output
 ----------- | ------
