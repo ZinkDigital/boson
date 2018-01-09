@@ -51,6 +51,45 @@ boson.go(validBsonArray);
 BsValue extracted = result.join()
 ```
 
+### Injecting from an encoded Bson (Scala)
+```scala
+//  This is the Bson encoded to a byte array
+val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
+
+//  Expression is a String with a key representing the value to be extracted
+//  followed by a term that in this case implies the injection to the first
+//  ocorrence of 'name'
+val expression = "name.first"
+
+
+//  Next step is to construct the injector object, it takes as arguments the previous expression
+//  and injector function of type T => T, this implies that the function needs to respect the type
+//  of the element we are changing and injecting.
+val boson: Boson = Boson.injector(expression, (in: String) => "newName")
+
+//  Calling this method triggers the injector object to inject on the given byte array.
+//  This way it's possible to create only once the injector object and call this method
+//  several times with different byte arrays.
+//  In this case, this method returns a CompletableFuture with the type of the input buffer,
+//  in this case Array[Byte], allowing asynchronicity.
+val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+
+//  To obtain the new buffer after the injection we need to retrieved it from the CompletableFuture
+val resultValue: Array[Byte] = result.join()
+```
+
+### Injecting from an encoded Bson (Java)
+```java
+byte[] validBsonArray = bson.encodeToBarray();
+
+String expression = "name.first";
+
+Boson boson = Boson.injector(expression, (String in) -> "newName");
+
+CompletableFuture<byte[]> result = boson.go(validBsonArray);
+
+byte[] resultValue =  result.join();
+```
 ### Extracting a Json (Java)
 
 ```java
