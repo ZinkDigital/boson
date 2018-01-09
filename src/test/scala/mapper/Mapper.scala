@@ -26,7 +26,7 @@ object Mapper {
     }
   }
 
-  private def convertBsonObject(bsonObject: BsonObject): Map[String, Any] = {
+  def convertBsonObject(bsonObject: BsonObject): Map[String, Any] = {
     //val map: mutable.Set[(String, Any)] = mutable.Set.empty
     val map =  new mutable.TreeMap[String, Any]()
 
@@ -50,10 +50,10 @@ object Mapper {
     })
     map.toMap
   }
-  private def convertBsonArray(array: BsonArray): List[Any] = {
+  def convertBsonArray(array: BsonArray): List[Any] = {
     //val list: util.List[Any] = new util.LinkedList[Any]()
     val list: mutable.ListBuffer[Any] = new mutable.ListBuffer[Any]
-    val bsonList: List[Any] = array.getList.asScala.asInstanceOf[List[Any]]
+    val bsonList: List[Any] = array.getList.asScala.toList //asInstanceOf[List[Any]]
 
     bsonList.foreach {
       case bsonObject: BsonObject =>

@@ -64,8 +64,8 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer] = {
-    val future: CompletableFuture[ByteBuffer] = new CompletableFuture[ByteBuffer]()
-    /*val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
+   // val future: CompletableFuture[ByteBuffer] = new CompletableFuture[ByteBuffer]()
+    val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
     val future: CompletableFuture[ByteBuffer] =
       CompletableFuture.supplyAsync(() =>{
 
@@ -85,8 +85,8 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     //    boson.getByteBuf.forEachByte(bP)
     //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-    future*/
     future
+
   }
 
   override def fuse(boson: bson.Boson): bson.Boson = ??? //  return typpe is wrong
