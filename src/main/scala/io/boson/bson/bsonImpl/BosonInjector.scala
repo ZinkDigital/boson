@@ -27,10 +27,14 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
+          println("Success")
+          println(r)
           new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
         case parser.Error(msg, _) =>
+          println("Error")
           bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) =>
+          println("Failure")
           bsonValue.BsObject.toBson(msg)
       }
     }catch {
