@@ -1009,7 +1009,7 @@ class BosonImpl(
           case bsonObject1: java.util.Map[_, _] =>
             val buf: ByteBuf = encode(bsonObject1)
             (newBuffer.writeBytes(buf), buf.capacity() - valueLength)
-          case bsonObject2: Map[String, Any] =>
+          case bsonObject2: Map[String@unchecked, _] =>
             val buf: ByteBuf = encode(bsonObject2)
             (newBuffer.writeBytes(buf), buf.capacity() - valueLength)
           case _ =>
@@ -1114,20 +1114,17 @@ class BosonImpl(
     seqType match {
       case D_ZERO_BYTE =>
         println("case zero_byte")
-        //buffer
         None
       case D_FLOAT_DOUBLE =>
         // process Float or Double
         println("D_FLOAT_DOUBLE")
         buffer.readDoubleLE()
-        //findBsonObjectWithinBsonArray(buffer, fieldID, f)
         None
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         // process Array[Byte], Instants, Strings, Enumerations, Char Sequences
         println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
         val valueLength: Int = buffer.readIntLE()
         buffer.readBytes(valueLength)
-        //findBsonObjectWithinBsonArray(buffer, fieldID, f)
         None
       case D_BSONOBJECT =>
         // process BsonObjects
@@ -1156,7 +1153,6 @@ class BosonImpl(
         val indexOfFinish: Int = startRegion + valueTotalLength
         println(s"indexOfFinish -> $indexOfFinish")
         val (result, diff): (Option[ByteBuf], Int) = findBsonObjectWithinBsonArray(buffer, fieldID, f)
-        //result map { buf => (buf, diff) }
         result map { b =>
           val oneBuf: ByteBuf = b.slice(0, startRegion - 4)
           val twoBuf: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  new size//previous till next object size
@@ -1167,27 +1163,22 @@ class BosonImpl(
         // process Booleans
         println("D_BOOLEAN")
         buffer.readByte()
-        //findBsonObjectWithinBsonArray(buffer, fieldID, f)
         None
       case D_NULL =>
         // process Null
         println("D_NULL")
-        //findBsonObjectWithinBsonArray(buffer, fieldID, f)
         None
       case D_INT =>
         // process Ints
         println("D_INT")
         buffer.readIntLE()
-        //findBsonObjectWithinBsonArray(buffer, fieldID, f)
         None
       case D_LONG =>
         // process Longs
         println("D_LONG")
         buffer.readLongLE()
-        //findBsonObjectWithinBsonArray(buffer, fieldID, f)
         None
       case _ =>
-        //buffer
         println("Something happened")
         None
     }
@@ -1210,7 +1201,6 @@ class BosonImpl(
       dataType match {
         case 0 =>
           result.writeByte(dataType)
-        //modifyAll(buffer, fieldID, f, result)
         case _ =>
           result.writeByte(dataType)
           val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
@@ -1240,9 +1230,6 @@ class BosonImpl(
                 case Some(y: Int) if y != 0 =>
                   ocorrencias.append(processTypesAll(dataType,buffer,result,fieldID,f, ocor = Option(ocorrencias.last.get-1)))
               }
-
-
-            //???
             case x if fieldID.toCharArray.deep != x.toCharArray.deep =>
               /*
               * Didn't found a field equal to key
@@ -1250,16 +1237,9 @@ class BosonImpl(
               * */
               println(s"Didn't Found Field $fieldID == ${new String(x)}")
               ocorrencias.append(processTypesAll(dataType,buffer,result,fieldID,f, ocor = ocorrencias.last))
-            //???
           }
       }
-      /*
-      * modifyAll ??
-      * */
     }
-    /*
-    * TODO - glue the bytebuf together [Size Result] - Not tested
-    * */
     result.capacity(result.writerIndex())
     (Unpooled.copiedBuffer(resultSizeBuffer.writeIntLE(result.capacity()+4), result), ocorrencias.last)
   }
@@ -1414,14 +1394,14 @@ class BosonImpl(
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonObj: Map[String, Any] = decodeBsonObject(buffer.readBytes(valueLength))
         val newValue: Any = applyFunction(f, bsonObj)
-        println(newValue.isInstanceOf[Map[String, Any]])
+        println(newValue.isInstanceOf[Map[String@unchecked, _]])
         Option(newValue) match {
-          case Some(x: util.Map[String, _])  =>
+          case Some(x: util.Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
               case Failure(e) => throw  CustomException(e.getMessage)
             }
-          case Some(x: Map[String, Any])  =>
+          case Some(x: Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
               case Failure(e) => throw  CustomException(e.getMessage)
@@ -1568,8 +1548,8 @@ class BosonImpl(
     val res: ByteBuf =  bson match {
       case list: util.List[_] => encodeBsonArray(list)
       case list: List[Any] => encodeBsonArray(list.asJava)
-      case map : util.Map[String, _] => encodeBsonObject(map.asScala.toMap)
-      case map : Map[String, Any] => encodeBsonObject(map)
+      case map : util.Map[String@unchecked, _] => encodeBsonObject(map.asScala.toMap)
+      case map : Map[String@unchecked, _] => encodeBsonObject(map)
       case array: Array[Byte] => encodeBsonArray(array.toList.asJava)
       //case map : mutable.Map[String, _] => encodeBsonObject(map)
       case _ => throw CustomException("Wrong input type.")
@@ -1610,7 +1590,7 @@ class BosonImpl(
         case x: CharSequence =>
           println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
           buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
-        case x: Map[String, Any] =>
+        case x: Map[String@unchecked, _] =>
           println("D_BSONOBJECT")
           buf.writeByte(D_BSONOBJECT).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonObject(x))
         /*case x: mutable.Map[String, _] =>
@@ -1672,7 +1652,7 @@ class BosonImpl(
         /*case x: mutable.Map[String, _] =>
           println("D_BSONOBJECT")
           buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))*/
-        case x: Map[String, Any] =>
+        case x: Map[String@unchecked, _] =>
           println("D_BSONOBJECT")
           buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))
         case x: util.List[_] =>
@@ -2697,17 +2677,18 @@ newValue match {
         //////////////////
 
         val newValue: Any = applyFunction(f, map)
-        println(newValue.isInstanceOf[Map[String, Any]])
+        println(newValue.isInstanceOf[Map[String@unchecked, _]])
         Option(newValue) match {
-          case Some(x: util.Map[String, _])  =>
+          case Some(x: util.Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=>
+
                 result.writeBytes(v)
                 //resultCopy.writeIntLE(valueLength).writeBytes(bsonObj)
                 resultCopy.writeBytes(bsonObj)
               case Failure(e) => throw  CustomException(e.getMessage)
             }
-          case Some(x: Map[String, Any])  =>
+          case Some(x: Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=>
                 result.writeBytes(v)
