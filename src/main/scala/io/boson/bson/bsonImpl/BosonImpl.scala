@@ -1377,7 +1377,7 @@ class BosonImpl(
     //val res: (ByteBuf, Int) =
     seqType match {
       case D_FLOAT_DOUBLE =>
-        val value0: Any = buffer.readDoubleLE()
+        //val value0: Any = buffer.readDoubleLE()
         //val value: Any =
           Try(f(buffer.getDoubleLE(buffer.readerIndex()).toFloat.asInstanceOf[T])) match {
             case Success(v) =>
@@ -1396,7 +1396,7 @@ class BosonImpl(
                   println("value selected DOESNT MATCH with the provided")
                   throw new RuntimeException(m)
               }
-          }
+          } //TODO:fixed bug by using Try system aboove, check for other cases
       /*applyFunction(f, value0)
       Option(value) match {
         case Some(n: Float) =>
@@ -1410,8 +1410,7 @@ class BosonImpl(
       }*/
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-        println("passei por aqui------------------------------------------------------------------------------")
-        val value: Any = applyFunction(f, Unpooled.copiedBuffer(buffer.readBytes(length-1)).array())
+        val value: Any = applyFunction(f, new String(Unpooled.copiedBuffer(buffer.readBytes(length-1)).array()))
         buffer.readByte()
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
@@ -2688,7 +2687,7 @@ newValue match {
               case Failure(m) =>
                 println("value selected DOESNT MATCH with the provided")
                 throw new RuntimeException(m)
-            }
+            }//TODO:fixed bug by using Try system aboove, check for other cases
         }
 //        val value: Any = applyFunction(f, value0)
 //        Option(value) match {
@@ -2705,9 +2704,8 @@ newValue match {
 //        }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-        val value0: Array[Byte] = Unpooled.copiedBuffer(buffer.readBytes(length-1)).array()
-        val zeroByte: Byte = buffer.readByte()
-        val value: Any = applyFunction(f, value0)
+        val value0: Array[Byte] = Unpooled.copiedBuffer(buffer.readBytes(length)).array()
+        val value: Any = applyFunction(f, new String(value0))
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
           case Some(n: Array[Byte]) =>
