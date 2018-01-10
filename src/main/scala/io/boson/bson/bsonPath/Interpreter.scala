@@ -53,10 +53,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           executeSelect("*"+halfName,"all")
         case Everything(key) => //  *
           executeSelect(key,"all")
-        case HasElem(key, elem) =>  //  key.(@elem)
+        case HasElem(key, elem) =>  //  key.[@elem]
           executeHasElem(key.key,elem)
         case Key(key) =>  //  key
-          println("key case")
           executeSelect(key,"all")
       }
     } else throw new RuntimeException("List of statements is empty.")
@@ -157,7 +156,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
     val result =
-      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "all")), None, None) map { v =>
+      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), None, None) map { v =>
         v.asInstanceOf[Seq[Any]]
       } getOrElse Seq.empty[Any]
     result match {
@@ -258,9 +257,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       case Seq() => bsonValue.BsObject.toBson(Seq.empty)
       case v =>
         bsonValue.BsObject.toBson {
-//          val res =
-//            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-//          if (res.size>1) res else res.head //
           for (elem <- v) yield {
             elem match {
               case e: Array[Any] => Compose.composer(e)
