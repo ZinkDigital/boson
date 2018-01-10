@@ -8,9 +8,6 @@ import io.boson.bson.Boson
 
 class BosonFuse(first: bson.Boson, second: bson.Boson) extends bson.Boson {
 
-  println(s"first: ${first.getClass.getSimpleName}")
-  println(s"second: ${second.getClass.getSimpleName}")
-
   override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
     val future: CompletableFuture[Array[Byte]] =
       CompletableFuture.supplyAsync(() => {
