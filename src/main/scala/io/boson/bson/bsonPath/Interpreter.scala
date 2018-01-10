@@ -62,6 +62,69 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     } else throw new RuntimeException("List of statements is empty.")
   }
 
+  private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
+    if (statement.nonEmpty) {
+      statement.head match {
+        case KeyWithGrammar(k,grammar) => //key.grammar
+          executeSelectInjector(k,grammar.selectType)
+        case Grammar(selectType) => // "(all|first|last)"
+          executeSelectInjector("",selectType)
+        case ArrExpr(left: Int, mid: Option[String], right: Option[Any], secondKey) => // "[# .. #]"
+          println("ArrExpr")
+          //executeArraySelectInjector("", left, mid.get, right.get)
+
+          secondKey.isDefined match {
+            case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
+              ???
+              //executeArraySelectWithTwoKeys("", left, mid.get, right.get, secondKey.get)
+            case true => //[#].2ndKey
+              ???
+              //executeArraySelectWithTwoKeys("",left, "to", left,secondKey.get)
+            case false if mid.isDefined && right.isDefined => //[#..#]
+              executeArraySelectInjector("", left, mid.get, right.get)
+            case false => //[#]
+              executeArraySelectInjector("", left, mid.get, left)
+          }
+
+        case KeyWithArrExpr(k,arrEx, secondKey) =>    //key.[#..#]
+          //executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
+
+          secondKey.isDefined match {
+            case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#].secondKey
+              ???
+              //executeArraySelectWithTwoKeys(k, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get, secondKey.get)
+            case true => //key.[#].secondKey
+              ???
+              //executeArraySelectWithTwoKeys(k,arrEx.leftArg,"to",arrEx.leftArg,secondKey.get)
+            case false if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#]
+              executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
+            case false => //key.[#]
+              executeArraySelectInjector(k,arrEx.leftArg,"to",arrEx.leftArg)
+          }
+        case HalfName(halfName) =>  //  "*halfName"
+          ???
+          //executeSelect("*"+halfName,"all")
+        case Everything(key) => //  *
+          ???
+          //executeSelect(key,"all")
+        case HasElem(key, elem) =>  //  key.(@elem)
+          ???
+          //executeHasElem(key.key,elem)
+        case Key(key) =>  //  key
+          println("key case")
+          executeSelectInjector(key,"all")
+
+        /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
+          case Seq() => bsonValue.BsObject.toBson(Seq.empty)
+          case v =>
+            bsonValue.BsObject.toBson {
+              for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+            }
+        }*/
+      }
+    } else throw new RuntimeException("List of statements is empty.")
+  }
+
 //  private def executePosSelect(key: String, left: Int, secondKey: Option[String]): bsonValue.BsValue = {
 //    val keyList =
 //      if (secondKey.isDefined) {
@@ -284,31 +347,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
 
 
-  private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
-    if (statement.nonEmpty) {
-      statement.head match {
-        case KeyWithGrammar(k,grammar) => //key.grammar
-          executeSelectInjector(k,grammar.selectType)
-        case Grammar(selectType) => // "(all|first|last)"
-          executeSelectInjector("",selectType)
 
-        case ArrExpr(left: Int, mid: Option[String], right: Option[Any], None) => // "[# .. #]"
-          println("ArrExpr")
-          executeArraySelectInjector("", left, mid.get, right.get)
-        case KeyWithArrExpr(k,arrEx, None) =>    //key.[#..#]
-
-          executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
-
-        /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
-          case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-          case v =>
-            bsonValue.BsObject.toBson {
-              for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
-            }
-        }*/
-      }
-    } else throw new RuntimeException("List of statements is empty.")
-  }
 
   def executeSelectInjector(key: String, selectType: String):  bsonValue.BsValue = {
     selectType match {

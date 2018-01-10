@@ -1034,7 +1034,7 @@ class BosonImpl(
           case bsonObject1: java.util.Map[_, _] =>
             val buf: ByteBuf = encode(bsonObject1)
             (newBuffer.writeBytes(buf), buf.capacity() - valueLength)
-          case bsonObject2: Map[String, Any] =>
+          case bsonObject2: Map[String@unchecked, _] =>
             val buf: ByteBuf = encode(bsonObject2)
             (newBuffer.writeBytes(buf), buf.capacity() - valueLength)
           case _ =>
@@ -1438,14 +1438,14 @@ class BosonImpl(
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonObj: Map[String, Any] = decodeBsonObject(buffer.readBytes(valueLength))
         val newValue: Any = applyFunction(f, bsonObj)
-        println(newValue.isInstanceOf[Map[String, Any]])
+        println(newValue.isInstanceOf[Map[String@unchecked, _]])
         Option(newValue) match {
-          case Some(x: util.Map[String, _])  =>
+          case Some(x: util.Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
               case Failure(e) => throw  CustomException(e.getMessage)
             }
-          case Some(x: Map[String, Any])  =>
+          case Some(x: Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
               case Failure(e) => throw  CustomException(e.getMessage)
@@ -1591,8 +1591,8 @@ class BosonImpl(
     val res: ByteBuf =  bson match {
       case list: util.List[_] => encodeBsonArray(list)
       case list: List[Any] => encodeBsonArray(list.asJava)
-      case map : util.Map[String, _] => encodeBsonObject(map.asScala.toMap)
-      case map : Map[String, Any] => encodeBsonObject(map)
+      case map : util.Map[String@unchecked, _] => encodeBsonObject(map.asScala.toMap)
+      case map : Map[String@unchecked, _] => encodeBsonObject(map)
       case array: Array[Byte] => encodeBsonArray(array.toList.asJava)
       //case map : mutable.Map[String, _] => encodeBsonObject(map)
       case _ => throw CustomException("Wrong input type.")
@@ -1633,7 +1633,7 @@ class BosonImpl(
         case x: CharSequence =>
           println("D_ARRAYB_INST_STR_ENUM_CHRSEQ")
           buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
-        case x: Map[String, Any] =>
+        case x: Map[String@unchecked, _] =>
           println("D_BSONOBJECT")
           buf.writeByte(D_BSONOBJECT).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonObject(x))
         /*case x: mutable.Map[String, _] =>
@@ -1695,7 +1695,7 @@ class BosonImpl(
         /*case x: mutable.Map[String, _] =>
           println("D_BSONOBJECT")
           buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))*/
-        case x: Map[String, Any] =>
+        case x: Map[String@unchecked, _] =>
           println("D_BSONOBJECT")
           buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))
         case x: util.List[_] =>
@@ -2718,9 +2718,9 @@ newValue match {
         //////////////////
 
         val newValue: Any = applyFunction(f, map)
-        println(newValue.isInstanceOf[Map[String, Any]])
+        println(newValue.isInstanceOf[Map[String@unchecked, _]])
         Option(newValue) match {
-          case Some(x: util.Map[String, _])  =>
+          case Some(x: util.Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=>
                 result.writeBytes(v)
@@ -2728,7 +2728,7 @@ newValue match {
                 resultCopy.writeBytes(bsonObj)
               case Failure(e) => throw  CustomException(e.getMessage)
             }
-          case Some(x: Map[String, Any])  =>
+          case Some(x: Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=>
                 result.writeBytes(v)
