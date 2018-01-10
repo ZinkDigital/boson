@@ -264,4 +264,28 @@ class HorribleTests extends FunSuite {
     )), result)
   }
 
+  test("try extract obj with certain elem, but isn't obj") {
+    val expression: String = "one.[@smth]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq()), result)
+  }
+
+  test("try extract obj with certain elem, but elem emptyt") {
+    val expression: String = "one.[@]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(a1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsException("Failure parsing!"), result)
+  }
+
+  test("try extract obj with certain elem, but elem is deep") {
+    val arr111: BsonArray = new BsonArray().add(obj11).add(obj2).add(obj3).add(br4)
+      .add(new BsonObject().put("smth",new BsonArray().add(new BsonObject().put("extract", false))))
+    val bsonEvent1: BsonObject = new BsonObject().put("StartUp", arr111)
+    val expression: String = "StartUp.[@extract]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Seq()), result)
+  }
+
 }

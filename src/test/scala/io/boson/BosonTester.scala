@@ -29,7 +29,7 @@ object BosonTester extends App {
     true
   }
 
-  val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
+  val obj1: BsonObject = new BsonObject().put("fridgeTemp111", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
   val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
   val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)

@@ -362,4 +362,41 @@ class APIwithByteBufferTests extends FunSuite{
     )), future.join())
   }
 
+  test("extract all elements of a key") {
+    val expression: String = "José"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray)
+    assertEquals(
+      BsSeq(Seq(
+        Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+        Seq("Spider"),
+        Seq("Fly")
+      )),
+      future.join())
+  }
+
+  test("extract objects with a certain element") {
+    val br4: BsonArray = new BsonArray().add("Tarantula").add("Aracnídius")
+    val obj4: BsonObject = new BsonObject().put("Joséééé", br4)
+    val br5: BsonArray = new BsonArray().add("Spider")
+    val obj5: BsonObject = new BsonObject().put("José", br5)
+    val arr1: BsonArray = new BsonArray().add(2.2f).add(obj4).add(true).add(obj5)
+    val bsonEvent1: BsonObject = new BsonObject().put("StartUp", arr1)
+    val validatedByteArrayObj1: Array[Byte] = bsonEvent1.encodeToBarray()
+    val validatedByteBufferObj1: ByteBuffer = ByteBuffer.allocate(validatedByteArrayObj1.length)
+    validatedByteBufferObj1.put(validatedByteArrayObj1)
+    validatedByteBufferObj1.flip()
+
+    val expression: String = "StartUp.[@José]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteBufferObj1)
+    assertEquals(
+      BsSeq(Seq(Seq(
+        Map("José" -> Seq("Spider"))
+      ))),
+      future.join())
+  }
+
 }

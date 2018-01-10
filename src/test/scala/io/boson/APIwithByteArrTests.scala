@@ -335,6 +335,39 @@ class APIwithByteArrTests extends FunSuite {
       future.join())
   }
 
+  test("extract all elements of a key") {
+    val expression: String = "fanVelocity"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray)
+    assertEquals(
+      BsSeq(Seq(
+        20.5,
+        20.6,
+        20.5
+      )),
+      future.join())
+  }
+
+  test("extract objects with a certain element") {
+    val obj4: BsonObject = new BsonObject().put("something", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
+    val obj5: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
+    val obj6: BsonObject = new BsonObject().put("fridgeTemp11", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
+    val arr2: BsonArray = new BsonArray().add(obj4).add(obj5).add(obj6)
+    val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr2)
+    val validatedByteArrayObj1: Array[Byte] = bsonEvent.encodeToBarray()
+
+    val expression: String = "fridgeReadings.[@fridgeTemp]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArrayObj1)
+    assertEquals(
+      BsSeq(Seq(Seq(
+        Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false)
+      ))),
+      future.join())
+  }
+
   test("extract inside loop w/ key") {
     val expression: String = "[2 to end]"
     val latch: CountDownLatch = new CountDownLatch(5)
