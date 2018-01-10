@@ -343,6 +343,7 @@ class BosonImpl(
       i += 1
     }
     netty.readByte() // consume the end String byte
+
     key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep
   }
 
@@ -1333,6 +1334,16 @@ class BosonImpl(
     }
   }
 
+  private def isHalfword(fieldID: String, x: String): Boolean = {
+    if(fieldID.contains('*')){
+      val list: Array[String] = fieldID.split('*')
+      list.forall(str => x.contains(str))
+    }else{
+      false
+    }
+
+  }
+
   def modifyAll[T](buffer:ByteBuf, fieldID:String, f:T=>T, result:ByteBuf=Unpooled.buffer(), ocor: Option[Int]=None):(ByteBuf, Option[Int])={
     /*
     * Se fieldID for vazia devolve o Boson Original
@@ -1366,7 +1377,7 @@ class BosonImpl(
           println(s"isArray=$isArray  String=${new String(key)}")
           result.writeBytes(key).writeByte(b)
           new String(key) match {
-            case x if fieldID.toCharArray.deep == x.toCharArray.deep =>
+            case x if fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x) =>
               /*
               * Found a field equal to key
               * Perform Injection
@@ -1383,7 +1394,7 @@ class BosonImpl(
 
 
             //???
-            case x if fieldID.toCharArray.deep != x.toCharArray.deep =>
+            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x)=>
               /*
               * Didn't found a field equal to key
               * Consume value and check deeper Levels
@@ -2794,7 +2805,7 @@ newValue match {
             resultCopy.writeDouble(value0.asInstanceOf[Double])
           case Some(n: Double) =>
             result.writeDoubleLE(n)
-            resultCopy.writeDouble(value0.asInstanceOf[Double])
+            resultCopy.writeDoubleLE(value0.asInstanceOf[Double])
           case Some(n) =>
             throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
           case None =>

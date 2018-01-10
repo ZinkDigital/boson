@@ -415,7 +415,7 @@ class InjectorParserTests extends FunSuite {
     }
     assert(List(List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy"))) === resultParser)
   }
-  test("fridgeReadings.all BsonArray => BsonArray"){
+  test("fridge*Readings BsonArray => BsonArray"){
 
     val obj1: BsonObject = new BsonObject().put("name", "Ricardo").put("age", 28).put("country", "Portugal")
     val obj2: BsonObject = new BsonObject().put("name", "Tiago").put("age", 28).put("country", "Spain")
@@ -428,7 +428,7 @@ class InjectorParserTests extends FunSuite {
 
     val key: String = "fridgeReadings"
     val expression: String = "[1 until 2]"
-    val expression1: String = "fridgeReadings..all"
+    val expression1: String = "fridge*Readings"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:List[Any]) => x:+ Mapper.convert(obj4), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -536,6 +536,47 @@ class InjectorParserTests extends FunSuite {
       === resultParser)
   }
 
+  test("name String => String"){
+
+    val obj1: BsonObject = new BsonObject().put("name", "Ricardo").put("age", 28.0).put("country", "Portugal")
+    val obj2: BsonObject = new BsonObject().put("name", "Tiago").put("age", 28.0).put("country", "Spain")
+    val obj3: BsonObject = new BsonObject().put("name", "João").put("age", 28.0).put("country", "Germany")
+    val obj4: BsonObject = new BsonObject().put("name", "Pedro").put("age", 28.0).put("country", "France")
+    val arr2: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
+    val bE: BsonObject = new BsonObject().put("fridgeReadings", arr2)
+    val bsonArrayEvent: BsonArray = new BsonArray().add(bE).add(bE).add(bE)
+    val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
+
+    val key: String = "name"
+    val expression: String = "[1 until 2]"
+    val expression1: String = "name"
+
+    lazy val resultBoson: BsValue = parseInj(boson1,(x:String) => x.concat("MINE"), expression1 )
+    lazy val result1: BsValue = Try(resultBoson) match {
+      case Success(v) =>
+        v
+      case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+    }
+    val result2: Any = result1 match {
+      case BsException(ex) =>
+        println(ex)
+        ex
+      case BsBoson(nb)=>callParse(nb, "name")
+      case _ => /* Never Gets Here */ println("Never Gets Here")
+    }
+    val resultParser: Any = result2 match {
+      case BsException(ex) =>
+        println(ex)
+        ex
+      case BsSeq(e) => e.map(a => new String(a.asInstanceOf[Array[Byte]]))//.replaceAll("\\p{C}", "")) //TODO problema com strings
+      case BsBoson(nb)=> nb
+      case BsNumber(n) => n
+      case BsBoolean(b) => b
+    }
+    assert( List("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
+
+      === resultParser)
+  }
   /*test("test"){
     import scala.collection.JavaConverters._
     val obj1: BsonObject = new BsonObject().put("name", "Ricardo").put("sage", 28).put("age", 28).put("country", "Portugal")

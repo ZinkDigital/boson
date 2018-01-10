@@ -50,7 +50,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
         case HalfName(halfName) =>  //  "*halfName"
-          executeSelect("*"+halfName,"all")
+          executeSelect("*"+halfName.get,"all")
         case Everything(key) => //  *
           executeSelect(key,"all")
         case HasElem(key, elem) =>  //  key.[@elem]
@@ -82,12 +82,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             case false if mid.isDefined && right.isDefined => //[#..#]
               executeArraySelectInjector("", left, mid.get, right.get)
             case false => //[#]
-              executeArraySelectInjector("", left, mid.get, left)
+              executeArraySelectInjector("", left, "to", left)
           }
-
         case KeyWithArrExpr(k,arrEx, secondKey) =>    //key.[#..#]
           //executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
-
           secondKey.isDefined match {
             case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#].secondKey
               ???
@@ -101,14 +99,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
               executeArraySelectInjector(k,arrEx.leftArg,"to",arrEx.leftArg)
           }
         case HalfName(halfName) =>  //  "*halfName"
-          ???
-          //executeSelect("*"+halfName,"all")
+          println("                                                 Halfname = " + halfName)
+          executeSelectInjector(halfName.get,"all")
         case Everything(key) => //  *
-          ???
-          //executeSelect(key,"all")
-        case HasElem(key, elem) =>  //  key.(@elem)
-          ???
-          //executeHasElem(key.key,elem)
+          executeSelectInjector(key,"all")
+        case HasElem(key, elem) =>
+        ???
+        //  key.(@elem)
+          //executeHasElemInjector(key.key,elem)
         case Key(key) =>  //  key
           println("key case")
           executeSelectInjector(key,"all")
@@ -154,6 +152,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 //    }
 //  }
 
+  /*
+  * Extractor functions
+  * */
   private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
     val result =
       boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), None, None) map { v =>
@@ -342,9 +343,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
 
-
-
-
+  /*
+  * Injector Functions
+  * */
   def executeSelectInjector(key: String, selectType: String):  bsonValue.BsValue = {
     selectType match {
       case "first" =>
@@ -484,6 +485,10 @@ println((key, left, mid.toLowerCase(), right))
       case _ => bsonValue.BsException.apply("Invalid Expression.")
     }
   }
+
+ /* def executeHasElemInjector(key: String, elem: String): _root_.io.boson.bson.bsonValue.BsValue = {
+    boson.modifyHasElem(boson.getByteBuf.duplicate(), key, elem, f.get)
+  }*/
 }
 
 object Compose {
