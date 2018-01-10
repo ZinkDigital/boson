@@ -15,14 +15,9 @@ import scala.compat.java8.FunctionConverters._
 
 class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends bson.Boson {
 
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
+  private val anon: T => T = injectFunction.asScala
 
-  val anon: T => T = injectFunction.asScala
-
-  def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):bsonValue.BsValue = {
+  private def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):bsonValue.BsValue = {
     val parser = new TinyLanguage
     try{
       parser.parseAll(parser.program, expression) match {
@@ -93,5 +88,5 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
   }
 
-  override def fuse(boson: bson.Boson): bson.Boson = ??? //  return typpe is wrong
+  override def fuse(boson: bson.Boson): bson.Boson = new BosonFuse(this,boson)
 }

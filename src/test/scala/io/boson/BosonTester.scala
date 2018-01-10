@@ -155,15 +155,16 @@ object BosonTester extends App {
 //  boson12.go(a.encodeToBarray())
 //  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
-  val name: String = "Category1"
-  val halfname: String = "ego"
-  val wrong: String = "oge"
-  val wrong1: String = "1"
-  val wrong2: String = "Ce"
+  val expression1: String = "fridgeTemp.first"
+  val future12: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val ext: Boson = Boson.extractor(expression1, (in: BsValue) => future12.complete(in))
+  //go(validatedByteArray)
 
-  println(s"$name contains $halfname -> ${name.contains(halfname)}")
-  println(s"$name contains $wrong -> ${name.contains(wrong)}")
-  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
-  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
+  val newFridgeSerialCode: Double = 1000.0
+  val expression2 = "fanVelocity.first"
+  val inj: Boson = Boson.injector(expression2, (_: Double) => newFridgeSerialCode)
+
+  val fused: Boson = ext.fuse(inj)
+  val future: CompletableFuture[Array[Byte]] = fused.go(validatedByteArray)
 
 }

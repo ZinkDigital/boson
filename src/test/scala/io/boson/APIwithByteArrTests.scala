@@ -159,6 +159,7 @@ class APIwithByteArrTests extends FunSuite {
         Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5, "doorOpen" -> true))),
       future.join())
   }
+
   test("extract PosV1") {
     val expression: String = "fridgeReadings.[1 until 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -308,6 +309,7 @@ class APIwithByteArrTests extends FunSuite {
       boson.go(arr.encodeToBarray())
     }
   }
+
   test("Inject API Double => Double") {
     val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
     val newFridgeSerialCode: Double = 1000.0
