@@ -1,6 +1,6 @@
 package io.boson
 
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{CompletableFuture, CountDownLatch}
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
@@ -155,16 +155,20 @@ object BosonTester extends App {
 //  boson12.go(a.encodeToBarray())
 //  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
+  val latch = new CountDownLatch(2)
   val expression1: String = "fridgeTemp.first"
-  val future12: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-  val ext: Boson = Boson.extractor(expression1, (in: BsValue) => future12.complete(in))
-  //go(validatedByteArray)
+  val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
+    println(s"----------------------------------- result of extraction: $in ---------------------------")
+    latch.countDown()
+  })
 
-  val newFridgeSerialCode: Double = 1000.0
-  val expression2 = "fanVelocity.first"
-  val inj: Boson = Boson.injector(expression2, (_: Double) => newFridgeSerialCode)
+  val newFridgeSerialCode: Float = 18.3f
+  val expression2 = "fridgeTemp.first"
+  val inj: Boson = Boson.injector(expression2, (_: Float) => newFridgeSerialCode)
 
-  val fused: Boson = ext.fuse(inj)
-  val future: CompletableFuture[Array[Byte]] = fused.go(validatedByteArray)
+  val fused: Boson = ext.fuse(inj).fuse(ext)
+  fused.go(validatedByteArray)
 
+  latch.await()
+  println(5.2)
 }

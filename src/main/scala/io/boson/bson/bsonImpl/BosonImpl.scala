@@ -941,9 +941,11 @@ class BosonImpl(
         val value: Double =
           Try(f(buffer.getDoubleLE(buffer.readerIndex()).toFloat.asInstanceOf[T])) match {
             case Success(v) =>
+              println("success on apply F to a float")
               buffer.readDoubleLE() //consume
               v.asInstanceOf[Float].toDouble
             case Failure(_) =>
+              println("failure on apply F to a float")
               Try(f(buffer.getDoubleLE(buffer.readerIndex()).asInstanceOf[T])) match {
                 case Success(v) =>
                   buffer.readDoubleLE() //consume
@@ -1376,21 +1378,40 @@ class BosonImpl(
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value0: Any = buffer.readDoubleLE()
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Float) =>
-            result.writeDoubleLE(n)
-          case Some(n: Double) =>
-            result.writeDoubleLE(n)
-          case Some(n) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE")
-        }
+        //val value: Any =
+          Try(f(buffer.getDoubleLE(buffer.readerIndex()).toFloat.asInstanceOf[T])) match {
+            case Success(v) =>
+              println("success on apply F to a float")
+              buffer.readDoubleLE() //consume
+
+              result.writeDoubleLE(v.asInstanceOf[Float].toDouble)
+            case Failure(_) =>
+              println("failure on apply F to a float")
+              Try(f(buffer.getDoubleLE(buffer.readerIndex()).asInstanceOf[T])) match {
+                case Success(v) =>
+                  buffer.readDoubleLE() //consume
+                  v.asInstanceOf[Double]
+                  result.writeDoubleLE(v.asInstanceOf[Double])
+                case Failure(m) =>
+                  println("value selected DOESNT MATCH with the provided")
+                  throw new RuntimeException(m)
+              }
+          }
+      /*applyFunction(f, value0)
+      Option(value) match {
+        case Some(n: Float) =>
+          result.writeDoubleLE(n)
+        case Some(n: Double) =>
+          result.writeDoubleLE(n)
+        case Some(n) =>
+          throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
+        case None =>
+          throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE")
+      }*/
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-
-        val value: Any = applyFunction(f, new String(Unpooled.copiedBuffer(buffer.readBytes(length-1)).array()))
+        println("passei por aqui------------------------------------------------------------------------------")
+        val value: Any = applyFunction(f, Unpooled.copiedBuffer(buffer.readBytes(length-1)).array())
         buffer.readByte()
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
@@ -2650,25 +2671,43 @@ newValue match {
     //val res: (ByteBuf, Int) =
     seqType match {
       case D_FLOAT_DOUBLE =>
-        val value0: Any = buffer.readDoubleLE()
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Float) =>
-            result.writeDoubleLE(n)
-            resultCopy.writeDouble(value0.asInstanceOf[Double])
-          case Some(n: Double) =>
-            result.writeDoubleLE(n)
-            resultCopy.writeDouble(value0.asInstanceOf[Double])
-          case Some(n) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE")
+        //val value0: Any = buffer.readDoubleLE()
+        Try(f(buffer.getDoubleLE(buffer.readerIndex()).toFloat.asInstanceOf[T])) match {
+          case Success(v) =>
+            val value: Double = buffer.readDoubleLE() //consume
+
+            result.writeDoubleLE(v.asInstanceOf[Float].toDouble)
+            resultCopy.writeDoubleLE(value)
+          case Failure(_) =>
+            Try(f(buffer.getDoubleLE(buffer.readerIndex()).asInstanceOf[T])) match {
+              case Success(v) =>
+                val value: Double = buffer.readDoubleLE() //consume
+                v.asInstanceOf[Double]
+                result.writeDoubleLE(v.asInstanceOf[Double])
+                resultCopy.writeDoubleLE(value)
+              case Failure(m) =>
+                println("value selected DOESNT MATCH with the provided")
+                throw new RuntimeException(m)
+            }
         }
+//        val value: Any = applyFunction(f, value0)
+//        Option(value) match {
+//          case Some(n: Float) =>
+//            result.writeDoubleLE(n)
+//            resultCopy.writeDouble(value0.asInstanceOf[Double])
+//          case Some(n: Double) =>
+//            result.writeDoubleLE(n)
+//            resultCopy.writeDouble(value0.asInstanceOf[Double])
+//          case Some(n) =>
+//            throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
+//          case None =>
+//            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE")
+//        }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
         val value0: Array[Byte] = Unpooled.copiedBuffer(buffer.readBytes(length-1)).array()
         val zeroByte: Byte = buffer.readByte()
-        val value: Any = applyFunction(f, new String(value0))
+        val value: Any = applyFunction(f, value0)
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
           case Some(n: Array[Byte]) =>
