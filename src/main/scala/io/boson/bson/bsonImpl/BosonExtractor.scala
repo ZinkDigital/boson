@@ -54,4 +54,6 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
 
   override def fuse(boson: bson.Boson): bson.Boson = ???
 
+
+
 }

@@ -2,7 +2,7 @@ package io.boson.bson;
 
 import io.boson.bson.bsonImpl.BosonExtractor;
 import io.boson.bson.bsonImpl.BosonInjector;
-
+import io.boson.bson.bsonImpl.BosonValidate;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -10,6 +10,11 @@ import java.util.function.Function;
 
 
 public interface Boson {
+
+    static <T> Boson validate(String expression, Consumer<T> validateFunction) {    //BosonImpl is the BosonExtractor
+        // TODO construct an extractor
+        return new BosonValidate(expression,validateFunction);
+    }
 
     /**
      * Make an Extractor that will call the extract function (Consumer) according to
