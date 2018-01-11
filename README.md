@@ -74,7 +74,6 @@ String result = ext.apply(parser).getResult().toString();
 ### Table 1
 Expression Terms | Output
 ---------------- | ------
-
 all | List representing the Root Array
 first | List with the first element of the Root Array
 last | List with the last element of the Root Array
