@@ -460,7 +460,6 @@ class APIwithByteArrTests extends FunSuite {
     val latch = new CountDownLatch(1)
     val expression1: String = "fridgeTemp.first"
     val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
-      println(s"----------------------------------- result of extraction: ${in.getValue.asInstanceOf[Seq[Any]].head} ---------------------------")
       assert(Seq(5.2f) === in.getValue || Seq(18.3f) === in.getValue)
       latch.countDown()
     })

@@ -465,7 +465,6 @@ class APIwithByteBufferTests extends FunSuite{
     val latch = new CountDownLatch(1)
     val expression1: String = "[0]"
     val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
-      println(s"----------------------------------- result of extraction: ${in.getValue.asInstanceOf[Seq[Any]].head} ---------------------------")
       assert(Seq(Seq(2.2f)) === in.getValue || Seq(Seq(5.5f)) === in.getValue)
       latch.countDown()
     })
