@@ -1,14 +1,8 @@
 package io.boson
 
-import javax.json.Json
-
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
-import io.boson.bson.bsonImpl.BosonValidate
-import io.restassured.module.scala.RestAssuredSupport.AddThenToResponse
 import io.restassured.RestAssured.given
-import io.restassured.RestAssured.when
-import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import okhttp3.mockwebserver.{MockResponse, MockWebServer}
 import org.hamcrest.Matchers._
@@ -49,9 +43,9 @@ class RestAssured {
 
     val seq: Seq[Any] = Seq(Seq(2.2))
 
-    val byteArray =new BsonObject(new JsonObject(
+    val byteArray = new BsonObject(new JsonObject(
       given().port(webServer.getPort)
-      .when().get("/greetBSON").asString()
+      .when().get("/greetBOSON").asString()
     )).encodeToBarray()
 
     val boson = Boson.validate("StartUp.[0]", (out: Seq[Any]) => {
@@ -59,8 +53,6 @@ class RestAssured {
     })
 
     boson.go(byteArray).join()
-
-      //.Then().statusCode(200).body("StartUp[0]", equalTo(2.2f))
   }
 
 }
