@@ -74,6 +74,7 @@ String result = ext.apply(parser).getResult().toString();
 ### Table 1
 Expression Terms | Output
 ---------------- | ------
+
 all | List representing the Root Array
 first | List with the first element of the Root Array
 last | List with the last element of the Root Array
@@ -92,7 +93,11 @@ Expressions terms of both tables don't work together in the same expression.
 Expression Terms | Output
 ---------------- | ------
 *halfKey | All elements of a Key containing the halfKey
+halfKey1*halfKey2 | All elements of a Key containing the halfKey1 and halfKey2
+halfKey* | All elements of a Key containing the halfKey
 * | Everything
+key1[@key2] | All BsonObjects names Key1 that contain the Key2
+key | All elements of named Key
 
 #### Examples of expressions:
 Expression  | Output

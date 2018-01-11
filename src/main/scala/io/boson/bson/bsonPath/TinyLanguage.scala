@@ -15,7 +15,8 @@ case class KeyWithArrExpr(key: String,arrEx: ArrExpr, scndKey: Option[String]) e
 case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any], scndKey: Option[String]) extends Statement
 case class HalfName(half: Option[String]) extends Statement
 case class Everything(key: String) extends Statement
-case class HasElem(key: Key, elem: String) extends Statement
+case class HasElem(key: String, elem: String) extends Statement
+
 case class Key(key: String) extends Statement
 class Program(val statement: List[Statement])
 
@@ -32,10 +33,22 @@ class TinyLanguage extends RegexParsers {
       ||| halfName
       ||| everything
       ||| key
-      ||| hasElem) ^^ { s => new Program(List(s))}
+      ||| keyHasElem
+      ||| HalfnameHasElem
+      ||| KeyHasHalfname
+      ||| HalfnamehasHalfname) ^^ { s => new Program(List(s))}
 
-  private def hasElem: Parser[HasElem] = key ~ (".[@" ~> word <~ "]") ^^ {
-    case k ~ w => HasElem(k,w)
+  private def keyHasElem: Parser[HasElem] = key ~ (".[@" ~> word <~ "]") ^^ {
+    case k ~ w => HasElem(k.key,w)
+  }
+  private def HalfnameHasElem: Parser[HasElem] = halfName ~ (".[@" ~> word <~ "]") ^^ {
+    case k ~ w => HasElem(k.half.get,w)
+  }
+  private def KeyHasHalfname: Parser[HasElem] = key ~ (".[@" ~> halfName <~ "]") ^^ {
+    case k ~ w => HasElem(k.key,w.half.get)
+  }
+  private def HalfnamehasHalfname: Parser[HasElem] = halfName ~ (".[@" ~> halfName <~ "]") ^^ {
+    case k ~ w => HasElem(k.half.get,w.half.get)
   }
 
   private def key: Parser[Key] = word ^^ { w => Key(w) }

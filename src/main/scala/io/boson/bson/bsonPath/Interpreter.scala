@@ -50,11 +50,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
         case HalfName(halfName) =>  //  "*halfName"
+          println("                                                                                                 "+halfName)
           executeSelect("*"+halfName.get,"all")
         case Everything(key) => //  *
           executeSelect(key,"all")
         case HasElem(key, elem) =>  //  key.[@elem]
-          executeHasElem(key.key,elem)
+          executeHasElem(key,elem)
         case Key(key) =>  //  key
           executeSelect(key,"all")
       }
@@ -103,10 +104,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           executeSelectInjector(halfName.get,"all")
         case Everything(key) => //  *
           executeSelectInjector(key,"all")
-        case HasElem(key, elem) =>
-        ???
-        //  key.(@elem)
-          //executeHasElemInjector(key.key,elem)
+        case HasElem(key, elem) =>  //  key.(@elem)
+          executeHasElemInjector(key,elem)
         case Key(key) =>  //  key
           println("key case")
           executeSelectInjector(key,"all")
@@ -155,6 +154,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   /*
   * Extractor functions
   * */
+
   private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
     val result =
       boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), None, None) map { v =>
@@ -486,9 +486,13 @@ println((key, left, mid.toLowerCase(), right))
     }
   }
 
- /* def executeHasElemInjector(key: String, elem: String): _root_.io.boson.bson.bsonValue.BsValue = {
-    boson.modifyHasElem(boson.getByteBuf.duplicate(), key, elem, f.get)
-  }*/
+  def executeHasElemInjector(key: String, elem: String): bsonValue.BsValue = {
+    val midResult: Try[BosonImpl] = Try(boson.modifyHasElem(boson.getByteBuf.duplicate(), key, elem, f.get))
+    midResult match {
+      case Success(v) => bsonValue.BsObject.toBson(v)
+      case Failure(e) => bsonValue.BsException.apply(e.getMessage)
+    }
+  }
 }
 
 object Compose {
