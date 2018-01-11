@@ -108,6 +108,10 @@ key.[2 until 5].secondKey | Returns a list with elements filtered by the limits 
 key.first | Returns a list with the first occurrence of a key
 [2] | Returns a list with an element of the Root array
 all | Returns a list representing the Root Array
+key1.[@key2] | Returns all elements Key1, that contain the element Key2
+*| Returns all Elements
+Key| Returns all elements named Key
+halfKey*| Returns all elements whose name contains halfKey
 
 ### Available Buffer Types
 * Array of Bytes
