@@ -94,7 +94,6 @@ class injectorAPITests extends FunSuite {
 
     assertEquals(BsSeq(List(12, "sddd", "MAIS EU")),future.join() )
   }
-
   test("key.[@key1]"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
@@ -118,7 +117,6 @@ class injectorAPITests extends FunSuite {
     println(finalResult)
     assertEquals(BsSeq(List(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
   }
-
   test("*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
