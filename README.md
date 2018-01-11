@@ -94,7 +94,7 @@ Expression Terms | Output
 *halfKey | All elements of a Key containing the halfKey
 halfKey1*halfKey2 | All elements of a Key containing the halfKey1 and halfKey2
 halfKey* | All elements of a Key containing the halfKey
-* | Everything
+*| Everything
 key1[@key2] | All BsonObjects names Key1 that contain the Key2
 key | All elements of named Key
 
