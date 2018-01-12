@@ -91,7 +91,7 @@ class InjectorsTest extends FunSuite {
         //println("EXCEPTION= " + ext.parse(v, "John", "all").asInstanceOf[BsException].getValue)
       case None => List()
     }
-    assert(List("Somebody", "Nobody") === result)
+    assert(Vector("Somebody", "Nobody") === result)
   }
 
   test("Injector: Deep Level bsonArray Root") {
@@ -112,7 +112,7 @@ class InjectorsTest extends FunSuite {
         for (elem <- callParse(v, "John..all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
       case None => List()
     }
-    assert(List("Somebody", "Nobody") === result)
+    assert(Vector("Somebody", "Nobody") === result)
   }
 
   test("Injector: Int => Int") {
@@ -126,7 +126,7 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "field..all")
     }
     println(result)
-    assert(result === BsSeq(List(8))
+    assert(result === BsSeq(Vector(8))
       , "Contents are not equal")
   }
 
@@ -137,7 +137,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "no..all")
     }
-    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "") === "maybe"
+    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "") === "maybe"
       , "Contents are not equal")
   }
 
@@ -150,7 +150,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "array..all")
     }
-    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "") === "AlguresPorAi"
+    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "") === "AlguresPorAi"
       , "Contents are not equal")
   }
 
@@ -163,7 +163,7 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "inst..all")
     }
 
-    val s: String = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "")
+    val s: String = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "")
 
     assert(ins1 === Instant.parse(s)
       , "Contents are not equal")
@@ -186,7 +186,7 @@ class InjectorsTest extends FunSuite {
         println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         callParse(nb, "float..all")
     }
-    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Double]].head
+    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
     assert(newFloat === s
       , "Contents are not equal")
@@ -201,7 +201,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "double..all")
     }
-    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Double]].head
+    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
     assert(newDouble === s
       , "Contents are not equal")
@@ -229,7 +229,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "bool..all")
     }
-    val s: Boolean = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Boolean]].head
+    val s: Boolean = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Boolean]].head
 
     assert(newBool === s
       , "Contents are not equal")
@@ -243,7 +243,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "long..all")
     }
-    val s: Long = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Long]].head
+    val s: Long = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Long]].head
 
     assert(newLong === s
       , "Contents are not equal")
@@ -286,7 +286,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "enumScala..all")
     }
-    val s: Any = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "")
+    val s: Any = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "")
 
     assert(enum.B.toString === s
       , "Contents are not equal")
@@ -301,7 +301,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "field..all")
     }
-    assert(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Int]].head === 3
+    assert(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Int]].head === 3
       , "Contents are not equal")
   }
 
@@ -314,7 +314,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "no..all")
     }
-    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "") === "maybe"
+    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "") === "maybe"
       , "Contents are not equal")
   }
 
@@ -327,7 +327,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "array..all")
     }
-    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "") === "AlguresPorAi"
+    assert(new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "") === "AlguresPorAi"
       , "Contents are not equal")
   }
 
@@ -340,7 +340,7 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "inst..all")
     }
 
-    val s: String = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "")
+    val s: String = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "")
 
     assert(ins1 === Instant.parse(s)
       , "Contents are not equal")
@@ -354,7 +354,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "float..all")
     }
-    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Double]].head
+    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
     assert(newFloat === s
       , "Contents are not equal")
@@ -369,7 +369,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "double..all")
     }
-    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Double]].head
+    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
     assert(newDouble === s
       , "Contents are not equal")
@@ -397,7 +397,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "bool..all")
     }
-    val s: Boolean = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Boolean]].head
+    val s: Boolean = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Boolean]].head
 
     assert(newBool === s
       , "Contents are not equal")
@@ -411,7 +411,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "long..all")
     }
-    val s: Long = result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Long]].head
+    val s: Long = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Long]].head
 
     assert(newLong === s
       , "Contents are not equal")
@@ -454,7 +454,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "enumScala..all")
     }
-    val s: Any = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]].head).replaceAll("\\p{C}", "")
+    val s: Any = new String(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Array[Byte]]].head).replaceAll("\\p{C}", "")
 
     assert(enum.B.toString === s
       , "Contents are not equal")
@@ -468,7 +468,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "noField..all")
     }
-    assert(List() === result
+    assert(Vector() === result
       , "Contents are not equal")
   }
   /*test("Injector: Enumeration => Enumeration") {

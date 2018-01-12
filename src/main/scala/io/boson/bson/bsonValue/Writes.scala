@@ -33,8 +33,8 @@ trait DefaultWrites {
     def writes(o: Boolean) = BsBoolean(o)
   }
 
-  implicit object BsSeqWrites extends Writes[Seq[Any]] {
-    def writes(o: Seq[Any]) = BsSeq(o)
+  implicit object BsSeqWrites extends Writes[Vector[Any]] {
+    def writes(o: Vector[Any]) = BsSeq(o)
   }
 
   implicit object BsExceptionWrites extends Writes[String] {

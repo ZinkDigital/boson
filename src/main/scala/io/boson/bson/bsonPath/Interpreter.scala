@@ -73,6 +73,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case HasElem(key, elem) =>  //  key.[@elem]
           executeHasElem(key,elem)
         case Key(key) =>  //  key
+          println("all elements of Key")
           executeSelect(key,"all")
       }
     } else throw new RuntimeException("List of statements is empty.")
@@ -173,14 +174,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         v.asInstanceOf[Seq[Any]]
       } getOrElse Seq.empty[Any]
     result match {
-      case Seq() =>bsonValue.BsObject.toBson (Seq.empty[Any])
+      case Seq() =>bsonValue.BsObject.toBson (Vector.empty[Any])
       case v =>bsonValue.BsObject.toBson {
-        for (elem <- v) yield {
+        (for (elem <- v) yield {
           elem match {
             case e: Array[Any] => Compose.composer(e)
             case e => e
           }
-        }
+        }).toVector
       }
     }
   }
@@ -217,15 +218,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
       }
     result match {
-      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
+      case Seq() => bsonValue.BsObject.toBson(Vector.empty)
       case v =>
         bsonValue.BsObject.toBson {
-          for (elem <- v) yield {
+          (for (elem <- v) yield {
             elem match {
               case e: Array[Any] => Compose.composer(e)
               case e => e
             }
-          }
+          }).toVector
       }
     }
   }
@@ -256,6 +257,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
               boson.extract(
                 boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), Some(b.asInstanceOf[Int])
               ) map { v =>
+                println(s"result before composer: $v")
                 v.asInstanceOf[Seq[Any]]
               } getOrElse Seq.empty[Any]
             case ("until" | "Until") =>
@@ -267,62 +269,69 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
       }
     result match {
-      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
+      case Seq() => bsonValue.BsObject.toBson(Vector.empty)
       case v =>
         bsonValue.BsObject.toBson {
-          for (elem <- v) yield {
+          val res =
+          (for (elem <- v) yield {
             elem match {
               case e: Array[Any] => Compose.composer(e)
               case e => e
             }
-          }
+          }).toVector
+          println(s"result after compose: $res")
+          res
         }
     }
   }
 
   private def executeSelect(key: String, selectType: String): bsonValue.BsValue = {
+    println(s"executeSelect with key: $key and selectType: $selectType")
     val result = boson.extract(boson.getByteBuf, List((key, selectType)))
+    println("after")
     selectType match {
       case "first" =>
         if (key.isEmpty) {
           bsonValue.BsObject.toBson(result.map { v =>
-            Seq(Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).head)
-          }.getOrElse(Seq.empty[Any]))
+            Vector(Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).head)
+          }.getOrElse(Vector.empty[Any]))
         } else {
           result.map { v =>
             v.asInstanceOf[Seq[Any]].head match {
               case p if p.isInstanceOf[Array[Any]] =>
                 bsonValue.BsObject.toBson{
-                  Compose.composer(p.asInstanceOf[Array[Any]])
+                  Compose.composer(p.asInstanceOf[Array[Any]]).toVector
                 }
               case p =>
-                bsonValue.BsObject.toBson(Seq(p))
+                bsonValue.BsObject.toBson(Vector(p))
             }
-          } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
+          } getOrElse bsonValue.BsObject.toBson(Vector.empty[Any])
         }
       case "last" =>
         if (key.isEmpty) {
-          bsonValue.BsObject.toBson(result.map(v => Seq(Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).last)).getOrElse(Seq.empty))
+          bsonValue.BsObject.toBson(result.map(v => Vector(Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).last)).getOrElse(Vector.empty))
         } else {
           result.map { elem =>
             elem.asInstanceOf[Seq[Any]].last match {
               case p if p.isInstanceOf[Array[Any]] =>
-                bsonValue.BsObject.toBson(Compose.composer(p.asInstanceOf[Array[Any]]))
+                bsonValue.BsObject.toBson(Compose.composer(p.asInstanceOf[Array[Any]]).toVector)
               case p =>
-                bsonValue.BsObject.toBson(Seq(p))
+                bsonValue.BsObject.toBson(Vector(p))
             }
-          } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
+          } getOrElse bsonValue.BsObject.toBson(Vector.empty[Any])
         }
       case "all" =>
         if (key.isEmpty) {
-          bsonValue.BsObject.toBson(result.map(v => Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head)).getOrElse(Seq.empty))
+          bsonValue.BsObject.toBson(result.map(v => Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).toVector).getOrElse(Vector.empty))
         } else {
+          println("executeSelect -> inside Key nonEmpty")
           bsonValue.BsObject.toBson(result.map { v =>
+            println(s"result: $v")
             v.asInstanceOf[Seq[Any]].map {
               case array: Array[Any] => Compose.composer(array)
               case elem => elem
-            }
-          }.getOrElse(Seq.empty))
+            }.toVector
+          }.getOrElse(Vector.empty))
         }
     }
   }
