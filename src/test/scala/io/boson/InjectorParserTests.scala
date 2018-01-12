@@ -3,12 +3,13 @@ package io.boson
 
 
 import java.util
+import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonImpl.injectors.{InterpreterInj, ProgramInj, TinyLanguageInj}
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.boson.bson.bsonValue
+import io.boson.bson.{Boson, bsonValue}
 import io.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ByteProcessor
@@ -576,6 +577,53 @@ class InjectorParserTests extends FunSuite {
     assert( List("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
 
       === resultParser)
+  }
+
+  test("key.[@key1]"){
+    val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
+    val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
+    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
+    val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux).add(bAux1)
+    val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
+
+    //val newFridgeSerialCode: String = " what?"
+    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
+    val expression = "array.[@damnnn]"
+    val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+
+    val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+
+    // apply an extractor to get the new serial code as above.
+    val resultValue: Array[Byte] = result.join()
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson1.go(resultValue)
+    val finalResult: BsValue = future.join()
+    println(finalResult)
+    assertEquals(BsSeq(List(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
+  }
+  test("*"){
+    val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
+    val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
+    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
+    val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux).add(bAux1)
+    val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
+
+    //val newFridgeSerialCode: String = " what?"
+    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
+    val expression = "*"
+    // val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+    val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
+    val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+
+    // apply an extractor to get the new serial code as above.
+    val resultValue: Array[Byte] = result.join()
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson1.go(resultValue)
+    val finalResult: BsValue = future.join()
+    println(finalResult)
+    assertEquals(BsSeq(List(Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
   }
   /*test("test"){
     import scala.collection.JavaConverters._
