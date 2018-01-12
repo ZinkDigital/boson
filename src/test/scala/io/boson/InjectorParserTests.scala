@@ -600,7 +600,7 @@ class InjectorParserTests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(List(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
+    assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
   }
   test("*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
@@ -623,7 +623,7 @@ class InjectorParserTests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(List(Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
+    assertEquals(BsSeq(Vector(Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
   }
   /*test("test"){
     import scala.collection.JavaConverters._
