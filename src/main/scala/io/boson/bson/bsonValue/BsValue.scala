@@ -22,7 +22,7 @@ case class BsNumber(value: BigDecimal) extends BsValue { override def getValue: 
 /**
   * Represent a Bson number value.
   */
-case class BsSeq(value: Seq[Any]) extends BsValue { override def getValue: Seq[Any] = value}
+case class BsSeq(value: Vector[Any]) extends BsValue { override def getValue: Vector[Any] = value}
 
 /**
   * Represent a Bson throwable value.

@@ -41,7 +41,7 @@ class LanguageTests extends FunSuite {
   test("First") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, "fridgeReadings..first")
-    assert(BsSeq(List(Map("fridgeTemp" -> 5.2f, "fanVelocity" -> 20.5, "doorOpen" -> false),
+    assert(BsSeq(Vector(Map("fridgeTemp" -> 5.2f, "fanVelocity" -> 20.5, "doorOpen" -> false),
       Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5, "doorOpen" -> true))
     ) === resultParser)
@@ -50,14 +50,14 @@ class LanguageTests extends FunSuite {
   test("Last") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, "doorOpen..last")
-    assert(BsSeq(List(true)) === resultParser)
+    assert(BsSeq(Vector(true)) === resultParser)
   }
 
   test("All") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, "fridgeTemp..all")
 
-    assert(BsSeq(List(5.2f, 5.0f, 3.854f)) === resultParser)
+    assert(BsSeq(Vector(5.2f, 5.0f, 3.854f)) === resultParser)
   }
 
 //  test("First [# until #]") {
@@ -112,7 +112,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings.[1 until end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Seq(Seq(
+    assert(BsSeq(Vector(Seq(
       Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false
       )))) === resultParser)
   }
@@ -121,7 +121,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings.[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Seq(Seq(
+    assert(BsSeq(Vector(Seq(
       Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false
       )))) === resultParser)
   }
@@ -130,7 +130,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings.[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Seq(Seq(
+    assert(BsSeq(Vector(Seq(
       Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false
       )))) === resultParser)
   }
@@ -138,7 +138,7 @@ class LanguageTests extends FunSuite {
   test("First w/key BobjRoot") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, ".first")
-    assert(BsSeq(List()) === resultParser)
+    assert(BsSeq(Vector()) === resultParser)
   }
 
   val obj4: BsonObject = new BsonObject().put("fridgeTemp", 5.336f).put("fanVelocity", 40.2).put("doorOpen", true)
@@ -148,7 +148,7 @@ class LanguageTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, ".first")
     assert(
-      BsSeq(List(List(
+      BsSeq(Vector(List(
         Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> false),
         Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false),
         Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)))) === resultParser)
@@ -157,13 +157,13 @@ class LanguageTests extends FunSuite {
   test("Last w/key") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, ".last")
-    assert(BsSeq(List(arrEvent.getDouble(3))) === resultParser)
+    assert(BsSeq(Vector(arrEvent.getDouble(3))) === resultParser)
   }
 
   test("All w/key") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, ".all")
-    assert(BsSeq(List(List(
+    assert(BsSeq(Vector(List(
       Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> false),
       Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
@@ -239,7 +239,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "[1 until end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Seq(Seq(
+    assert(BsSeq(Vector(Seq(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true),
       "Temperature"
     ))) === resultParser)
@@ -249,7 +249,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Seq(Seq(
+    assert(BsSeq(Vector(Seq(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
       )))) === resultParser)
   }
@@ -258,7 +258,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Seq(Seq(
+    assert(BsSeq(Vector(Seq(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
       )))) === resultParser)
   }

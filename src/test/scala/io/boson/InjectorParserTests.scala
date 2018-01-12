@@ -124,7 +124,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
       case _ => List()
     }
-    assert(BsSeq(List(20, 6, 3)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(20, 6, 3)) === resultParser.asInstanceOf[BsSeq])
   }
   test("All") {
     val key: String = "fridgeTemp"
@@ -137,7 +137,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(20, 24, 12)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(20, 24, 12)) === resultParser.asInstanceOf[BsSeq])
   }
   test("Last") {
     val key: String = "fridgeTemp"
@@ -150,7 +150,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(5, 6, 12)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(5, 6, 12)) === resultParser.asInstanceOf[BsSeq])
   }
   test("[0 to end] BsonArray as Root") {
     val key: String = ""
@@ -164,7 +164,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(4, 8, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(4, 8, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq])
   }
   test("[0 until end] BsonArray as Root") {
     val key: String = ""
@@ -178,7 +178,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(4, 8, 12, 16, 5)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(4, 8, 12, 16, 5)) === resultParser.asInstanceOf[BsSeq])
   }
   test("[2 until 4] BsonArray as Root") {
     val key: String = ""
@@ -192,7 +192,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(1, 2, 12, 16, 5)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(1, 2, 12, 16, 5)) === resultParser.asInstanceOf[BsSeq])
   }
   test("[2 to 4] BsonArray as Root") {
     val key: String = ""
@@ -206,7 +206,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(List(1, 2, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(1, 2, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq])
   }
   test("[2 to 4] BsonArray as Root Test Type Consistency") {
     val key: String = ""
@@ -236,7 +236,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
             }
 
-    assert(List(5, 6, 12) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(5, 6, 12) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("Last-2 BsonArray as Root") {
 
@@ -251,7 +251,7 @@ class InjectorParserTests extends FunSuite {
       case _ => List()
     }
 
-    assert(List(5, 5, 6, 12) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(5, 5, 6, 12) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("All [0 to end] BsonArray as Root") {
 
@@ -266,7 +266,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, ".all")
       case _ => List()
     }
-    assert(List(4, 8, 12, 16, 20) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(4, 8, 12, 16, 20) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("All [0 until end] BsonArray as Root") {
     val key: String = ""
@@ -279,7 +279,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, ".all")
       case _ => List()
     }
-    assert(List(4, 8, 12, 16, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(4, 8, 12, 16, 5) === resultParser.asInstanceOf[BsSeq].getValue)
     }
   test("[1 until end] BsonArray as Root") {
 
@@ -293,7 +293,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, ".all")
       case _ => List()
     }
-    assert(List(1, 8, 12, 16, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(1, 8, 12, 16, 5) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("[1 to end] BsonArray as Root") {
     val key: String = ""
@@ -306,7 +306,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, ".all")
       case _ => List()
     }
-    assert(List(1, 8, 12, 16, 20) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(1, 8, 12, 16, 20) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("[1 to 2] BsonArray as Root") {
     val key: String = ""
@@ -319,7 +319,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, ".all")
       case _ => List()
     }
-    assert(List(1, 8, 12, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(1, 8, 12, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("[1 until 2] BsonArray as Root") {
     val key: String = ""
@@ -332,7 +332,7 @@ class InjectorParserTests extends FunSuite {
       case nb: BsBoson => callParse(nb.getValue, ".all")
       case _ => List()
     }
-    assert(List(1, 8, 3, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(1, 8, 3, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
   }
 
   test("fridgeReadings.[1 until 2] Int => Int"){
@@ -373,7 +373,7 @@ class InjectorParserTests extends FunSuite {
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
-    assert(List(List(1, 8, 3), List(1, 8, 3), List(1, 8, 3)) === resultParser)
+    assert(Vector(List(1, 8, 3), List(1, 8, 3), List(1, 8, 3)) === resultParser)
   }
   test("fridgeReadings.[1 until 2] BsonObject => BsonObject"){
 
@@ -413,7 +413,7 @@ class InjectorParserTests extends FunSuite {
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
-    assert(List(List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy"))) === resultParser)
+    assert(Vector(List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy"))) === resultParser)
   }
   test("fridge*Readings BsonArray => BsonArray"){
 
@@ -452,7 +452,7 @@ class InjectorParserTests extends FunSuite {
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
-    assert(List(List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")))=== resultParser)
+    assert(Vector(List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")))=== resultParser)
   }
   test("age.all Double => Double"){
 
@@ -491,7 +491,7 @@ class InjectorParserTests extends FunSuite {
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
-    assert(List(56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0)=== resultParser)
+    assert(Vector(56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0)=== resultParser)
   }
 
   test("name.all String => String"){
@@ -526,12 +526,12 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsSeq(e) => e.map(a => new String(a.asInstanceOf[Array[Byte]]))//.replaceAll("\\p{C}", "")) //TODO problema com strings
+      case BsSeq(e) => e.map(a => new String(a.asInstanceOf[Array[Byte]]))
       case BsBoson(nb)=> nb
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
-    assert( List("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
+    assert( Vector("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
 
       === resultParser)
   }
@@ -573,7 +573,7 @@ class InjectorParserTests extends FunSuite {
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
-    assert( List("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
+    assert( Vector("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
 
       === resultParser)
   }

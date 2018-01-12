@@ -40,7 +40,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Spider")),
       Map("José" -> Seq("Fly"))
     ))), future.join())
@@ -52,7 +52,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Spider"))
     ))), future.join())
   }
@@ -63,7 +63,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Spider")),
       Map("José" -> Seq("Fly"))
     ))), future.join())
@@ -75,7 +75,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Spider")),
       Map("José" -> Seq("Fly")),
       Seq("Insecticida")
@@ -88,7 +88,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Fly"))
     ))), future.join())
   }
@@ -99,7 +99,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider"),
       Seq("Fly")
     ))), future.join())
@@ -111,7 +111,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider")
     ))), future.join())
   }
@@ -122,7 +122,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider"),
       Seq("Fly")
     ))), future.join())
@@ -134,7 +134,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider"),
       Seq("Fly")
     ))), future.join())
@@ -146,7 +146,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Fly")
     ))), future.join())
   }
@@ -157,7 +157,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       2.2f
     )), future.join())
   }
@@ -168,7 +168,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Insecticida")
     )), future.join())
   }
@@ -179,7 +179,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       2.2f,
       Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
       Map("José" -> Seq("Spider")),
@@ -193,7 +193,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       "Tarantula", "Aracnídius"
     ))), future.join())
   }
@@ -203,7 +203,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
       Seq("Spider"),
       Seq("Fly")
@@ -215,7 +215,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       "Aracnídius",
       Seq("Insecticida")
     ))), future.join())
@@ -226,7 +226,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
       Map("José" -> Seq("Spider"))
     ))), future.join())
@@ -238,7 +238,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
 
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Map("José" -> Seq("Fly"))
     ))), future.join())
   }
@@ -248,7 +248,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
       Seq("Spider"),
       Seq("Fly")
@@ -260,7 +260,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider"),
       Seq("Fly")
     ))), future.join())
@@ -271,7 +271,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider"),
       Seq("Fly")
     ))), future.join())
@@ -282,7 +282,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(Seq(
+    assertEquals(BsSeq(Vector(Seq(
       Seq("Spider")
     ))), future.join())
   }
@@ -292,7 +292,7 @@ class APIwithByteBufferTests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsSeq(Seq(Seq())), future.join())
+    assertEquals(BsSeq(Vector(Seq())), future.join())
   }
 
   test("extract first") {
@@ -301,7 +301,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       2.200000047683716,
       Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
       Map("José" -> List("Spider")),
@@ -316,7 +316,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       "Fly"
     )), future.join())
   }
@@ -327,7 +327,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
       Seq("Spider"),
       Seq("Fly")
@@ -340,7 +340,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
       Seq("Spider"),
       Seq("Fly")
@@ -353,7 +353,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Seq(
+    assertEquals(BsSeq(Vector(
       2.2f,
       Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
       Map("José" ->Seq("Spider")),
@@ -368,7 +368,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
     assertEquals(
-      BsSeq(Seq(
+      BsSeq(Vector(
         Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
         Seq("Spider"),
         Seq("Fly")
@@ -393,7 +393,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj1)
     assertEquals(
-      BsSeq(Seq(Seq(
+      BsSeq(Vector(Seq(
         Map("José" -> Seq("Spider"))
       ))),
       future.join())

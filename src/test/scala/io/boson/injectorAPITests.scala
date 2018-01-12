@@ -54,7 +54,7 @@ class injectorAPITests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(List("the what?").head, new String(future.join().getValue.asInstanceOf[List[Array[Byte]]].head) )
+    assertEquals(Vector("the what?").head, new String(future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head) )
   }
   test("Inject API Map => Map") {
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
@@ -72,7 +72,7 @@ class injectorAPITests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(BsSeq(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
+    assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
   }
   test("Inject API List => List") {
     val bAux: BsonArray = new BsonArray().add(12).add("sddd")
@@ -92,7 +92,7 @@ class injectorAPITests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(BsSeq(List(12, "sddd", "MAIS EU")),future.join() )
+    assertEquals(BsSeq(Vector(12, "sddd", "MAIS EU")),future.join() )
   }
   test("key.[@key1]"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
@@ -115,7 +115,7 @@ class injectorAPITests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(List(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
+    assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
   }
   test("*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
@@ -138,6 +138,6 @@ class injectorAPITests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(List(Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
+    assertEquals(BsSeq(Vector (Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
   }
 }
