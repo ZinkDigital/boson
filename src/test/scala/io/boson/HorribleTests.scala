@@ -152,9 +152,9 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(
-      List("Tarantula", "Aracnídius", List("Insecticida")),
-      List("Spider"),
-      List("Fly")
+      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+      Seq("Spider"),
+      Seq("Fly")
     )), result)
   }
 
@@ -163,10 +163,10 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(Seq(
-        Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
-        Map("José" -> List("Spider")),
-        Map("José" -> List("Fly")),
-        List("Insecticida")
+        Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
+        Map("José" -> Seq("Spider")),
+        Map("José" -> Seq("Fly")),
+        Seq("Insecticida")
       ))), result)
   }
 
@@ -175,7 +175,7 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(
-      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida")))
+      Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida")))
     )), result)
   }
 
@@ -183,7 +183,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "   José . . first"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(
+    assertEquals(BsSeq(Vector(  //TODO: elements should be inside a Seq() because its an array
       "Tarantula",
       "Aracnídius",
       Seq("Insecticida")
