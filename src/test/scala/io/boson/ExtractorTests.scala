@@ -54,29 +54,29 @@ class ExtractorTests extends FunSuite {
 
   test("Extract Instant") {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
-    assertEquals(now.toString, new String(bosonBson.extract(bosonBson.getByteBuf, List(("UpdatedOn","first"))).get.asInstanceOf[Vector[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
+    assertEquals(now.toString, bosonBson.extract(bosonBson.getByteBuf, List(("UpdatedOn","first"))).get.asInstanceOf[Vector[Any]].head)
   }
 
   test("Extract String") {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes))
-    assertEquals("Lisboa", new String(bosonBson.extract(bosonBson.getByteBuf, List(("Residence","first")))
-      .get.asInstanceOf[Vector[Any]].head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
+    assertEquals("Lisboa", bosonBson.extract(bosonBson.getByteBuf, List(("Residence","first")))
+      .get.asInstanceOf[Vector[Any]].head)
   }
 
   test("Extract Array[Byte] w/ Netty") {
     val help: ByteBuf = Unpooled.buffer()
     val finalBuf: ByteBuf = Unpooled.buffer()
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
-    help.writeBytes(bosonBson.extract(bosonBson.getByteBuf, List(("FavoriteSentence","first"))).get.asInstanceOf[Vector[Any]].head.asInstanceOf[Array[Byte]])
+    help.writeBytes(bosonBson.extract(bosonBson.getByteBuf, List(("FavoriteSentence","first"))).get.asInstanceOf[Vector[Any]].head.asInstanceOf[String].getBytes)
     finalBuf.writeBytes(io.netty.handler.codec.base64.Base64.decode(help))
-    assert("Be the best".getBytes === new String(finalBuf.array()).replaceAll("\\p{C}", "").getBytes)
+    assert("Be the best".getBytes === new String(finalBuf.array()).replaceAll("\\p{C}", "").getBytes) //TODO:eliminate replaceAll from here
   }
 
   test("Extract Array[Byte] w/ String") {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes))
-    assert("Be the best".getBytes === new String(java.util.Base64.getMimeDecoder
-      .decode(new String(bosonBson.extract(bosonBson.getByteBuf, List(("FavoriteSentence","first")))
-        .get.asInstanceOf[Vector[Any]].head.asInstanceOf[Array[Byte]]))).getBytes)
+    assert("Be the best".getBytes === java.util.Base64.getMimeDecoder
+      .decode(bosonBson.extract(bosonBson.getByteBuf, List(("FavoriteSentence","first")))
+        .get.asInstanceOf[Vector[Any]].head.asInstanceOf[String]))
   }
 
   test("Extract BsonObject") {

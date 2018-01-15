@@ -98,7 +98,7 @@ class BosonImpl(
           case 48 => // root obj is BsonArray, call extractFromBsonArray
             netty.readIntLE()
             val arrayFinishReaderIndex: Int = startReaderIndex + size
-            if(keyList.head._1.length == 1 && keyList.head._1.equals("*")){
+            if(keyList.head._1.equals("*") && keyList.size == 1){
               Some(traverseBsonArray(netty,size,arrayFinishReaderIndex, keyList))
             } else {
               val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitA, limitB)
@@ -110,7 +110,7 @@ class BosonImpl(
             } else {
               netty.readIntLE()
               val bsonFinishReaderIndex: Int = startReaderIndex + size
-              if(keyList.head._1.length == 1 && keyList.head._1.equals("*")){ //TODO: Term everything now can be in the middle of expression
+              if(keyList.head._1.equals("*") && keyList.size == 1){
                 Some(Seq(traverseBsonObj(netty,scala.collection.immutable.Map[Any, Any](),bsonFinishReaderIndex,keyList)))
               } else {
                 val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitA, limitB)
@@ -141,7 +141,7 @@ class BosonImpl(
           // correcao de BUG
             val newArr: Array[Byte] = arr.filter(b => b!=0)
 
-            Some(newArr)
+            Some(new String(newArr))
           } else {
             netty.readCharSequence(netty.readIntLE(), charset)
             None
@@ -169,7 +169,11 @@ class BosonImpl(
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
+              case "next" =>
+                val midResult = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitA, limitB)
+                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
               case _ if keyList.size > 1 =>
+                println("matched with a BsonArray and condition wasn't next")
                 Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitA, limitB).toArray[Any]) match {
                   case Some(value) if value.isEmpty => None
                   case Some(value) => Some(value)
@@ -229,7 +233,7 @@ class BosonImpl(
           case 0 =>
             None
         }
-      case Some(value) if keyList.head._2.equals("first") || keyList.head._2.equals("limit") =>
+      case Some(value) if keyList.head._2.equals("first") || (keyList.head._2.equals("limit") && !keyList.head._1.eq("*"))  =>
         Some(value).toVector
       case Some(_) =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
@@ -521,7 +525,18 @@ class BosonImpl(
                             netty.readerIndex(copyNetty.readerIndex())
                             None
                           case _ =>
-                            Some(traverseBsonObj(netty,map,bsonFinishReaderIndex,List((keyList.head._1,"all"))))
+                            println(s"keylist in this moment: $keyList")
+                            val res = traverseBsonObj(netty,map,bsonFinishReaderIndex,List((keyList.head._1,"all")))  //TODO:refactor this section
+                            if(keyList.size > 1) { //case when @elem ain't the last thing on keyList
+                              if(keyList.drop(1).head._1.contains('*')){
+                                println(res)
+                                Some(res.collect{
+                                  case elem if keyList.drop(1).head._1.split('*').forall(p => elem._1.asInstanceOf[String].contains(p))=>
+                                   elem._2
+                                })
+                              } else {println("getting ->"+res.get(keyList.drop(1).head._1))
+                                res.get(keyList.drop(1).head._1)}
+                            } else Some(res)
                         }
                       case _ => Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList))
                     }
@@ -1330,10 +1345,10 @@ class BosonImpl(
     }
   }
 
-  private def isHalfword(fieldID: String, x: String): Boolean = {
+  private def isHalfword(fieldID: String, extracted: String): Boolean = {
     if(fieldID.contains('*')){
       val list: Array[String] = fieldID.split('*')
-      list.forall(str => x.contains(str))
+      list.forall(str => extracted.contains(str))
     }else{
       false
     }

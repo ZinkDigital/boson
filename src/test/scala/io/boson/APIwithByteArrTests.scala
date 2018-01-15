@@ -418,7 +418,7 @@ class APIwithByteArrTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(List("the what?").head, new String(future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head) )
+    assertEquals(List("the what?"), future.join().getValue )
   }
   test("Inject API Map => Map") {
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
