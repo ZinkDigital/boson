@@ -14,13 +14,20 @@ import org.junit.Assert.assertEquals
 
 @RunWith(classOf[JUnitRunner])
 class injectorAPITests extends FunSuite {
-
+  val b11: BsonObject = new BsonObject().put("Title","C++Machine").put("Price", 38)
+  val br5: BsonArray = new BsonArray().add(b11)
+  val b10: BsonObject = new BsonObject().put("Title","JavaMachine").put("Price", 39)
+  val br4: BsonArray = new BsonArray().add(b10)
+  val b9: BsonObject = new BsonObject().put("Title","ScalaMachine").put("Price", 40)
+  val br3: BsonArray = new BsonArray().add(b9)//.add(new BsonObject().put("Ti","shit"))
+  val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
   val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
   val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-  val br2: BsonArray = new BsonArray().add(b5).add(b6)
-  val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5)
-  val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5)
-  val br1: BsonArray = new BsonArray().add(b3).add(b4)
+  val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7)
+  val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions",br3)
+  val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions",br4)
+  val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions",br5)
+  val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
   val b2: BsonObject = new BsonObject().put("Book", br1).put("Hat",br2)
   val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
 
@@ -50,8 +57,9 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(Seq(
-      Map("Title" -> "Java", "Price" -> 15.5),
-      Map("Title" -> "Scala", "Pri" -> 21.5)
+      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+      Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
     ))), future.join())
   }
 
@@ -62,7 +70,8 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(Seq(
-      Map("Title" -> "Java", "Price" -> 15.5)
+      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
     ))), future.join())
   }
 
@@ -74,7 +83,8 @@ class injectorAPITests extends FunSuite {
 
     assertEquals(BsSeq(Vector(Seq(
       Map("Color" -> "Red", "Price" -> 48),
-      Map("Color" -> "White", "Price" -> 35)
+      Map("Color" -> "White", "Price" -> 35),
+      Map("Color" -> "Blue", "Price" -> 38)
     ))), future.join())
   }
 
@@ -86,7 +96,8 @@ class injectorAPITests extends FunSuite {
 
     assertEquals(BsSeq(Vector(Seq(
       Map("Color" -> "Red", "Price" -> 48),
-      Map("Color" -> "White", "Price" -> 35)
+      Map("Color" -> "White", "Price" -> 35),
+      Map("Color" -> "Blue", "Price" -> 38)
     ))), future.join())
   }
 
@@ -98,7 +109,8 @@ class injectorAPITests extends FunSuite {
 
     assertEquals(BsSeq(Vector(Seq(
       Map("Color" -> "Red", "Price" -> 48),
-      Map("Color" -> "White", "Price" -> 35)
+      Map("Color" -> "White", "Price" -> 35),
+      Map("Color" -> "Blue", "Price" -> 38)
     ))), future.join())
   }
 
@@ -109,8 +121,10 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
-      Seq(Map("Title" -> "Java", "Price" -> 15.5), Map("Title" -> "Scala", "Pri" -> 21.5)),
-      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35))
+      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+        Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
     )), future.join())
   }
 
@@ -122,8 +136,10 @@ class injectorAPITests extends FunSuite {
 
     assertEquals(BsSeq(Vector(
       Map("Store" -> Map(
-        "Book" -> Seq(Map("Title" -> "Java", "Price" -> 15.5), Map("Title" -> "Scala", "Pri" -> 21.5)),
-        "Hat" -> Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35))))
+        "Book" -> Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+          Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+          Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+        "Hat" -> Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))))
     )), future.join())
   }
 
@@ -134,7 +150,8 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(Seq(
-      Map("Title" -> "Java", "Price" -> 15.5)
+      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
     ))), future.join())
   }
 
@@ -145,8 +162,9 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
-      Seq(Map("Title" -> "Java", "Price" -> 15.5)),
-      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35))
+      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
     )), future.join())
   }
 
@@ -157,8 +175,9 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
-      Seq(Map("Title" -> "Java", "Price" -> 15.5)),
-      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35))
+      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
     )), future.join())
   }
 
@@ -170,7 +189,8 @@ class injectorAPITests extends FunSuite {
 
     assertEquals(BsSeq(Vector(
       "Java",
-      "Scala"
+      "Scala",
+      "C++"
     )), future.join())
   }
 
@@ -192,7 +212,7 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
-      Map("Title" -> "Scala", "Pri" -> 21.5)
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
     )), future.join())
   }
 
@@ -203,7 +223,8 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(Seq(
-      Map("Title" -> "Java", "Price" -> 15.5)
+      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
     ))), future.join())
   }
 
@@ -214,7 +235,7 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
-      Seq("Java")
+      Seq("Java", "C++")
     )), future.join())
   }
 
@@ -225,7 +246,7 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
-      Seq("Java")
+      Seq("Java","C++")
     )), future.join())
   }
 
@@ -239,5 +260,16 @@ class injectorAPITests extends FunSuite {
       Seq("Scala")
     )), future.join())
   }
+
+//  test("extract Key.Key.[#].Key.[@elem]") {
+//    val expression = "Store.Book.[1].SpecialEditions.[@Title]"
+//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+//    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
+//    boson.go(validatedByteArr)
+//
+//    assertEquals(BsSeq(Vector(
+//      Map("Title" -> "ScalaMachine", "Price" -> 40)
+//    )), future.join())
+//  } //  still implementing it
 
 }

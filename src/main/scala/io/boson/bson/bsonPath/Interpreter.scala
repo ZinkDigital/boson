@@ -139,7 +139,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
       } else {
         println("last statement nonDefined")
         middleStatementList.last match {
-          case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"all")), limitList2)
+          case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
           case _ => (secondList,limitList2)
         }
       }
