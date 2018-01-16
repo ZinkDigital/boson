@@ -49,8 +49,7 @@ class LongInputTests extends FunSuite {
 
   test("extract bottom field") {
     val result: BsValue = callParse(boson.duplicate, "SSLNLastName..last")
-    assert( "de Huanuco" ===
-      new String(result.asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]).replaceAll("\\p{C}", ""))
+    assert( "de Huanuco" === result.asInstanceOf[BsSeq].value.head)
   }
 
   test("extract all occurrences of Key") {

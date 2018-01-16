@@ -375,7 +375,7 @@ class APIwithByteArrTests extends FunSuite {
      val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
       //println(s"result of extraction -> ${in.getValue}")
       assertEquals(
-        List(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
+        Vector(Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> true)),
         in.getValue
       )
       latch.countDown()
@@ -402,7 +402,7 @@ class APIwithByteArrTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(List(1000.0), future.join().getValue )
+    assertEquals(Vector(1000.0), future.join().getValue )
   }
   test("Inject API String => String") {
     val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the")
@@ -418,7 +418,7 @@ class APIwithByteArrTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(List("the what?").head, new String(future.join().getValue.asInstanceOf[List[Array[Byte]]].head) )
+    assertEquals(List("the what?"), future.join().getValue )
   }
   test("Inject API Map => Map") {
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")

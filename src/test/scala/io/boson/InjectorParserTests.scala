@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
-import io.boson.bson.bsonImpl.injectors.{InterpreterInj, ProgramInj, TinyLanguageInj}
+
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.{Boson, bsonValue}
 import io.boson.bson.bsonValue._
@@ -527,7 +527,7 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsSeq(e) => e.map(a => new String(a.asInstanceOf[Array[Byte]]))
+      case BsSeq(e) => e
       case BsBoson(nb)=> nb
       case BsNumber(n) => n
       case BsBoolean(b) => b
@@ -569,7 +569,7 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsSeq(e) => e.map(a => new String(a.asInstanceOf[Array[Byte]]))//.replaceAll("\\p{C}", "")) //TODO problema com strings
+      case BsSeq(e) => e//.replaceAll("\\p{C}", "")) //TODO problema com strings
       case BsBoson(nb)=> nb
       case BsNumber(n) => n
       case BsBoolean(b) => b
