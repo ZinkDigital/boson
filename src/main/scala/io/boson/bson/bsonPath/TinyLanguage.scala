@@ -92,12 +92,12 @@ class TinyLanguage extends RegexParsers {
     g => Grammar(g)
   }
 
-  private def keyWithGrammar: Parser[KeyWithGrammar] = word ~ ("." ~> grammar) ^^ {
+  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
     case k ~ g => KeyWithGrammar(k, g)
   }
 
 
-  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx /*| everything */| halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep1("." ~> (keyWithArrEx /*| everything*/ | halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar | keyWithArrEx /*| everything*/ | halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key ) )^^ {
+  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx /*| everything */| halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep1("." ~> (keyWithArrEx /*| everything*/ | halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(/*keyWithGrammar | grammar |*/ keyWithArrEx /*| everything*/ | halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key ) )^^ {
    /* x =>
       println("Tiny Language   " + x)
       MoreKeys()*/

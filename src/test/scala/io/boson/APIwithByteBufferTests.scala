@@ -429,7 +429,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(List("the what?").head, new String(future.join().getValue.asInstanceOf[List[Array[Byte]]].head) )
+    assertEquals(List("the what?").head, new String(future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head) )
   }
   test("Inject API Map => Map") {
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
@@ -447,7 +447,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(BsSeq(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
+    assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
   }
   test("Inject API List => List") {
     val bAux: BsonArray = new BsonArray().add(12).add("sddd")
@@ -467,7 +467,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(BsSeq(List(12, "sddd", "MAIS EU")),future.join() )
+    assertEquals(BsSeq(Vector(12, "sddd", "MAIS EU")),future.join() )
   }
 
 }

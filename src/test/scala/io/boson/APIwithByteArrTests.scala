@@ -436,7 +436,7 @@ class APIwithByteArrTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(BsSeq(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
+    assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
   }
   test("Inject API List => List") {
     val bAux: BsonArray = new BsonArray().add(12).add("sddd")
@@ -456,7 +456,7 @@ class APIwithByteArrTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
 
-    assertEquals(BsSeq(List(12, "sddd", "MAIS EU")),future.join() )
+    assertEquals(BsSeq(Vector(12, "sddd", "MAIS EU")),future.join() )
   }
 
 }
