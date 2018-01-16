@@ -80,56 +80,56 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
     } else throw new RuntimeException("List of statements is empty.")
   }
 
-  private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int])] = {
+  private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
     if(mid.isDefined && right.isDefined) {
       (left, mid.get.toLowerCase, right.get) match {
-        case (a, "until", "end") => List((Some(a),None))
-        case (a, _, "end") => List((Some(a),None))
+        case (a, "until", "end") => List((Some(a),None,"until"))
+        case (a, _, "end") => List((Some(a),None,"to"))
         case (a, expr, b) if b.isInstanceOf[Int] =>
           expr.toLowerCase match {
-            case "to" => List((Some(a),Some(b.asInstanceOf[Int])))
-            case "until" => List((Some(a),Some(b.asInstanceOf[Int]-1)))
+            case "to" => List((Some(a),Some(b.asInstanceOf[Int]),"to"))
+            case "until" => List((Some(a),Some(b.asInstanceOf[Int]-1),"to"))
           }
       }
     } else { //[#]
-      List((Some(left),Some(left)))
+      List((Some(left),Some(left),"to"))
     }
   }
 
-  private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement], lastStatement: Option[Statement]): (List[(String, String)], List[(Option[Int], Option[Int])]) = {
-    val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int])]) =
+  private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement], lastStatement: Option[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+    val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
-        case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None)))
+        case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
         case KeyWithArrExpr(key,arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
         case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-        case HalfName(halfName) => (List((halfName, "all")), List((None,None)))
-        case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None),(None,None)) )
+        case HalfName(halfName) => (List((halfName, "all")), List((None,None,"")))
+        case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
         case Key(key) =>
-          if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None))) else (List((key, "all")),List((None,None)))
+          if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "all")),List((None,None,"")))
       }
 
-    val forList: List[(List[(String, String)], List[(Option[Int], Option[Int])])] =
+    val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
         for (statement <- middleStatementList) yield {
           statement match {
-            case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None)))
+            case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
             case KeyWithArrExpr(key, arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
             case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-            case HalfName(halfName) => (List((halfName, "all")), List((None,None)))
+            case HalfName(halfName) => (List((halfName, "all")), List((None,None,"")))
             case HasElem(key, elem) =>
-              (List((key, "limit"), (elem, "filter")),List((None,None),(None,None)) )
-            case Key(key) => (List((key, "next")),List((None,None)))
+              (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
+            case Key(key) => (List((key, "next")),List((None,None,"")))
           }
         }
     val secondList = firstList ++ forList.flatMap(p => p._1)
     val limitList2 = limitList1 ++ forList.flatMap(p => p._2)
 
 
-    val (thirdList,limitList3): (List[(String, String)], List[(Option[Int], Option[Int])]) =
+    val (thirdList,limitList3): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       if (lastStatement.isDefined) {
         lastStatement.get match {
           case KeyWithGrammar(key, grammar) =>
             println("!!!!!!-----------------!!!!!!!!!!-------buildKeyList lastStatement is KeyWithGrammar-------NOT EXPECTED!!!!!!!!")
-            (secondList ++ List((key, grammar.selectType)),limitList2 ++ List((None,None)))
+            (secondList ++ List((key, grammar.selectType)),limitList2 ++ List((None,None,"")))
           case Grammar(selectType) =>
             middleStatementList.last match {
               case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, selectType)), limitList2)
@@ -287,7 +287,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
   private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
     println(s"hasElem with key: $key and elem: $elem")
     val result =
-      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), List((None,None))) map { v =>
+      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), List((None,None,""))) map { v =>
         v.asInstanceOf[Seq[Any]]
       } getOrElse Seq.empty[Any]
     result match {
@@ -308,14 +308,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
     val result =
       (left, mid, right) match {
         case (a, ("until" | "Until"), "end") =>
-          val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), List((Some(a),None)))
+          val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), List((Some(a),None,"")))
           midResult.map(v => {
             (for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
               elem.take(elem.length - 1)
             }).filter(p => p.nonEmpty)
           }).getOrElse(Seq.empty)
         case (a, _, "end") => // "[# .. end]"
-          val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), List((Some(a),None)))
+          val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), List((Some(a),None,"")))
           midResult.map { v =>
             v.asInstanceOf[Seq[Any]]
           }.getOrElse(Seq.empty)
@@ -324,13 +324,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
             case ("to" | "To") =>
               println("case # TO #")
               boson.extract(
-                boson.getByteBuf, List((key, "limit")), List((Some(a), Some(b.asInstanceOf[Int])))
+                boson.getByteBuf, List((key, "limit")), List((Some(a), Some(b.asInstanceOf[Int]),""))
               ).map { v =>
                 v.asInstanceOf[Seq[Any]]
               }.getOrElse(Seq.empty)
             case ("until" | "Until") =>
               boson.extract(
-                boson.getByteBuf, List((key, "limit")), List((Some(a), Some(b.asInstanceOf[Int] - 1)))
+                boson.getByteBuf, List((key, "limit")), List((Some(a), Some(b.asInstanceOf[Int] - 1),""))
               ).map { v =>
                 v.asInstanceOf[Seq[Any]]
               }.getOrElse(Seq.empty)
@@ -360,7 +360,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
       (left, mid, right) match {
         case (a, ("until" | "Until"), "end") =>
           boson.extract(
-            boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a),None))
+            boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a),None,""))
           ) map { v => {
             for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
               elem.take(elem.length - 1)
@@ -369,7 +369,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
           } getOrElse Seq.empty[Any]
         case (a, _, "end") =>
           boson.extract(
-            boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a),None))
+            boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a),None,""))
           ) map { v =>
             v.asInstanceOf[Seq[Any]]
           } getOrElse Seq.empty[Any]
@@ -377,14 +377,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
           expr match {
             case ("to" | "To") =>
               boson.extract(
-                boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a), Some(b.asInstanceOf[Int])))
+                boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a), Some(b.asInstanceOf[Int]),""))
               ) map { v =>
                 println(s"result before composer: $v")
                 v.asInstanceOf[Seq[Any]]
               } getOrElse Seq.empty[Any]
             case ("until" | "Until") =>
               boson.extract(
-                boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a), Some(b.asInstanceOf[Int] - 1)))
+                boson.getByteBuf, List((key, "limit"), (secondKey, "all")), List((Some(a), Some(b.asInstanceOf[Int] - 1),""))
               ) map { v =>
                 v.asInstanceOf[Seq[Any]]
               } getOrElse Seq.empty[Any]
@@ -409,7 +409,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T, T
 
   private def executeSelect(key: String, selectType: String): bsonValue.BsValue = {
     println(s"executeSelect with key: $key and selectType: $selectType")
-    val result = boson.extract(boson.getByteBuf, List((key, selectType)),List((None,None)))
+    val result = boson.extract(boson.getByteBuf, List((key, selectType)),List((None,None,"")))
     println("after")
     selectType match {
       case "first" =>
