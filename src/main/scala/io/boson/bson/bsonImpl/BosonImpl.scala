@@ -64,15 +64,15 @@ class BosonImpl(
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
     case ARRAY_BYTE => // Array[Byte]
-      val b = Unpooled.copiedBuffer(byteArray.get)
+      val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
       // b.writeBytes(byteArray.get)
       b
     case JAVA_BYTEBUFFER => // Java ByteBuffer
-      val b = Unpooled.copiedBuffer(javaByteBuf.get)
+      val b: ByteBuf = Unpooled.copiedBuffer(javaByteBuf.get)
       javaByteBuf.get.clear()
       b
     case SCALA_ARRAYBUF => // Scala ArrayBuffer[Byte]
-      val b = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
+      val b: ByteBuf = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
       b
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
@@ -1438,9 +1438,10 @@ class BosonImpl(
 
              // ocorrencias.last match{
                // case None =>
-                  if(list.isEmpty  || list.get.isEmpty)
+                  if(list.isEmpty  || list.get.isEmpty) {
+                    println("Enter modifierAll")
                     modifierAll(buffer, dataType, f, result)
-                  else
+                  }else
                     execStatementPatternMatch(buffer, list, f,result)
              //   case Some(y: Int) if y == 0 =>modifierAll(buffer, dataType, f, result)
             //      ocorrencias.append(Option(ocorrencias.last.get-1))
@@ -1685,6 +1686,7 @@ class BosonImpl(
         }
       case D_NULL =>  throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
+        println("INJECT INT")
         val value0: Any = buffer.readIntLE()
         val value: Any = applyFunction(f, value0)
         Option(value) match {
@@ -2898,8 +2900,6 @@ println("hasElement")
     new String(key.toArray).toCharArray.deep == elem.toCharArray.deep || isHalfword(elem, new String(key.toArray))
   }
 
-
-
   def execStatementPatternMatch[T](buf: ByteBuf, statements: Option[ListBuffer[Statement]], f :Function[T,T], result:ByteBuf=Unpooled.buffer()): ByteBuf = {
 
     val statement: Statement = statements.get.head
@@ -2936,10 +2936,12 @@ println("hasElement")
         result.writeBytes(res)
         result.capacity(result.writerIndex())
       case HasElem(key: String, elem: String) =>
-        modifyHasElem(Some(newStatementList), buf, key, elem,f)
+        val res: ByteBuf = modifyHasElem(Some(newStatementList), buf, key, elem,f)
+        result.writeBytes(res)
+        result.capacity(result.writerIndex())
       case Key(key: String) =>
         println("Key=" + key)
-        val res = modifyAll(Some(newStatementList),buf, key, f)
+        val res: ByteBuf = modifyAll(Some(newStatementList),buf, key, f)
         result.writeBytes(res)
         result.capacity(result.writerIndex())
       case _ => throw CustomException("Wrong Statments, Bad Expression.")
@@ -2947,6 +2949,7 @@ println("hasElement")
     }
 
   }
+
   def execGrammarFunction[T](selectType: String,key: String, buffer: ByteBuf,f: T=>T, result: ByteBuf=Unpooled.buffer()): ByteBuf = {
     selectType match {
       case "first" =>
@@ -2967,6 +2970,7 @@ println("hasElement")
 
 
   }
+
   def execArrayFunction[T](list: Option[ListBuffer[Statement]],buf: ByteBuf,f: Function[T,T], key: String, left:Int, mid:String, right: Any, result: ByteBuf):ByteBuf={
 
     (key, left, mid.toLowerCase(), right) match {
@@ -3033,6 +3037,7 @@ println("hasElement")
       case _ => throw CustomException("Bad Array Expression!")
     }
   }
+
 }
 
 /*
