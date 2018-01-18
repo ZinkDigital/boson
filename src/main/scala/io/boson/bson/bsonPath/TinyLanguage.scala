@@ -97,7 +97,7 @@ class TinyLanguage extends RegexParsers {
   }
 
 
-  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx /*| everything */| halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep1("." ~> (keyWithArrEx /*| everything*/ | halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar | keyWithArrEx /*| everything*/ | halfnameHasHalfelem| halfnameHasElem |   keyHasHalfelem | keyHasElem | halfName |  arrEx | key ) )^^ {
+  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep1("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
    /* x =>
       println("Tiny Language   " + x)
       MoreKeys()*/

@@ -64,9 +64,7 @@ class InjectorsTest extends FunSuite {
 
 
   val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
-  //.put("enumJava", enumJava)
   val objArray: BsonArray = new BsonArray().add(long).add(bytearray1).add(ins).add(float).add(double).add(obj).add(bool).add(bsonArray)
-  //.add(enum.A.toString)//.add(enumJava)
   val netty: Option[BosonImpl] = Some(new BosonImpl(byteArray = Option(obj.encode().getBytes)))
   val nettyArray: Option[BosonImpl] = Some(new BosonImpl(byteArray = Option(objArray.encode().getBytes)))
 

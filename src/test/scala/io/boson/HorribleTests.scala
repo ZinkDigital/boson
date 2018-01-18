@@ -234,9 +234,9 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(
-      Seq(2.2),
-      Seq(2.2),
-      Seq(2.2)
+      2.2,
+      2.2,
+      2.2
     )), result)
   }
 

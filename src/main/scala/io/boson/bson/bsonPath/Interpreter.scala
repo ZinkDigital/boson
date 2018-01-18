@@ -102,7 +102,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
         case KeyWithArrExpr(key,arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
         case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-        case HalfName(halfName) => (List((halfName, "all")), List((None,None,"")))
+        case HalfName(halfName) => (List((halfName, "level")), List((None,None,"")))
         case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
         case Key(key) =>
           if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "all")),List((None,None,"")))
@@ -114,7 +114,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
             case KeyWithArrExpr(key, arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
             case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-            case HalfName(halfName) => (List((halfName, "all")), List((None,None,"")))
+            case HalfName(halfName) => (List((halfName, "level")), List((None,None,"")))
             case HasElem(key, elem) =>
               (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
             case Key(key) => (List((key, "next")),List((None,None,"")))
@@ -286,8 +286,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
     println(s"hasElem with key: $key and elem: $elem")
-    val result: Seq[Any] =
-      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), List((None,None,""))) map { v =>
+    val result =
+      boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), List((None,None,""), (None,None,""))) map { v =>
         v.asInstanceOf[Seq[Any]]
       } getOrElse Seq.empty[Any]
     result match {

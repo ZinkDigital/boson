@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
-
+import io.boson.bson.bsonImpl.injectors.{InterpreterInj, ProgramInj, TinyLanguageInj}
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.{Boson, bsonValue}
 import io.boson.bson.bsonValue._
@@ -600,7 +600,7 @@ class InjectorParserTests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10)))),finalResult )
+    assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),finalResult )
   }
   test("*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
