@@ -816,7 +816,6 @@ class BosonImpl(
                   }
                 case Some(_) =>
                   netty.readerIndex(finishReaderIndex)
-                  //Some()
                   None
                 case None =>
                   limitList.head._1 match {
@@ -829,12 +828,10 @@ class BosonImpl(
                       }
                     case Some(_) =>
                       netty.readerIndex(finishReaderIndex)
-                      //Some()
                       None
                     case None =>
                       netty.readerIndex(finishReaderIndex)
-                      //Some() // TODO:check this case
-                      None
+                      None // TODO:check this case
                   }
               }
             } else {
