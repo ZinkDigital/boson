@@ -393,8 +393,8 @@ class injectorAPITests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
     boson1.go(result)
     println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
-    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-    assertEquals(Vector(List(List(2, 3, 5.2), List(2, 3, 5.2))),a  )
+    //val a: Vector[Any] = future.join().getValue
+    assertEquals(Vector(List(2, 3), List(2, 3)),future.join().getValue  )
 
 
   }
@@ -597,6 +597,4 @@ class injectorAPITests extends FunSuite {
   }
 
 }
-
-  test("MoreKeys 2 array.[0].damnnn.[1].google"){
 
