@@ -598,5 +598,5 @@ class injectorAPITests extends FunSuite {
 
 }
 
-  test("MoreKeys 2 array.[0].damnnn.[1].google"){
+
 
