@@ -13,6 +13,8 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.junit.Assert.assertEquals
 
+import scala.collection.mutable
+
 @RunWith(classOf[JUnitRunner])
 class injectorAPITests extends FunSuite {
   val b11: BsonObject = new BsonObject().put("Title","C++Machine").put("Price", 38)
@@ -50,6 +52,57 @@ class injectorAPITests extends FunSuite {
 //      Seq("Java")
 //    )), future.join())
 //  }
+
+  test("Scala"){
+    val map: mutable.HashMap[String, Any] = new mutable.HashMap[String, Any]
+  }
+  test("$.Store.* => Store") {
+    /*
+    * Montagem do Event de testes
+    * */
+    println("|-------- Construct the Test Event --------|\n")
+    val SEdition1: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
+    val SEdition2: BsonObject = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
+    val SEdition3: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val SpecialEditions1:BsonArray = new BsonArray().add(SEdition1)
+    val SpecialEditions2:BsonArray = new BsonArray().add(SEdition2)
+    val SpecialEditions3:BsonArray = new BsonArray().add(SEdition3)
+    val Book1: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", SpecialEditions1)
+    val Book2: BsonObject = new BsonObject().put("Title", "Scala").put("Price", 21.5).put("SpecialEditions", SpecialEditions2)
+    val Book3: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", SpecialEditions3)
+    val Book: BsonArray = new BsonArray().add(Book1).add(Book2).add(Book3)
+    val Hat1: BsonObject = new BsonObject().put("Price", 48).put("Color", "Red")
+    val Hat2: BsonObject = new BsonObject().put("Price", 35).put("Color", "White")
+    val Hat3: BsonObject = new BsonObject().put("Price", 38).put("Color", "Blue")
+    val Hat: BsonArray = new BsonArray().add(Hat1).add(Hat2).add(Hat3)
+    val Store: BsonObject = new BsonObject().put("Book", Book).put("Hat", Hat)
+    val Event: BsonObject = new BsonObject().put("Store", Store)
+
+    /*
+    * Injection
+    * */
+    println("|-------- Perform Injection --------|\n\n")
+    val validBsonArray: Array[Byte] = Event.encodeToBarray
+
+    val expression = "Store"
+    val boson: Boson = Boson.injector(expression,(in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+    val result: Array[Byte] = midResult.join()
+    result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
+    println("|-------- Perform Extraction --------|\n\n")
+    //val expression1 = "array.[@damnnn].damnnn.[@google].google"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson1.go(result)
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+
+
+    println("|-------- Perform Assertion --------|\n\n")
+
+    assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),a  )
+  }
+
+
 
   test("extract Key.Key") {
     val expression = "Store.Book"
@@ -316,16 +369,17 @@ class injectorAPITests extends FunSuite {
 //      Map("Title" -> "ScalaMachine", "Price" -> 40)
 //    )), future.join())
 //  } //  still implementing it
-  test("MoreKeys 4"){
+
+  test("MoreKeys 5 bson11.array21.[0 until 2].[0 until 2]"){
 
     val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
     val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
     val bsonObjectLvl33: BsonObject = new BsonObject().put("int2", 2)
-    val bsonArray31: BsonArray = new BsonArray().add(bsonObjectLvl31).add(bsonObjectLvl32).add(bsonObjectLvl33)
+    val bsonArray31: BsonArray = new BsonArray().add(0).add(1).add(5.2)
     val bsonArray32: BsonArray = new BsonArray().add(bsonObjectLvl31).add(bsonObjectLvl32).add(bsonObjectLvl33)
     val bsonArray33: BsonArray = new BsonArray().add(bsonObjectLvl31).add(bsonObjectLvl32).add(bsonObjectLvl33)
-    val bsonArrayLvl21: BsonArray = new BsonArray().add(bsonArray31).add(bsonArray32).add(bsonArray33)
-    val bsonArrayLvl22: BsonArray = new BsonArray().add(bsonArray31).add(bsonArray32).add(bsonArray33)
+    val bsonArrayLvl21: BsonArray = new BsonArray().add(bsonArray31).add(bsonArray31).add(bsonArray31)
+    val bsonArrayLvl22: BsonArray = new BsonArray().add(bsonArray31).add(bsonArray31).add(bsonArray31)
     val bsonObjectLvl11: BsonObject = new BsonObject().put("array21", bsonArrayLvl21)
     val bsonObjectLvl12: BsonObject = new BsonObject().put("array22", bsonArrayLvl22)
     val bsonObjectRoot: BsonObject = new BsonObject().put("bson11", bsonObjectLvl11).put("bson12", bsonObjectLvl12)
@@ -333,8 +387,8 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "bson11.array21.[0 to 1].[0 to 1].fie*"
-    val expression1 = "field1"
+    val expression = "bson11.array21.[0 until 2].[0 until 2]" //.[0 to 1].fie*"
+    val expression1 = "bson11.array21.[0 until 2].[0 until 2]"
     val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
@@ -347,11 +401,49 @@ class injectorAPITests extends FunSuite {
     boson1.go(result)
     println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-    assertEquals(Vector(2, 2, 0, 0, 0, 0),a  )
+    assertEquals(Vector(List(List(2, 3, 5.2), List(2, 3, 5.2))),a  )
+
 
   }
 
-  test("MoreKeys 3"){
+
+  test("MoreKeys 4 bson11.array21.[0 until 2]"){
+
+    val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
+    val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
+    val bsonObjectLvl33: BsonObject = new BsonObject().put("int2", 2)
+    val bsonArray31: BsonArray = new BsonArray().add(0).add(1).add("ds")
+    val bsonArray32: BsonArray = new BsonArray().add(bsonObjectLvl31).add(bsonObjectLvl32).add(bsonObjectLvl33)
+    val bsonArray33: BsonArray = new BsonArray().add(bsonObjectLvl31).add(bsonObjectLvl32).add(bsonObjectLvl33)
+    val bsonArrayLvl21: BsonArray = new BsonArray().add(bsonArray31).add(bsonArray32).add(bsonArray33)
+    val bsonArrayLvl22: BsonArray = new BsonArray().add(bsonArray31).add(bsonArray32).add(bsonArray33)
+    val bsonObjectLvl11: BsonObject = new BsonObject().put("array21", bsonArray31)
+    val bsonObjectLvl12: BsonObject = new BsonObject().put("array22", bsonArrayLvl22)
+    val bsonObjectRoot: BsonObject = new BsonObject().put("bson11", bsonObjectLvl11).put("bson12", bsonObjectLvl12)
+
+    //val newFridgeSerialCode: String = " what?"
+    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
+    //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
+    val expression = "bson11.array21.[0 until 2]" //.[0 to 1].fie*"
+    val expression1 = "bson11.array21.[0 until 2]"
+    val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
+    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+    val result: Array[Byte] = midResult.join()
+    val s: ByteBuf = Unpooled.copiedBuffer(result)
+    //println(s"result size = ${result.length}   resultBYteBuf size = ${s.readIntLE()}   validBsonArray = ${validBsonArray.length}")
+    //validBsonArray.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
+    boson1.go(result)
+    println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    assertEquals(Vector(List(2, 3)),a  )
+
+
+  }
+
+  test("MoreKeys 3 bson11.array21.[@i*nt].int"){
 
     val bsonObjectLvl31: BsonObject = new BsonObject().put("int", 0)
     val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -383,7 +475,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys 2"){
+  test("MoreKeys 2 array.[0].damnnn.[1].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -410,7 +502,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys 1"){
+  test("MoreKeys 1 arr*ay.[0 until 1].damn*n.[0 until 1].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -437,7 +529,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys"){
+  test("MoreKeys array.[@damnnn].damnnn.[@google].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -462,4 +554,6 @@ class injectorAPITests extends FunSuite {
     assertEquals(Vector("sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "DAMMN"),a  )
     //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
   }
+
+
 }

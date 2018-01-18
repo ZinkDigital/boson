@@ -523,18 +523,20 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 println((key, left, mid.toLowerCase(), right))
     (key, left, mid.toLowerCase(), right) match {
       case ("", a, "until", "end") =>
-        val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get, a.toString))
+        val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get,"until", a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._2)
+          case Success(v) =>
+             bsonValue.BsObject.toBson(v)
           case Failure(e) => bsonValue.BsException.apply(e.getMessage)
         }
 
       case ("", a, "to", "end") => // "[# .. end]"
-        val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get, a.toString))
+        val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get,"to", a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._1)
+          case Success(v) =>
+            bsonValue.BsObject.toBson(v)
           case Failure(e) => bsonValue.BsException.apply(e.getMessage)
         }
       case ("", a, expr, b) if b.isInstanceOf[Int] =>
@@ -543,35 +545,39 @@ println((key, left, mid.toLowerCase(), right))
             val range: Range = a to b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get,"to", a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._1)
+              case Success(v) =>
+                bsonValue.BsObject.toBson(v)
               case Failure(e) => bsonValue.BsException.apply(e.getMessage)
             }
           case "until" =>
             val range: Range = a until b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEnd(None, boson.getByteBuf.duplicate(), f.get,"until", a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._2)
+              case Success(v) =>
+                bsonValue.BsObject.toBson(v)
               case Failure(e) => bsonValue.BsException.apply(e.getMessage)
             }
         }
       case (k, a, "until", "end") =>
-        val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k, f.get, a.toString))
+        val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k, f.get,"until", a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._2)
+          case Success(v) =>
+            bsonValue.BsObject.toBson(v)
           case Failure(e) => bsonValue.BsException.apply(e.getMessage)
         }
       case (k, a, "to", "end") =>
-        val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k, f.get, a.toString))
+        val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k, f.get,"to", a.toString))
         //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
         midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._1)
+          case Success(v) =>
+            bsonValue.BsObject.toBson(v)
           case Failure(e) => bsonValue.BsException.apply(e.getMessage)
         }
       case (k, a, expr, b) if b.isInstanceOf[Int] =>
@@ -580,20 +586,22 @@ println((key, left, mid.toLowerCase(), right))
             val range: Range = a to b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k, f.get, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k, f.get,"to", a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._1)
+              case Success(v) =>
+               bsonValue.BsObject.toBson(v)
               case Failure(e) => bsonValue.BsException.apply(e.getMessage)
             }
           case "until" =>
             val range: Range = a until b.asInstanceOf[Int]
             val list: ListBuffer[String] = new ListBuffer[String]
             range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k,f.get, a.toString, b.toString))
+            val midResult = Try(boson.modifyArrayEndWithKey(None, boson.getByteBuf.duplicate(),k,f.get,"until", a.toString, b.toString))
             //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
             midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._2)
+              case Success(v) =>
+               bsonValue.BsObject.toBson(v)
               case Failure(e) => bsonValue.BsException.apply(e.getMessage)
             }
         }
@@ -611,7 +619,10 @@ println((key, left, mid.toLowerCase(), right))
 
 
   private def executeMultipleKeysInjector(statements: ListBuffer[Statement]): bsonValue.BsValue = {
-    val result:ByteBuf= boson.execStatementPatternMatch(boson.getByteBuf, Some(statements), f.get )
+    val result:bsonValue.BsValue=
+      Try(boson.execStatementPatternMatch(boson.getByteBuf, Some(statements), f.get ))match{
+        case Success(v)=> bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+        case Failure(e)=>bsonValue.BsException(e.getMessage)      }
 
     // if Statements size is equal to 1 then cal start Injector
     // else keep filter the buffer
@@ -623,8 +634,8 @@ println((key, left, mid.toLowerCase(), right))
       execStatementPatternMatch(statements)
     }*/
     // return BsValue
-
-    bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
+result
+    //bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
   }
 
 }
