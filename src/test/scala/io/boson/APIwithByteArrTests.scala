@@ -232,9 +232,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       20.6
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV2") {
@@ -243,9 +243,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       20.6, 20.5
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV3") {
@@ -254,9 +254,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       20.5, 20.6
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV4") {
@@ -265,9 +265,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       3.854f
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV5") {
@@ -276,9 +276,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       3.854f
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract last") {
@@ -362,9 +362,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj1)
     assertEquals(
-      BsSeq(Vector(Seq(
+      BsSeq(Vector(
         Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "doorOpen" -> false)
-      ))),
+      )),
       future.join())
   }
 
