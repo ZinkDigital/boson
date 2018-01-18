@@ -6,7 +6,6 @@ import java.util
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue.{BsSeq, BsValue}
-import io.boson.bson.bsonImpl.injectors.EnumerationTest
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
 import io.netty.util.ByteProcessor
@@ -62,14 +61,10 @@ class InjectorsTest extends FunSuite {
   val newLong: Long = 200000002.toLong
   val bsonArray: BsonArray = new BsonArray().add(1).add(2).add("Hi")
   val newbsonArray: BsonArray = new BsonArray().add(3).add(4).add("Bye")
-  val enumJava: EnumerationTest = io.boson.bson.bsonImpl.injectors.EnumerationTest.A
-  val newEnumJava = io.boson.bson.bsonImpl.injectors.EnumerationTest.B
-  //val enum = EnumerationTest.A
-  //val enum1 = EnumerationTest.B
+
+
   val obj: BsonObject = new BsonObject().put("field", 0).put("bool", bool).put("enumScala", enum.A.toString).put("bsonArray", bsonArray).put("long", long).put("bObj", bObj).put("no", "ok").put("float", float).put("double", double).put("array", bytearray2).put("inst", ins)
-  //.put("enumJava", enumJava)
   val objArray: BsonArray = new BsonArray().add(long).add(bytearray1).add(ins).add(float).add(double).add(obj).add(bool).add(bsonArray)
-  //.add(enum.A.toString)//.add(enumJava)
   val netty: Option[BosonImpl] = Some(new BosonImpl(byteArray = Option(obj.encode().getBytes)))
   val nettyArray: Option[BosonImpl] = Some(new BosonImpl(byteArray = Option(objArray.encode().getBytes)))
 

@@ -92,7 +92,7 @@ class TinyLanguage extends RegexParsers {
     g => Grammar(g)
   }
 
-  private def keyWithGrammar: Parser[KeyWithGrammar] = word ~ ("." ~> grammar) ^^ {
+  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
     case k ~ g => KeyWithGrammar(k, g)
   }
 
