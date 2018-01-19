@@ -11,7 +11,7 @@ import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.{Boson, bsonValue}
 import io.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.ByteProcessor
+import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 import io.vertx.core.buffer.Buffer
 import mapper.Mapper
 import org.junit.runner.RunWith
@@ -361,7 +361,7 @@ class InjectorParserTests extends FunSuite {
     assert(Vector(List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy"))) === resultParser)
   }
   test("fridge*Readings BsonArray => BsonArray"){
-
+    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
     val obj1: BsonObject = new BsonObject().put("name", "Ricardo").put("age", 28).put("country", "Portugal")
     val obj2: BsonObject = new BsonObject().put("name", "Tiago").put("age", 28).put("country", "Spain")
     val obj3: BsonObject = new BsonObject().put("name", "Joao").put("age", 28).put("country", "Germany")
@@ -373,7 +373,7 @@ class InjectorParserTests extends FunSuite {
 
     val key: String = "fridgeReadings"
     val expression: String = "[1 until 2]"
-    val expression1: String = "fridge*Readings"
+    val expression1: String = "[0 to end].fridge*Readings"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:List[Any]) => x:+ Mapper.convert(obj4), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -385,7 +385,7 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsBoson(nb)=>callParse(nb, "fridgeReadings.[3 to 3]")
+      case BsBoson(nb)=>callParse(nb, "[0 to end].fridge*Readings.[3 to 3]")
       case _ => /* Never Gets Here */ println("Never Gets Here")
     }
     val resultParser: Any = result2 match {

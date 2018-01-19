@@ -226,7 +226,7 @@ class injectorAPITests extends FunSuite {
   }
 
   test("extract Key.*halfKey.[@*elem].K*y") {
-    val expression = "Store.*ok.[@*ce].Ti*le"
+    val expression = "Store.B*ok.[@*ce].Ti*le"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)

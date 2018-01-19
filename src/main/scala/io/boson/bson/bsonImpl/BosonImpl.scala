@@ -264,7 +264,7 @@ class BosonImpl(
   // Traverses the BsonArray looking for BsonObject or another BsonArray
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
     keyList.head._1 match {
-      case "" => // Constructs a new BsonArray, BsonArray is Root TODO:Not implemented for several keys
+      case "" => // Constructs a new BsonArray, BsonArray is Root
           if (keyList.size < 2) {
             Some(traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList).toArray[Any]) match {
               case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
@@ -275,8 +275,6 @@ class BosonImpl(
               case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
               case Some(x) => x
             }
-//            val traversed = traverseBsonArray(netty, length, arrayFRIdx, keyList.drop(1), limitList)
-//            Some(traversed.toArray[Any])
           }
       case _ =>
         val seqType2: Int = netty.readByte().toInt
@@ -507,7 +505,7 @@ class BosonImpl(
               None
             }
           case D_BSONOBJECT =>
-            println("traverseBsonArray found BsonObject")
+//            println("traverseBsonArray found BsonObject")
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -714,7 +712,7 @@ class BosonImpl(
         //println(s"after apply until -> ${seq.take(seq.size-1)}")
         seq.take(seq.size-1)
       case _ =>
-        println(s"seq: $seq")
+        //println(s"seq: $seq")
         seq
     }
   }
@@ -2650,9 +2648,9 @@ class BosonImpl(
         val valueLength: Int = buf.readIntLE()
         val bytes: ByteBuf = buf.readBytes(valueLength)
         result.writeIntLE(valueLength)
-        result.writeBytes(bytes)
+        result.writeBytes(bytes.duplicate())
         resultCopy.writeIntLE(valueLength)
-        resultCopy.writeBytes(bytes)
+        resultCopy.writeBytes(bytes.duplicate())
 
       case D_BSONOBJECT =>
         // process BsonObjects
@@ -3105,7 +3103,7 @@ class BosonImpl(
         execArrayFunction(Some(newStatementList), buf, f, input._1, input._2, input._3, input._4, result)
 
       case ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any]) =>
-        //println(s"ArrExpr $leftArg  ${if(midArg.isEmpty)"to"else midArg.get}  ${if(rightArg.isEmpty)leftArg else rightArg.get}")
+        println(s"ArrExpr $leftArg  ${if(midArg.isEmpty)"to"else midArg.get}  ${if(rightArg.isEmpty)leftArg else rightArg.get}")
        val input: (String, Int, String, Any) =
          if (midArg.isDefined && rightArg.isDefined){//[#..#]
            ("", leftArg, midArg.get, rightArg.get)
@@ -3115,7 +3113,7 @@ class BosonImpl(
         execArrayFunction(Some(newStatementList), buf, f, input._1, input._2, input._3, input._4, result)
 
       case HalfName(half: String) =>
-        //println("HalfName=" + half)
+        println("HalfName=" + half)
         val res = modifyAll(Some(newStatementList),buf, half, f)
         result.writeBytes(res)
         result.capacity(result.writerIndex())
