@@ -66,7 +66,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
         case HalfName(halfName) => //  "*halfName"
-          println("                                                                                                 " + halfName)
+          //println("                                                                                                 " + halfName)
           executeSelect(halfName, "all")
         /*case Everything(key) => //  *
           println("key "+key)
@@ -137,7 +137,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             }
         }
       } else {
-        println("last statement nonDefined")
+        //println("last statement nonDefined")
         middleStatementList.last match {
           case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
           case _ => (secondList,limitList2)
@@ -152,10 +152,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def executeMoreKeys(first: Statement, list: List[Statement], last: Option[Statement]): bsonValue.BsValue = {
-    println("executeMoreKeys before build list")
+    //println("executeMoreKeys before build list")
     val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, last)
-    println("after build keylist -> " + keyList._1)
-    println("after build limitlist -> " + keyList._2)
+    //println("after build keylist -> " + keyList._1)
+    //println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList._1, keyList._2) map { v =>
         v.asInstanceOf[Seq[Any]]
@@ -196,13 +196,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     if (statement.nonEmpty) {
       statement.head match {
         case KeyWithGrammar(k, grammar) =>
-          println("KeyWithGrammar") //key.grammar
+          //println("KeyWithGrammar") //key.grammar
           executeSelectInjector(k, grammar.selectType)
         case Grammar(selectType) => // "(all|first|last)"
-          println("Grammar")
+          //println("Grammar")
           executeSelectInjector("", selectType)
         case ArrExpr(left: Int, mid: Option[String], right: Option[Any] /*, secondKey*/) => // "[# .. #]"
-          println("ArrExpr")
+          //println("ArrExpr")
           //executeArraySelectInjector("", left, mid.get, right.get)
 
           /* secondKey.isDefined match {
@@ -226,7 +226,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
         case KeyWithArrExpr(k, arrEx /*, secondKey*/) => //key.[#..#]
           //executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
-          println("KeyWithArrExpr")
+          //println("KeyWithArrExpr")
           /* secondKey.isDefined match {
              case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#].secondKey
                ???
@@ -248,19 +248,19 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             executeArraySelectInjector(k, arrEx.leftArg, "to", arrEx.leftArg)
           }
         case HalfName(halfName) => //  "*halfName"
-          println("HalfName")
+          //println("HalfName")
           executeSelectInjector(halfName, "all")
         /* case Everything(key) => //  *
            println("Everything")
            executeSelectInjector(key,"all")*/
         case HasElem(key, elem) => //  key.(@elem)
-          println("HasElem")
+          //println("HasElem")
           executeHasElemInjector(key, elem)
         case Key(key) => //  key
-          println("key ")
+          //println("key ")
           executeSelectInjector(key, "all")
         case MoreKeys(first, list, last) => //  key
-          println("MoreKeys ")
+          //println("MoreKeys ")
           val statements: ListBuffer[Statement] = new ListBuffer[Statement]
           statements.append(first)
           list.foreach(statement => statements.append(statement))
@@ -285,7 +285,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   * */
 
   private def executeHasElem(key: String, elem: String): bsonValue.BsValue = {
-    println(s"hasElem with key: $key and elem: $elem")
+    //println(s"hasElem with key: $key and elem: $elem")
     val result =
       boson.extract(boson.getByteBuf, List((key, "limit"), (elem, "filter")), List((None,None,""), (None,None,""))) map { v =>
         v.asInstanceOf[Seq[Any]]
@@ -304,7 +304,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def executeArraySelect(key: String, left: Int, mid: String, right: Any): bsonValue.BsValue = {
-    println("executeArraySelect")
+    //println("executeArraySelect")
     val result: Seq[Any] =
       (left, mid, right) match {
         case (a, ("until" | "Until"), "end") =>
@@ -322,7 +322,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case (a, expr, b) if b.isInstanceOf[Int] =>
           expr match {
             case ("to" | "To") =>
-              println("case # TO #")
+              //println("case # TO #")
               boson.extract(
                 boson.getByteBuf, List((key, "limit")), List((Some(a), Some(b.asInstanceOf[Int]),""))
               ).map { v =>
@@ -401,16 +401,16 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
                 case e => e
               }
             }).toVector
-          println(s"result after compose: $res")
+          //println(s"result after compose: $res")
           res
         }
     }
   }
 
   private def executeSelect(key: String, selectType: String): bsonValue.BsValue = {
-    println(s"executeSelect with key: $key and selectType: $selectType")
+    //println(s"executeSelect with key: $key and selectType: $selectType")
     val result: Option[Any] = boson.extract(boson.getByteBuf, List((key, selectType)),List((None,None,"")))
-    println("after")
+    //println("after")
     selectType match {
       case "first" =>
         if (key.isEmpty) {
@@ -446,7 +446,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         if (key.isEmpty) {
           bsonValue.BsObject.toBson(result.map(v => Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).toVector).getOrElse(Vector.empty))
         } else {
-          println("executeSelect -> inside Key nonEmpty")
+          //println("executeSelect -> inside Key nonEmpty")
           bsonValue.BsObject.toBson(result.map { v =>
             println(s"result: $v")
             v.asInstanceOf[Seq[Any]].map {

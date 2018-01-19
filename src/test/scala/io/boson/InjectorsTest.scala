@@ -122,7 +122,7 @@ class InjectorsTest extends FunSuite {
       case None => List()
       case Some(nb) => callParse(nb, "field..all")
     }
-    println(result)
+    //println(result)
     assert(result === BsSeq(Vector(8))
       , "Contents are not equal")
   }
@@ -172,15 +172,15 @@ class InjectorsTest extends FunSuite {
 
 
     val bP: ByteProcessor = (value: Byte) => {
-      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+      //println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
     }
     val result: Any = b1 match {
       case None => List()
       case Some(nb) =>
-        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        nb.getByteBuf.forEachByte(bP)
-        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        //println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        //nb.getByteBuf.forEachByte(bP)
+        //println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         callParse(nb, "float..all")
     }
     val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
