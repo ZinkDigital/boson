@@ -50,21 +50,21 @@ class HorribleTests extends FunSuite {
   }
 
   test("Empty ObjEvent") {
-    val expression: String = "tempReadings..first"
+    val expression: String = "tempReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(obj1.encode().getBytes))
     val resultParser = callParse(boson, expression)
     assert(BsSeq(Vector()) === resultParser)
   }
 
   test("Empty ArrEvent") {
-    val expression: String = "tempReadings..first"
+    val expression: String = "tempReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr1.encode().getBytes))
     val resultParser = callParse(boson, expression)
     assert(BsSeq(Vector()) === resultParser)
   }
 
   test("Empty ByteBuf") {
-    val expression: String = "tempReadings..first"
+    val expression: String = "tempReadings"
     val boson: BosonImpl = new BosonImpl()
     val resultParser = callParse(boson, expression)
     assert(BsSeq(Vector()) === resultParser)
@@ -127,14 +127,14 @@ class HorribleTests extends FunSuite {
   }
 
   test("Extract value with wrong Key") {
-    val expression: String = "tempReadingS..first"
+    val expression: String = "tempReadingS"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser = callParse(boson, expression)
     assert(BsSeq(Vector()) === resultParser)
   }
 
   test("Extract value when only exists BsonArray") {
-    val expression: String = "tempReadingS..first"
+    val expression: String = "tempReadingS"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
     val resultParser = callParse(boson, expression)
     assert(BsSeq(Vector()) === resultParser)
@@ -168,26 +168,6 @@ class HorribleTests extends FunSuite {
         Map("José" -> Seq("Fly")),
         Seq("Insecticida")
       ))), result)
-  }
-
-  test("array prob 3") {
-    val expression: String = ".first"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
-    val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(
-      Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida")))
-    )), result)
-  }
-
-  test("array prob 4") {
-    val expression: String = "   José . . first"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
-    val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(  //TODO: elements should be inside a Seq() because its an array
-      "Tarantula",
-      "Aracnídius",
-      Seq("Insecticida")
-    )), result)
   }
 
   test("array prob 5") {
@@ -244,7 +224,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "[2].zombie"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(Seq())), result)
+    assertEquals(BsSeq(Vector()), result)
   }
 
   test("key doesn't match with an array with 2ndKey") {

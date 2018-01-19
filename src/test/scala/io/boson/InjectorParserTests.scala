@@ -114,43 +114,18 @@ class InjectorParserTests extends FunSuite {
     }
   }
 
-  test("First") {
-    val key: String = "fridgeTemp"
-    val expression: String = "fridgeTemp..first"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Long]*4L, expression)
-    val resultParser: Any = resultBoson match {
-      case ex: BsException => println(ex.getValue)
-      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
-      case _ => List()
-    }
-    assert(BsSeq(Vector(20, 6, 3)) === resultParser.asInstanceOf[BsSeq])
-  }
   test("All") {
     val key: String = "fridgeTemp"
-    val expression: String = "fridgeTemp..all"
+    val expression: String = "fridgeReadings.[0 to end].fridgeTemp"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Long]*4L, expression)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
-      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
+      case nb: BsBoson => callParse(nb.getValue,expression)
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
     assert(BsSeq(Vector(20, 24, 12)) === resultParser.asInstanceOf[BsSeq])
-  }
-  test("Last") {
-    val key: String = "fridgeTemp"
-    val expression: String = "fridgeTemp..last"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Long]*4L, expression)
-    val resultParser: Any = resultBoson match {
-      case ex: BsException => println(ex.getValue)
-      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
-      case _ => List()
-    }
-    println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(Vector(5, 6, 12)) === resultParser.asInstanceOf[BsSeq])
   }
   test("[0 to end] BsonArray as Root") {
     val key: String = ""
@@ -160,11 +135,11 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(Vector(4, 8, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq])
+    //println( resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(Seq(4, 8, 12, 16, 20))) === resultParser.asInstanceOf[BsSeq])
   }
   test("[0 until end] BsonArray as Root") {
     val key: String = ""
@@ -174,11 +149,11 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(Vector(4, 8, 12, 16, 5)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(Seq(4, 8, 12, 16))) === resultParser.asInstanceOf[BsSeq])
   }
   test("[2 until 4] BsonArray as Root") {
     val key: String = ""
@@ -188,11 +163,11 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson =>callParse(nb.getValue, ".all")
+      case nb: BsBoson =>callParse(nb.getValue, expression)
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(Vector(1, 2, 12, 16, 5)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(Seq(12, 16))) === resultParser.asInstanceOf[BsSeq])
   }
   test("[2 to 4] BsonArray as Root") {
     val key: String = ""
@@ -202,11 +177,11 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
-    assert(BsSeq(Vector(1, 2, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq])
+    assert(BsSeq(Vector(Seq(12, 16, 20))) === resultParser.asInstanceOf[BsSeq])
   }
   test("[2 to 4] BsonArray as Root Test Type Consistency") {
     val key: String = ""
@@ -223,39 +198,7 @@ class InjectorParserTests extends FunSuite {
     println( resultParser)
     assert("Type Error. Cannot Cast boolean inside the Injector Function." === resultParser.asInstanceOf[BsException].getValue)
   }
-  test("Last-1 BsonArray as Root") {
-
-    val key: String = "fridgeTemp"
-    val expression: String = "fridgeTemp..last"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x: Any) => x.asInstanceOf[Long] * 4L, expression)
-    val resultParser: Any = resultBoson match {
-      case ex: BsException => println(ex.getValue)
-        ex
-      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
-      case _ => List()
-            }
-
-    assert(Vector(5, 6, 12) === resultParser.asInstanceOf[BsSeq].getValue)
-  }
-  test("Last-2 BsonArray as Root") {
-
-    val key: String = "fridgeTemp"
-    val expression: String = "fridgeTemp..last"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x: Any) => x.asInstanceOf[Long] * 4L, expression)
-    val resultParser: Any = resultBoson match {
-      case ex: BsException => println(ex.getValue)
-        ex
-      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
-      case _ => List()
-    }
-
-    assert(Vector(5, 5, 6, 12) === resultParser.asInstanceOf[BsSeq].getValue)
-  }
   test("All [0 to end] BsonArray as Root") {
-
-
     val key: String = ""
     val expression: String = "[0 to end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEventArray.encode().getBytes))
@@ -263,10 +206,10 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    assert(Vector(4, 8, 12, 16, 20) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(Seq(4, 8, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("All [0 until end] BsonArray as Root") {
     val key: String = ""
@@ -276,10 +219,10 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    assert(Vector(4, 8, 12, 16, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(Seq(4, 8, 12, 16)) === resultParser.asInstanceOf[BsSeq].getValue)
     }
   test("[1 until end] BsonArray as Root") {
 
@@ -290,10 +233,10 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    assert(Vector(1, 8, 12, 16, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(Seq(8, 12, 16)) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("[1 to end] BsonArray as Root") {
     val key: String = ""
@@ -303,10 +246,10 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    assert(Vector(1, 8, 12, 16, 20) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(Seq(8, 12, 16, 20)) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("[1 to 2] BsonArray as Root") {
     val key: String = ""
@@ -316,10 +259,10 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    assert(Vector(1, 8, 12, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(Seq(8, 12)) === resultParser.asInstanceOf[BsSeq].getValue)
   }
   test("[1 until 2] BsonArray as Root") {
     val key: String = ""
@@ -329,10 +272,10 @@ class InjectorParserTests extends FunSuite {
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
         ex
-      case nb: BsBoson => callParse(nb.getValue, ".all")
+      case nb: BsBoson => callParse(nb.getValue, expression)
       case _ => List()
     }
-    assert(Vector(1, 8, 3, 4, 5) === resultParser.asInstanceOf[BsSeq].getValue)
+    assert(Vector(Seq(8)) === resultParser.asInstanceOf[BsSeq].getValue)
   }
 
   test("fridgeReadings.[1 until 2] Int => Int"){
@@ -344,11 +287,12 @@ class InjectorParserTests extends FunSuite {
 
 
     val key: String = "fridgeReadings"
-    val expression: String = "[1 until 2]"
-    val expression1: String = "fridgeReadings.[1 until 2]"
+    val expression: String = "[0 to end].fridgeReadings.[0 to end]"
+    val expression1: String = "[0 to end].fridgeReadings.[1 until 2]"
     //lazy val res: (BosonImpl, BosonImpl) = boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(), key,(x:Int) => x*4 , "1", "2")
 
     lazy val resultBoson: BsValue = parseInj(boson,(x:Int) => x*4, expression1 )
+    //resultBoson.asInstanceOf[BsBoson].getValue.getByteBuf.forEachByte(bP)
 
     lazy val result1: BsValue = Try(resultBoson) match {
       case Success(v) => v
@@ -360,10 +304,11 @@ class InjectorParserTests extends FunSuite {
         println(ex)
         ex
       case BsSeq(e) => e
-      case BsBoson(nb)=> callParse(nb, "fridgeReadings..all")
+      case BsBoson(nb)=> callParse(nb, expression)
       case BsNumber(n) => n
       case BsBoolean(b) => b
     }
+    println(result2)
     val resultParser: Any = result2 match {
       case BsException(ex) =>
         println(ex)
@@ -386,8 +331,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "fridgeReadings"
-    val expression: String = "[1 until 2]"
-    val expression1: String = "fridgeReadings.[1 until 2]"
+    val expression: String = "[0 to end].fridgeReadings.[0 to end]"
+    val expression1: String = "[0 to end].fridgeReadings.[1 until 2]"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:Map[String, Any]) => x.+(("nick", "Ritchy")), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -466,8 +411,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "age"
-    val expression: String = "[1 until 2]"
-    val expression1: String = "age..all"
+    val expression: String = "[0 to end].fridgeReadings.[0 to end].age"
+    val expression1: String = "[0 to end].fridgeReadings.[0 to end].age"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:Double) => x*2.0, expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -479,7 +424,7 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsBoson(nb)=>callParse(nb, "age..all")
+      case BsBoson(nb)=>callParse(nb, expression)
       case _ => /* Never Gets Here */ println("Never Gets Here")
     }
     val resultParser: Any = result2 match {
@@ -506,8 +451,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "name"
-    val expression: String = "[1 until 2]"
-    val expression1: String = "name..all"
+    val expression: String = "[0 to end].fridgeReadings.[0 to end].name"
+    val expression1: String = "[0 to end].fridgeReadings.[0 to end].name"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:String) => x.concat("MINE"), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -519,7 +464,7 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsBoson(nb)=>callParse(nb, "name..all")
+      case BsBoson(nb)=>callParse(nb, expression)
       case _ => /* Never Gets Here */ println("Never Gets Here")
     }
     val resultParser: Any = result2 match {
@@ -548,8 +493,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "name"
-    val expression: String = "[1 until 2]"
-    val expression1: String = "name"
+    val expression: String = "[0 to end].fridgeReadings.[0 to end].name"
+    val expression1: String = "[0 to end].fridgeReadings.[0 to end].name"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:String) => x.concat("MINE"), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -561,7 +506,7 @@ class InjectorParserTests extends FunSuite {
       case BsException(ex) =>
         println(ex)
         ex
-      case BsBoson(nb)=>callParse(nb, "name")
+      case BsBoson(nb)=>callParse(nb, expression)
       case _ => /* Never Gets Here */ println("Never Gets Here")
     }
     val resultParser: Any = result2 match {

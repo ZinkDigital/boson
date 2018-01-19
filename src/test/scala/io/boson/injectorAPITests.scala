@@ -201,28 +201,6 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.Key..first") {
-    val expression = "Store.Book.Title..first"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
-    boson.go(validatedByteArr)
-
-    assertEquals(BsSeq(Vector(
-      "Java"
-    )), future.join())
-  }
-
-  test("extract Key.Key..last") {
-    val expression = "Store.Book..last"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
-    boson.go(validatedByteArr)
-
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
-    )), future.join())
-  }
-
   test("extract Key.*halfKey.[@*elem]") {
     val expression = "Store.*ok.[@*ce]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()

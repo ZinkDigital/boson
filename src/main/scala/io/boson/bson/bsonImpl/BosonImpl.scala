@@ -264,18 +264,20 @@ class BosonImpl(
   // Traverses the BsonArray looking for BsonObject or another BsonArray
   private def extractFromBsonArray(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
     keyList.head._1 match {
-      case "" => // Constructs a new BsonArray, BsonArray is Root
-        val result =
+      case "" => // Constructs a new BsonArray, BsonArray is Root TODO:Not implemented for several keys
           if (keyList.size < 2) {
-            Some(traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList).toArray[Any])
+            Some(traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList).toArray[Any]) match {
+              case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+              case Some(x) => Some(x)
+            }
           } else {
-            val traversed = traverseBsonArray(netty, length, arrayFRIdx, keyList.drop(1), limitList)
-            Some(traversed.toArray[Any])
+            Some(goThroughArrayWithLimit(netty,length,arrayFRIdx,keyList.drop(1),limitList)) match {
+              case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+              case Some(x) => x
+            }
+//            val traversed = traverseBsonArray(netty, length, arrayFRIdx, keyList.drop(1), limitList)
+//            Some(traversed.toArray[Any])
           }
-        result match {
-          case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-          case Some(_) => result
-        }
       case _ =>
         val seqType2: Int = netty.readByte().toInt
         if (seqType2 != 0) {
@@ -505,7 +507,7 @@ class BosonImpl(
               None
             }
           case D_BSONOBJECT =>
-            //println("traverseBsonArray found BsonObject")
+            println("traverseBsonArray found BsonObject")
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -657,9 +659,10 @@ class BosonImpl(
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get =>
+                      println("inside limits")
                       keyList.head._2 match {
                         case "level" => None
-                        case _ => None
+                        case _ => Some(value)
                       }
                     case Some(_) => None
                     case None => Some(value)
@@ -702,13 +705,17 @@ class BosonImpl(
           newSeq
       }
     }
+//    println(s"keyList: $keyList")
+//    println(s"limitList: $limitList")
     val seq = constructWithLimits(0)
     limitList.head._3 match {
       case "until" =>
         //println(s"before apply until -> $seq")
         //println(s"after apply until -> ${seq.take(seq.size-1)}")
         seq.take(seq.size-1)
-      case _ => seq
+      case _ =>
+        println(s"seq: $seq")
+        seq
     }
   }
 
@@ -3085,6 +3092,7 @@ class BosonImpl(
     val statement: Statement = statements.get.head
     val newStatementList: ListBuffer[Statement] = statements.get.drop(1)
 
+
     statement match{
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         //println(s"KeyWithArrExpr $key ${arrEx.leftArg}  ${if(arrEx.midArg.isEmpty)"to"else arrEx.midArg.get}  ${if(arrEx.rightArg.isEmpty)arrEx.leftArg else arrEx.rightArg.get}")
@@ -3116,7 +3124,7 @@ class BosonImpl(
         result.writeBytes(res)
         result.capacity(result.writerIndex())
       case Key(key: String) =>
-        //println("Key=" + key)
+        println("Key=" + key)
         val res: ByteBuf = modifyAll(Some(newStatementList),buf, key, f)
         result.writeBytes(res)
         result.capacity(result.writerIndex())

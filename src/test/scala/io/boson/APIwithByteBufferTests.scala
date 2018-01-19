@@ -100,10 +100,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Spider"),
       Seq("Fly")
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV2 w/ key") {
@@ -112,9 +112,9 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Spider")
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV3 w/ key") {
@@ -123,10 +123,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Spider"),
       Seq("Fly")
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV4 w/ key") {
@@ -135,10 +135,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
-      Seq("Spider"),
-      Seq("Fly")
-    ))), future.join())
+    assertEquals(BsException("Path of expression doesn't conform with the event"), future.join())
   }
 
   test("extract with 2nd Key PosV5 w/ key") {
@@ -147,45 +144,8 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Seq("Fly")
-    ))), future.join())
-  }
-
-  test("extract first w/ key") {
-    val expression: String = ".first"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteBuffer)
-
-    assertEquals(BsSeq(Vector(
-      2.2f
-    )), future.join())
-  }
-
-  test("extract last w/ key") {
-    val expression: String = ".last"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteBuffer)
-
-    assertEquals(BsSeq(Vector(
-      Seq("Insecticida")
-    )), future.join())
-  }
-
-  test("extract all w/ key") {
-    val expression: String = ".all"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteBuffer)
-
-    assertEquals(BsSeq(Vector(
-      2.2f,
-      Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
-      Map("José" -> Seq("Spider")),
-      Map("José" -> Seq("Fly")),
-      Seq("Insecticida")
     )), future.join())
   }
 
@@ -289,34 +249,8 @@ class APIwithByteBufferTests extends FunSuite{
     assertEquals(BsException("Path of expression doesn't conform with the event"), future.join())
   }
 
-  test("extract first") {
-    val expression: String = "StartUp..first"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteBufferObj)
-
-    assertEquals(BsSeq(Vector(
-      2.200000047683716,
-      Map("José" -> List("Tarantula", "Aracnídius", List("Insecticida"))),
-      Map("José" -> List("Spider")),
-      Map("José" -> List("Fly")),
-      List("Insecticida")
-    )), future.join())
-  }
-
-  test("extract last") {
-    val expression: String = "José..last"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteBufferObj)
-
-    assertEquals(BsSeq(Vector(
-      "Fly"
-    )), future.join())
-  }
-
   test("extract all") {
-    val expression: String = "José..all"
+    val expression: String = "José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
@@ -391,77 +325,6 @@ class APIwithByteBufferTests extends FunSuite{
         Map("José" -> Seq("Spider"))
       )),
       future.join())
-  }
-
-  test("Inject API Double => Double") {
-    val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
-    val newFridgeSerialCode: Double = 1000.0
-    val validBsonArray: ByteBuffer = bsonEvent.encode().getByteBuf.nioBuffer()
-    val expression = "fanVelocity..first"
-    val boson: Boson = Boson.injector(expression, (in: Double) => newFridgeSerialCode)
-    val result: CompletableFuture[ByteBuffer] = boson.go(validBsonArray)
-
-    // apply an extractor to get the new serial code as above.
-    val resultValue: ByteBuffer = result.join()
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson1.go(resultValue)
-
-    assertEquals(List(1000.0), future.join().getValue )
-  }
-  test("Inject API String => String") {
-    val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the")
-    val newFridgeSerialCode: String = " what?"
-    val validBsonArray: ByteBuffer = bsonEvent.encode().getByteBuf.nioBuffer()
-    val expression = "string..first"
-    val boson: Boson = Boson.injector(expression, (in: String) => in.concat(newFridgeSerialCode))
-    val result: CompletableFuture[ByteBuffer] = boson.go(validBsonArray)
-
-    // apply an extractor to get the new serial code as above.
-    val resultValue: ByteBuffer = result.join()
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson1.go(resultValue)
-
-    assertEquals(List("the what?"), future.join().getValue)
-  }
-  test("Inject API Map => Map") {
-    val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
-    val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
-
-    val newFridgeSerialCode: String = " what?"
-    val validBsonArray: ByteBuffer = bsonEvent.encode().getByteBuf.nioBuffer()
-    val expression = "bson..first"
-    val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
-    val result: CompletableFuture[ByteBuffer] = boson.go(validBsonArray)
-
-    // apply an extractor to get the new serial code as above.
-    val resultValue: ByteBuffer = result.join()
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson1.go(resultValue)
-
-    assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),future.join() )
-  }
-  test("Inject API List => List") {
-    val bAux: BsonArray = new BsonArray().add(12).add("sddd")
-    val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", 1).put("bson", bAux)
-
-    val newFridgeSerialCode: String = "MAIS EU"
-    val validBsonArray: ByteBuffer = bsonEvent.encode().getByteBuf.nioBuffer()
-    val expression = "bson..first"
-    val boson: Boson = Boson.injector(expression, (in: List[Any]) => {
-      val s: List[Any] = in.:+(newFridgeSerialCode)
-      s})
-    val result: CompletableFuture[ByteBuffer] = boson.go(validBsonArray)
-
-    // apply an extractor to get the new serial code as above.
-    val resultValue: ByteBuffer = result.join()
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson1.go(resultValue)
-
-    assertEquals(BsSeq(Vector(12, "sddd", "MAIS EU")),future.join() )
   }
 
 }

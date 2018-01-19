@@ -16,7 +16,7 @@ case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any]/*
 case class HalfName(half: String) extends Statement
 //case class Everything(key: String) extends Statement
 case class HasElem(key: String, elem: String) extends Statement
-case class MoreKeys(first: Statement, list: List[Statement], last: Option[Statement]) extends Statement
+case class MoreKeys(first: Statement, list: List[Statement]/*, last: Option[Statement]*/) extends Statement
 case class Key(key: String) extends Statement
 class Program(val statement: List[Statement])
 
@@ -28,17 +28,14 @@ class TinyLanguage extends RegexParsers {
   //^(?!last|first|all)
   def program: Parser[Program] =
   (moreKeys
-    ||| keyWithGrammar
-    ||| grammar
-    ||| keyWithArrEx
-    //||| everything
+    //||| keyWithArrEx
     ||| halfnameHasHalfelem
     ||| halfnameHasElem
     ||| keyHasHalfelem
     ||| keyHasElem
     ||| halfName
-    ||| arrEx
-    ||| key) ^^ { s => {
+    //||| moreKeysDOT
+    ) ^^ { s => {
     //println(s)
     new Program(List(s)) }
   }
@@ -88,25 +85,32 @@ class TinyLanguage extends RegexParsers {
     case k ~ a => KeyWithArrExpr(k, a/*, None*/) //Key.[#..]
   }
 
-  private def grammar: Parser[Grammar] = "." ~> ("first" | "last" | "all") ^^ {
-    g => Grammar(g)
+//  private def grammar: Parser[Grammar] = "." ~> ("first" | "last" | "all") ^^ {
+//    g => Grammar(g)
+//  }
+
+//  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
+//    case k ~ g => KeyWithGrammar(k, g)
+//  }
+
+
+  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) /*~ opt("." ~>(keyWithGrammar | grammar) )*/^^ {
+//    case first ~ list ~ Some(last) =>
+//      println(first +"   "+ list + "    " + last)
+//      MoreKeys(first, list, Some(last))
+    case first ~ list/* ~ None*/ =>
+      println(first +"   "+ list/* + "    " + "None"*/)
+      MoreKeys(first, list/*, None*/)
+
   }
 
-  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
-    case k ~ g => KeyWithGrammar(k, g)
-  }
-
-
-  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep1("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
-   /* x =>
-      println("Tiny Language   " + x)
-      MoreKeys()*/
-    case first ~ list ~ Some(last) =>
-      println(first +"   "+ list + "    " + last)
-      MoreKeys(first, list, Some(last))
-    case first ~ list ~ None =>
-      println(first +"   "+ list + "    " + "None")
-      MoreKeys(first, list, None)
+  private def moreKeysDOT: Parser[MoreKeys] = "." ~>(keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) /*~ opt("." ~>(keyWithGrammar | grammar) )*/^^ {
+//    case first ~ list ~ Some(last) =>
+//      println(first +"   "+ list + "    " + last)
+//      MoreKeys(first, list, Some(last))
+    case first ~ list /*~ None*/ =>
+      println(first +"   "+ list/* + "    " + "None"*/)
+      MoreKeys(first, list/*, None*/)
 
   }
 

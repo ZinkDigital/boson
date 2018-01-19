@@ -24,8 +24,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
       statement.head match {
-        case MoreKeys(x, y, z) =>
-          executeMoreKeys(x, y, z)
+        case MoreKeys(x, y/*, z*/) =>
+          println("MoreKeys")
+          executeMoreKeys(x, y/*, z*/)
         case KeyWithGrammar(key, grammar) =>
           executeSelect(key, grammar.selectType) //key.grammar
         case KeyWithArrExpr(key, arrEx /*, secondKey*/) =>
@@ -46,23 +47,23 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             //[#]
             executeArraySelect(key, arrEx.leftArg, "to", arrEx.leftArg)
           }
-        case ArrExpr(left, mid, right /*, secondKey*/) =>
-          /*secondKey.isDefined match {
-            case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
-              executeArraySelectWithTwoKeys("", left, mid.get, right.get, secondKey.get)
-            case true => //[#].2ndKey
-              executeArraySelectWithTwoKeys("",left, "to", left,secondKey.get)
-            case false if mid.isDefined && right.isDefined => //[#..#]
-              executeArraySelect("", left, mid.get, right.get)
-            case false => //[#]
-              executeArraySelect("",left, "to", left)
-          }*/
-          if (mid.isDefined && right.isDefined) { //[#..#]
-            executeArraySelect("", left, mid.get, right.get)
-          } else {
-            //[#]
-            executeArraySelect("", left, "to", left)
-          }
+//        case ArrExpr(left, mid, right /*, secondKey*/) =>
+//          /*secondKey.isDefined match {
+//            case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
+//              executeArraySelectWithTwoKeys("", left, mid.get, right.get, secondKey.get)
+//            case true => //[#].2ndKey
+//              executeArraySelectWithTwoKeys("",left, "to", left,secondKey.get)
+//            case false if mid.isDefined && right.isDefined => //[#..#]
+//              executeArraySelect("", left, mid.get, right.get)
+//            case false => //[#]
+//              executeArraySelect("",left, "to", left)
+//          }*/
+//          if (mid.isDefined && right.isDefined) { //[#..#]
+//            executeArraySelect("", left, mid.get, right.get)
+//          } else {
+//            //[#]
+//            executeArraySelect("", left, "to", left)
+//          }
         case Grammar(selectType) => // "(all|first|last)"
           executeSelect("", selectType)
         case HalfName(halfName) => //  "*halfName"
@@ -96,7 +97,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     }
   }
 
-  private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement], lastStatement: Option[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+  private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
         case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
@@ -105,81 +106,89 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case HalfName(halfName) => (List((halfName, "level")), List((None,None,"")))
         case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
         case Key(key) =>
-          if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "all")),List((None,None,"")))
+          if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else {println("buildKeylist case middleList is empty");(List((key, "all")),List((None,None,"")))}
       }
-
-    val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
+    if (middleStatementList.nonEmpty) {
+      val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
         for (statement <- middleStatementList) yield {
           statement match {
-            case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
-            case KeyWithArrExpr(key, arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
-            case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-            case HalfName(halfName) => (List((halfName, "level")), List((None,None,"")))
+            case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)), List((None, None, "")))
+            case KeyWithArrExpr(key, arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case ArrExpr(l, m, r) => (List(("", "limit")), defineLimits(l, m, r))
+            case HalfName(halfName) => (List((halfName, "level")), List((None, None, "")))
             case HasElem(key, elem) =>
-              (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
-            case Key(key) => (List((key, "next")),List((None,None,"")))
+              (List((key, "limit"), (elem, "filter")), List((None, None, ""), (None, None, "")))
+            case Key(key) => (List((key, "next")), List((None, None, "")))
           }
         }
-    val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
-    val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(p => p._2)
-
-
-    val (thirdList,limitList3): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
-      if (lastStatement.isDefined) {
-        lastStatement.get match {
-          case KeyWithGrammar(key, grammar) =>
-            println("!!!!!!-----------------!!!!!!!!!!-------buildKeyList lastStatement is KeyWithGrammar-------NOT EXPECTED!!!!!!!!")
-            (secondList ++ List((key, grammar.selectType)),limitList2 ++ List((None,None,"")))
-          case Grammar(selectType) =>
-            middleStatementList.last match {
-              case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, selectType)), limitList2)
-              case _ => throw new RuntimeException("Terms as \"last\", \"first\" and \"all\" are only applicable to a Key")
-            }
-        }
-      } else {
-        //println("last statement nonDefined")
-        middleStatementList.last match {
-          case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
-          case _ => (secondList,limitList2)
-        }
+      val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
+      val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(p => p._2)
+      middleStatementList.last match {
+        case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, "level")), limitList2)
+        case _ => (secondList, limitList2)
       }
-//    scndList.zipWithIndex.map( elem =>
-//    if(elem._1._3.equals("HasElem") && elem._2 != scndList.size-1 && elem._1._2.equals("filter")){
-//      (elem._1._1,"next")
-//    } else (elem._1._1, elem._1._2)
-//    )
-    (thirdList,limitList3)
+    } else (firstList,limitList1)
+//    val (thirdList,limitList3): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
+//      if (lastStatement.isDefined) {
+//        lastStatement.get match {
+//          case KeyWithGrammar(key, grammar) =>
+//            println("!!!!!!-----------------!!!!!!!!!!-------buildKeyList lastStatement is KeyWithGrammar-------NOT EXPECTED!!!!!!!!")
+//            (secondList ++ List((key, grammar.selectType)),limitList2 ++ List((None,None,"")))
+//          case Grammar(selectType) =>
+//            middleStatementList.last match {
+//              case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, selectType)), limitList2)
+//              case _ => throw new RuntimeException("Terms as \"last\", \"first\" and \"all\" are only applicable to a Key")
+//            }
+//        }
+//      } else {
+//        Try(middleStatementList.last)match{
+//          case Success(v) =>
+//
+//            v match {
+//              case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
+//              case _ => (secondList,limitList2)
+//            }
+//          case Failure(e)=> (secondList,limitList2)
+//        }
+//
+//        //println("last statement nonDefined")
+////        middleStatementList.last match {
+////          case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
+////          case _ => (secondList,limitList2)
+////        }
+//      }
+//    (thirdList,limitList3)
   }
 
-  private def executeMoreKeys(first: Statement, list: List[Statement], last: Option[Statement]): bsonValue.BsValue = {
+  private def executeMoreKeys(first: Statement, list: List[Statement]/*, last: Option[Statement]*/): bsonValue.BsValue = {
     //println("executeMoreKeys before build list")
-    val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, last)
-    //println("after build keylist -> " + keyList._1)
-    //println("after build limitlist -> " + keyList._2)
+    val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list/*, last*/)
+    println("after build keylist -> " + keyList._1)
+    println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList._1, keyList._2) map { v =>
         v.asInstanceOf[Seq[Any]]
       } getOrElse Seq.empty[Any]
 
-    val finalResult: Seq[Any] =   //  TODO:test more cases and rethink a better structure
-      if (last.isDefined) {
-        last.get match {
-          case Grammar(grammar) =>
-            grammar match {
-              case "last" =>
-                (for (elem <- result) yield {
-                  elem match {
-                    case e: Array[Any] => Compose.composer(e)
-                    case e => e
-                  }
-                }).toVector map { elem => elem.asInstanceOf[Seq[Any]].last }
-              case _ => result
-            }
-          case _ => throw new RuntimeException("default case match inside executeMoreKeys")
-        }
-      } else result
+//    val finalResult: Seq[Any] =   //  TODO:test more cases and rethink a better structure
+//      if (last.isDefined) {
+//        last.get match {
+//          case Grammar(grammar) =>
+//            grammar match {
+//              case "last" =>
+//                (for (elem <- result) yield {
+//                  elem match {
+//                    case e: Array[Any] => Compose.composer(e)
+//                    case e => e
+//                  }
+//                }).toVector map { elem => elem.asInstanceOf[Seq[Any]].last }
+//              case _ => result
+//            }
+//          case _ => throw new RuntimeException("default case match inside executeMoreKeys")
+//        }
+//      } else result
 
-    finalResult match {
+    result match {
       case Seq() => bsonValue.BsObject.toBson(Vector.empty[Any])
       case v => bsonValue.BsObject.toBson {
         (for (elem <- v) yield {
@@ -195,6 +204,23 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
       statement.head match {
+        case MoreKeys(first, list/*, last*/) => //  key
+          //println("MoreKeys ")
+          val statements: ListBuffer[Statement] = new ListBuffer[Statement]
+          statements.append(first)
+          list.foreach(statement => statements.append(statement))
+          //          if (last.isDefined) {
+          //            statements.append(last.get)
+          //          }
+          executeMultipleKeysInjector(statements)
+        //  executeSelectInjector("*","all")
+        /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
+          case Seq() => bsonValue.BsObject.toBson(Seq.empty)
+          case v =>
+            bsonValue.BsObject.toBson {
+              for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
+            }
+        }*/
         case KeyWithGrammar(k, grammar) =>
           //println("KeyWithGrammar") //key.grammar
           executeSelectInjector(k, grammar.selectType)
@@ -239,7 +265,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
              case false => //key.[#]
                executeArraySelectInjector(k,arrEx.leftArg,"to",arrEx.leftArg)
            }*/
-
           if (arrEx.midArg.isDefined && arrEx.rightArg.isDefined) {
             //key.[#..#]
             executeArraySelectInjector(k, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get)
@@ -259,23 +284,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case Key(key) => //  key
           //println("key ")
           executeSelectInjector(key, "all")
-        case MoreKeys(first, list, last) => //  key
-          //println("MoreKeys ")
-          val statements: ListBuffer[Statement] = new ListBuffer[Statement]
-          statements.append(first)
-          list.foreach(statement => statements.append(statement))
-          if (last.isDefined) {
-            statements.append(last.get)
-          }
-          executeMultipleKeysInjector(statements)
-        //  executeSelectInjector("*","all")
-        /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
-          case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-          case v =>
-            bsonValue.BsObject.toBson {
-              for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
-            }
-        }*/
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
@@ -408,7 +416,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def executeSelect(key: String, selectType: String): bsonValue.BsValue = {
-    //println(s"executeSelect with key: $key and selectType: $selectType")
+    println(s"executeSelect ${List((key, selectType))}")
+    println(s"executeSelect ${List((None,None,""))}")
     val result: Option[Any] = boson.extract(boson.getByteBuf, List((key, selectType)),List((None,None,"")))
     //println("after")
     selectType match {
@@ -448,7 +457,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         } else {
           //println("executeSelect -> inside Key nonEmpty")
           bsonValue.BsObject.toBson(result.map { v =>
-            println(s"result: $v")
+            //println(s"result: $v")
             v.asInstanceOf[Seq[Any]].map {
               case array: Array[Any] => Compose.composer(array)
               case elem => elem
