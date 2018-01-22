@@ -170,8 +170,9 @@ class BosonImpl(
                 netty.readerIndex(bFnshRdrIndex)
                 None
               case _ =>
+                println(s"extractFromBsonObject:::case Object:::keyList: $keyList ::: limitList: $limitList")
                 val midResult = extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList)
-                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+                if (midResult.isEmpty) None else{val res = resultComposer(midResult.toVector); println(s"out: $res"); Some(res)} //Some(resultComposer(midResult.toVector))
             }
           }
         case D_BSONARRAY =>
@@ -253,7 +254,7 @@ class BosonImpl(
           case 0 =>
             None
         }
-      case Some(value) if keyList.head._2.equals("first") || (keyList.head._2.equals("limit") && !keyList.head._1.eq("*"))  =>  //keyList.head._2.equals("level") ||
+      case Some(value) if keyList.head._2.equals("first") || (keyList.head._2.equals("limitLevel") && !keyList.head._1.eq("*"))  =>  //keyList.head._2.equals("level") ||
         netty.readerIndex(bsonFinishReaderIndex)
         Some(value).toVector
       case Some(_) =>

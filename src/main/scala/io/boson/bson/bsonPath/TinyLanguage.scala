@@ -10,7 +10,7 @@ import scala.util.parsing.combinator.RegexParsers
 
 sealed trait Statement
 case class Grammar(selectType: String) extends Statement
-case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
+//case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
 case class KeyWithArrExpr(key: String,arrEx: ArrExpr) extends Statement
 case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any]) extends Statement
 case class HalfName(half: String) extends Statement

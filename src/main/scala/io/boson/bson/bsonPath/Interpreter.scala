@@ -103,7 +103,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
-        case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
+        //case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
         case KeyWithArrExpr(key,arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
         case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
         case HalfName(halfName) => if(halfName.equals("*")) (List((halfName, "level")), List((None,None,""))) else (List((halfName, "all")), List((None,None,"")))  //TODO: else case should be level
@@ -115,7 +115,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
         for (statement <- middleStatementList) yield {
           statement match {
-            case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)), List((None, None, "")))
+            //case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)), List((None, None, "")))
             case KeyWithArrExpr(key, arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) => (List(("", "limit")), defineLimits(l, m, r))
             case HalfName(halfName) => (List((halfName, "level")), List((None, None, "")))
