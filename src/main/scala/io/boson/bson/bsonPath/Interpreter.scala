@@ -22,10 +22,66 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
       statement.head match {
-        case MoreKeys(x, y) => executeMoreKeys(x, y)
+        case MoreKeys(first, list) => executeMoreKeys(first, list)
+        case MoreKeysRoot(first, list) =>
+          println("Interpreter.start() -> MoreKeysRoot case")
+          executeMoreKeysRoot(first,list)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     } else throw new RuntimeException("List of statements is empty.")
+  }
+
+  private def executeMoreKeysRoot(first: Statement, list: List[Statement]): bsonValue.BsValue = {
+    val keyLimitList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyListRoot(first, list)
+    println("after build keylist -> " + keyLimitList._1)
+    println("after build limitlist -> " + keyLimitList._2)
+      val result: Seq[Any] =
+        boson.extract(boson.getByteBuf, keyLimitList._1, keyLimitList._2) map { v =>
+          v.asInstanceOf[Seq[Any]]
+        } getOrElse Seq.empty[Any]
+      result match {
+        case Seq() => bsonValue.BsObject.toBson(Vector.empty[Any])
+        case v => bsonValue.BsObject.toBson {
+          (for (elem <- v) yield {
+            elem match {
+              case e: Array[Any] => Compose.composer(e)
+              case e => e
+            }
+          }).toVector
+        }
+      }
+  }
+
+  private def buildKeyListRoot(first: Statement, statementList: List[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+      val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
+        first match {
+          case KeyWithArrExpr(key,arrEx) => (List((key, "limitLevel")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))  //taken care of
+          case ArrExpr(l,m,r) => (List(("", "limitLevel")), defineLimits(l,m,r))                                                  //taken care of
+          case HalfName(halfName) => if(halfName.equals("*")) (List((halfName, "level")), List((None,None,""))) else (List((halfName, "level")), List((None,None,"")))  //TODO: take care of '*'
+          case HasElem(key, elem) => (List((key, "limitLevel"), (elem, "filter")),List((None,None,""),(None,None,"")) )           //taken care of
+          case Key(key) =>                                                                                                        //taken care of
+            if(statementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "level")),List((None,None,"")))
+        }
+
+      if(statementList.nonEmpty) {
+        val forList: List[(List[(String,String)], List[(Option[Int], Option[Int], String)])] =
+          for (statement <- statementList) yield {
+            statement match {
+              case KeyWithArrExpr(key, arrEx) => (List((key, "limitLevel")), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg)) //taken care of
+              case ArrExpr(l, m, r) => (List(("", "limitLevel")), defineLimits(l, m, r))                                                //TODO:missing, probably never gets inside this case
+              case HalfName(halfName) => (List((halfName, "level")), List((None, None, "")))                                            //taken care of
+              case HasElem(key, elem) => (List((key, "limitLevel"), (elem, "filter")), List((None, None, ""), (None, None, "")))        //taken care of
+              case Key(key) => (List((key, "next")), List((None, None, "")))                                                            //taken care of
+            }
+          }
+        val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
+        val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(p => p._2)
+        statementList.last match {
+          case HalfName(halfName) => if(halfName.equals("*")) (secondList.take(secondList.size-1)++List((halfName,"all")),limitList2) else (secondList, limitList2) //TODO: take care of '*'
+          case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, "level")), limitList2)
+          case _ => (secondList, limitList2)
+        }
+      } else (firstList,limitList1)
   }
 
   private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
@@ -43,14 +99,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       List((Some(left),Some(left),"to"))
     }
   }
-
+  // TODO: change the 'limit' to 'limitLevel' to achieve consistency
   private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
         case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
         case KeyWithArrExpr(key,arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
         case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-        case HalfName(halfName) => if(halfName.equals("*")) (List((halfName, "level")), List((None,None,""))) else (List((halfName, "all")), List((None,None,"")))
+        case HalfName(halfName) => if(halfName.equals("*")) (List((halfName, "level")), List((None,None,""))) else (List((halfName, "all")), List((None,None,"")))  //TODO: else case should be level
         case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
         case Key(key) =>
           if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "all")),List((None,None,"")))
@@ -71,7 +127,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
       val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(p => p._2)
       middleStatementList.last match {
-        case HalfName(halfName) => if(halfName.equals("*")) (secondList.take(secondList.size-1)++List((halfName,"all")),limitList2) else (secondList, limitList2)
+        case HalfName(halfName) => if(halfName.equals("*")) (secondList.take(secondList.size-1)++List((halfName,"all")),limitList2) else (secondList, limitList2) //TODO: treat '*'
+        case KeyWithArrExpr(key,_) => (secondList.take(secondList.size-1)++List((key,"limitLevel")),limitList2)
         case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, "level")), limitList2)
         case _ => (secondList, limitList2)
       }
@@ -109,8 +166,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def executeMoreKeys(first: Statement, list: List[Statement]): bsonValue.BsValue = {
-    //println("executeMoreKeys before build list")
-    val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list/*, last*/)
+    println("executeMoreKeys before build list")
+    val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list)
     println("after build keylist -> " + keyList._1)
     println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =

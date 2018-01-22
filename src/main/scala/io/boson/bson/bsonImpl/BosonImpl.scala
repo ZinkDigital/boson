@@ -128,7 +128,7 @@ class BosonImpl(
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
             val value: Double = netty.readDoubleLE()
             Some(value)
           } else {
@@ -136,7 +136,7 @@ class BosonImpl(
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
             val valueLength: Int = netty.readIntLE()
             val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
           // correcao de BUG
@@ -148,7 +148,7 @@ class BosonImpl(
             None
           }
         case D_BSONOBJECT =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("limitLevel")) {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -164,6 +164,9 @@ class BosonImpl(
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case "level" =>
+                netty.readerIndex(bFnshRdrIndex)
+                None
+              case "limitLevel" =>
                 netty.readerIndex(bFnshRdrIndex)
                 None
               case _ =>
@@ -200,13 +203,16 @@ class BosonImpl(
               case "level" =>
                 netty.readerIndex(arrayFinishReaderIndex)
                 None
+              case "limitLevel" =>
+                netty.readerIndex(arrayFinishReaderIndex)
+                None
               case _ =>
                 val midResult = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
             }
           }
         case D_BOOLEAN =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
             val value: Int = netty.readByte()
             Some(value == 1)
           } else {
@@ -214,13 +220,13 @@ class BosonImpl(
             None
           }
         case D_NULL =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
             Some("Null")
           } else {
             None
           }
         case D_INT =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
             val value: Int = netty.readIntLE()
             Some(value)
           } else {
@@ -228,7 +234,7 @@ class BosonImpl(
             None
           }
         case D_LONG =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next")) {
+          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
             val value: Long = netty.readLongLE()
             Some(value)
           } else {
