@@ -7,6 +7,7 @@ import io.boson.bson.Boson
 import io.boson.bson.bsonImpl.{BosonImpl, BosonInjector}
 import io.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ResourceLeakDetector
 import mapper.Mapper
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -525,9 +526,7 @@ class injectorAPITests extends FunSuite {
     assertEquals(Vector("sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "DAMMN"),a  )
     //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
   }
-  test("Scala"){
-    val map: mutable.HashMap[String, Any] = new mutable.HashMap[String, Any]
-  }
+
   test("$.Store.* => Store") {
     /*
     * Montagem do Event de testes
@@ -570,7 +569,7 @@ class injectorAPITests extends FunSuite {
 
 
     //println("|-------- Perform Assertion --------|\n\n")
-    assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),a  )
+    assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
 
 }

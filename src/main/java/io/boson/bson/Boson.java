@@ -21,7 +21,7 @@ public interface Boson {
      */
     static <T> Boson extractor(String expression, Consumer<T> extractFunction) {    //BosonImpl is the BosonExtractor
         // TODO construct an extractor
-        return new BosonExtractor(expression,extractFunction);
+        return new BosonExtractor<>(expression,extractFunction);
     }
 
     /**
@@ -34,7 +34,7 @@ public interface Boson {
      */
         static <T> Boson injector(String expression, Function<T,T> injectFunction) {    ////BosonImpl is the BosonInjector
         // TODO construct an injector
-        return new BosonInjector(expression,injectFunction);
+        return new BosonInjector<>(expression,injectFunction);
     }
 
     /**

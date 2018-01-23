@@ -18,6 +18,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.immutable.Map.Map4
 import io.boson.bson.bsonPath.Compose
+import io.vertx.core.json.Json
 
 import scala.collection.mutable
 
@@ -1790,9 +1791,10 @@ class BosonImpl(
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-
-        val value: Any = applyFunction(f, new String(Unpooled.copiedBuffer(buffer.readBytes(length-1)).array()))
-        buffer.readByte()
+        val array: ByteBuf = Unpooled.buffer(length).writeBytes(buffer.readBytes(length))
+        val value: Any = applyFunction(f, new String(array.array()))
+        //array.release()
+       // buffer.readByte()
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
           case Some(n: Array[Byte]) =>
@@ -3098,7 +3100,6 @@ class BosonImpl(
 
     val statement: Statement = statements.get.head
     val newStatementList: ListBuffer[Statement] = statements.get.drop(1)
-
 
     statement match{
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>

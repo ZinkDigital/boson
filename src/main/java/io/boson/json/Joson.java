@@ -1,5 +1,8 @@
 package io.boson.json;
 
+import io.boson.json.jsonImpl.JosonExtractor;
+import io.boson.json.jsonImpl.JosonInjector;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -17,7 +20,7 @@ public interface Joson {
      */
     static <T> Joson extractor(String expression, Consumer<T> extractFunction) {
         // TODO construct an extractor
-        return null;
+        return new JosonExtractor<>(expression, extractFunction);
     }
 
     /**
@@ -30,7 +33,7 @@ public interface Joson {
      */
     static <T> Joson injector(String expression, Function<T,T> injectFunction) {
         // TODO construct an injector
-        return null;
+        return new JosonInjector<>(expression, injectFunction);
     }
 
     /**
