@@ -5,7 +5,6 @@ import java.util
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.Constants._
-import io.boson.bson.bsonImpl.CustomException
 import io.netty.buffer.{ByteBuf, Unpooled}
 
 import scala.collection.immutable.List
@@ -233,12 +232,6 @@ object Mapper {
         case x: List[Any] =>
           println("D_BSONARRAY")
           buf.writeByte(D_BSONARRAY).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonArray(x))
-        case x: List[Any] =>
-          println("D_BSONARRAY")
-          buf.writeByte(D_BSONARRAY).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonArray(x))
-        /*case x: mutable.Buffer[_] =>
-          println("D_BSONARRAY")
-          buf.writeByte(D_BSONARRAY).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonArray(x))*/
         case x if Option(x).isEmpty  =>
           buf.writeByte(D_NULL).writeBytes(elem._1.getBytes()).writeZero(1)
         case x: Int =>

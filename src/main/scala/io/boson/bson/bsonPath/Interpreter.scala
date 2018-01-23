@@ -1,7 +1,8 @@
 package io.boson.bson.bsonPath
 
-import io.boson.bson.bsonImpl.BosonImpl
+import io.boson.bson.bsonImpl.{BosonImpl, CustomException}
 import io.boson.bson.bsonValue
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -65,6 +66,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case HasElem(key, elem) => (List((key, "limitLevel"), (elem, "filter")),List((None,None,""),(None,None,"")) )           //taken care of
           case Key(key) =>                                                                                                        //taken care of
             if(statementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "level")),List((None,None,"")))
+          case _ => throw CustomException("Error building key list")
         }
 
       if(statementList.nonEmpty) {
@@ -75,7 +77,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
               case ArrExpr(l, m, r) => (List(("", "limitLevel")), defineLimits(l, m, r))                                                //TODO:missing, probably never gets inside this case
               case HalfName(halfName) => (List((halfName, "level")), List((None, None, "")))                                            //taken care of
               case HasElem(key, elem) => (List((key, "limitLevel"), (elem, "filter")), List((None, None, ""), (None, None, "")))        //taken care of
-              case Key(key) => (List((key, "next")), List((None, None, "")))                                                            //taken care of
+              case Key(key) => (List((key, "next")), List((None, None, "")))
+              case _ => throw CustomException("Error building key list")//taken care of
             }
           }
         val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
@@ -89,6 +92,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             case "level" => if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"all") else elem._1
             case "filter" => elem._1
             case "next" => if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"all") else elem._1
+            case _ => throw CustomException("Error building key list with dots")
           }
         }
         println(s"thirdlist -> $thirdList")
@@ -130,6 +134,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
         case Key(key) =>
           if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "all")),List((None,None,"")))
+        case _ => throw CustomException("Error building key list")
       }
     if (middleStatementList.nonEmpty) { // edited the limit to limitLevel in the traverse statementList, needs further aproval
       val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
@@ -142,6 +147,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             case HasElem(key, elem) =>
               (List((key, "limitLevel"), (elem, "filter")), List((None, None, ""), (None, None, "")))
             case Key(key) => (List((key, "next")), List((None, None, "")))
+            case _ => throw CustomException("Error building key list")
           }
         }
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
@@ -154,6 +160,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case "filter" => elem._1
           case "next" => elem._1//if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"all") else elem._1
           case "limit" => if(dotsList.take(elem._2+1).last.equals(".."))elem._1 else(elem._1._1,"limitLevel")
+          case _ => throw CustomException("Error building key list with dots")
         }
       }
       println(s"thirdlist -> $thirdList")
