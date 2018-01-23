@@ -130,6 +130,7 @@ class BosonImpl(
       seqType match {
         case D_FLOAT_DOUBLE =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
+            println(s"matched ${keyList.head._1} with a double")
             val value: Double = netty.readDoubleLE()
             Some(value)
           } else {
@@ -186,7 +187,7 @@ class BosonImpl(
                 val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitList.drop(1))
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
               case _ if keyList.size > 1 =>
-                //println("extractFromBsonObj; BsonArray case; calling goThrough")
+                println("extractFromBsonObj; BsonArray case; calling goThrough")
                  Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
                   case Some(value) if value.isEmpty => None
                   case Some(value) => Some(resultComposer(value.toVector))
@@ -338,7 +339,7 @@ class BosonImpl(
             keyList.head._2 match {
               case "first" =>
                 finalValue
-              case "last" | "all" | "limit" | "level" =>
+              case _ =>
                 if (seqType2 != 0) {
                   finalValue ++ extractFromBsonArray(netty, length, arrayFRIdx, keyList, limitList)
                 } else {
@@ -784,6 +785,7 @@ class BosonImpl(
                     netty.readerIndex(bsonFinishReaderIndex)
                     None
                   case None =>
+                    //println(s"going through arr, found BsonObj, matching keylist condition: ${keyList.head._2}")
                     keyList.head._2 match {
                       case "filter" =>
                         //println("goThrough; BsonObject case; condition = 'filter'")
@@ -798,6 +800,7 @@ class BosonImpl(
                             val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList.drop(1), bsonFinishReaderIndex, limitList.drop(1))  // keylist drop!!
                             if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                           case _ =>
+                            //println("gonna traverse obj")
                             //println(s"limitList, case keylist size = 1: $limitList")
                             //println(s"keylist: $keyList")
                             val res: Map[Any, Any] = traverseBsonObj(netty,scala.collection.immutable.Map[Any, Any](),bsonFinishReaderIndex,List((keyList.head._1,"all")),limitList.drop(1))
