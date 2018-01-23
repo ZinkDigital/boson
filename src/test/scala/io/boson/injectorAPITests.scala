@@ -44,7 +44,6 @@ class injectorAPITests extends FunSuite {
 //  val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
 //  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
 
-
   test("Experiments ") {
     val expression = "Store.Book.[0 until 3].SpecialEditions.[0].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -59,7 +58,7 @@ class injectorAPITests extends FunSuite {
   }
 
   test("extract Key.Key") {
-    println(s"bsonEvent: $bsonEvent")
+    //println(s"bsonEvent: $bsonEvent")
     val expression = "Store.Book"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
@@ -203,28 +202,6 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.Key..first") {
-    val expression = "Store.Book.Title..first"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
-    boson.go(validatedByteArr)
-
-    assertEquals(BsSeq(Vector(
-      "Java"
-    )), future.join())
-  }
-
-  test("extract Key.Key..last") {
-    val expression = "Store.Book..last"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
-    boson.go(validatedByteArr)
-
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
-    )), future.join())
-  }
-
   test("extract Key.*halfKey.[@*elem]") {
     val expression = "Store.*ok.[@*ce]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -250,7 +227,7 @@ class injectorAPITests extends FunSuite {
   }
 
   test("extract Key.*halfKey.[@*elem].K*y") {
-    val expression = "Store.*ok.[@*ce].Ti*le"
+    val expression = "Store.B*ok.[@*ce].Ti*le"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -394,12 +371,13 @@ class injectorAPITests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
-    //val a: Vector[Any] = future.join().getValue
-    assertEquals(Vector(List(2, 3), List(2, 3)),future.join().getValue  )
+    //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    assertEquals(Vector(List(2, 3), List(2, 3)),a  )
 
 
   }
+
 
   test("MoreKeys 4 bson11.array21.[0 until 2]"){
 
@@ -430,7 +408,7 @@ class injectorAPITests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+    //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector(List(2, 3)),a  )
 
@@ -463,7 +441,7 @@ class injectorAPITests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+    //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector(2, 0),a  )
 
@@ -490,9 +468,36 @@ class injectorAPITests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    println(future.join().getValue.asInstanceOf[Vector[String]])
+    //println(future.join().getValue.asInstanceOf[Vector[String]])
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector("DAMMN", "sdfsf", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
+
+  }
+
+  test("MoreKeys 1 arr*ay.[0 until 1].damn*n.[0 until 1].google"){
+    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
+    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
+    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
+    val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
+    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
+    val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux)//.add(bAux1)
+    val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
+
+    //val newFridgeSerialCode: String = " what?"
+    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
+    //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
+    val expression = "arr*ay.[0 until 1].damn*n.[0 until 1].google"
+    val expression1 = "google"
+    val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
+    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+    val result: Array[Byte] = midResult.join()
+    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
+    boson1.go(result)
+    //println(future.join().getValue.asInstanceOf[Vector[String]])
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    assertEquals(Vector("sdfsf", "DAMMN", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
 
   }
 
@@ -526,7 +531,7 @@ class injectorAPITests extends FunSuite {
     /*
     * Montagem do Event de testes
     * */
-    println("|-------- Construct the Test Event --------|\n")
+    //println("|-------- Construct the Test Event --------|\n")
     val SEdition1: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
     val SEdition2: BsonObject = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
     val SEdition3: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
@@ -547,7 +552,7 @@ class injectorAPITests extends FunSuite {
     /*
     * Injection
     * */
-    println("|-------- Perform Injection --------|\n\n")
+    //println("|-------- Perform Injection --------|\n\n")
     val validBsonArray: Array[Byte] = Event.encodeToBarray
 
     val expression = "Store"
@@ -555,19 +560,17 @@ class injectorAPITests extends FunSuite {
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
     //result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
-    println("|-------- Perform Extraction --------|\n\n")
+    //println("|-------- Perform Extraction --------|\n\n")
     //val expression1 = "array.[@damnnn].damnnn.[@google].google"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    // val a: Vector[String] = future.join().getValue
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
 
 
-    println("|-------- Perform Assertion --------|\n\n")
-
+    //println("|-------- Perform Assertion --------|\n\n")
     assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
-
 
 }
 

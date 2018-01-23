@@ -43,17 +43,17 @@ class LongInputTests extends FunSuite {
   val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
 
   test("extract top field") {
-    val result: BsValue = callParse(boson.duplicate, "Epoch..first")
+    val result: BsValue = callParse(boson.duplicate, "Epoch")
     assert(bson.getInteger("Epoch") === result.asInstanceOf[BsSeq].value.head)
   }
 
   test("extract bottom field") {
-    val result: BsValue = callParse(boson.duplicate, "SSLNLastName..last")
+    val result: BsValue = callParse(boson.duplicate, "SSLNLastName")
     assert( "de Huanuco" === result.asInstanceOf[BsSeq].value.head)
   }
 
   test("extract all occurrences of Key") {
-    val result: BsValue = callParse(boson.duplicate, "Tags..all")
+    val result: BsValue = callParse(boson.duplicate, "Tags")
     println(result.asInstanceOf[BsSeq].value)
     assert(true)
   }
@@ -71,7 +71,7 @@ class LongInputTests extends FunSuite {
   }
 
   test("size of all occurrences of Key") {
-    val result: BsValue = callParse(boson.duplicate, "Price..all")
+    val result: BsValue = callParse(boson.duplicate, "Price")
     assert(283 === result.asInstanceOf[BsSeq].value.size)
   }
 

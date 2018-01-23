@@ -1,7 +1,5 @@
 package io.boson.bson.bsonPath
 
-import io.boson.bson.bsonPath
-
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
@@ -12,19 +10,16 @@ import scala.util.parsing.combinator.RegexParsers
 
 sealed trait Statement
 case class Grammar(selectType: String) extends Statement
-case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
-case class KeyWithArrExpr(key: String,arrEx: ArrExpr/*, scndKey: Option[String]*/) extends Statement
-case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any]/*, scndKey: Option[String]*/) extends Statement
+//case class KeyWithGrammar(key: String, grammar: Grammar) extends Statement
+case class KeyWithArrExpr(key: String,arrEx: ArrExpr) extends Statement
+case class ArrExpr(leftArg: Int, midArg: Option[String], rightArg: Option[Any]) extends Statement
 case class HalfName(half: String) extends Statement
-//case class Everything(key: String) extends Statement
 case class HasElem(key: String, elem: String) extends Statement
-case class MoreKeys(first: Statement, list: List[Statement], last: Option[Statement]) extends Statement
-case class MoreKeysFinal() extends Statement
 case class Key(key: String) extends Statement
 
-
-
-
+case class MoreKeys(first: Statement, list: List[Statement]) extends Statement
+case class MoreKeysRoot(first: Statement, list: List[Statement]) extends Statement
+case class MoreKeysFinal(dots: Option[String], first: Statement, list: List[Statement]) extends Statement
 
 class Program(val statement: List[Statement])
 
@@ -33,26 +28,14 @@ class TinyLanguage extends RegexParsers {
   private val number: Regex = """\d+(\.\d*)?""".r
 
   private def word: Parser[String] = """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+""".r //  symbol "+" is parsed
-  //^(?!last|first|all)
+
   def program: Parser[Program] =
   (moreKeys
-    /*||| moreKeysDOT*/
-    ||| keyWithGrammar
-    ||| grammar
-    ||| keyWithArrEx
-    //||| everything
-    ||| halfnameHasHalfelem
-    ||| halfnameHasElem
-    ||| keyHasHalfelem
-    ||| keyHasElem
-    ||| halfName
-    ||| arrEx
-    /*||| key*/) ^^ { s => {
-    //println(s)
+    ||| moreKeysFinal
+    //||| moreKeysDOT
+    ) ^^ { s => {
     new Program(List(s)) }
   }
-
-
 
   private def key: Parser[Key] = word ^^ { w => Key(w) }
 
@@ -85,62 +68,65 @@ class TinyLanguage extends RegexParsers {
 
   private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {
     _.toInt
-  }) ~ opt(("to" | "To" | "until" | "Until") ~ ((number ^^ {
-    _.toInt
-  }) | "end")) ~ "]"/* ~ opt("." ~> word) */^^ {
-    case l ~ Some(m ~ r) ~ _ /*~ None*/ => ArrExpr(l, Some(m), Some(r)/*, None*/) //[#..#]
-    //case l ~ Some(m ~ r) ~ _ ~ Some(sK) => ArrExpr(l, Some(m), Some(r), Some(sK)) //[#..#].2ndKey
-    case l ~ None ~ _ /*~ None*/ => ArrExpr(l, None, None/*, None*/) //[#]
-    //case l ~ None ~ _ ~ Some(sK) => ArrExpr(l, None, None, Some(sK)) //[#].2ndKey
+  }) ~ opt(("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end")) ~ "]" ^^ {
+    case l ~ Some(m ~ r) ~ _ => ArrExpr(l, Some(m), Some(r)) //[#..#]
+    case l ~ None ~ _  => ArrExpr(l, None, None) //[#]
   }
 
   private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ^^ {
-   // case k ~ a if a.scndKey.isDefined => KeyWithArrExpr(k, a, a.scndKey) //Key.[#..].2ndKey
-    case k ~ a => KeyWithArrExpr(k, a/*, None*/) //Key.[#..]
+    case k ~ a => KeyWithArrExpr(k, a) //Key.[#..]
   }
 
-  private def grammar: Parser[Grammar] = "." ~> ("first" | "last" | "all") ^^ {
-    g => Grammar(g)
+  private def halfKeyWithArrEx: Parser[KeyWithArrExpr] = halfName ~ ("." ~> arrEx) ^^ {
+    case k ~ a => KeyWithArrExpr(k.half, a) //Key.[#..]
   }
 
-  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
-    case k ~ g => KeyWithGrammar(k, g)
-  }
+//  private def grammar: Parser[Grammar] = "." ~> ("first" | "last" | "all") ^^ {
+//    g => Grammar(g)
+//  }
+
+//  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
+//    case k ~ g => KeyWithGrammar(k, g)
+//  }
 
 
-  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
-   /* x =>
-      println("Tiny Language   " + x)
-      MoreKeys()*/
-    case first ~ list ~ Some(last) =>
-      println(first +"   "+ list + "    " + last)
-      MoreKeys(first, list, Some(last))
-    case first ~ list ~ None =>
-      println(first +"   "+ list + "    " + "None")
-      MoreKeys(first, list, None)
-
-  }
-  private def moreKeysDOT: Parser[MoreKeys] = "." ~> (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
-    /* x =>
-       println("Tiny Language   " + x)
-       MoreKeys()*/
-    case first ~ list ~ Some(last) =>
-      println(first +"   "+ list + "    " + last)
-      MoreKeys(first, list, Some(last))
-    case first ~ list ~ None =>
-      println(first +"   "+ list + "    " + "None")
-      MoreKeys(first, list, None)
+  private def moreKeys: Parser[MoreKeys] = (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
+//    case first ~ list ~ Some(last) =>
+//      println(first +"   "+ list + "    " + last)
+//      MoreKeys(first, list, Some(last))
+    case first ~ list =>
+      println(first +"   "+ list)
+      MoreKeys(first, list)
 
   }
-  private def moreKeysFinal: Parser[MoreKeysFinal] =
-    rep1(("." | "..") ~ (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key)) ^^ {
-    /* x =>
-       println("Tiny Language   " + x)
-       MoreKeys()*/
-    case list:List[Statement] =>
-      println(list)
-      MoreKeysFinal()
 
+  private def moreKeysDOT: Parser[MoreKeys] = "." ~>(keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
+//    case first ~ list ~ Some(last) =>
+//      println(first +"   "+ list + "    " + last)
+//      MoreKeys(first, list, Some(last))
+    case first ~ list =>
+      println(first +"   "+ list)
+      MoreKeys(first, list)
 
   }
+
+//  private def moreKeysFinal: Parser[MoreKeysFinal] =
+//    rep1( opt(".." | ".") ~ (halfKeyWithArrEx |keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
+//
+//      case list:List[Statement] =>
+//        println(list)
+//        MoreKeysFinal(list)
+//    }
+
+  private def moreKeysFinal: Parser[Statement] = opt(".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
+    case None ~ first ~ list =>  MoreKeys(first,list.map(elem => elem._2))  //this is replacing the original/working moreKeys
+    case Some(dots) ~ first ~ list if dots.equals("..")=> MoreKeys(first, list.map(elem => elem._2))  //option of starting with .., same as the case before
+    case Some(dots) ~ first ~ list if dots.equals(".")=> MoreKeysRoot(first, list.map(elem => elem._2))  //first key has to match on Root
+    case Some(dots) ~ first ~ list => //  this case doesn't exist, we ain't implementing the middle dots yet
+      println(s"Dots: '$dots', first: $first, list.map(elem => elem._1): ${list.map(elem => elem._1)}, list.map(elem => elem._2): ${list.map(elem => elem._2)}")
+      MoreKeysFinal(Some(dots),first,list.map(elem => elem._2))
+    case _ => throw new RuntimeException("not desired case yet")
+
+  }
+
 }

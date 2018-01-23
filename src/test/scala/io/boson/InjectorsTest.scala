@@ -82,8 +82,8 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case Some(v) =>
-        callParse(v, "John..all").asInstanceOf[BsSeq].value
-      //for (elem <- callParse(v, "John..all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
+        callParse(v, "John").asInstanceOf[BsSeq].value
+      //for (elem <- callParse(v, "John").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
         //println("EXCEPTION= " + ext.parse(v, "John", "all").asInstanceOf[BsException].getValue)
       case None => List()
     }
@@ -105,8 +105,8 @@ class InjectorsTest extends FunSuite {
     //val b1: Option[Boson] = Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))
     val result: Any = b1 match {
       case Some(v) =>
-        callParse(v, "John..all").asInstanceOf[BsSeq].value
-        //for (elem <- callParse(v, "John..all").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
+        callParse(v, "John").asInstanceOf[BsSeq].value
+        //for (elem <- callParse(v, "John").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
       case None => List()
     }
     assert(Vector("Somebody", "Nobody") === result)
@@ -120,9 +120,9 @@ class InjectorsTest extends FunSuite {
     val b3: Option[BosonImpl] = b2.get.modify(b2, "field", (x: Int) => x * 4)
     val result: Any = b3 match {
       case None => List()
-      case Some(nb) => callParse(nb, "field..all")
+      case Some(nb) => callParse(nb, "field")
     }
-    println(result)
+    //println(result)
     assert(result === BsSeq(Vector(8))
       , "Contents are not equal")
   }
@@ -132,7 +132,7 @@ class InjectorsTest extends FunSuite {
     val b1: Option[BosonImpl] = netty.get.modify(netty, "no", (_: String) => "maybe")
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "no..all")
+      case Some(nb) => callParse(nb, "no")
     }
     assert(result.asInstanceOf[BsSeq].value === Vector("maybe")
       , "Contents are not equal")
@@ -145,7 +145,7 @@ class InjectorsTest extends FunSuite {
     val b3: Option[BosonImpl] = b2.get.modify(b2, "array", (_: Array[Byte]) => bytearray1)
     val result: Any = b3 match {
       case None => List()
-      case Some(nb) => callParse(nb, "array..all")
+      case Some(nb) => callParse(nb, "array")
     }
     assert(result.asInstanceOf[BsSeq].value === Vector("AlguresPorAi")
       , "Contents are not equal")
@@ -157,7 +157,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "inst..all")
+      case Some(nb) => callParse(nb, "inst")
     }
 
     val s: String = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[String]].head
@@ -172,16 +172,16 @@ class InjectorsTest extends FunSuite {
 
 
     val bP: ByteProcessor = (value: Byte) => {
-      println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+      //println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
     }
     val result: Any = b1 match {
       case None => List()
       case Some(nb) =>
-        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        nb.getByteBuf.forEachByte(bP)
-        println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        callParse(nb, "float..all")
+        //println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        //nb.getByteBuf.forEachByte(bP)
+        //println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        callParse(nb, "float")
     }
     val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
@@ -196,7 +196,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "double..all")
+      case Some(nb) => callParse(nb, "double")
     }
     val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
@@ -224,7 +224,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "bool..all")
+      case Some(nb) => callParse(nb, "bool")
     }
     val s: Boolean = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Boolean]].head
 
@@ -238,7 +238,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "long..all")
+      case Some(nb) => callParse(nb, "long")
     }
     val s: Long = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Long]].head
 
@@ -281,7 +281,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "enumScala..all")
+      case Some(nb) => callParse(nb, "enumScala")
     }
     val s: Any = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[String]].head
 
@@ -296,7 +296,7 @@ class InjectorsTest extends FunSuite {
     val b3: Option[BosonImpl] = b2.get.modify(b2, "field", (_: Int) => 3)
     val result: Any = b3 match {
       case None => List()
-      case Some(nb) => callParse(nb, "field..all")
+      case Some(nb) => callParse(nb, "field")
     }
     assert(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Int]].head === 3
       , "Contents are not equal")
@@ -309,7 +309,7 @@ class InjectorsTest extends FunSuite {
     val b3: Option[BosonImpl] = b2.get.modify(b2, "no", (_: String) => "maybe")
     val result: Any = b3 match {
       case None => List()
-      case Some(nb) => callParse(nb, "no..all")
+      case Some(nb) => callParse(nb, "no")
     }
     assert(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[String]].head === "maybe"
       , "Contents are not equal")
@@ -322,7 +322,7 @@ class InjectorsTest extends FunSuite {
     val b3: Option[BosonImpl] = b2.get.modify(b2, "array", (_: Array[Byte]) => bytearray1)
     val result: Any = b3 match {
       case None => List()
-      case Some(nb) => callParse(nb, "array..all")
+      case Some(nb) => callParse(nb, "array")
     }
     assert(result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[String]].head === "AlguresPorAi"
       , "Contents are not equal")
@@ -334,7 +334,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "inst..all")
+      case Some(nb) => callParse(nb, "inst")
     }
 
     val s: String = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[String]].head
@@ -349,7 +349,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "float..all")
+      case Some(nb) => callParse(nb, "float")
     }
     val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
@@ -364,7 +364,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "double..all")
+      case Some(nb) => callParse(nb, "double")
     }
     val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
 
@@ -392,7 +392,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "bool..all")
+      case Some(nb) => callParse(nb, "bool")
     }
     val s: Boolean = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Boolean]].head
 
@@ -406,7 +406,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "long..all")
+      case Some(nb) => callParse(nb, "long")
     }
     val s: Long = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Long]].head
 
@@ -449,7 +449,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "enumScala..all")
+      case Some(nb) => callParse(nb, "enumScala")
     }
     val s: Any = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[String]].head
 
@@ -463,7 +463,7 @@ class InjectorsTest extends FunSuite {
 
     val result: Any = b1 match {
       case None => List()
-      case Some(nb) => callParse(nb, "noField..all")
+      case Some(nb) => callParse(nb, "noField")
     }
     assert(Vector() === result
       , "Contents are not equal")
