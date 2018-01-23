@@ -1,5 +1,7 @@
 package io.boson.bson.bsonPath
 
+import io.boson.bson.bsonImpl.CustomException
+
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
@@ -44,6 +46,7 @@ class TinyLanguage extends RegexParsers {
     case None ~ "*" ~ Some(y) => HalfName("*".concat(y))
     case Some(x) ~ "*" ~ None => HalfName(x.concat("*"))
     case None ~ "*" ~ None => HalfName("*")
+    case _ => throw CustomException("Error Parsing Halfname")
   }
 
   private def keyHasElem: Parser[HasElem] = key ~ (".[@" ~> word <~ "]") ^^ {

@@ -55,19 +55,22 @@ class LongInputTests extends FunSuite {
   test("extract all occurrences of Key") {
     val result: BsValue = callParse(boson.duplicate, "Tags")
     println(result.asInstanceOf[BsSeq].value)
-    assert(true)
+    val t: Boolean = true
+    assert(t)
   }
 
   test("extract positions of an Array") {
     val result: BsValue = callParse(boson.duplicate, "Markets.[3 to 5]")
     println(result.asInstanceOf[BsSeq].getValue)
-    assert(true)
+    val t: Boolean = true
+    assert(t)
   }
 
   test("extract further positions of an Array") {
     val result: BsValue = callParse(boson.duplicate, "Markets.[50 to 55]")
     println(result.asInstanceOf[BsSeq].getValue.head)
-    assert(true)
+    val t: Boolean = true
+    assert(t)
   }
 
   test("size of all occurrences of Key") {

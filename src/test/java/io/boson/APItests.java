@@ -11,9 +11,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by Ricardo Martins on 22/01/2018.
- */
 public class APItests {
 
     public String json = "{\"Store\":{\"Book\":[{\"Title\":\"Java\",\"SpecialEditions\":[{\"Title\":\"JavaMachine\",\"Price\":39}],\"Price\":15.5},{\"Title\":\"Scala\",\"Price\":21.5,\"SpecialEditions\":[{\"Title\":\"ScalaMachine\",\"Price\":40}]},{\"Title\":\"C++\",\"Price\":12.6,\"SpecialEditions\":[{\"Title\":\"C++Machine\",\"Price\":38}]}],\"Hat\":[{\"Price\":48,\"Color\":\"Red\"},{\"Price\":35,\"Color\":\"White\"},{\"Price\":38,\"Color\":\"Blue\"}]}}";
@@ -51,8 +48,8 @@ public class APItests {
         CompletableFuture<String> midResult = joson.go(json);
         String result = midResult.join();
         System.out.println("|-------- Perform Extraction --------|\n");
-        CompletableFuture<BsValue> future = new CompletableFuture<BsValue>();
-        Joson joson1 = Joson.extractor(expression, (BsValue in) -> future.complete(in));
+        CompletableFuture<BsValue> future = new CompletableFuture<>();
+        Joson joson1 = Joson.extractor(expression, future::complete);
         joson1.go(result);
         Object json1 = future.join().getValue();
         System.out.println(json1);
@@ -69,8 +66,8 @@ public class APItests {
         CompletableFuture<byte[]> midResult1 = boson.go(bson.encodeToBarray());
         byte[] result1 = midResult1.join();
         System.out.println("|-------- Perform Extraction --------|\n");
-        CompletableFuture<BsValue> future1 = new CompletableFuture<BsValue>();
-        Boson boson1 = Boson.extractor(expression, (BsValue in) -> future1.complete(in));
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson1 = Boson.extractor(expression, future1::complete);
         boson1.go(result1);
         Object bson1 = future1.join().getValue();
         System.out.println(bson1);

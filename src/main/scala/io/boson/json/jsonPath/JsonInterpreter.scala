@@ -6,7 +6,7 @@ import io.boson.bson.bsonImpl.Constants._
 import io.boson.bson.bsonImpl.CustomException
 
 import scala.collection.immutable.List
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -176,7 +176,7 @@ class JsonInterpreter() {
   def decodeJson(buffer: ByteBuf): String = {
     val array:Boolean = buffer.getByte(5) == 48 && buffer.getByte(6) == 0
 
-    val res = if(array) decodeBsonArray(buffer) else decodeBsonObject(buffer)
+    val res: immutable.Iterable[Any] with PartialFunction[Int with String, Any] = if(array) decodeBsonArray(buffer) else decodeBsonObject(buffer)
 
     //println(res)
     toJson(res)
