@@ -113,6 +113,8 @@ class jpPlusPlusTests extends FunSuite {
     ), future.join().getValue)
   }
 
+  //-----------------------------------------------------------------------------------------------------//
+
   test("Ex ..key V1") {
     val expression = "..Title"  // || "Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -231,5 +233,9 @@ class jpPlusPlusTests extends FunSuite {
       15.5, 21.5, 12.6, 15.5
     ), future.join().getValue)
   }
+
+  //---------------------------------------------------------------------------------------------------//
+
+
 
 }

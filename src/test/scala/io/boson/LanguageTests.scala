@@ -43,13 +43,13 @@ class LanguageTests extends FunSuite {
 
   test("experiment1") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val result: BsValue = callParse(boson, ".fridgeReadings.[@fanVelocity].doorOpen.[0]")
+    val result: BsValue = callParse(boson, ".fridgeReadings..doorOpen.[@fridgeTemp]")
     println(s"result: ${result.getValue}")
   }
 
   test("experiment2") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val result: BsValue = callParse(boson, "..doorOpen.[0]")
+    val result: BsValue = callParse(boson, "..fridgeReadings.doorOpen.[@fridgeTemp]")
     println(s"result: ${result.getValue}")
   }
 
