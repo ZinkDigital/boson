@@ -20,7 +20,7 @@ case class HasElem(key: String, elem: String) extends Statement
 case class Key(key: String) extends Statement
 
 case class MoreKeys(first: Statement, list: List[Statement], dotList: List[String]) extends Statement
-case class MoreKeysRoot(first: Statement, list: List[Statement], dotList: List[String]) extends Statement
+//case class MoreKeysRoot(first: Statement, list: List[Statement], dotList: List[String]) extends Statement
 //case class MoreKeysFinal(dots: Option[String], first: Statement, list: List[Statement]) extends Statement
 
 class Program(val statement: List[Statement])
@@ -62,10 +62,6 @@ class TinyLanguage extends RegexParsers {
     case k ~ w => HasElem(k.half, w.half)
   }
 
-  /*private def everything: Parser[Everything] = "*" ^^ { k =>
-    //println(k)
-    Everything(k) }*/
-
   private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {
     _.toInt
   }) ~ opt(("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end")) ~ "]" ^^ {
@@ -81,50 +77,13 @@ class TinyLanguage extends RegexParsers {
     case k ~ a => KeyWithArrExpr(k.half, a) //Key.[#..]
   }
 
-//  private def grammar: Parser[Grammar] = "." ~> ("first" | "last" | "all") ^^ {
-//    g => Grammar(g)
-//  }
-
-//  private def keyWithGrammar: Parser[KeyWithGrammar] =  word ~ ("." ~> grammar) ^^ {
-//    case k ~ g => KeyWithGrammar(k, g)
-//  }
-
-
-//  private def moreKeys: Parser[MoreKeys] = (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
-////    case first ~ list ~ Some(last) =>
-////      println(first +"   "+ list + "    " + last)
-////      MoreKeys(first, list, Some(last))
-//    case first ~ list =>
-//      println(first +"   "+ list)
-//      MoreKeys(first, list)
-//
-//  }
-
-//  private def moreKeysDOT: Parser[MoreKeys] = "." ~>(keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
-////    case first ~ list ~ Some(last) =>
-////      println(first +"   "+ list + "    " + last)
-////      MoreKeys(first, list, Some(last))
-//    case first ~ list =>
-//      println(first +"   "+ list)
-//      MoreKeys(first, list)
-//
-//  }
-
-//  private def moreKeysFinal: Parser[MoreKeysFinal] =
-//    rep1( opt(".." | ".") ~ (halfKeyWithArrEx |keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
-//
-//      case list:List[Statement] =>
-//        println(list)
-//        MoreKeysFinal(list)
-//    }
-
-  private def moreKeysFinal: Parser[Statement] = opt(".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
+  private def moreKeysFinal: Parser[MoreKeys] = opt(".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
     case None ~ first ~ list =>
       MoreKeys(first,list.map(elem => elem._2),List("..") ++ list.map(elem => elem._1))  //this is replacing the original/working moreKeys
     case Some(dots) ~ first ~ list if dots.equals("..")=>
       MoreKeys(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))  //option of starting with .., same as the case before
     case Some(dots) ~ first ~ list if dots.equals(".")=>
-      MoreKeysRoot(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))  //first key has to match on Root
+      MoreKeys(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))
     case _ => throw new RuntimeException("not desired case yet")
 
   }

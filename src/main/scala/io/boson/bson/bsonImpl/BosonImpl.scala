@@ -156,7 +156,7 @@ class BosonImpl(
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             val map = scala.collection.immutable.Map[Any, Any]()
             if(keyList.head._2.equals("next")) {
-              //println("extractFromBsonObj; BsonObject case; condition = 'next'")
+              println("extractFromBsonObj; BsonObject case; condition = 'next'")
               val midResult = extractFromBsonObj(netty, keyList.drop(1), bsonFinishReaderIndex, limitList.drop(1))
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
             } else Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList, limitList))
@@ -182,8 +182,10 @@ class BosonImpl(
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
+            println(s"condition is ${keyList.head._2}")
             keyList.head._2 match {
-              case "next" =>
+              case "next" =>  //TODO:test this case
+                println("extractFromBsonObj; BsonArray case; condition is next")
                 val midResult = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitList.drop(1))
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
               case _ if keyList.size > 1 =>
@@ -256,7 +258,7 @@ class BosonImpl(
           case 0 =>
             None
         }
-      case Some(value) if keyList.head._2.equals("first") || (keyList.head._2.equals("limitLevel") && !keyList.head._1.eq("*"))  =>  //keyList.head._2.equals("level") ||
+      case Some(value) if keyList.head._2.equals("first") || keyList.head._2.equals("level") || (keyList.head._2.equals("limitLevel") && !keyList.head._1.eq("*"))  =>  //keyList.head._2.equals("level") ||
         netty.readerIndex(bsonFinishReaderIndex)
         Some(value).toVector
       case Some(_) =>
@@ -810,7 +812,7 @@ class BosonImpl(
                             Some(res)
                         }
                       case _ =>
-                        //println("goThrough; BsonObject case; condition = '_'")
+                        println("goThrough; BsonObject case; condition = '_'")
                         netty.readerIndex(bsonFinishReaderIndex)
                         None
                     }
@@ -926,8 +928,10 @@ class BosonImpl(
     val seq = goThrough(0)
     limitList.head._3 match {
       case "until" =>
-        val res = resultComposer(seq.toVector)
-        res.take(res.size-1)
+        println(s"case until -> $seq")
+        val res = resultComposer(seq.take(seq.size-1).toVector)
+        //res.take(res.size-1)
+        res
       case _ =>
         if(seq.nonEmpty && seq.last.equals('!'))
           throw new RuntimeException("Path of expression doesn't conform with the event")
