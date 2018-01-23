@@ -5,6 +5,7 @@ import java.nio.charset.Charset
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
 import java.util
+
 import Constants.{charset, _}
 import com.fasterxml.jackson.databind.ObjectMapper
 import de.undercouch.bson4jackson.BsonFactory
@@ -18,6 +19,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.immutable.Map.Map4
 import io.boson.bson.bsonPath.Compose
+import io.vertx.core.json.Json
 
 import scala.collection.mutable
 
@@ -52,6 +54,8 @@ class BosonImpl(
     case _ if scalaArrayBuf.isDefined => scalaArrayBuf.get.getClass.getSimpleName
     case _ => EMPTY_CONSTRUCTOR
   }*/
+
+  val json = "{\"Store\":\n    {\"Book\":[\n        {\n            \"Title\":\"Java\",\n            \"Price\":15.5,\n            \"SpecialEditions\":[\n                {\n                    \"Title\":\"JavaMachine\",\n                    \"Price\":39\n                }\n                ]\n        },\n        {\n            \"Title\":\"Scala\",\n            \"Pri\":21.5,\n            \"SpecialEditions\":[\n                {\n                    \"Title\":\"ScalaMachine\",\n                    \"Price\":40\n                }\n                ]\n        },\n        {\n            \"Title\":\"C++\",\n            \"Price\":12.6,\n            \"SpecialEditions\":[\n                {\n                    \"Title\":\"C++Machine\",\n                    \"Price\":38\n                }\n                ]\n        }\n        ],\n        \"Hat\":[\n            {\n                \"Price\":48,\n                \"Color\":\"Red\"\n            },\n            {\n                \"Price\":35,\n                \"Color\":\"White\"\n            },\n            {\n                \"Price\":38,\n                \"Color\":\"Blue\"\n            }\n            ]\n    }\n}"
 
   private val valueOfArgument: String =
     if (javaByteBuf.isDefined) {
@@ -1641,7 +1645,7 @@ class BosonImpl(
               * */
               println(s"Didn't Found Field $fieldID == ${new String(x)}")
 
-              if(list.isEmpty)
+              if(list.isEmpty || list.get.isEmpty)
                 processTypesAll(dataType,buffer,result,fieldID,f)
               else
                 processTypesArray(dataType,buffer,result)
@@ -1777,9 +1781,10 @@ class BosonImpl(
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-
-        val value: Any = applyFunction(f, new String(Unpooled.copiedBuffer(buffer.readBytes(length-1)).array()))
-        buffer.readByte()
+        val array: ByteBuf = Unpooled.buffer(length).writeBytes(buffer.readBytes(length))
+        val value: Any = applyFunction(f, new String(array.array()))
+        //array.release()
+       // buffer.readByte()
         //println("returning type = " + value.getClass.getSimpleName)
         Option(value) match {
           case Some(n: Array[Byte]) =>
@@ -1803,7 +1808,7 @@ class BosonImpl(
         val bsonObj: Map[String, Any] = decodeBsonObject(buffer.readBytes(valueLength))
         val newValue: Any = applyFunction(f, bsonObj)
 
-        println("IMPRIMIR MAPA  "+newValue.asInstanceOf[Map[String@unchecked, _]])
+       // println("IMPRIMIR MAPA  "+newValue.asInstanceOf[Map[String@unchecked, _]])
         Option(newValue) match {
           case Some(x: util.Map[String@unchecked, _])  =>
             Try(encode(x)) match {
@@ -1813,7 +1818,7 @@ class BosonImpl(
           case Some(x: Map[String@unchecked, _])  =>
             Try(encode(x)) match {
               case Success(v)=>
-                v.array().foreach(b => println("MAP         Char="+ b.toChar + "  Int="+b.toInt))
+                //v.array().foreach(b => println("MAP         Char="+ b.toChar + "  Int="+b.toInt))
                 (result.writeBytes(v), v.capacity()-valueLength)
               case Failure(e) => throw  CustomException(e.getMessage)
             }
@@ -2650,9 +2655,9 @@ println("modifyArrayEnd")
         val valueLength: Int = buf.readIntLE()
         val bytes: ByteBuf = buf.readBytes(valueLength)
         result.writeIntLE(valueLength)
-        result.writeBytes(bytes)
+        result.writeBytes(bytes.duplicate())
         resultCopy.writeIntLE(valueLength)
-        resultCopy.writeBytes(bytes)
+        resultCopy.writeBytes(bytes.duplicate())
 
       case D_BSONOBJECT =>
         // process BsonObjects
@@ -3127,6 +3132,9 @@ println("hasElement")
         val res: ByteBuf = modifyAll(Some(newStatementList),buf, key, f)
         result.writeBytes(res)
         result.capacity(result.writerIndex())
+
+
+
       case _ => throw CustomException("Wrong Statments, Bad Expression.")
 
     }

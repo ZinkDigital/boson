@@ -21,6 +21,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     }
   }
 
+  def encodeJson(statement: List[Statement]): ByteBuf = ???
+
+  def runJsonEncoder(): ByteBuf = {
+    val buf:ByteBuf = encodeJson(program.statement)
+    buf
+  }
+
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
       statement.head match {
@@ -138,10 +145,22 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         }
       } else {
         println("last statement nonDefined")
-        middleStatementList.last match {
+        Try(middleStatementList.last)match{
+          case Success(v) =>
+
+            v match {
+              case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
+              case _ => (secondList,limitList2)
+            }
+            //println("exception="+e)
+          case Failure(e)=> (secondList,limitList2)
+        }
+
+       // println("middleStatementList.last="+.toString)
+       /* middleStatementList.last match {
           case Key(k) => (secondList.take(secondList.size - 1) ++ List((k,"level")), limitList2)
           case _ => (secondList,limitList2)
-        }
+        }*/
       }
 //    scndList.zipWithIndex.map( elem =>
 //    if(elem._1._3.equals("HasElem") && elem._2 != scndList.size-1 && elem._1._2.equals("filter")){
@@ -154,6 +173,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   private def executeMoreKeys(first: Statement, list: List[Statement], last: Option[Statement]): bsonValue.BsValue = {
     println("executeMoreKeys before build list")
     val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, last)
+
     println("after build keylist -> " + keyList._1)
     println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =
@@ -619,6 +639,7 @@ println((key, left, mid.toLowerCase(), right))
 
 
   private def executeMultipleKeysInjector(statements: ListBuffer[Statement]): bsonValue.BsValue = {
+    println("executeMultipleKeysInjector")
     val result:bsonValue.BsValue=
       Try(boson.execStatementPatternMatch(boson.getByteBuf, Some(statements), f.get ))match{
         case Success(v)=> bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))

@@ -129,12 +129,13 @@ class InjectorParserTests extends FunSuite {
   }
   test("All") {
     val key: String = "fridgeTemp"
-    val expression: String = "fridgeTemp..all"
+    val expression: String = "fridgeTemp"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Long]*4L, expression)
+    resultBoson.asInstanceOf[BsBoson].getValue.getByteBuf.forEachByte(bP)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
-      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp..all")
+      case nb: BsBoson => callParse(nb.getValue, "fridgeTemp")
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])

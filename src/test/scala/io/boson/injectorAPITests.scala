@@ -7,6 +7,7 @@ import io.boson.bson.Boson
 import io.boson.bson.bsonImpl.{BosonImpl, BosonInjector}
 import io.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ResourceLeakDetector
 import mapper.Mapper
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -42,6 +43,7 @@ class injectorAPITests extends FunSuite {
 //  val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux)
 //  val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
 //  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
+
 
   test("Experiments ") {
     val expression = "Store.Book.[0 until 3].SpecialEditions.[0].Title"
@@ -399,7 +401,6 @@ class injectorAPITests extends FunSuite {
 
   }
 
-
   test("MoreKeys 4 bson11.array21.[0 until 2]"){
 
     val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
@@ -495,33 +496,6 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys 1 arr*ay.[0 until 1].damn*n.[0 until 1].google"){
-    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
-    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
-    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
-    val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
-    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
-    val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux)//.add(bAux1)
-    val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
-
-    //val newFridgeSerialCode: String = " what?"
-    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
-    //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "arr*ay.[0 until 1].damn*n.[0 until 1].google"
-    val expression1 = "google"
-    val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-    boson1.go(result)
-    println(future.join().getValue.asInstanceOf[Vector[String]])
-    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-    assertEquals(Vector("sdfsf", "DAMMN", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
-
-  }
-
   test("MoreKeys array.[@damnnn].damnnn.[@google].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)
@@ -547,9 +521,7 @@ class injectorAPITests extends FunSuite {
     assertEquals(Vector("sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "DAMMN"),a  )
     //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
   }
-  test("Scala"){
-    val map: mutable.HashMap[String, Any] = new mutable.HashMap[String, Any]
-  }
+
   test("$.Store.* => Store") {
     /*
     * Montagem do Event de testes
@@ -582,19 +554,20 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.injector(expression,(in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
-    result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
+    //result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
     println("|-------- Perform Extraction --------|\n\n")
     //val expression1 = "array.[@damnnn].damnnn.[@google].google"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    // val a: Vector[String] = future.join().getValue
 
 
     println("|-------- Perform Assertion --------|\n\n")
 
-    assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),a  )
+    assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
+
 
 }
 

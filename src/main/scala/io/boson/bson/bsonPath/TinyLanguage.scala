@@ -1,5 +1,7 @@
 package io.boson.bson.bsonPath
 
+import io.boson.bson.bsonPath
+
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
@@ -17,7 +19,13 @@ case class HalfName(half: String) extends Statement
 //case class Everything(key: String) extends Statement
 case class HasElem(key: String, elem: String) extends Statement
 case class MoreKeys(first: Statement, list: List[Statement], last: Option[Statement]) extends Statement
+case class MoreKeysFinal() extends Statement
 case class Key(key: String) extends Statement
+
+
+
+
+
 class Program(val statement: List[Statement])
 
 class TinyLanguage extends RegexParsers {
@@ -28,6 +36,7 @@ class TinyLanguage extends RegexParsers {
   //^(?!last|first|all)
   def program: Parser[Program] =
   (moreKeys
+    /*||| moreKeysDOT*/
     ||| keyWithGrammar
     ||| grammar
     ||| keyWithArrEx
@@ -38,10 +47,12 @@ class TinyLanguage extends RegexParsers {
     ||| keyHasElem
     ||| halfName
     ||| arrEx
-    ||| key) ^^ { s => {
+    /*||| key*/) ^^ { s => {
     //println(s)
     new Program(List(s)) }
   }
+
+
 
   private def key: Parser[Key] = word ^^ { w => Key(w) }
 
@@ -97,7 +108,7 @@ class TinyLanguage extends RegexParsers {
   }
 
 
-  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep1("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
+  private def moreKeys: Parser[MoreKeys] = (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
    /* x =>
       println("Tiny Language   " + x)
       MoreKeys()*/
@@ -109,5 +120,27 @@ class TinyLanguage extends RegexParsers {
       MoreKeys(first, list, None)
 
   }
+  private def moreKeysDOT: Parser[MoreKeys] = "." ~> (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep("." ~> (keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ~ opt("." ~>(keyWithGrammar | grammar) )^^ {
+    /* x =>
+       println("Tiny Language   " + x)
+       MoreKeys()*/
+    case first ~ list ~ Some(last) =>
+      println(first +"   "+ list + "    " + last)
+      MoreKeys(first, list, Some(last))
+    case first ~ list ~ None =>
+      println(first +"   "+ list + "    " + "None")
+      MoreKeys(first, list, None)
 
+  }
+  private def moreKeysFinal: Parser[MoreKeysFinal] =
+    rep1(("." | "..") ~ (keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key)) ^^ {
+    /* x =>
+       println("Tiny Language   " + x)
+       MoreKeys()*/
+    case list:List[Statement] =>
+      println(list)
+      MoreKeysFinal()
+
+
+  }
 }
