@@ -130,6 +130,7 @@ class BosonImpl(
       seqType match {
         case D_FLOAT_DOUBLE =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals("limit") && !keyList.head._2.equals("next") && !keyList.head._2.equals("limitLevel")) {
+            println(s"matched ${keyList.head._1} with a double")
             val value: Double = netty.readDoubleLE()
             Some(value)
           } else {
@@ -186,7 +187,7 @@ class BosonImpl(
                 val midResult = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitList.drop(1))
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
               case _ if keyList.size > 1 =>
-                //println("extractFromBsonObj; BsonArray case; calling goThrough")
+                println("extractFromBsonObj; BsonArray case; calling goThrough")
                  Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
                   case Some(value) if value.isEmpty => None
                   case Some(value) => Some(resultComposer(value.toVector))

@@ -125,10 +125,6 @@ class TinyLanguage extends RegexParsers {
       MoreKeys(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))  //option of starting with .., same as the case before
     case Some(dots) ~ first ~ list if dots.equals(".")=>
       MoreKeysRoot(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))  //first key has to match on Root
-
-//    case Some(dots) ~ first ~ list => //  this case doesn't exist, we ain't implementing the middle dots yet
-//      println(s"Dots: '$dots', first: $first, list.map(elem => elem._1): ${list.map(elem => elem._1)}, list.map(elem => elem._2): ${list.map(elem => elem._2)}")
-//      MoreKeysFinal(Some(dots),first,list.map(elem => elem._2))
     case _ => throw new RuntimeException("not desired case yet")
 
   }

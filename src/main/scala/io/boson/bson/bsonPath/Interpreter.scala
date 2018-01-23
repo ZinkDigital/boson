@@ -127,20 +127,17 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   private def buildKeyList(firstStatement: Statement, middleStatementList: List[Statement], dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList,limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
-        //case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)),List((None,None,"")))
-        case KeyWithArrExpr(key,arrEx) => (List((key, "limit")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
-        case ArrExpr(l,m,r) => (List(("", "limit")), defineLimits(l,m,r))
-        case HalfName(halfName) => if(halfName.equals("*")) (List((halfName, "level")), List((None,None,""))) else (List((halfName, "all")), List((None,None,"")))  //TODO: treat '*'
-        case HasElem(key, elem) => (List((key, "limit"), (elem, "filter")),List((None,None,""),(None,None,"")) )
-        case Key(key) =>
-          if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "all")),List((None,None,"")))
+        case KeyWithArrExpr(key,arrEx) => (List((key, "limitLevel")), defineLimits(arrEx.leftArg,arrEx.midArg,arrEx.rightArg))
+        case ArrExpr(l,m,r) => (List(("", "limitLevel")), defineLimits(l,m,r))
+        case HalfName(halfName) => if(halfName.equals("*")) (List((halfName, "level")), List((None,None,""))) else (List((halfName, "level")), List((None,None,"")))  //TODO: treat '*'
+        case HasElem(key, elem) => (List((key, "limitLevel"), (elem, "filter")),List((None,None,""),(None,None,"")) )
+        case Key(key) => if(middleStatementList.nonEmpty) (List((key, "next")),List((None,None,""))) else (List((key, "level")),List((None,None,"")))
         case _ => throw CustomException("Error building key list")
       }
-    if (middleStatementList.nonEmpty) { // edited the limit to limitLevel in the traverse statementList, needs further aproval
+    if (middleStatementList.nonEmpty) {
       val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
         for (statement <- middleStatementList) yield {
           statement match {
-            //case KeyWithGrammar(key, grammar) => (List((key, grammar.selectType)), List((None, None, "")))
             case KeyWithArrExpr(key, arrEx) => (List((key, "limitLevel")), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) => (List(("", "limitLevel")), defineLimits(l, m, r))
             case HalfName(halfName) => (List((halfName, "level")), List((None, None, "")))                                                                          //TODO: treat '*'
@@ -152,14 +149,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         }
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
       val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(p => p._2)
-
+      println(s"secondList -> $secondList")
       val thirdList: List[(String, String)] = secondList.zipWithIndex map {elem =>
         elem._1._2 match {
           case "limitLevel" => if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"limit") else elem._1
           case "level" => if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"all") else elem._1
           case "filter" => elem._1
           case "next" => elem._1//if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"all") else elem._1
-          case "limit" => if(dotsList.take(elem._2+1).last.equals(".."))elem._1 else(elem._1._1,"limitLevel")
           case _ => throw CustomException("Error building key list with dots")
         }
       }
@@ -172,9 +168,22 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
             case Key(k) => (thirdList.take(thirdList.size - 1) ++ List((k, "level")), limitList2)
             case _ => (thirdList, limitList2)
           }
-        case ".." => (thirdList, limitList2)
+        case ".." =>
+          (thirdList.last._2 match {
+            case "next" =>thirdList.take(thirdList.size-1)++List((thirdList.last._1,"all"))
+            case _ =>thirdList
+          }, limitList2)
       }
-    } else (firstList,limitList1)
+    } else {
+      (firstList.map{ elem =>
+        elem._2 match {
+          case "limitLevel" => if(dotsList.head.equals("..")) (elem._1,"limit") else elem
+          case "level" => if(dotsList.head.equals("..")) (elem._1,"all") else elem
+          case "filter" => elem
+          case "next" => if(dotsList.head.equals("..")) (elem._1,"all") else elem
+          case _ => throw CustomException("Error building key list with dots")
+        }
+      },limitList1)}
 //    val (thirdList,limitList3): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
 //      if (lastStatement.isDefined) {
 //        lastStatement.get match {
