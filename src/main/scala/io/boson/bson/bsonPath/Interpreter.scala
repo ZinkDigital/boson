@@ -39,7 +39,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case ArrExpr(l, m, r) => (List(("", "limitLevel")), defineLimits(l, m, r))
         case HalfName(halfName) =>
           halfName.equals("*") match {
-            case true => (List((halfName, "level")), List((None, None, ""))) //TODO: take care of '*'
+            case true => (List((halfName, "all")), List((None, None, "")))
             case false if statementList.nonEmpty => (List((halfName, "next")), List((None, None, "")))
             case false => (List((halfName, "level")), List((None, None, "")))
           }
@@ -53,7 +53,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           statement match {
             case KeyWithArrExpr(key, arrEx) => (List((key, "limitLevel")), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) => (List(("", "limitLevel")), defineLimits(l, m, r))
-            case HalfName(halfName) => (List((halfName, "next")), List((None, None, "")))                                                                          //TODO: treat '*'
+            case HalfName(halfName) =>if(halfName.equals("*")) (List((halfName, "all")), List((None, None, ""))) else (List((halfName, "next")), List((None, None, "")))                                                                          //TODO: treat '*'
             case HasElem(key, elem) => (List((key, "limitLevel"), (elem, "filter")), List((None, None, ""), (None, None, "")))
             case Key(key) => (List((key, "next")), List((None, None, "")))
             case _ => throw CustomException("Error building key list")
@@ -68,13 +68,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case "level" => println("----- NOT POSSIBLE----"); elem._1
           case "filter" => elem._1
           case "next" => elem._1
+          case "all" => (elem._1._1,"next")//elem._1
           case _ => throw CustomException("Error building key list with dots")
         }
       }
       dotsList.last match {
         case "." =>
           statementList.last match {
-            case HalfName(halfName) => (thirdList.take(thirdList.size - 1) ++ List((halfName, "level")), limitList2) //TODO: treat '*'
+            case HalfName(halfName) if !halfName.equals("*") => (thirdList.take(thirdList.size - 1) ++ List((halfName, "level")), limitList2)
+            case HalfName(halfName) if halfName.equals("*") => (thirdList.take(thirdList.size - 1) ++ List((halfName, "all")), limitList2)
             case Key(k) => (thirdList.take(thirdList.size - 1) ++ List((k, "level")), limitList2)
             case _ => (thirdList, limitList2)
           }
@@ -92,6 +94,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case "level" => if(dotsList.head.equals("..")) (elem._1,"all") else elem
           case "filter" => elem
           case "next" => println("----- NOT POSSIBLE----");if(dotsList.head.equals("..")) (elem._1,"all") else elem
+          case "all" => elem
         }
       },limitList1)
     }

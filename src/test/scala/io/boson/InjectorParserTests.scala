@@ -478,7 +478,6 @@ class InjectorParserTests extends FunSuite {
       case BsBoolean(b) => b
     }
     assert( Vector("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
-
       === resultParser)
   }
 
