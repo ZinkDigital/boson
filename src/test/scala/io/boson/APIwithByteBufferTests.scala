@@ -150,7 +150,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract PosV1") {
-    val expression: String = "José.[0 until end]"
+    val expression: String = "José[0 until end]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
@@ -160,7 +160,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract PosV2") {
-    val expression: String = "José.[0 to end]"
+    val expression: String = "José[0 to end]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
@@ -172,7 +172,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract PosV3") {
-    val expression: String = "José.[1 to 2]"
+    val expression: String = "José[1 to 2]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
@@ -183,7 +183,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract PosV4") {
-    val expression: String = "StartUp.[1 to 2]"
+    val expression: String = "StartUp[1 to 2]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
@@ -194,7 +194,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract PosV5") {
-    val expression: String = "StartUp.[3]"
+    val expression: String = "StartUp[3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
@@ -205,7 +205,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract with 2nd Key PosV1") {
-    val expression: String = "StartUp.[0 until end].José"
+    val expression: String = "StartUp[0 until end].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
@@ -213,7 +213,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract with 2nd Key PosV2") {  //should throw error
-    val expression: String = "StartUp.[2 to end].José"
+    val expression: String = "StartUp[2 to end].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
@@ -221,7 +221,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract with 2nd Key PosV3") {
-    val expression: String = "StartUp.[2 to 3].José"
+    val expression: String = "StartUp[2 to 3].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
@@ -232,7 +232,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract with 2nd Key PosV4") {
-    val expression: String = "StartUp.[2 until 3].José"
+    val expression: String = "StartUp[2 until 3].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
@@ -242,7 +242,7 @@ class APIwithByteBufferTests extends FunSuite{
   }
 
   test("extract with 2nd Key PosV5") {  //should throw error
-    val expression: String = "StartUp.[4].José"
+    val expression: String = "StartUp[4].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
@@ -316,7 +316,7 @@ class APIwithByteBufferTests extends FunSuite{
     validatedByteBufferObj1.put(validatedByteArrayObj1)
     validatedByteBufferObj1.flip()
 
-    val expression: String = "StartUp.[@José]"
+    val expression: String = "StartUp[@José]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj1)

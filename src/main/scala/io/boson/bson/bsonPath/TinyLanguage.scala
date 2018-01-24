@@ -46,19 +46,19 @@ class TinyLanguage extends RegexParsers {
     case _ => throw CustomException("Error Parsing HalfName!")
   }
 
-  private def keyHasElem: Parser[HasElem] = key ~ (".[@" ~> word <~ "]") ^^ {
+  private def keyHasElem: Parser[HasElem] = key ~ ("[@" ~> word <~ "]") ^^ {
     case k ~ w => HasElem(k.key, w)
   }
 
-  private def keyHasHalfelem: Parser[HasElem] = key ~ (".[@" ~> halfName <~ "]") ^^ {
+  private def keyHasHalfelem: Parser[HasElem] = key ~ ("[@" ~> halfName <~ "]") ^^ {
     case k ~ w => HasElem(k.key, w.half)
   }
 
-  private def halfnameHasElem: Parser[HasElem] = halfName ~ (".[@" ~> word <~ "]") ^^ {
+  private def halfnameHasElem: Parser[HasElem] = halfName ~ ("[@" ~> word <~ "]") ^^ {
     case k ~ w => HasElem(k.half, w)
   }
 
-  private def halfnameHasHalfelem: Parser[HasElem] = halfName ~ (".[@" ~> halfName <~ "]") ^^ {
+  private def halfnameHasHalfelem: Parser[HasElem] = halfName ~ ("[@" ~> halfName <~ "]") ^^ {
     case k ~ w => HasElem(k.half, w.half)
   }
 
@@ -69,12 +69,12 @@ class TinyLanguage extends RegexParsers {
     case l ~ None ~ _  => ArrExpr(l, None, None) //[#]
   }
 
-  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ ("." ~> arrEx) ^^ {
-    case k ~ a => KeyWithArrExpr(k, a) //Key.[#..]
+  private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ arrEx ^^ {
+    case k ~ a => KeyWithArrExpr(k, a) //Key[#..]
   }
 
-  private def halfKeyWithArrEx: Parser[KeyWithArrExpr] = halfName ~ ("." ~> arrEx) ^^ {
-    case k ~ a => KeyWithArrExpr(k.half, a) //Key.[#..]
+  private def halfKeyWithArrEx: Parser[KeyWithArrExpr] = halfName ~ arrEx ^^ {
+    case k ~ a => KeyWithArrExpr(k.half, a) //Key[#..]
   }
 
   private def moreKeysFinal: Parser[MoreKeys] = opt(".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {

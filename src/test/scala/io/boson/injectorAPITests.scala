@@ -45,7 +45,7 @@ class injectorAPITests extends FunSuite {
 //  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
 
   test("Experiments ") {
-    val expression = "Store.Book.[0 until 3].SpecialEditions.[0].Title"
+    val expression = "Store.Book[0 until 3].SpecialEditions[0].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -71,8 +71,8 @@ class injectorAPITests extends FunSuite {
     ))), future.join())
   }
 
-  test("extract Key.Key.[@elem]") {
-    val expression = "Store.Book.[@Price]"
+  test("extract Key.Key[@elem]") {
+    val expression = "Store.Book[@Price]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -151,8 +151,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.[@*elem]") {
-    val expression = "Book.[@*ce]"
+  test("extract Key[@*elem]") {
+    val expression = "Book[@*ce]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -163,8 +163,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract *.[@elem]") {
-    val expression = "*.[@Price]"
+  test("extract *[@elem]") {
+    val expression = "*[@Price]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -176,8 +176,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract *.[@*elem]") {
-    val expression = "*.[@*ce]"
+  test("extract *[@*elem]") {
+    val expression = "*[@*ce]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -202,8 +202,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.*halfKey.[@*elem]") {
-    val expression = "Store.*ok.[@*ce]"
+  test("extract Key.*halfKey[@*elem]") {
+    val expression = "Store.*ok[@*ce]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -214,8 +214,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.*halfKey.[@*elem].Key") {
-    val expression = "Store.*ok.[@*ce].Title"
+  test("extract Key.*halfKey[@*elem].Key") {
+    val expression = "Store.*ok[@*ce].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -226,8 +226,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.*halfKey.[@*elem].K*y") {
-    val expression = "Store.B*ok.[@*ce].Ti*le"
+  test("extract Key.*halfKey[@*elem].K*y") {
+    val expression = "Store.B*ok[@*ce].Ti*le"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -238,8 +238,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[#].Key") {
-    val expression = "Store.Book.[1].Title"
+  test("extract Key.Key[#].Key") {
+    val expression = "Store.Book[1].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -249,8 +249,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[#to#].Key") {
-    val expression = "Store.Book.[1 to 2].Title"
+  test("extract Key.Key[#to#].Key") {
+    val expression = "Store.Book[1 to 2].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -261,8 +261,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[#until#].Key") {
-    val expression = "Store.Book.[0 until 2].Title"
+  test("extract Key.Key[#until#].Key") {
+    val expression = "Store.Book[0 until 2].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -273,8 +273,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[#until end].Key") {
-    val expression = "Store.Book.[1 until end].Title"
+  test("extract Key.Key[#until end].Key") {
+    val expression = "Store.Book[1 until end].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -284,8 +284,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[#to end].Key") {
-    val expression = "Store.Book.[1 to end].Title"
+  test("extract Key.Key[#to end].Key") {
+    val expression = "Store.Book[1 to end].Title"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -296,8 +296,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[#to#].Key.[#to#]") {
-    val expression = "Store.Book.[0].SpecialEditions.[0]"
+  test("extract Key.Key[#to#].Key[#to#]") {
+    val expression = "Store.Book[0].SpecialEditions[0]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -307,8 +307,8 @@ class injectorAPITests extends FunSuite {
     ))), future.join())
   }
 
-  test("extract Key.Key.[#].Key.[@elem]") {
-    val expression = "Store.Book.[1].SpecialEditions.[@Title]"
+  test("extract Key.Key[#].Key[@elem]") {
+    val expression = "Store.Book[1].SpecialEditions[@Title]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -318,8 +318,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[@*elem].Key.[#]") {
-    val expression = "Store.Book.[@*ce].SpecialEditions.[0]"
+  test("extract Key.Key[@*elem].Key[#]") {
+    val expression = "Store.Book[@*ce].SpecialEditions[0]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -330,8 +330,8 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("extract Key.Key.[@elem].Key.[@elem]") {
-    val expression = "Store.Book.[@Price].SpecialEditions.[@Price]"
+  test("extract Key.Key[@elem].Key[@elem]") {
+    val expression = "Store.Book[@Price].SpecialEditions[@Price]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -342,7 +342,7 @@ class injectorAPITests extends FunSuite {
     )), future.join())
   }
 
-  test("MoreKeys 5 bson11.array21.[0 until 2].[0 until 2]"){
+  test("MoreKeys 5 bson11.array21[0 until 2].[0 until 2]"){
 
     val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
     val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -359,8 +359,8 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "bson11.array21.[0 until 2].[0 until 2]" //.[0 to 1].fie*"
-    val expression1 = "bson11.array21.[0 until 2].[0 until 2]"
+    val expression = "bson11.array21[0 until 2].[0 until 2]" //.[0 to 1].fie*"
+    val expression1 = "bson11.array21[0 until 2].[0 until 2]"
     val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
@@ -379,7 +379,7 @@ class injectorAPITests extends FunSuite {
   }
 
 
-  test("MoreKeys 4 bson11.array21.[0 until 2]"){
+  test("MoreKeys 4 bson11.array21[0 until 2]"){
 
     val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
     val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -396,8 +396,8 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "bson11.array21.[0 until 2]" //.[0 to 1].fie*"
-    val expression1 = "bson11.array21.[0 until 2]"
+    val expression = "bson11.array21[0 until 2]" //.[0 to 1].fie*"
+    val expression1 = "bson11.array21[0 until 2]"
     val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
@@ -415,7 +415,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys 3 bson11.array21.[@i*nt].int"){
+  test("MoreKeys 3 bson11.array21[@i*nt].int"){
 
     val bsonObjectLvl31: BsonObject = new BsonObject().put("int", 0)
     val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -429,7 +429,7 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "bson11.array21.[@i*nt].int"
+    val expression = "bson11.array21[@i*nt].int"
     val expression1 = "int"
     val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
@@ -447,7 +447,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys 2 array.[0].damnnn.[1].google"){
+  test("MoreKeys 2 array[0].damnnn[1].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -459,7 +459,7 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "array.[0].damnnn.[1].google"
+    val expression = "array[0].damnnn[1].google"
     val expression1 = "google"
     val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
@@ -474,7 +474,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys 1 arr*ay.[0 until 1].damn*n.[0 until 1].google"){
+  test("MoreKeys 1 arr*ay[0 until 1].damn*n[0 until 1].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -486,7 +486,7 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "arr*ay.[0 until 1].damn*n.[0 until 1].google"
+    val expression = "arr*ay[0 until 1].damn*n[0 until 1].google"
     val expression1 = "google"
     val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
@@ -501,7 +501,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
-  test("MoreKeys array.[@damnnn].damnnn.[@google].google"){
+  test("MoreKeys array[@damnnn].damnnn[@google].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -513,7 +513,7 @@ class injectorAPITests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-    val expression = "array.[@damnnn].damnnn.[@google].google"
+    val expression = "array[@damnnn].damnnn[@google].google"
     val expression1 = "google"
     val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)

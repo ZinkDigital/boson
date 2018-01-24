@@ -41,23 +41,23 @@ class LanguageTests extends FunSuite {
     }
   }
 
-  test("experiment1") {
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val result: BsValue = callParse(boson, ".fridgeReadings..doorOpen.[@fridgeTemp]")
-    println(s"result: ${result.getValue}")
-  }
-
-  test("experiment2") {
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val result: BsValue = callParse(boson, "..fridgeReadings.doorOpen.[@fridgeTemp]")
-    println(s"result: ${result.getValue}")
-  }
-
-  test("experiment3, equal to experiment 2") {
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-    val result: BsValue = callParse(boson, "doorOpen.[0]")
-    println(s"result: ${result.getValue}")
-  }
+//  test("experiment1") {
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+//    val result: BsValue = callParse(boson, ".fridgeReadings..doorOpen.[@fridgeTemp]")
+//    println(s"result: ${result.getValue}")
+//  }
+//
+//  test("experiment2") {
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+//    val result: BsValue = callParse(boson, "..fridgeReadings.doorOpen.[@fridgeTemp]")
+//    println(s"result: ${result.getValue}")
+//  }
+//
+//  test("experiment3, equal to experiment 2") {
+//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+//    val result: BsValue = callParse(boson, "doorOpen.[0]")
+//    println(s"result: ${result.getValue}")
+//  }
 
   test("All") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
@@ -67,7 +67,7 @@ class LanguageTests extends FunSuite {
   }
 
   test("[# .. end]") {
-    val expression: String = "fridgeReadings.[1 until end]"
+    val expression: String = "fridgeReadings[1 until end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
     assert(BsSeq(Vector(Seq(
@@ -76,7 +76,7 @@ class LanguageTests extends FunSuite {
   }
 
   test("[# to #]") {
-    val expression: String = "fridgeReadings.[1 to 1]"
+    val expression: String = "fridgeReadings[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
     assert(BsSeq(Vector(Seq(
@@ -85,7 +85,7 @@ class LanguageTests extends FunSuite {
   }
 
   test("[# until #]") {
-    val expression: String = "fridgeReadings.[1 until 2]"
+    val expression: String = "fridgeReadings[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
     assert(BsSeq(Vector(Seq(
