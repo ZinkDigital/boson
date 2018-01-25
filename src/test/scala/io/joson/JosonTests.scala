@@ -6,11 +6,14 @@ import io.boson.json.jsonPath.{JsonInterpreter, JsonProgram, JsonTinyLanguage}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.vertx.core.json.{Json, JsonObject}
 import org.junit.Assert._
+import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 
 /**
   * Created by Ricardo Martins on 19/01/2018.
   */
+@RunWith(classOf[JUnitRunner])
 class JosonTests extends FunSuite{
   val json = "{\"Store\":{\"Book\":[{\"Title\":\"Java\",\"Price\":15.5,\"SpecialEditions\":[{\"Title\":\"JavaMachine\",\"Price\":39}]},{\"Title\":\"Scala\",\"Price\":21.5,\"SpecialEditions\":[{\"Title\":\"ScalaMachine\",\"Price\":40}]},{\"Title\":\"C++\",\"Price\":12.6,\"SpecialEditions\":[{\"Title\":\"C++Machine\",\"Price\":38}]}],\"Hat\":[{\"Price\":48,\"Color\":\"Red\"},{\"Price\":35,\"Color\":\"White\"},{\"Price\":38,\"Color\":\"Blue\"}]}}"
 

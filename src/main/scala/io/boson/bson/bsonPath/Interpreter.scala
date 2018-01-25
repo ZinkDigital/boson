@@ -258,21 +258,27 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
+
+    println(statement.head)
     if (statement.nonEmpty) {
       statement.head match {
         case MoreKeys(first, list, dots) => //  key
-          val statements: ListBuffer[Statement] = new ListBuffer[Statement]
-          statements.append(first)
-          list.foreach(statement => statements.append(statement))
-          executeMultipleKeysInjector(statements)
+          val united: List[Statement] = list.+:(first)
+          val zipped: List[(Statement, String)] = united.zip(dots)
+          executeMultipleKeysInjector(zipped)
+        case MoreKeysRoot(first, list, dots) =>
+          val united: List[Statement] = list.+:(first)
+          val zipped: List[(Statement, String)] = united.zip(dots)
+          executeMultipleKeysInjector(zipped)
+
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
 
-  private def executeMultipleKeysInjector(statements: ListBuffer[Statement]): bsonValue.BsValue = {
+  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
     val result:bsonValue.BsValue=
-      Try(boson.execStatementPatternMatch(boson.getByteBuf, Some(statements), f.get ))match{
+      Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, f.get ))match{
         case Success(v)=> bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
         case Failure(e)=>bsonValue.BsException(e.getMessage)      }
 

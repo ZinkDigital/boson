@@ -7,11 +7,14 @@ import io.boson.bson.Boson
 import io.boson.bson.bsonValue.BsValue
 import io.boson.json.Joson
 import org.junit.Assert.assertEquals
+import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
 
 /**
   * Created by Ricardo Martins on 22/01/2018.
   */
+@RunWith(classOf[JUnitRunner])
 class APItests extends FunSuite{
 
 
