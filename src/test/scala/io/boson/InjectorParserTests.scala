@@ -117,7 +117,7 @@ class InjectorParserTests extends FunSuite {
 
   test("All") {
     val key: String = "fridgeTemp"
-    val expression: String = "fridgeReadings.[0 to end].fridgeTemp"
+    val expression: String = "fridgeReadings[0 to end].fridgeTemp"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Long]*4L, expression)
     val resultParser: Any = resultBoson match {
@@ -288,8 +288,8 @@ class InjectorParserTests extends FunSuite {
 
 
     val key: String = "fridgeReadings"
-    val expression: String = "[0 to end].fridgeReadings.[0 to end]"
-    val expression1: String = "[0 to end].fridgeReadings.[1 until 2]"
+    val expression: String = "[0 to end].fridgeReadings[0 to end]"
+    val expression1: String = "[0 to end].fridgeReadings[1 until 2]"
     //lazy val res: (BosonImpl, BosonImpl) = boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(), key,(x:Int) => x*4 , "1", "2")
 
     lazy val resultBoson: BsValue = parseInj(boson,(x:Int) => x*4, expression1 )
@@ -332,8 +332,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "fridgeReadings"
-    val expression: String = "[0 to end].fridgeReadings.[0 to end]"
-    val expression1: String = "[0 to end].fridgeReadings.[1 until 2]"
+    val expression: String = "[0 to end].fridgeReadings[0 to end]"
+    val expression1: String = "[0 to end].fridgeReadings[1 until 2]"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:Map[String, Any]) => x.+(("nick", "Ritchy")), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -412,8 +412,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "age"
-    val expression: String = "[0 to end].fridgeReadings.[0 to end].age"
-    val expression1: String = "[0 to end].fridgeReadings.[0 to end].age"
+    val expression: String = "[0 to end].fridgeReadings[0 to end].age"
+    val expression1: String = "[0 to end].fridgeReadings[0 to end].age"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:Double) => x*2.0, expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -452,8 +452,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "name"
-    val expression: String = "[0 to end].fridgeReadings.[0 to end].name"
-    val expression1: String = "[0 to end].fridgeReadings.[0 to end].name"
+    val expression: String = "[0 to end].fridgeReadings[0 to end].name"
+    val expression1: String = "[0 to end].fridgeReadings[0 to end].name"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:String) => x.concat("MINE"), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -478,7 +478,6 @@ class InjectorParserTests extends FunSuite {
       case BsBoolean(b) => b
     }
     assert( Vector("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
-
       === resultParser)
   }
 
@@ -494,8 +493,8 @@ class InjectorParserTests extends FunSuite {
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
     val key: String = "name"
-    val expression: String = "[0 to end].fridgeReadings.[0 to end].name"
-    val expression1: String = "[0 to end].fridgeReadings.[0 to end].name"
+    val expression: String = "[0 to end].fridgeReadings[0 to end].name"
+    val expression1: String = "[0 to end].fridgeReadings[0 to end].name"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:String) => x.concat("MINE"), expression1 )
     lazy val result1: BsValue = Try(resultBoson) match {
@@ -524,7 +523,7 @@ class InjectorParserTests extends FunSuite {
       === resultParser)
   }
 
-  test("key.[@key1]"){
+  test("key[@key1]"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
     //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
@@ -533,7 +532,7 @@ class InjectorParserTests extends FunSuite {
 
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
-    val expression = "array.[@damnnn]"
+    val expression = "array[@damnnn]"
     val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
 
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
@@ -547,7 +546,7 @@ class InjectorParserTests extends FunSuite {
     println(finalResult)
     assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),finalResult )
   }
-  test("*"){
+  test(".*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
     //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
@@ -556,7 +555,7 @@ class InjectorParserTests extends FunSuite {
 
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
-    val expression = "*"
+    val expression = ".*"
     // val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
     val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
@@ -568,7 +567,7 @@ class InjectorParserTests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(Vector(Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
+    assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10)))),finalResult )
   }
   /*test("test"){
     import scala.collection.JavaConverters._
