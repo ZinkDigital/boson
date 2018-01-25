@@ -100,8 +100,8 @@ class BosonImpl(
           case 48 => // root obj is BsonArray, call extractFromBsonArray
             netty.readIntLE()
             val arrayFinishReaderIndex: Int = startReaderIndex + size
-            if(keyList.head._1.equals("*") && keyList.size == 1){
-              Some(traverseBsonArray(netty,size,arrayFinishReaderIndex, keyList, limitList))
+            if (keyList.head._1.equals("*") && keyList.size == 1) {
+              Some(traverseBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList))
             } else {
               val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
@@ -112,12 +112,8 @@ class BosonImpl(
             } else {
               netty.readIntLE()
               val bsonFinishReaderIndex: Int = startReaderIndex + size
-              if(keyList.head._1.equals("*") && keyList.size == 1){
-                Some(Seq(traverseBsonObj(netty,scala.collection.immutable.Map[Any, Any](),bsonFinishReaderIndex,keyList, limitList)))
-              } else {
-                val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-              }
+              val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
+              if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
             }
         }
     }
@@ -156,7 +152,7 @@ class BosonImpl(
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             val map = scala.collection.immutable.Map[Any, Any]()
             if(keyList.head._2.equals("next")) {
-              //println("extractFromBsonObj; BsonObject case; condition = 'next'")
+              println("extractFromBsonObj; BsonObject case; condition = 'next'")
               val midResult = extractFromBsonObj(netty, keyList.drop(1), bsonFinishReaderIndex, limitList.drop(1))
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
             } else Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList, limitList))
@@ -182,7 +178,7 @@ class BosonImpl(
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            //println(s"condition is ${keyList.head._2}")
+            println(s"condition is ${keyList.head._2}")
             keyList.head._2 match {
               case "next" if keyList.head._1.equals("*") && keyList.drop(1).head._1.equals("") =>  //case Book[#].*.[#]...
                 Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
@@ -1059,216 +1055,12 @@ class BosonImpl(
 
   def getByteBuf: ByteBuf = this.nettyBuffer
 
-  def readerIndex: Int = {
-    nettyBuffer.readerIndex()
-  }
-
-  def writerIndex: Int = {
-    nettyBuffer.writerIndex()
-  }
-
   def array: Array[Byte] = {
     if (nettyBuffer.isReadOnly) {
       throw new ReadOnlyBufferException()
     } else {
       nettyBuffer.array()
     }
-  }
-
-  def capacity: Int = {
-    nettyBuffer.capacity()
-  }
-
-  def asReadOnly: BosonImpl = {
-    new BosonImpl(byteArray = Option(nettyBuffer.asReadOnly().array()))
-  }
-
-  def isReadOnly: Boolean = {
-    nettyBuffer.isReadOnly
-  }
-
-  def isReadable: Boolean = {
-    nettyBuffer.isReadable
-  }
-
-  def isReadable(size: Int): Boolean = {
-    nettyBuffer.isReadable(size)
-  }
-
-  def readableBytes: Int = {
-    nettyBuffer.readableBytes()
-  }
-
-  def readBoolean: Boolean = {
-    nettyBuffer.readBoolean()
-  }
-
-  def readByte: Byte = {
-    nettyBuffer.readByte()
-  }
-
-  def readBytes(arr: Array[Byte]): BosonImpl = {
-    new BosonImpl(Option(nettyBuffer.readBytes(arr).array()))
-  }
-
-  def readBytes(arr: Array[Byte], dstIndex: Int, length: Int): BosonImpl = {
-    new BosonImpl(Option(nettyBuffer.readBytes(arr, dstIndex, length).array()))
-  }
-
-  def readBytes(buf: BosonImpl): BosonImpl = {
-    buf.writerIndex match {
-      case 0 =>
-        val byteBuf: ByteBuf = Unpooled.buffer()
-        nettyBuffer.readBytes(byteBuf)
-        new BosonImpl(Option(byteBuf.array()))
-      case length =>
-        val byteBuf: ByteBuf = Unpooled.buffer()
-        byteBuf.writeBytes(buf.array, 0, length)
-        nettyBuffer.readBytes(byteBuf)
-        new BosonImpl(Option(byteBuf.array()))
-    }
-  }
-
-  def readBytes(buf: BosonImpl, length: Int): BosonImpl = {
-    buf.writerIndex match {
-      case 0 =>
-        val byteBuf: ByteBuf = Unpooled.buffer()
-        nettyBuffer.readBytes(byteBuf, length)
-        new BosonImpl(Option(byteBuf.array()))
-      case _ =>
-        val byteBuf: ByteBuf = Unpooled.buffer()
-        byteBuf.writeBytes(buf.array, 0, buf.writerIndex)
-        nettyBuffer.readBytes(byteBuf, length)
-        new BosonImpl(Option(byteBuf.array()))
-    }
-  }
-
-  def readBytes(buf: BosonImpl, dstIndex: Int, length: Int): BosonImpl = {
-    buf.writerIndex match {
-      case 0 =>
-        val byteBuf: ByteBuf = Unpooled.buffer()
-        nettyBuffer.readBytes(byteBuf, dstIndex, length)
-        new BosonImpl(Option(byteBuf.array()))
-      case _ =>
-        val byteBuf: ByteBuf = Unpooled.buffer()
-        byteBuf.writeBytes(buf.array, 0, buf.writerIndex)
-        nettyBuffer.readBytes(byteBuf, dstIndex, length)
-        new BosonImpl(Option(byteBuf.array()))
-    }
-  }
-
-  def readBytes(length: Int): BosonImpl = {
-    val bB: ByteBuf = Unpooled.buffer()
-    nettyBuffer.readBytes(bB, length)
-    new BosonImpl(byteArray = Option(bB.array()))
-  }
-
-  def readChar: Char = {
-    nettyBuffer.readChar()
-  }
-
-  def readCharSequence(length: Int, charset: Charset): CharSequence = {
-    nettyBuffer.readCharSequence(length, charset)
-  }
-
-  def readDouble: Double = {
-    nettyBuffer.readDouble()
-  }
-
-  def readerIndex(readerIndex: Int): BosonImpl = {
-    new BosonImpl(Option(nettyBuffer.readerIndex(readerIndex).array()))
-  }
-
-  def hasArray: Boolean = {
-    nettyBuffer.hasArray
-  }
-
-  def readFloat: Float = {
-    nettyBuffer.readFloat()
-  }
-
-  def readInt: Int = {
-    nettyBuffer.readInt()
-  }
-
-  def readIntLE: Int = {
-    nettyBuffer.readIntLE()
-  }
-
-  def readLong: Long = {
-    nettyBuffer.readLong()
-  }
-
-  def readLongLE: Long = {
-    nettyBuffer.readLongLE()
-  }
-
-  def readMedium: Int = {
-    nettyBuffer.readMedium()
-  }
-
-  def readMediumLE: Int = {
-    nettyBuffer.readMediumLE()
-  }
-
-  def readRetainedSlice(length: Int): BosonImpl = {
-    new BosonImpl(Option(nettyBuffer.readRetainedSlice(length).array()))
-  }
-
-  def readShort: Short = {
-    nettyBuffer.readShort()
-  }
-
-  def readShortLE: Short = {
-    nettyBuffer.readShortLE()
-  }
-
-  def readSlice(length: Int): BosonImpl = {
-    new BosonImpl(Option(nettyBuffer.readSlice(length).array()))
-  }
-
-  def readUnsignedByte: Short = {
-    nettyBuffer.readUnsignedByte()
-  }
-
-  def readUnsignedInt: Long = {
-    nettyBuffer.readUnsignedInt()
-  }
-
-  def readUnsignedIntLE: Long = {
-    nettyBuffer.readUnsignedIntLE()
-  }
-
-  def readUnsignedMedium: Int = {
-    nettyBuffer.readUnsignedMedium()
-  }
-
-  def readUnsignedMediumLE: Int = {
-    nettyBuffer.readUnsignedMediumLE()
-  }
-
-  def readUnsignedShort: Int = {
-    nettyBuffer.readUnsignedShort()
-  }
-
-  def readUnsignedShortLE: Int = {
-    nettyBuffer.readUnsignedShortLE()
-  }
-
-  override def toString: String = nettyBuffer.toString
-
-  def toString(charset: Charset): String = {
-    nettyBuffer.toString(charset)
-  }
-
-  def toString(index: Int, length: Int, charset: Charset): String = nettyBuffer.toString(index, length, charset)
-
-  def touch: BosonImpl = new BosonImpl(Option(nettyBuffer.touch().array()))
-
-  def touch(hint: Object): BosonImpl = new BosonImpl(Option(nettyBuffer.touch(hint).array()))
-
-  def writableBytes: Int = {
-    nettyBuffer.writableBytes()
   }
 
   def modify[T](nettyOpt: Option[BosonImpl], fieldID: String, f: (T) => T, selectType: String = ""): Option[BosonImpl] = {

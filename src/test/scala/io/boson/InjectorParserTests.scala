@@ -546,7 +546,7 @@ class InjectorParserTests extends FunSuite {
     println(finalResult)
     assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),finalResult )
   }
-  test("*"){
+  test(".*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
     //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
@@ -555,7 +555,7 @@ class InjectorParserTests extends FunSuite {
 
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
-    val expression = "*"
+    val expression = ".*"
     // val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
     val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
@@ -567,7 +567,7 @@ class InjectorParserTests extends FunSuite {
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
     println(finalResult)
-    assertEquals(BsSeq(Vector(Map("array" -> List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10))))),finalResult )
+    assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10)))),finalResult )
   }
   /*test("test"){
     import scala.collection.JavaConverters._
