@@ -146,10 +146,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           val united: List[Statement] = list.+:(first)
           val zipped: List[(Statement, String)] = united.zip(dots)
           executeMultipleKeysInjector(zipped)
-        case MoreKeysRoot(first, list, dots) =>
+       /* case MoreKeysRoot(first, list, dots) =>
           val united: List[Statement] = list.+:(first)
           val zipped: List[(Statement, String)] = united.zip(dots)
-          executeMultipleKeysInjector(zipped)
+          executeMultipleKeysInjector(zipped)*/
 
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
