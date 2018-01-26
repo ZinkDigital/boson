@@ -954,11 +954,12 @@ class BosonImpl(
       val actualPos2: Int = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
-          finalValue match {
-            case Some(_) if flag.isDefined => throw new RuntimeException("Path of expression doesn't conform with the event")
-            case Some(value) if value.equals('!') => finalValue ++ goThrough(iter+1,Some(true))
-            case _ => finalValue ++ goThrough(iter+1)
-          }
+          //finalValue match {
+            //case Some(_) if flag.isDefined => throw new RuntimeException("Path of expression doesn't conform with the event")
+            //case Some(value) if value.equals('!') => finalValue ++ goThrough(iter+1,Some(true))
+            //case _ => finalValue ++ goThrough(iter+1)
+          //}
+          finalValue ++ goThrough(iter+1)
         case 0 => finalValue
       }
     }
@@ -969,11 +970,15 @@ class BosonImpl(
         //println(s"case until -> $seq")
         val res: Vector[Any] = resultComposer(seq.take(seq.size-1).toVector)
         //res.take(res.size-1)
-        res
+        //println(s"case until____ res: $res")
+        res.collect { case value if !value.equals('!')=> value }
+        //res
       case _ =>
-        if(seq.nonEmpty && seq.last.equals('!'))
-          throw new RuntimeException("Path of expression doesn't conform with the event")
-        else seq
+        //if(seq.nonEmpty && seq.last.equals('!'))
+          //throw new RuntimeException("Path of expression doesn't conform with the event")
+        //else
+        //println(s"case not until____ seq: $seq")
+        seq.collect { case value if !value.equals('!')=> value }
     }
   }
 

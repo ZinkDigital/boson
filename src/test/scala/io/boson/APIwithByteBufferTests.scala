@@ -135,7 +135,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsException("Path of expression doesn't conform with the event"), future.join())
+    assertEquals(BsSeq(Vector(
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV5 w/ key") {
@@ -208,16 +211,24 @@ class APIwithByteBufferTests extends FunSuite{
     val expression: String = "StartUp[0 until end].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    println(bsonEvent)
     boson.go(validatedByteArrayObj)
-    assertEquals(BsException("Path of expression doesn't conform with the event"), future.join())
+    assertEquals(BsSeq(Vector(
+      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
   }
 
-  test("extract with 2nd Key PosV2") {  //should throw error
+  test("extract with 2nd Key PosV2") {
     val expression: String = "StartUp[2 to end].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsException("Path of expression doesn't conform with the event"), future.join())
+    assertEquals(BsSeq(Vector(
+      Seq("Spider"),
+      Seq("Fly")
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV3") {
@@ -241,12 +252,12 @@ class APIwithByteBufferTests extends FunSuite{
     )), future.join())
   }
 
-  test("extract with 2nd Key PosV5") {  //should throw error
+  test("extract with 2nd Key PosV5") {
     val expression: String = "StartUp[4].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArrayObj)
-    assertEquals(BsException("Path of expression doesn't conform with the event"), future.join())
+    assertEquals(BsSeq(Vector()), future.join())
   }
 
   test("extract all") {
