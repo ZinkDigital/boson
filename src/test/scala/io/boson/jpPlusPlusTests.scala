@@ -150,7 +150,7 @@ class jpPlusPlusTests extends FunSuite {
   } //$..Book[:].Title -> checked
 
   test("Ex ..key1[# to end].key2") {
-    val expression = "..Book.Price"
+    val expression = "..Book[0 to end].Price"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
@@ -527,9 +527,9 @@ class jpPlusPlusTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
     assertEquals(Vector(
-      Seq(Map("Title" -> "JavaMachine", "Price" -> 39)),
-      Seq(Map("Title" -> "ScalaMachine", "Price" -> 40)),
-      Seq(Map("Title" -> "C++Machine", "Price" -> 38))
+      Map("Title" -> "JavaMachine", "Price" -> 39),
+      Map("Title" -> "ScalaMachine", "Price" -> 40),
+      Map("Title" -> "C++Machine", "Price" -> 38)
     ), future.join().getValue)
   }
 
@@ -659,5 +659,52 @@ class jpPlusPlusTests extends FunSuite {
       1000
     ), future.join().getValue)
   }
+
+  //---------------------------------------------------------------------------------------------------//
+
+  val arrEvent: BsonArray = new BsonArray().add("Shouldn't exist").add(bsonEvent).add(false).add(new BsonObject().put("Store_1", b2))
+  val encodedValidated: Array[Byte] = arrEvent.encodeToBarray()
+
+  test("Ex .[#]..[#] ArrRoot") {
+    val expression = ".[0 to 2]..[0 to end]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(encodedValidated)
+
+    assertEquals(Vector(
+      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+      Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38))),
+      Map("Title" -> "JavaMachine", "Price" -> 39),
+      Map("Title" -> "ScalaMachine", "Price" -> 40),
+      Map("Title" -> "C++Machine", "Price" -> 38),
+      Map("Color" -> "Red", "Price" -> 48),
+      Map("Color" -> "White", "Price" -> 35),
+      Map("Color" -> "Blue", "Price" -> 38),
+      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+      Map("Title" -> "JavaMachine", "Price" -> 39)
+    ), future.join().getValue)
+  }
+
+//  val v = Vector(
+//    (
+//      Seq(
+//        Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))),
+//        Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))),
+//      Seq(
+//        Vector(List(Map(Title -> JavaMachine, Price -> 39))),
+//        Vector(List(Map(Title -> ScalaMachine, Price -> 40))),
+//        Vector(List(Map(Title -> C ++ Machine, Price -> 38))))
+//    ),
+//    (
+//      Seq(
+//        Map(Color -> Red, Price -> 48),
+//        Map(Color -> White, Price -> 35),
+//        Map(Color -> Blue, Price -> 38)
+//      ),
+//      Seq(Vector(List(Map(Title -> JavaMachine, Price -> 39))))
+//    )
+//  )
+
 
 }

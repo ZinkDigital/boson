@@ -36,15 +36,16 @@ class APIwithByteBufferTests extends FunSuite{
   validatedByteBufferObj.flip()
 
   test("extract PosV1 w/ key") {
+    println(arr)
     val expression: String = "[2 to 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("José" -> Seq("Spider")),
       Map("José" -> Seq("Fly"))
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV2 w/ key") {
@@ -53,9 +54,9 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("José" -> Seq("Spider"))
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV3 w/ key") {
@@ -64,10 +65,10 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("José" -> Seq("Spider")),
       Map("José" -> Seq("Fly"))
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV4 w/ key") {
@@ -76,11 +77,11 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("José" -> Seq("Spider")),
       Map("José" -> Seq("Fly")),
       Seq("Insecticida")
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV5 w/ key") {
@@ -89,9 +90,9 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("José" -> Seq("Fly"))
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV1 w/ key") {

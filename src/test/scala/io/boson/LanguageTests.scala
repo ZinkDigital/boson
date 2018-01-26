@@ -163,28 +163,28 @@ class LanguageTests extends FunSuite {
     val expression: String = "[1 until end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
+    assert(BsSeq(Vector(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true),
       "Temperature"
-    ))) === resultParser)
+    )) === resultParser)
   }
 
   test("[# to #] w/key") {
     val expression: String = "[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
+    assert(BsSeq(Vector(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
-      )))) === resultParser)
+      ))) === resultParser)
   }
 
   test("[# until #] w/key") {
     val expression: String = "[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
+    assert(BsSeq(Vector(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
-      )))) === resultParser)
+      ))) === resultParser)
   }
 
 }
