@@ -265,7 +265,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val store = new BsonObject().put("Book", books).put("Hat", hats)
     val bsonevent = new BsonObject().put("Store", store)
 
-    val expression:String = ".Store.Book.[@Price].Title"
+    val expression:String = ".Store.Book[@Price].Title"
     val boson: Boson = Boson.injector(expression, (x: String)=> "SUPERJAVA")
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
@@ -325,7 +325,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     /**/
     val bsonevent: BsonObject = new BsonObject().put("Store", store)
 
-    val expression:String = ".Store..Book.[@Price].Title"
+    val expression:String = ".Store..Book[@Price].Title"
     val boson: Boson = Boson.injector(expression, (x: String)=> "SUPERJAVA")
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
@@ -385,7 +385,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     /**/
     val bsonevent: BsonObject = new BsonObject().put("Store", store)
 
-    val expression:String = ".Store..Book.[@Price]..Title"
+    val expression:String = ".Store..Book[@Price]..Title"
     val boson: Boson = Boson.injector(expression, (x: String)=> "SUPERJAVA")
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
@@ -445,7 +445,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     /**/
     val bsonevent: BsonObject = new BsonObject().put("Store", store)
 
-    val expression:String = "Book.[@Price].Title"
+    val expression:String = "Book[@Price].Title"
     val boson: Boson = Boson.injector(expression, (x: String)=> "SUPERJAVA")
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
