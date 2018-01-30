@@ -308,9 +308,9 @@ Deep explanation
 # Common Documentation
 ## BsonPath
 
-BsonPath expressions always refer to a BSON structure in the same was as JsonPath expressions are used in combination with a JSON structure and also as XPath expressions are used with a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you desire to specify a path starting from the root, the expression must begin with a dot (`.key`).
+BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
 
-BsonPath expressions use the dot-notation: `key1.key2[0]..key3`
+BsonPath expressions use the two-dot-notation: `key1.key2[0]..key3`
 Expressions whose path doesn't necessarily start from the root can be expressed in two ways:
 * No dot - ` key`
 *  Two dots - `..key`
