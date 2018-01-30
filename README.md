@@ -159,7 +159,7 @@ Extraction requires a BsonPath expression, an encoded Bson, a Consumer and a Syn
 //  Encode Bson
 byte[] validatedByteArray = bsonEvent.encode().array();
 
-//	BsonPath expression
+//  BsonPath expression
 String expression = "..Store..SpecialEditions[@Extra]";
 
 //	Synchronization tool

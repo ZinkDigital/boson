@@ -21,6 +21,21 @@ object Constants {
   val D_INT: Int = 16
   val D_LONG: Int = 18
 
+  val EMPTY_KEY: String = ""
+  val EMPTY_RANGE: String = ""
+  val UNTIL_RANGE: String = "until"
+  val TO_RANGE: String = "to"
+  val WARNING_CHAR: Char = '!'
+  val STAR: String = "*"
+  val C_LEVEL: String = "level"
+  val C_LIMITLEVEL: String = "limitLevel"
+  val C_LIMIT: String = "limit"
+  val C_FILTER: String = "filter"
+  val C_ALL: String = "all"
+  val C_NEXT: String = "next"
+
+  val V_NULL: String = "Null"
+
   // Our Own Netty Buffer Implementation
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }
