@@ -32,55 +32,62 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ## QuickStart Guide
 
-Boson is available at the Central Maven Repository. SBT users add this to build.sbt.
+Boson is available through the Central Maven Repository. 
+For SBT users, please add the following dependency in your build.sbt:
 ```scala
 libraryDependencies += Not Yet
 ```
+For Maven users, please add the following dependency in your pom.xml:
+```scala
+blablablah
+```
+
 <div id='id-BosonScala'/>
 
 ### Boson
-Boson is the object created when constructing an extractor/injector that encapsulates an encoded Bson in a Netty buffer and processes it according with given expression by traversing the buffer only once.
+A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded Bson in a Netty buffer and processes it according to a given expression and traversing the buffer only once.
 <div id='id-bosonExtractionScala'/>
 
 #### Extraction
-Extraction requires a BsonPath expression, an encoded Bson, an Higher-Order Function and a Synchrononization tool in case of multiple extractions.  The Extractor is built only once making possible to reuse it to extract from different encoded Bson.
+Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded Bson, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instante is built only once and can be reused multiple times to extract from different encoded Bson.
+
 ```scala
-//  Encode Bson
+//Encode Bson:
 val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
 
-//	BsonPath expression
+//BsonPath expression:
 val expression: String = "..fridgeReadings.[1].fanVelocity"
 
-//	Synchronization tool
+//Synchronization tool:
 val latch: CountDownLatch = new CountDownLatch(1)
 
-//	Simple Extractor
+//Simple Extractor:
 val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
-				// Use 'in' value, this is the value extracted.
-				latch.countDown()
+  // Use 'in' value, this is the value extracted.
+  latch.countDown()
 })
 
-//	Trigger extraction with encoded Bson
+//Trigger extraction with encoded Bson:
 boson.go(validatedByteArray)
 
-//	Wait to complete extraction
+//Wait to complete extraction:
 latch.await()
 ```
 <div id='id-bosonInjectionScala'/>
 
 #### Injection
-Injection requires a BsonPath expression, an encoded Bson and an Higher-Order Function and it returns a CompletableFuture[Array[Byte]] so it is not necessary to use a Synchronization tool.  The Injector is built only once making possible to reuse it to inject in different encoded Bson.
+Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded Bson and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded Bson.
 ```scala
-//  Encode Bson
+//Encode Bson:
 val validBsonArray: Array[Byte] = bsonEvent.encode().array()
 
-//	BsonPath expression
-val expression = "..Store..name"
+//BsonPath expression:
+val expression: String = "..Store..name"
 
-//	Simple Injector
+//Simple Injector:
 val boson: Boson = Boson.injector(expression, (in: String) => "newName")
 
-//	Trigger injection with encoded Bson
+//Trigger injection with encoded Bson:
 val result: Array[Byte] = boson.go(validBsonArray).join()
 ```
 
