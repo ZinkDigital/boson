@@ -1,9 +1,11 @@
 package io.boson
 
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{CompletableFuture, CountDownLatch, TimeUnit}
+
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
 import io.boson.bson.bsonValue.{BsSeq, BsValue}
+import io.boson.json.Joson
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -326,7 +328,7 @@ class jpPlusPlusTests extends FunSuite {
     assertEquals(Vector(
       15.5, 39, 40, 12.6, 38
     ), future.join().getValue)
-  } //$..Book[:]..Price -> checked
+  } //$..Book[*]..Price -> checked
 
   test("Ex ..key1..key2") {
     val expression = "Store..Price"
@@ -462,7 +464,7 @@ class jpPlusPlusTests extends FunSuite {
       "ScalaMachine",
       "C++Machine"
     ), future.join().getValue)
-  }
+  } // $..Book[*].*..Title
 
   test("Ex ..key1.*.key2[@elem]") {
     val expression = "Book.*.SpecialEditions[@Price]"
@@ -507,7 +509,7 @@ class jpPlusPlusTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
     assertEquals(Vector(), future.join().getValue)
-  }
+  } //$..Book.*.[:] -> checked
 
   test("Ex ..key1[#].*.[#]") {
     val expression = "Book[0 to end].*.[0 to end]"
@@ -661,7 +663,7 @@ class jpPlusPlusTests extends FunSuite {
   }
 
   //---------------------------------------------------------------------------------------------------//
-
+  //TODO: implement val expression = "[1 to 3]" with this class top bsonEvent
   val arrEvent: BsonArray = new BsonArray().add("Shouldn't exist").add(bsonEvent).add(false).add(new BsonObject().put("Store_1", b2))
   val encodedValidated: Array[Byte] = arrEvent.encodeToBarray()
 
@@ -686,25 +688,44 @@ class jpPlusPlusTests extends FunSuite {
     ), future.join().getValue)
   }
 
-//  val v = Vector(
-//    (
-//      Seq(
-//        Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))),
-//        Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))),
-//      Seq(
-//        Vector(List(Map(Title -> JavaMachine, Price -> 39))),
-//        Vector(List(Map(Title -> ScalaMachine, Price -> 40))),
-//        Vector(List(Map(Title -> C ++ Machine, Price -> 38))))
-//    ),
-//    (
-//      Seq(
-//        Map(Color -> Red, Price -> 48),
-//        Map(Color -> White, Price -> 35),
-//        Map(Color -> Blue, Price -> 38)
-//      ),
-//      Seq(Vector(List(Map(Title -> JavaMachine, Price -> 39))))
-//    )
-//  )
 
+  //---------------------------------------------------------------------------------------------------//
 
+  val four: BsonArray = new BsonArray().add(new BsonObject().put("Price",30)).add(new BsonObject().put("Price",40))
+  val three: BsonArray = new BsonArray().add(new BsonObject().put("Price",10)).add(new BsonObject().put("Price",20))
+  val two: BsonObject = new BsonObject().put("Book",three).put("Hat",four)
+  val one: BsonObject = new BsonObject().put("Store",two)
+
+  test("JOSON extraction example") {
+    val expression = "Book[1]"
+    val json = one.toString
+    val latch = new CountDownLatch(1)
+    val joson: Joson = Joson.extractor(expression, (in: BsValue) => {
+      assertEquals(Vector(Seq(Map("Price" -> 20))), in.getValue)
+      latch.countDown()
+    })
+
+    val future: CompletableFuture[String] = joson.go(json)
+
+    latch.await()
+
+    assertEquals(json, future.get(1,TimeUnit.SECONDS))
+  }
+
+  test("JOSON injection example") {
+    val expression = "..Book[1]"
+
+    //	Json String
+    val jsonStr: String = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
+
+    //	Simple Injector
+    val joson: Joson = Joson.injector(expression,  (in: scala.collection.immutable.Map[String, Object]) => {
+      in.+(("Title", "Scala"))
+    })
+
+    //	Trigger injection with Json
+    val result: String = joson.go(jsonStr).join()
+
+    assertEquals("{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20,\"Title\":\"Scala\"}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}", result)
+  }
 }

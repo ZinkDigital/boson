@@ -35,8 +35,7 @@ class APIwithByteBufferTests extends FunSuite{
   validatedByteBufferObj.put(validatedByteArrayObj)
   validatedByteBufferObj.flip()
 
-  test("extract PosV1 w/ key") {
-    println(arr)
+  test("extract PosV1 w/ key") { //TODO: this test in green but is incorrect
     val expression: String = "[2 to 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))

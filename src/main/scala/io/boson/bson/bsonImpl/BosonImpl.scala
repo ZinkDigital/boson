@@ -783,7 +783,7 @@ class BosonImpl(
     }
   }
 
-  private def goThroughArrayWithLimit(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
+  private def  goThroughArrayWithLimit(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
 
     val errorAnalyzer: (String) => Option[Char] = {
       case "until" | "to" => Some('!')
