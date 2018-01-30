@@ -24,8 +24,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     if (statement.nonEmpty) {
       statement.head match {
         case MoreKeys(first, list, dots) =>
-          println(s"statements: ${List(first) ++ list}")
-          println(s"dotList: $dots")
+          //println(s"statements: ${List(first) ++ list}")
+          //println(s"dotList: $dots")
           executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
@@ -65,7 +65,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       val thirdList: List[(String, String)] = secondList.zipWithIndex map {elem =>
         elem._1._2 match {
           case "limitLevel" => if(dotsList.take(elem._2+1).last.equals("..")) (elem._1._1,"limit") else elem._1
-          case "level" => println("----- NOT POSSIBLE----"); elem._1
+          case "level" => /*println("----- NOT POSSIBLE----");*/ elem._1
           case "filter" => elem._1
           case "next" => elem._1
           case "all" => (elem._1._1,"next")//elem._1
@@ -93,7 +93,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case "limitLevel" => if(dotsList.head.equals("..")) (elem._1,"limit") else elem
           case "level" => if(dotsList.head.equals("..")) (elem._1,"all") else elem
           case "filter" => elem
-          case "next" => println("----- NOT POSSIBLE----");if(dotsList.head.equals("..")) (elem._1,"all") else elem
+          case "next" => /*println("----- NOT POSSIBLE----");*/if(dotsList.head.equals("..")) (elem._1,"all") else elem
           case "all" => elem
         }
       },limitList1)
@@ -118,8 +118,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
     val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, dotsList)
-    println("after build keylist -> " + keyList._1)
-    println("after build limitlist -> " + keyList._2)
+    //println("after build keylist -> " + keyList._1)
+    //println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList._1, keyList._2) map { v =>
         v.asInstanceOf[Seq[Any]]
@@ -139,7 +139,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
 
-    println(statement.head)
+    //println(statement.head)
     if (statement.nonEmpty) {
       statement.head match {
         case MoreKeys(first, list, dots) => //  key

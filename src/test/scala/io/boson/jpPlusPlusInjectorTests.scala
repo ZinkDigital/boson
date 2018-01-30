@@ -60,14 +60,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
    // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -95,14 +95,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -130,14 +130,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -165,14 +165,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -200,14 +200,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -235,14 +235,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -270,14 +270,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -330,14 +330,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -390,14 +390,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -450,14 +450,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -510,14 +510,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -570,14 +570,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -630,14 +630,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -690,14 +690,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -750,14 +750,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
@@ -810,14 +810,14 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
-    println()
-    result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
+    //println()
+    //result.foreach(b => println("final buffer "+ b.toChar + "  " + b.toInt))
 
     val bE: Array[Byte] = bsonevent.encodeToBarray()
     // assertEquals(1,1)
 
-    println(s"Sizes: object=${bE.length}  result=${result.length}")
-    println(bE.zip(result).forall(p => p._1 == p._2))
+    //println(s"Sizes: object=${bE.length}  result=${result.length}")
+    //println(bE.zip(result).forall(p => p._1 == p._2))
 
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }

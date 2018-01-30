@@ -33,6 +33,7 @@ object Constants {
   val C_FILTER: String = "filter"
   val C_ALL: String = "all"
   val C_NEXT: String = "next"
+  val C_FIRST: String = "first"
 
   val V_NULL: String = "Null"
 
