@@ -40,7 +40,7 @@ libraryDependencies += Not Yet
 For Maven users, please add the following dependency in your pom.xml:
 ```xml
 <dependency>
-<groupId>not.yet</groupId>
+    <groupId>not.yet</groupId>
     <artifactId>not-yet</artifactId>
     <version>NotYet</version>
 </dependency>
@@ -190,7 +190,7 @@ val result: String = joson.go(json).join()
 For Maven users, please add the following dependency in your pom.xml:
 ```xml
 <dependency>
-<groupId>not.yet</groupId>
+    <groupId>not.yet</groupId>
     <artifactId>not-yet</artifactId>
     <version>NotYet</version>
 </dependency>
@@ -309,7 +309,7 @@ Deep explanation
 
 BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
 
-BsonPath expressions use the two-dot-notation: `key1.key2[0].key3`
+BsonPath expressions use the dot-notation: `key1.key2[0].key3`.
 
 Expressions whose path doesn't necessarily start from the root can be expressed in two ways:
 * No dot - ` key`
