@@ -40,7 +40,7 @@ libraryDependencies += Not Yet
 For Maven users, please add the following dependency in your pom.xml:
 ```xml
 <dependency>
-	<groupId>not.yet</groupId>
+<groupId>not.yet</groupId>
     <artifactId>not-yet</artifactId>
     <version>NotYet</version>
 </dependency>
@@ -53,7 +53,7 @@ A "Boson" is an object created when constructing an extractor/injector that enca
 <div id='id-bosonExtractionScala'/>
 
 #### Extraction
-Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.
+Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.
 
 ```scala
 //Encode Bson:
@@ -80,7 +80,7 @@ latch.await()
 <div id='id-bosonInjectionScala'/>
 
 #### Injection
-Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.
+Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.
 ```scala
 //Encode Bson:
 val validBsonArray: Array[Byte] = bsonEvent.encode().array()
@@ -102,14 +102,14 @@ A "Joson" is an object created when constructing an extractor/injector that enca
 <div id='id-josonExtractionScala'/>
 
 #### Extraction
-Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
+Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
 ```scala
 //BsonPath expression:
 val expression: String = "..Book[1]"
 
 //Json String:
-val json = “””{
-                “Store":{
+val json = “““{
+                "Store":{
 		  "Book":[
 		    {
 		      "Price":10
@@ -147,14 +147,14 @@ latch.await()
 <div id='id-josonInjectionScala'/>
 
 #### Injection
-Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different JSON Strings.
+Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different JSON Strings.
 ```scala
 //BsonPath expression:
 val expression: String = "..Book[1]"
 
 //Json String:
-val json = “””{
-                “Store":{
+val json = “““{
+                "Store":{
 		  "Book":[
 		    {
 		      "Price":10
@@ -190,7 +190,7 @@ val result: String = joson.go(json).join()
 For Maven users, please add the following dependency in your pom.xml:
 ```xml
 <dependency>
-	<groupId>not.yet</groupId>
+<groupId>not.yet</groupId>
     <artifactId>not-yet</artifactId>
     <version>NotYet</version>
 </dependency>
@@ -202,7 +202,7 @@ A "Boson" is an object created when constructing an extractor/injector that enca
 <div id='id-bosonExtractionJava'/>
 
 #### Extraction
-Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.
+Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.
 
 ```java
 //Encode Bson:
@@ -229,7 +229,7 @@ latch.await();
 <div id='id-injectionJava'/>
 
 #### Injection
-Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.
+Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.
 ```java
 //Encode Bson:
 byte[] validatedByteArray = bsonEvent.encode().array();
@@ -254,7 +254,7 @@ A "Joson" is an object created when constructing an extractor/injector that enca
 <div id='id-josonExtractionJava'/>
 
 #### Extraction
-Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
+Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
 ```java
 //BsonPath expression:
 String expression = "..Book[1]";
@@ -280,8 +280,7 @@ latch.await()
 <div id='id-josonInjectionJava'/>
 
 #### Injection
-Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String and an Higher-Order Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different JSON Strings.
-Injection requires a BsonPath expression, a Json String and a Function and it returns a CompletableFuture<byte[]> so it is not necessary to use a Synchronization tool.  The Injector is built only once making possible to reuse it to inject in different Json Strings.
+Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String and a Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different JSON Strings.
 ```java
 //BsonPath expression:
 String expression = "..Book[1]";
@@ -310,10 +309,11 @@ Deep explanation
 
 BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
 
-BsonPath expressions use the two-dot-notation: `key1.key2[0]..key3`
+BsonPath expressions use the two-dot-notation: `key1.key2[0].key3`
+
 Expressions whose path doesn't necessarily start from the root can be expressed in two ways:
 * No dot - ` key`
-*  Two dots - `..key`
+* Two dots - `..key`
 
 ### Operators
 
