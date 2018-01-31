@@ -4,7 +4,7 @@ import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.CustomException
 import io.boson.json.jsonPath.{JsonInterpreter, JsonProgram, JsonTinyLanguage}
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.vertx.core.json.{Json, JsonObject}
+import io.vertx.core.json.JsonObject
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -14,7 +14,7 @@ import org.scalatest.junit.JUnitRunner
   * Created by Ricardo Martins on 19/01/2018.
   */
 @RunWith(classOf[JUnitRunner])
-class JosonTests extends FunSuite{
+class JsonInterpreterTests extends FunSuite{
   val json = "{\"Store\":{\"Book\":[{\"Title\":\"Java\",\"Price\":15.5,\"SpecialEditions\":[{\"Title\":\"JavaMachine\",\"Price\":39}]},{\"Title\":\"Scala\",\"Price\":21.5,\"SpecialEditions\":[{\"Title\":\"ScalaMachine\",\"Price\":40}]},{\"Title\":\"C++\",\"Price\":12.6,\"SpecialEditions\":[{\"Title\":\"C++Machine\",\"Price\":38}]}],\"Hat\":[{\"Price\":48,\"Color\":\"Red\"},{\"Price\":35,\"Color\":\"White\"},{\"Price\":38,\"Color\":\"Blue\"}]}}"
 
   val hat3: BsonObject = new BsonObject().put("Price", 38).put("Color", "Blue")
@@ -34,7 +34,7 @@ class JosonTests extends FunSuite{
   val store: BsonObject = new BsonObject().put("Book", books).put("Hat", hats)
   val bson: BsonObject = new BsonObject().put("Store", store)
 
-  test("Joson"){
+  test("Joson JsonInterpreter "){
     val parser = new JsonTinyLanguage
     val buffer: ByteBuf = try {
       parser.parseAll(parser.programJson, json) match {
@@ -55,7 +55,7 @@ class JosonTests extends FunSuite{
     assertTrue(a.zip(b).forall(p => p._1==p._2))
   }
 
-  test("Array to Json"){
+  test("Array to Json with JsonInterpreter"){
     val parser = new JsonTinyLanguage
     val buffer: ByteBuf = try {
       parser.parseAll(parser.programJson, json) match {

@@ -56,6 +56,7 @@ public class BsonObject implements Iterable<Map.Entry<String, Object>> {
      */
     public BsonObject(Buffer buffer) {
         fromBson(new ByteArrayInputStream(buffer.getBytes()));
+        fromBson(new ByteArrayInputStream(buffer.getBytes()));
     }
 
     /**

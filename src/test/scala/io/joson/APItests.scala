@@ -1,22 +1,52 @@
 package io.joson
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, IOException, OutputStream}
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
+import com.fasterxml.jackson.core.{JsonFactory, JsonGenerator}
+import com.fasterxml.jackson.databind.{JsonNode, JsonSerializer, ObjectMapper, SerializerProvider}
+import com.fasterxml.jackson.databind.module.SimpleModule
+import de.undercouch.bson4jackson.BsonFactory
 import io.boson.bson.Boson
+import io.boson.bson.bsonImpl.Constants._
 import io.boson.bson.bsonValue.BsValue
 import io.boson.json.Joson
+import io.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
+
+import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ByteProcessor
+import io.vertx.core.json.{Json, JsonArray, JsonObject}
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
+import scala.collection.immutable.List
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConverters._
 /**
   * Created by Ricardo Martins on 22/01/2018.
   */
+
+
 @RunWith(classOf[JUnitRunner])
 class APItests extends FunSuite{
 
+ /* case class JsonObjectSerializer() extends JsonSerializer[JsonObject] {
+    @throws[IOException]
+    override def serialize(value: JsonObject, jgen: JsonGenerator, provider: SerializerProvider): Unit = {
+      jgen.writeObject(value.getMap)
+    }
+  }
+
+  case class JsonArraySerializer() extends JsonSerializer[JsonArray] {
+    @throws[IOException]
+    override def serialize(value: JsonArray, jgen: JsonGenerator, provider: SerializerProvider): Unit = {
+      jgen.writeObject(value.getList)
+    }
+  }*/
 
   val hat3: BsonObject = new BsonObject().put("Price", 38).put("Color", "Blue")
   val hat2: BsonObject = new BsonObject().put("Price", 35).put("Color", "White")
@@ -37,6 +67,35 @@ class APItests extends FunSuite{
 
 
   val json = "{\"Store\":{\"Book\":[{\"Title\":\"Java\",\"SpecialEditions\":[{\"Title\":\"JavaMachine\",\"Price\":39}],\"Price\":15.5},{\"Title\":\"Scala\",\"Price\":21.5,\"SpecialEditions\":[{\"Title\":\"ScalaMachine\",\"Price\":40}]},{\"Title\":\"C++\",\"Price\":12.6,\"SpecialEditions\":[{\"Title\":\"C++Machine\",\"Price\":38}]}],\"Hat\":[{\"Price\":48,\"Color\":\"Red\"},{\"Price\":35,\"Color\":\"White\"},{\"Price\":38,\"Color\":\"Blue\"}]}}"
+
+
+
+  test("json"){
+    //String => Json Object
+    val a: JsonObject = new JsonObject(json)
+
+    //Set the Mapper with JsonObject and JsonArray Serializer
+    val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
+    val os = new ByteArrayOutputStream
+    val module = new SimpleModule
+    module.addSerializer(classOf[JsonObject],new JsonObjectSerializer)
+    module.addSerializer(classOf[JsonArray], new JsonArraySerializer)
+    mapper.registerModule(module)
+
+    //convert JsonObject
+    mapper.writeValue(os, a)
+
+    //print encoded json
+    os.toByteArray.foreach(b => println(b.toChar + "  " + b.toInt))
+
+    //convert from byte[] to JsonNode
+    val s: JsonNode = mapper.readTree(os.toByteArray)
+    os.flush()
+    //read and print json received and original json
+    println(s.toString)
+    println(json)
+  }
+
 
   test("json == bson") {
 
