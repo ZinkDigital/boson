@@ -87,19 +87,218 @@ public class APItests {
     }
 
     @Test
-    public void ExtractContentFromArrayPos() {
-        String expression = ".Store";
+    public void ExtractFromArrayPos() {
+        String expression = ".Store.Book[1 to 2]";
         CompletableFuture<BsValue> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(bson.encodeToBarray());
-        Object bson = future1.join().getValue();
-        System.out.println(bson);
+        Object result = future1.join().getValue();
+        System.out.println(result);
 
         assertEquals(
-                "Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))," +
-                        " Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hat -> List(Map(Price -> 48, Color -> Red), Map(Price -> 35, Color -> White), Map(Price -> 38, Color -> Blue))))",
-                bson.toString());
+                "Vector(List(Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))))",
+                result.toString());
+    }   //$.Store.Book[1:2] -> checked
+
+    @Test
+    public void ExtractFromArrayPosWithEnd() {
+        String expression = ".Store.Book[1 until end]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(List(Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))))",
+                result.toString());
+    }   //$.Store.Book[0:2] -> checked
+
+    @Test
+    public void ExtractKeyFromArrayPosWithEnd() {
+        String expression = ".Store.Book[1 until end].Price";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(21.5)",
+                result.toString());
+    }   //$.Store.Book[:].Price -> checked
+
+    @Test
+    public void ExtractFromArrayWithElem2Times() {
+        String expression = ".Store.Book[@Price].SpecialEditions[@Title]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Map(Title -> JavaMachine, Price -> 39)," +
+                        " Map(Title -> ScalaMachine, Price -> 40)," +
+                        " Map(Title -> C++Machine, Price -> 38))",
+                result.toString());
+    }   //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
+
+    @Test
+    public void ExtractFromArrayWithElem() {
+        String expression = ".Store.Book[@SpecialEditions]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38))))",
+                result.toString());
+    }   //$.Store.Book[?(@.SpecialEditions)]
+
+    @Test
+    public void ExtractKeyFromArrayWithElem() {
+        String expression = ".Store.Book[@Price].Title";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Java, Scala, C++)",
+                result.toString());
+    } //$.Store.Book[?(@.Price)].Title -> checked
+
+    @Test
+    public void ExtractFromArrayWithElemAndArrayPos() {
+        String expression = ".Store.Book[@SpecialEditions].SpecialEditions[0]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(List(Map(Title -> JavaMachine, Price -> 39)), List(Map(Title -> ScalaMachine, Price -> 40)), List(Map(Title -> C++Machine, Price -> 38)))",
+                result.toString());
     }
 
+    @Test
+    public void ExtractFromArrayPosAndArrayWithElem() {
+        String expression = ".Store.Book[0 until 1].SpecialEditions[@Price]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Map(Title -> JavaMachine, Price -> 39))",
+                result.toString());
+    }
+
+    @Test
+    public void ExtractEverythingFromRoot() {
+        String expression = ".*";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38))))," +
+                        " Hat -> List(Map(Price -> 48, Color -> Red), Map(Price -> 35, Color -> White), Map(Price -> 38, Color -> Blue))))",
+                result.toString());
+    }   //$.* -> checked
+
+    @Test
+    public void ExtractEntireArray() {
+        String expression = ".Store.Book";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39)))," +
+                        " Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))," +
+                        " Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))))",
+                result.toString());
+    }   //$.Store.Book -> checked
+
+    @Test
+    public void ExtractAllPrices() {
+        String expression = "Price";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(15.5, 39, 21.5, 40, 12.6, 38, 48, 35, 38)",
+                result.toString());
+    }   //$..Price -> checked
+
+    @Test
+    public void ExtractAllBookPrices() {
+        String expression = "Book..Price";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(15.5, 39, 21.5, 40, 12.6, 38)",
+                result.toString());
+    }   //$.Book..Price -> checked
+
+    @Test
+    public void ExtractTitlesOfBooks() {
+        String expression = "Book.Title";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Java, Scala, C++)",
+                result.toString());
+    }   //$..Book[:].Title -> checked
+
+    @Test
+    public void ExtractKeyEverywhereArrayWithElem() {
+        String expression = "SpecialEditions[@Price].Title";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(JavaMachine, ScalaMachine, C++Machine)",
+                    result.toString());
+        }   //$..SpecialEditions[?(@.Price)].Title -> checked
+
+    @Test
+    public void ExtractEverywhereArrayWithElem() {
+        String expression = "SpecialEditions[@Price]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join().getValue();
+        System.out.println(result);
+
+        assertEquals(
+                "Vector(Map(Title -> JavaMachine, Price -> 39), Map(Title -> ScalaMachine, Price -> 40), Map(Title -> C++Machine, Price -> 38))",
+                result.toString());
+    }
 
 }
