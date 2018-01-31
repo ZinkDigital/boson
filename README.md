@@ -32,114 +32,162 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ## QuickStart Guide
 
-Boson is available at the Central Maven Repository. SBT users add this to build.sbt.
+Boson is available through the Central Maven Repository. 
+For SBT users, please add the following dependency in your build.sbt:
 ```scala
 libraryDependencies += Not Yet
 ```
+For Maven users, please add the following dependency in your pom.xml:
+```xml
+<dependency>
+	<groupId>not.yet</groupId>
+    <artifactId>not-yet</artifactId>
+    <version>NotYet</version>
+</dependency>
+```
+
 <div id='id-BosonScala'/>
 
 ### Boson
-Boson is the object created when constructing an extractor/injector that encapsulates an encoded Bson in a Netty buffer and processes it according with given expression by traversing the buffer only once.
+A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded BSON in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
 <div id='id-bosonExtractionScala'/>
 
 #### Extraction
-Extraction requires a BsonPath expression, an encoded Bson, an Higher-Order Function and a Synchrononization tool in case of multiple extractions.  The Extractor is built only once making possible to reuse it to extract from different encoded Bson.
+Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.
+
 ```scala
-//  Encode Bson
+//Encode Bson:
 val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
 
-//	BsonPath expression
+//BsonPath expression:
 val expression: String = "..fridgeReadings.[1].fanVelocity"
 
-//	Synchronization tool
+//Synchronization tool:
 val latch: CountDownLatch = new CountDownLatch(1)
 
-//	Simple Extractor
+//Simple Extractor:
 val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
-				// Use 'in' value, this is the value extracted.
-				latch.countDown()
+  // Use 'in' value, this is the value extracted.
+  latch.countDown()
 })
 
-//	Trigger extraction with encoded Bson
+//Trigger extraction with encoded Bson:
 boson.go(validatedByteArray)
 
-//	Wait to complete extraction
+//Wait to complete extraction:
 latch.await()
 ```
 <div id='id-bosonInjectionScala'/>
 
 #### Injection
-Injection requires a BsonPath expression, an encoded Bson and an Higher-Order Function and it returns a CompletableFuture[Array[Byte]] so it is not necessary to use a Synchronization tool.  The Injector is built only once making possible to reuse it to inject in different encoded Bson.
+Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.
 ```scala
-//  Encode Bson
+//Encode Bson:
 val validBsonArray: Array[Byte] = bsonEvent.encode().array()
 
-//	BsonPath expression
-val expression = "..Store..name"
+//BsonPath expression:
+val expression: String = "..Store..name"
 
-//	Simple Injector
+//Simple Injector:
 val boson: Boson = Boson.injector(expression, (in: String) => "newName")
 
-//	Trigger injection with encoded Bson
+//Trigger injection with encoded Bson:
 val result: Array[Byte] = boson.go(validBsonArray).join()
 ```
 
 <div id='id-JosonScala'/>
 
 ### Joson
-Joson is the object created when constructing an extractor/injector that encapsulates a Json String, encoded the same way as a Bson in a Netty buffer and processes it according with given expression by traversing the buffer only once.
+A "Joson" is an object created when constructing an extractor/injector that encapsulates a JSON String, encoding it as a BSON in a Netty buffer, and then processes it according to a given expression, traversing the buffer only once.
 <div id='id-josonExtractionScala'/>
 
 #### Extraction
-Extraction requires a BsonPath expression, a Json String, an Higher-Order Function and a Synchrononization tool in case of multiple extractions.  The Extractor is built only once making possible to reuse it to extract from different Json Strings.
+Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
 ```scala
-//	BsonPath expression
-val expression = "..Book[1]"
+//BsonPath expression:
+val expression: String = "..Book[1]"
 
-//	Json String
-val json = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
+//Json String:
+val json = “””{
+                “Store":{
+		  "Book":[
+		    {
+		      "Price":10
+		    },
+		    {
+		      "Price":20
+		    }
+		  ],
+		  "Hat":[
+		    {
+		      "Price":30
+		    },
+		    {
+		      "Price":40
+		    }
+		  ]
+		}
+              }”””
 
+//Synchronization tool:
+val latch: CountDownLatch = new CountDownLatch(1)
 
-//	Synchronization tool
-val latch = new CountDownLatch(1)
-
-//	Simple Extractor
+//Simple Extractor:
 val joson: Joson = Joson.extractor(expression, (in: BsValue) => {
-			  // Use 'in' value, this is the value extracted.
-		      latch.countDown()
-			  })
+  // Use 'in' value, this is the value extracted.
+  latch.countDown()
+})
 
-//	Trigger extraction with Json
+//Trigger extraction with Json:
 val result: String = joson.go(json).join()
 
-//	Wait to complete extraction
+//Wait to complete extraction:
 latch.await()
 ```
 <div id='id-josonInjectionScala'/>
 
 #### Injection
-Injection requires a BsonPath expression, a Json String and an Higher-Order Function and it returns a CompletableFuture[Array[Byte]] so it is not necessary to use a Synchronization tool.  The Injector is built only once making possible to reuse it to inject in different Json Strings.
+Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different JSON Strings.
 ```scala
-//	BsonPath expression
-val expression = "..Book[1]"
+//BsonPath expression:
+val expression: String = "..Book[1]"
 
-//	Json String
-val jsonStr: String = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
+//Json String:
+val json = “””{
+                “Store":{
+		  "Book":[
+		    {
+		      "Price":10
+		    },
+		    {
+		      "Price":20
+		    }
+		  ],
+		  "Hat":[
+		    {
+		      "Price":30
+		    },
+		    {
+		      "Price":40
+		    }
+		  ]
+		}
+              }”””
 
-//	Simple Injector
+//Simple Injector:
 val joson: Joson = Joson.injector(expression,  (in: Map[String, Object]) => {
-		      in.+(("Title", "Scala"))
-			  })
+  in.+(("Title", "Scala"))
+})
 
-//	Trigger injection with Json
-val result: String = joson.go(jsonStr).join()
+//Trigger injection with Json:
+val result: String = joson.go(json).join()
 ```
 
 <div id='id-quickStartGuideJava'/>
 
 ## QuickStart Guide
 
-Boson is available at the Central Maven Repository. Maven users add this to POM.xml.
+For Maven users, please add the following dependency in your pom.xml:
 ```xml
 <dependency>
 	<groupId>not.yet</groupId>
@@ -150,103 +198,105 @@ Boson is available at the Central Maven Repository. Maven users add this to POM.
 <div id='id-BosonJava'/>
 
 ### Boson
-Boson is the object created when constructing an extractor/injector that encapsulates an encoded Bson in a Netty buffer and processes it according with given expression by traversing the buffer only once.
-<div id='id-extractionJava'/>
+A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded BSON in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+<div id='id-bosonExtractionJava'/>
 
 #### Extraction
-Extraction requires a BsonPath expression, an encoded Bson, a Consumer and a Synchrononization tool in case of multiple extractions.  The Extractor is built only once making possible to reuse it to extract from different encoded Bson.
+Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.
+
 ```java
-//  Encode Bson
+//Encode Bson:
 byte[] validatedByteArray = bsonEvent.encode().array();
 
-//  BsonPath expression
+//BsonPath expression:
 String expression = "..Store..SpecialEditions[@Extra]";
 
-//	Synchronization tool
+//Synchronization tool:
 CountDownLatch latch = new CountDownLatch(1);
 
-//	Simple Extractor
+//Simple Extractor:
 Boson boson = Boson.extractor(expression, obj-> {
-			// Use 'obj' value, this is the value extracted.
-			latch.countDown();
-			});
+	// Use 'obj' value, this is the value extracted.
+	latch.countDown();
+});
 
-//	Trigger extraction with encoded Bson
+//Trigger extraction with encoded Bson:
 boson.go(validatedByteArray);
 
-//	Wait to complete extraction
+//Wait to complete extraction:
 latch.await();
 ```
 <div id='id-injectionJava'/>
 
 #### Injection
-Injection requires a BsonPath expression, an encoded Bson and  a Function and it returns a CompletableFuture<byte[]> so it is not necessary to use a Synchronization tool.  The Injector is built only once making possible to reuse it to inject in different encoded Bson.
+Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.
 ```java
-//  Encode Bson
+//Encode Bson:
 byte[] validatedByteArray = bsonEvent.encode().array();
 
-//	BsonPath expression
+//BsonPath expression:
 String expression = "..Store.[2 until 4]";
 
-//	Simple Injector
+//Simple Injector:
 Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
-            in.put("WHAT", 10);
-            return in;
-            });
+	in.put("WHAT", 10);
+	return in;
+});
 
-//	Trigger injection with encoded Bson
+//Trigger injection with encoded Bson:
 byte[] result = boson.go(validatedByteArray).join();
 ```
 
 <div id='id-JosonJava'/>
 
 ### Joson
-Joson is the object created when constructing an extractor/injector that encapsulates a Json String, encoded the same way as a Bson in a Netty buffer and processes it according with given expression by traversing the buffer only once.
+A "Joson" is an object created when constructing an extractor/injector that encapsulates a JSON String, encoding it as a BSON in a Netty buffer, and then processes it according to a given expression, traversing the buffer only once.
 <div id='id-josonExtractionJava'/>
 
 #### Extraction
-Extraction requires a BsonPath expression, a Json String, a Consumer and a Synchrononization tool in case of multiple extractions.  The Extractor is built only once making possible to reuse it to extract from different Json Strings.
+Extraction requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
 ```java
-//	BsonPath expression
+//BsonPath expression:
 String expression = "..Book[1]";
 
-//	Json String
+//Json String:
 String jsonStr = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
 
-//	Synchronization tool
+//Synchronization tool:
 CountDownLatch latch = new CountDownLatch(1);
 
-//	Simple Extractor
+//Simple Extractor:
 Joson joson = Joson.extractor(expression, obj-> {
-			// Use 'obj' value, this is the value extracted.
-			latch.countDown();
-			});
+	// Use 'obj' value, this is the value extracted.
+	latch.countDown();
+});
 
-//	Trigger extraction with Json
+//Trigger extraction with Json:
 joson.go(jsonStr);
 
-//	Wait to complete extraction
+//Wait to complete extraction:
 latch.await()
 ```
 <div id='id-josonInjectionJava'/>
 
 #### Injection
+Injection requires a "BsonPath" expression (see blablabla table for examples and syntax), a JSON String and an Higher-Order Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different JSON Strings.
 Injection requires a BsonPath expression, a Json String and a Function and it returns a CompletableFuture<byte[]> so it is not necessary to use a Synchronization tool.  The Injector is built only once making possible to reuse it to inject in different Json Strings.
 ```java
-//	BsonPath expression
+//BsonPath expression:
 String expression = "..Book[1]";
 
-//	Json String
+//Json String:
 String jsonStr = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
 
-//	Simple Injector
+//Simple Injector:
 Joson joson = Joson.injector(expression,  (Map<String, Object> in) -> {
-            in.put("WHAT", 10);
-            return in;
-        });
+	in.put("WHAT", 10);
+	return in;
+});
 
-//	Trigger injection with Json
-String result= joson.go(jsonStr).join();
+//Trigger injection with Json:
+String result = joson.go(jsonStr).join();
 ```
 
 # Scala Documentation
@@ -258,9 +308,9 @@ Deep explanation
 # Common Documentation
 ## BsonPath
 
-BsonPath expressions always refer to a BSON structure in the same was as JsonPath expressions are used in combination with a JSON structure and also as XPath expressions are used with a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you desire to specify a path starting from the root, the expression must begin with a dot (`.key`).
+BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
 
-BsonPath expressions use the dot-notation: `key1.key2[0]..key3`
+BsonPath expressions use the two-dot-notation: `key1.key2[0]..key3`
 Expressions whose path doesn't necessarily start from the root can be expressed in two ways:
 * No dot - ` key`
 *  Two dots - `..key`
