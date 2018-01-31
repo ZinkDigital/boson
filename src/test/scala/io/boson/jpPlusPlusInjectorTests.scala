@@ -40,7 +40,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
   val bsonEvent: BsonObject = bson
   val validatedByteArr: Array[Byte] = bsonEvent.encodeToBarray()
 
- /*   test(".Store.Book..0.Title") {
+    test(".Store.Book..0.Title") {
       val hat3: BsonObject = new BsonObject().put("Price", 38).put("Color", "Blue")
       val hat2: BsonObject = new BsonObject().put("Price", 35).put("Color", "White")
       val hat1: BsonObject = new BsonObject().put("Price", 48).put("Color", "Red")
@@ -725,9 +725,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
   }
 
   test("..[#]") {
-    val value00x: BsonObject = new BsonObject().put("one", 1).put("three", 3).put("two", 2).put("ten", 10)
+    val value00x: BsonObject = new BsonObject().put("one", 1).put("ten", 10).put("three", 3).put("two", 2)
     val value01x: BsonObject = new BsonObject().put("five", 5).put("four", 4).put("six", 6)
-    val value10x: BsonObject = new BsonObject().put("one", 1).put("three", 3).put("two", 2).put("ten", 10)
+    val value10x: BsonObject = new BsonObject().put("one", 1).put("ten", 10).put("three", 3).put("two", 2)
     val value11x: BsonObject = new BsonObject().put("five", 5).put("four", 4).put("six", 6)
     val value20x: BsonObject = new BsonObject().put("one", 1).put("three", 3).put("two", 2).put("ten", 10)
     val value21x: BsonObject = new BsonObject().put("four", 4).put("five", 5).put("six", 6)
@@ -783,7 +783,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val value11x: BsonObject = new BsonObject().put("five", 5).put("four", 4).put("six", 6)
     val value20x: BsonObject = new BsonObject().put("one", 1).put("two", 2).put("three", 3)
     val value21x: BsonObject = new BsonObject().put("four", 4).put("five", 5).put("six", 6)
-    val value30x: BsonObject = new BsonObject().put("one", 1).put("three", 3).put("two", 2).put("ten", 10)
+    val value30x: BsonObject = new BsonObject().put("one", 1).put("ten", 10).put("three", 3).put("two", 2)
     val value31x: BsonObject = new BsonObject().put("four", 4).put("five", 5).put("six", 6)
     val typeDListx: BsonArray = new BsonArray().add(value30x).add(value31x)
     val typeCListx: BsonArray = new BsonArray().add(value20x).add(value21x)
@@ -828,7 +828,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
 
-*/
+
   test("Inj ..Books[0 until end]"){
     //val book6: BsonObject = new BsonObject().put("Title", "Prolog")
     //val book5: BsonObject = new BsonObject().put("Title", "Lisp")
