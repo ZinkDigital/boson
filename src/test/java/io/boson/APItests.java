@@ -3,6 +3,7 @@ import bsonLib.BsonArray;
 import bsonLib.BsonObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.boson.bson.Boson;
+import io.boson.bson.bsonValue.BsSeq;
 import io.boson.bson.bsonValue.BsValue;
 import io.boson.json.Joson;
 import org.junit.Test;
@@ -83,8 +84,21 @@ public class APItests {
         System.out.println(bson1);
 
         assertEquals(json1, bson1 );
+    }
 
+    @Test
+    public void ExtractContentFromArrayPos() {
+        String expression = ".Store";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+        Object bson = future1.join().getValue();
+        System.out.println(bson);
 
+        assertEquals(
+                "Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Price -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))," +
+                        " Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hat -> List(Map(Price -> 48, Color -> Red), Map(Price -> 35, Color -> White), Map(Price -> 38, Color -> Blue))))",
+                bson.toString());
     }
 
 

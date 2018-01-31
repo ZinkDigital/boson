@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
-import io.boson.bson.bsonImpl.Constants._
+import io.boson.bson.bsonImpl.Dictionary._
 import io.boson.bson.bsonValue.BsValue
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ByteProcessor

@@ -15,11 +15,6 @@ import scala.compat.java8.FunctionConverters._
 
 class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends bson.Boson {
 
-  val bP: ByteProcessor = (value: Byte) => {
-    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
-    true
-  }
-
   val anon: T => T = injectFunction.asScala
 
   def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):bsonValue.BsValue = {
@@ -41,9 +36,6 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
   override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
     val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-//    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-//    boson.getByteBuf.forEachByte(bP)
-//    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     val future: CompletableFuture[Array[Byte]] =
       CompletableFuture.supplyAsync(() =>{
 
@@ -52,24 +44,16 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
           bsonByteEncoding
         case nb: BsBoson =>
           nb.getValue.getByteBuf.array()
-        case x =>
-
+        case _ =>
           bsonByteEncoding
       }
-
       r
     })
-//    boson.getByteBuf.forEachByte(bP)
-//    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    //future.get()
     future
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer] = {
     val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-    //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    //    boson.getByteBuf.forEachByte(bP)
-    //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     val future: CompletableFuture[ByteBuffer] =
     CompletableFuture.supplyAsync(() =>{
 
@@ -77,16 +61,11 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
         case ex: BsException => println(ex.getValue)
           bsonByteBufferEncoding
         case nb: BsBoson => nb.getValue.getByteBuf.nioBuffer()
-        case x =>
-
+        case _ =>
           bsonByteBufferEncoding
       }
-
       r
     })
-    //    boson.getByteBuf.forEachByte(bP)
-    //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    //future.get()
     future
   }
 

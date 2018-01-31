@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util
 
 import bsonLib.{BsonArray, BsonObject}
-import io.boson.bson.bsonImpl.Constants._
+import io.boson.bson.bsonImpl.Dictionary._
 import io.netty.buffer.{ByteBuf, Unpooled}
 
 import scala.collection.immutable.List

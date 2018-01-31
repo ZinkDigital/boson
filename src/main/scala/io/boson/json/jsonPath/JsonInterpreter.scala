@@ -2,7 +2,7 @@ package io.boson.json.jsonPath
 
 
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.boson.bson.bsonImpl.Constants._
+import io.boson.bson.bsonImpl.Dictionary._
 import io.boson.bson.bsonImpl.CustomException
 
 import scala.collection.immutable.List

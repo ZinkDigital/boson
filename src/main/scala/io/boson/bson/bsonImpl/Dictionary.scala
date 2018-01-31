@@ -2,10 +2,8 @@ package io.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
 
-import io.vertx.core.json.{JsonArray, JsonObject}
 
-
-object Constants {
+object Dictionary {
   val EMPTY_CONSTRUCTOR: String = "EmptyConstructor"
   val SCALA_ARRAYBUF: String = "ArrayBuffer"
   val JAVA_BYTEBUFFER: String = "HeapByteBuffer"
@@ -37,6 +35,5 @@ object Constants {
 
   val V_NULL: String = "Null"
 
-  // Our Own Netty Buffer Implementation
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

@@ -122,7 +122,7 @@ class InjectorParserTests extends FunSuite {
     val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Long]*4L, expression)
     val resultParser: Any = resultBoson match {
       case ex: BsException => println(ex.getValue)
-      case nb: BsBoson => callParse(nb.getValue,expression)
+      case nb: BsBoson => callParse(BsBoson.unapply(nb).get,expression)
       case _ => List()
     }
     println( resultParser.asInstanceOf[BsSeq])
@@ -299,8 +299,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> callParse(nb, expression)
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     println(result2)
     val resultParser: Any = result2 match {
@@ -309,8 +309,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> nb
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     assert(Vector(List(1, 8, 3), List(1, 8, 3), List(1, 8, 3)) === resultParser)
   }
@@ -340,8 +340,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=>callParse(nb, expression1)
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     val resultParser: Any = result2 match {
       case BsException(ex) =>
@@ -349,8 +349,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> nb
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     assert(Vector(List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy"))) === resultParser)
   }
@@ -388,8 +388,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> nb
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     assert(Vector(List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")))=== resultParser)
   }
@@ -427,8 +427,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> nb
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     assert(Vector(56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0, 56.0)=== resultParser)
   }
@@ -467,8 +467,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> nb
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     assert( Vector("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
       === resultParser)
@@ -508,8 +508,8 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e//.replaceAll("\\p{C}", "")) //TODO problema com strings
       case BsBoson(nb)=> nb
-      case BsNumber(n) => n
-      case BsBoolean(b) => b
+//      case BsNumber(n) => n
+//      case BsBoolean(b) => b
     }
     assert( Vector("RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE", "RicardoMINE", "TiagoMINE", "JoãoMINE")
 

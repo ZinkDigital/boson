@@ -8,6 +8,7 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonValue._
 import io.boson.bson.bsonValue
+import org.junit.Assert.assertEquals
 
 /**
   * Created by Tiago Filipe on 18/10/2017.
@@ -23,7 +24,7 @@ class LanguageTests extends FunSuite {
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("thing", arr3)
   val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", arr4)
 
-  val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
+  val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3).addNull().add(100L).add(2.3f).add(false).add(24)
 
   val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
 
@@ -71,8 +72,116 @@ class LanguageTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
     assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))
-      )))) === resultParser)
+      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
+      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
+      null,
+      100L,
+      2.3f,
+      false
+    ))) === resultParser)
+  }
+
+  test("[# to #](all Pos)") {
+    val expression: String = "fridgeReadings[0 to 7]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val resultParser: BsValue = callParse(boson, expression)
+    assert(BsSeq(Vector(Seq(
+      Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 15))),
+      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
+      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
+      null,
+      100L,
+      2.3f,
+      false,
+      24
+    ))) === resultParser)
+  }
+
+  test("all Pos without limits") {
+    val expression: String = "fridgeReadings"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val resultParser: BsValue = callParse(boson, expression)
+    assert(BsSeq(Vector(Seq(
+      Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 15))),
+      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
+      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
+      null,
+      100L,
+      2.3f,
+      false,
+      24
+    ))) === resultParser)
+  }
+
+  test("last Pos with limits") {
+    val expression: String = "fridgeReadings[7 to end]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val resultParser: BsValue = callParse(boson, expression)
+    assert(BsSeq(Vector(Seq(24))) === resultParser)
+  }
+
+  val arr1: BsonArray = new BsonArray().add("Hat").add(false).add(2.2).addNull().add(1000L).add(new BsonArray().addNull()).add(2)
+    .add(new BsonObject().put("Quantity",500L).put("SomeObj",new BsonObject().putNull("blah")).put("one",false).putNull("three"))
+  val bE: BsonObject = new BsonObject().put("Store",arr1)
+
+  test(".key[#]..key2") {
+    val expression: String = ".Store[7]..Quantity"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(500L)), result)
+  }
+
+  test("..key[@elem], matches the elem") {
+    val expression: String = "..Store[@SomeObj]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+  }
+  test("..key[@elem], doesn't match the elem") {
+    val expression: String = "..Store[@Nothing]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+  test("..key[@elem], elem match with bool") {
+    val expression: String = "..Store[@one]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+  }
+  test("..key[@elem], elem match with Long") {
+    val expression: String = "..Store[@Quantity]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+  }
+  test("..key[@elem], elem match with Null") {
+    val expression: String = "..Store[@three]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+  }
+
+
+  test(".[#to#].[#].[#]") {
+    val expression: String = ".[5 to 7].[1].[0]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+
+  test(".[#toend].[#].[#]") {
+    val expression: String = ".[5 to end].[1].[0]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+
+  test(".key..key2, key matches with array") {
+    val expression: String = ".Store..Quantity"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(500L)), result)
   }
 
   test("[# to #]") {
@@ -185,6 +294,11 @@ class LanguageTests extends FunSuite {
     assert(BsSeq(Vector(
       Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
       ))) === resultParser)
+  }
+
+  test("") {
+    val o = Writes.apply((x:String) => BsException.apply(x))
+
   }
 
 }
