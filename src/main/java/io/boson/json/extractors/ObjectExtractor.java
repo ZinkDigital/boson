@@ -2,9 +2,7 @@ package io.boson.json.extractors;
 
 
 
-import javax.json.stream.JsonParser;
 
-import static javax.json.stream.JsonParser.Event.START_OBJECT;
 
 
 /**

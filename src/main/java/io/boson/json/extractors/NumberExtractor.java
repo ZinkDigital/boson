@@ -1,11 +1,7 @@
 package io.boson.json.extractors;
 
 
-import javax.json.stream.JsonParser;
 
-import java.math.BigDecimal;
-
-import static javax.json.stream.JsonParser.Event.KEY_NAME;
 
 
 public class NumberExtractor  {
@@ -29,7 +25,7 @@ public class NumberExtractor  {
 //                validation = apply(jsonStream);
 //            }
 //        } else {
-//            validation = new Trace<BigDecimal>("Unexpected event " + event.name() + " expecting " + KEY_NAME.name());
+//
 //        }
 //
 //        return validation;

@@ -1,46 +1,38 @@
 package io.boson.json.extractors;
 
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 
-import javax.json.JsonValue;
-import javax.json.stream.JsonParser;
-
-import static javax.json.stream.JsonParser.Event.KEY_NAME;
+import java.util.function.Consumer;
 
 
 public class BooleanExtractor  {
 
-    public final String keyName;
+    public final String expression;
+    public final Consumer<Boolean> extractFunction;
 
-    public BooleanExtractor(String keyName) {
-        this.keyName = keyName;
+    public BooleanExtractor(String expression, Consumer<Boolean> extractFunction)  {
+        this.expression = expression;
+        this.extractFunction = extractFunction;
     }
 
-//    public Validation<Boolean> apply(JsonParser jsonStream) {
-//
-//        JsonParser.Event event = jsonStream.next();
-//        Validation<Boolean> validation;
-//        if ( event == KEY_NAME ) {
-//            String key = jsonStream.getString();
-//            event = jsonStream.next();
-//            if (key.equals(keyName)) {
-//                JsonValue val = jsonStream.getValue();
-//                if (val == JsonValue.TRUE) {
-//                    validation = new Result<>(Boolean.TRUE);
-//                } else if (val == JsonValue.FALSE) {
-//                    validation = new Result<>(Boolean.FALSE);
-//                } else {
-//                    validation = new Trace<>("Key " + keyName + " is not of type Boolean");
-//                }
-//            } else {
-//                validation = apply(jsonStream);
-//            }
-//        } else {
-//            validation = new Trace<>("Unexpected event " + event.name() + " expecting " + KEY_NAME.name());
-//        }
-//
-//        return validation;
-//    }
+    public void apply(JsonParser parser) throws Exception {
+        try {
+            while (parser.currentToken() != JsonToken.END_OBJECT) {
+                String tok = parser.currentToken().asString();
+                if (!parser.currentToken().isStructStart() && parser.getCurrentName().equals(expression)) {
+                    extractFunction.accept(parser.nextBooleanValue());
+                    return;
+                }
+                parser.nextToken();
+            }
+        }
+        catch (Exception exp ) {
+            throw exp;
+        }
+        return;
+    }
 
 
 

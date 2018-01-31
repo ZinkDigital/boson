@@ -1,4 +1,4 @@
-package io.boson;
+package io.boson.json;
 
 import bsonLib.BsonObject;
 

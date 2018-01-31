@@ -5,10 +5,11 @@ import io.boson.bson.bsonPath.Interpreter;
 import io.boson.bson.bsonPath.Program;
 import io.boson.bson.bsonPath.TinyLanguage;
 import io.boson.bson.bsonImpl.BosonImpl;
+
+
 import scala.Function1;
-import scala.None;
 import scala.Option;
-import scala.Some;
+
 import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
