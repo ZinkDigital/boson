@@ -1,5 +1,7 @@
 package io.boson
 
+import java.util.concurrent.CompletableFuture
+
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
 import org.junit.runner.RunWith
@@ -7,7 +9,7 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
-import io.boson.bson.bsonValue
+import io.boson.bson.{Boson, bsonValue}
 import org.junit.Assert.assertEquals
 
 /**
@@ -67,21 +69,21 @@ class HorribleTests extends FunSuite {
     val expression: String = "tempReadings"
     val boson: BosonImpl = new BosonImpl()
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector()) === resultParser)
+    assert(Vector() === BsSeq.unapply(resultParser.asInstanceOf[BsSeq]).get)
   }
 
   test("Bad parser expression V1") {
     val expression: String = "tempReadings.Something Wrong [2 to 3]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsException("Failure parsing!") === result)
+    assert("Failure parsing!" === BsException.unapply(result.asInstanceOf[BsException]).get)
   }
 
   test("Bad parser expression V2") {
     val expression: String = "[0 to 1] kunhnfvgklhu "
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assert(BsException("Failure parsing!") === result)
+    assert(BsException.apply("Failure parsing!") === result)
   }
 
   test("Bad parser expression V3") {
@@ -109,7 +111,7 @@ class HorribleTests extends FunSuite {
     val expression: String = "[2 to 3]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector()) === resultParser)
+    assert(BsSeq.apply(Vector()) === resultParser)
   }
 
   test("Extract array when doesn't exists V1") {
@@ -162,12 +164,19 @@ class HorribleTests extends FunSuite {
     val expression: String = "[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
         Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
         Map("José" -> Seq("Spider")),
         Map("José" -> Seq("Fly")),
-        Seq("Insecticida")
-      ))), result)
+        Seq("Insecticida"),
+      "Tarantula",
+      "Aracnídius",
+      Seq("Insecticida"),
+      "Insecticida",
+      "Spider",
+      "Fly",
+      "Insecticida"
+      )), result)
   }
 
   test("array prob 5") {
@@ -240,7 +249,7 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(array.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(
-      Seq(2.2,3.3)
+      2.2,3.3
     )), result)
   }
 
@@ -266,6 +275,63 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector()), result)
+  }
+  test("Key doesn't match with keys from root Obj") {
+    val obj1: BsonObject = new BsonObject().put("Hat", false).put("Clothe",true)
+    val bsonEvent: BsonObject = new BsonObject().put("Store",obj1).put("Quantity",500L)
+
+    val expression: String = ".Hat"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+
+  test("KeyWithArr doesn't match with keys from root Obj") {
+    val obj1: BsonObject = new BsonObject().put("Hat", false).put("Clothe",true)
+    val bsonEvent: BsonObject = new BsonObject().put("Store",obj1).put("Quantity",500L)
+
+    val expression: String = ".Hat[0]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+
+  test("Key match inside and outside obj") {
+    val obj1: BsonObject = new BsonObject().put("Hat", false).put("Clothe",true).put("Quantity",10.2f)
+    val bsonEvent: BsonObject = new BsonObject().put("Store",obj1).put("Quantity",500L)
+
+    val expression: String = "..Quantity"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector(10.2f,500L)), result)
+  }
+
+  test(".*..key, root Bsonarray and key doesn't match") {
+    val arr: BsonArray = new BsonArray().add("Hat").add(false).add(2.2).addNull().add(1000L).add(new BsonArray().addNull()).add(2).add(new BsonObject().put("Quantity",500L))
+    val expression: String = ".*..Nothing"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+
+  test(".key[#]..key2, key2 doesn't exists") {
+    val arr1: BsonArray = new BsonArray().add("Hat").add(false).add(2.2).addNull().add(1000L).add(new BsonArray().addNull()).add(2).add(new BsonObject().put("Quantity",500L))
+    val bE: BsonObject = new BsonObject().put("Store",arr1)
+    val expression: String = ".Store[7 to end]..Nothing"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector()), result)
+  }
+
+  test("Bad Expression using new API") {
+    val expression = "...Store"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(bsonEvent1.encodeToBarray())
+
+    assertEquals(
+      BsException("string matching regex `[/^[a-zA-ZÀ-ſ]+\\d_-]+' expected but `.' found"),
+      future.join())
   }
 
 }

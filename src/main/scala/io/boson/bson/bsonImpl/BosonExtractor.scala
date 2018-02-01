@@ -20,7 +20,12 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
         case parser.Failure(msg, _) => bsonValue.BsObject.toBson(msg)
       }
     } catch {
-      case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
+      case e: RuntimeException =>
+        println("RuntimeException")
+        bsonValue.BsObject.toBson(e.getMessage)
+      case e: java.lang.IndexOutOfBoundsException =>
+        println(e.getMessage)
+        bsonValue.BsObject.toBson(e.getMessage)
     }
   }
 

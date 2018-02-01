@@ -31,10 +31,10 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV2 w/ key") {
@@ -43,10 +43,10 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV3 w/ key") {
@@ -55,9 +55,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false)
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV4 w/ key") {
@@ -66,9 +66,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract PosV5 w/ key") {
@@ -77,9 +77,9 @@ class APIwithByteArrTests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
 
-    assertEquals(BsSeq(Vector(Seq(
+    assertEquals(BsSeq(Vector(
       Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5,"doorOpen" -> true)
-    ))), future.join())
+    )), future.join())
   }
 
   test("extract with 2nd Key PosV1 w/ key") {

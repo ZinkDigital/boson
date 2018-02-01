@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.{JsonNode, JsonSerializer, ObjectMapper, S
 import com.fasterxml.jackson.databind.module.SimpleModule
 import de.undercouch.bson4jackson.BsonFactory
 import io.boson.bson.Boson
-import io.boson.bson.bsonImpl.Constants._
+import io.boson.bson.bsonImpl.Dictionary._
 import io.boson.bson.bsonValue.BsValue
 import io.boson.json.Joson
 import io.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
