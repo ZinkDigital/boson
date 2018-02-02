@@ -35,7 +35,7 @@ object PerformanceAPI extends App {
     * Testing performance of extracting a top value of a BsonObject
     */
   val result1: Quantity[Double] = bestTimeMeasure {
-    val expression: String = "Epoch.first"
+    val expression: String = "Epoch"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -43,14 +43,14 @@ object PerformanceAPI extends App {
     //println(s"result1: ${future.join().getValue}")
   }
   println()
-  println(s"result1 time: $result1, expression: Epoch.first")
+  println(s"result1 time: $result1, expression: Epoch")
   println()
 
   /**
     * Testing performance of extracting a bottom value of a BsonObject
     */
   val result2: Quantity[Double] = bestTimeMeasure {
-    val expression: String = "SSLNLastName.last"
+    val expression: String = "SSLNLastName"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
@@ -58,22 +58,23 @@ object PerformanceAPI extends App {
     //println(s"result2: ${new String(future.join().getValue.asInstanceOf[Seq[Array[Byte]]].head)}")
   }
   println()
-  println(s"result2 time: $result2, expression: SSLNLastName.last")
+  println(s"result2 time: $result2, expression: SSLNLastName")
   println()
 
   /**
     * Testing performance of extracting all 'Tags' values
     */
   val result3: Quantity[Double] = bestTimeMeasure {
-    val expression: String = "Tags.all"
+    val expression: String = "Tags"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
     future.join()
     //println(s"result3: ${future.join().getValue}")
   }
+
   println()
-  println(s"result3 time: $result3, expression: Tags.all")
+  println(s"result3 time: $result3, expression: Tags")
   println()
 
   /**
@@ -92,7 +93,7 @@ object PerformanceAPI extends App {
   println()
 
   /**
-  *  Testing performance of extracting with two keys
+  *  Testing performance of extracting with two keys, extracting nothing
   * */
   val result5: Quantity[Double] = bestTimeMeasure {
     val expression: String = "Markets.[10].selectiongroupid"
@@ -100,6 +101,7 @@ object PerformanceAPI extends App {
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
     future.join()
+    println(s"result5: ${future.join().getValue}")
   }
   println()
   println(s"result5 time: $result5, expression: Markets.[10].selectiongroupid")
