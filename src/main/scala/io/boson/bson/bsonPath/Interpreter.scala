@@ -25,8 +25,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     if (statement.nonEmpty) {
       statement.head match {
         case MoreKeys(first, list, dots) =>
-          println(s"statements: ${List(first) ++ list}")
-          println(s"dotList: $dots")
+          //println(s"statements: ${List(first) ++ list}")
+          //println(s"dotList: $dots")
           executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
@@ -119,8 +119,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
     val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, dotsList)
-    println("after build keylist -> " + keyList._1)
-    println("after build limitlist -> " + keyList._2)
+    //println("after build keylist -> " + keyList._1)
+    //println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList._1, keyList._2) map { v =>
              v.asInstanceOf[Seq[Any]]
