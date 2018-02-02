@@ -4,6 +4,7 @@ import io.boson.bson.bsonImpl.CustomException
 
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
+import io.boson.bson.bsonImpl.Dictionary._
 
 
 /**
@@ -27,9 +28,9 @@ class Program(val statement: List[Statement])
 
 class TinyLanguage extends RegexParsers {
 
-  private val number: Regex = """\d+(\.\d*)?""".r
+  private val number: Regex = P_NUMBER.r
 
-  private def word: Parser[String] = """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+""".r //  symbol "+" is parsed
+  private def word: Parser[String] =P_WORD.r //  symbol "+" is parsed
 
   def program: Parser[Program] =
   moreKeysFinal ^^ { s => {
@@ -38,33 +39,33 @@ class TinyLanguage extends RegexParsers {
 
   private def key: Parser[Key] = word ^^ { w => Key(w) }
 
-  private def halfName: Parser[HalfName] = opt(word) ~ "*" ~ opt(word) ^^ {
-    case Some(x) ~ "*" ~ Some(y) => HalfName(x.concat("*").concat(y))
-    case None ~ "*" ~ Some(y) => HalfName("*".concat(y))
-    case Some(x) ~ "*" ~ None => HalfName(x.concat("*"))
-    case None ~ "*" ~ None => HalfName("*")
-    case _ => throw CustomException("Error Parsing HalfName!")
+  private def halfName: Parser[HalfName] = opt(word) ~ STAR ~ opt(word) ^^ {
+    case Some(x) ~ STAR ~ Some(y) => HalfName(x.concat(STAR).concat(y))
+    case None ~ STAR ~ Some(y) => HalfName(STAR.concat(y))
+    case Some(x) ~ STAR ~ None => HalfName(x.concat(STAR))
+    case None ~ STAR ~ None => HalfName(STAR)
+    case _ => throw CustomException(E_HALFNAME)
   }
 
-  private def keyHasElem: Parser[HasElem] = key ~ ("[@" ~> word <~ "]") ^^ {
+  private def keyHasElem: Parser[HasElem] = key ~ (P_HAS_ELEM ~> word <~ P_CLOSE_BRACKET) ^^ {
     case k ~ w => HasElem(k.key, w)
   }
 
-  private def keyHasHalfelem: Parser[HasElem] = key ~ ("[@" ~> halfName <~ "]") ^^ {
+  private def keyHasHalfelem: Parser[HasElem] = key ~ (P_HAS_ELEM ~> halfName <~ P_CLOSE_BRACKET) ^^ {
     case k ~ w => HasElem(k.key, w.half)
   }
 
-  private def halfnameHasElem: Parser[HasElem] = halfName ~ ("[@" ~> word <~ "]") ^^ {
+  private def halfnameHasElem: Parser[HasElem] = halfName ~ (P_HAS_ELEM ~> word <~ P_CLOSE_BRACKET) ^^ {
     case k ~ w => HasElem(k.half, w)
   }
 
-  private def halfnameHasHalfelem: Parser[HasElem] = halfName ~ ("[@" ~> halfName <~ "]") ^^ {
+  private def halfnameHasHalfelem: Parser[HasElem] = halfName ~ (P_HAS_ELEM ~> halfName <~ P_CLOSE_BRACKET) ^^ {
     case k ~ w => HasElem(k.half, w.half)
   }
 
-  private def arrEx: Parser[ArrExpr] = "[" ~> (number ^^ {
+  private def arrEx: Parser[ArrExpr] = P_OPEN_BRACKET ~> (number ^^ {
     _.toInt
-  }) ~ opt(("to" | "To" | "until" | "Until") ~ ((number ^^ {_.toInt}) | "end")) ~ "]" ^^ {
+  }) ~ opt((TO_RANGE | TO_RANGE | UNTIL_RANGE | UNTIL_RANGE) ~ ((number ^^ {_.toInt}) | C_END)) ~ P_CLOSE_BRACKET ^^ {
     case l ~ Some(m ~ r) ~ _ => ArrExpr(l, Some(m), Some(r)) //[#..#]
     case l ~ None ~ _  => ArrExpr(l, None, None) //[#]
   }
@@ -77,14 +78,14 @@ class TinyLanguage extends RegexParsers {
     case k ~ a => KeyWithArrExpr(k.half, a) //Key[#..]
   }
 
-  private def moreKeysFinal: Parser[MoreKeys] = opt(".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((".." | ".") ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
+  private def moreKeysFinal: Parser[MoreKeys] = opt(C_DOUBLEDOT | C_DOT) ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((C_DOUBLEDOT | C_DOT) ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
     case None ~ first ~ list =>
-      MoreKeys(first,list.map(elem => elem._2),List("..") ++ list.map(elem => elem._1))  //this is replacing the original/working moreKeys
-    case Some(dots) ~ first ~ list if dots.equals("..")=>
+      MoreKeys(first,list.map(elem => elem._2),List(C_DOUBLEDOT) ++ list.map(elem => elem._1))  //this is replacing the original/working moreKeys
+    case Some(dots) ~ first ~ list if dots.equals(C_DOUBLEDOT)=>
       MoreKeys(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))  //option of starting with .., same as the case before
-    case Some(dots) ~ first ~ list if dots.equals(".")=>
+    case Some(dots) ~ first ~ list if dots.equals(C_DOT)=>
       MoreKeys(first, list.map(elem => elem._2), List(dots) ++ list.map(elem => elem._1))
-    case _ => throw new RuntimeException("not desired case yet")
+    case _ => throw new RuntimeException(E_MOREKEYS)
 
   }
 

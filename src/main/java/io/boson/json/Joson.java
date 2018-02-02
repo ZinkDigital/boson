@@ -1,8 +1,14 @@
 package io.boson.json;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import io.boson.json.jsonImpl.JosonExtractor;
 import io.boson.json.jsonImpl.JosonInjector;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,4 +61,18 @@ public interface Joson {
      */
     Joson fuse(final Joson joson);
 
+
+    static class JsonObjectSerializer extends JsonSerializer<JsonObject> {
+        @Override
+        public void serialize(JsonObject value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+            jgen.writeObject(value.getMap());
+        }
+    }
+
+    static class JsonArraySerializer extends JsonSerializer<JsonArray> {
+        @Override
+        public void serialize(JsonArray value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+            jgen.writeObject(value.getList());
+        }
+    }
 }

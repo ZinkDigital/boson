@@ -101,7 +101,6 @@ class JsonInterpreter() {
             val result: ByteBuf = encodeJson(key)
             result.capacity(result.writerIndex())
             buffer.writeBytes(result)
-            result.release()
             val result1: ByteBuf = encodeJson(k)
             result1.capacity(result1.writerIndex())
             buffer.writeIntLE(result1.capacity()).writeBytes(result1)
@@ -118,22 +117,18 @@ class JsonInterpreter() {
             buffer.writeByte(D_BSONARRAY)
             val result: ByteBuf = encodeJson(key)
             buffer.writeBytes(result)
-            result.release()
             val result1: ByteBuf = encodeJson(value)
             result1.capacity(result1.writerIndex())
             buffer.writeBytes(result1)
-            result1.release()
             buffer
           case value: JsonObj=>
             buffer.writeByte(D_BSONOBJECT)
             val result: ByteBuf = encodeJson(key)
             result.capacity(result.writerIndex())
             buffer.writeBytes(result)
-            result.release()
             val result1: ByteBuf = encodeJson(value)
             result1.capacity(result1.writerIndex())
             buffer.writeBytes(result1)
-            result1.release()
             buffer
           case _ =>
             throw CustomException("Error encoding Json (JsonEntry).")
@@ -220,7 +215,6 @@ class JsonInterpreter() {
               val bsonSize: Int = buf.getIntLE(buf.readerIndex())
               val bson: ByteBuf = buf.readBytes(bsonSize)
               val res: Map[String, _] = decodeBsonObject(bson)
-              bson.release()
               list.append(res)
             case D_BSONARRAY =>
               //println("D_BSONARRAY")

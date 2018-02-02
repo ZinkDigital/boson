@@ -22,6 +22,7 @@ public class BosonTest {
 
     @Test
     public void simplestPossibleExtractor() throws Exception {
+
         String expression = key;
 
         CountDownLatch latch = new CountDownLatch(1);

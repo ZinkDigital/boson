@@ -482,6 +482,7 @@ class injectorAPITests extends FunSuite {
 
   }
 
+
   test("MoreKeys array[@damnnn].damnnn[@google].google"){
     val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)

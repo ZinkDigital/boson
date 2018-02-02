@@ -30,7 +30,6 @@ class APIwithByteArrTests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteArray)
-    print(arr)
 
     assertEquals(BsSeq(Vector(
       Map("fridgeTemp" -> 5.0f, "fanVelocity" -> 20.6, "doorOpen" -> false),

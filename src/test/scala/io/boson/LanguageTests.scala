@@ -1,5 +1,7 @@
 package io.boson
 
+import java.nio.{Buffer, ByteBuffer}
+
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
@@ -8,7 +10,11 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonValue._
 import io.boson.bson.bsonValue
+import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ByteProcessor
 import org.junit.Assert.assertEquals
+
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Tiago Filipe on 18/10/2017.
@@ -34,31 +40,16 @@ class LanguageTests extends FunSuite {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
           new Interpreter(boson, r.asInstanceOf[Program]).run()
-        case parser.Error(msg, _) =>  bsonValue.BsObject.toBson(msg)
-        case parser.Failure(msg, _) =>  bsonValue.BsObject.toBson(msg)
+        case parser.Error(msg, _) =>
+            bsonValue.BsObject.toBson(msg)
+        case parser.Failure(msg, _) =>
+                 bsonValue.BsObject.toBson(msg)
       }
     } catch {
-      case e:RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
+      case e:RuntimeException =>
+        bsonValue.BsObject.toBson(e.getMessage)
     }
   }
-
-//  test("experiment1") {
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-//    val result: BsValue = callParse(boson, ".fridgeReadings..doorOpen.[@fridgeTemp]")
-//    println(s"result: ${result.getValue}")
-//  }
-//
-//  test("experiment2") {
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-//    val result: BsValue = callParse(boson, "..fridgeReadings.doorOpen.[@fridgeTemp]")
-//    println(s"result: ${result.getValue}")
-//  }
-//
-//  test("experiment3, equal to experiment 2") {
-//    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
-//    val result: BsValue = callParse(boson, "doorOpen.[0]")
-//    println(s"result: ${result.getValue}")
-//  }
 
   test("All") {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
@@ -296,9 +287,6 @@ class LanguageTests extends FunSuite {
       ))) === resultParser)
   }
 
-  test("") {
-    val o = Writes.apply((x:String) => BsException.apply(x))
 
-  }
 
 }

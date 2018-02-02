@@ -21,17 +21,17 @@ object Writes extends DefaultWrites {
 
 trait DefaultWrites {
 
-//  implicit object IntWrites extends Writes[Int] {
-//    def writes(o: Int) = BsNumber(o)
-//  }
-//
-//  implicit object BigDecimalWrites extends Writes[BigDecimal] {
-//    def writes(o: BigDecimal) = BsNumber(o)
-//  }
-//
-//  implicit object BooleanWrites extends Writes[Boolean] {
-//    def writes(o: Boolean) = BsBoolean(o)
-//  }
+  //implicit object IntWrites extends Writes[Int] {
+  //  def writes(o: Int) = BsNumber(o)
+  //}
+
+  //implicit object BigDecimalWrites extends Writes[BigDecimal] {
+  //  def writes(o: BigDecimal) = BsNumber(o)
+  //}
+
+  //implicit object BooleanWrites extends Writes[Boolean] {
+  //  def writes(o: Boolean) = BsBoolean(o)
+  //}
 
   implicit object BsSeqWrites extends Writes[Vector[Any]] {
     def writes(o: Vector[Any]) = BsSeq(o)
@@ -41,9 +41,9 @@ trait DefaultWrites {
     def writes(o: String) = BsException(o)
   }
 
-//  implicit object BsValueWrites extends Writes[BsValue] {
-//    def writes(o: BsValue) = o
-//  }
+  //implicit object BsValueWrites extends Writes[BsValue] {
+  //  def writes(o: BsValue) = o
+  //}
 
   implicit object BsBosonWrites extends Writes[BosonImpl] {
     def writes(o: BosonImpl) = BsBoson(o)

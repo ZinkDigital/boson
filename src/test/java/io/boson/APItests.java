@@ -3,7 +3,6 @@ import bsonLib.BsonArray;
 import bsonLib.BsonObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.boson.bson.Boson;
-import io.boson.bson.bsonValue.BsSeq;
 import io.boson.bson.bsonValue.BsValue;
 import io.boson.json.Joson;
 import org.junit.Test;
@@ -57,7 +56,6 @@ public class APItests {
         });
         CompletableFuture<String> midResult = joson.go(json);
         String result = midResult.join();
-
         System.out.println("|-------- Perform Extraction --------|\n");
         CompletableFuture<BsValue> future = new CompletableFuture<>();
         Joson joson1 = Joson.extractor(expression, future::complete);
@@ -70,13 +68,12 @@ public class APItests {
 
         System.out.println("WORK WITH BOSON\n");
         System.out.println("|-------- Perform Injection --------|\n");
-        Boson boson = Boson.injector(expression, (Map<String, Object> in) -> {
+        Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
             in.put("WHAT", 10);
             return in;
         });
         CompletableFuture<byte[]> midResult1 = boson.go(bson.encodeToBarray());
         byte[] result1 = midResult1.join();
-
         System.out.println("|-------- Perform Extraction --------|\n");
         CompletableFuture<BsValue> future1 = new CompletableFuture<>();
         Boson boson1 = Boson.extractor(expression, future1::complete);

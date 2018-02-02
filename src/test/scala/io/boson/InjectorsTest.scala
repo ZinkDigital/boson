@@ -8,7 +8,9 @@ import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue.{BsSeq, BsValue}
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
-import io.netty.util.{ByteProcessor, ResourceLeakDetector}
+import io.netty.util.ByteProcessor
+
+import io.netty.util.ByteProcessor
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -22,7 +24,6 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
-  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
 
   def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage
@@ -343,16 +344,18 @@ class InjectorsTest extends FunSuite {
   }
 
   test("Injector BsonArray: Float => Float") {
-      val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "float", (_: Float) => newFloat)
 
-      val result: Any = b1 match {
-        case None => List()
-        case Some(nb) => callParse(nb, "float")
-      }
-      val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
+    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "float", (_: Float) => newFloat)
 
-      assert(newFloat === s
-        , "Contents are not equal")
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => callParse(nb, "float")
+    }
+    val s: Double = result.asInstanceOf[BsSeq].value.asInstanceOf[Vector[Double]].head
+
+    assert(newFloat === s
+      , "Contents are not equal")
+
   }
 
   test("Injector BsonArray: Double => Double") {

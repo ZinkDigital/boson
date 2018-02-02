@@ -163,7 +163,6 @@ class HorribleTests extends FunSuite {
   test("array prob 2") {
     val expression: String = "[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
-    println(arr11)
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(
         Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
@@ -277,7 +276,6 @@ class HorribleTests extends FunSuite {
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector()), result)
   }
-
   test("Key doesn't match with keys from root Obj") {
     val obj1: BsonObject = new BsonObject().put("Hat", false).put("Clothe",true)
     val bsonEvent: BsonObject = new BsonObject().put("Store",obj1).put("Quantity",500L)

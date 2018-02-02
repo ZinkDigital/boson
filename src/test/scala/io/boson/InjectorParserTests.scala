@@ -299,6 +299,7 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=> callParse(nb, expression)
+      case _ =>
 //      case BsNumber(n) => n
 //      case BsBoolean(b) => b
     }
@@ -340,6 +341,7 @@ class InjectorParserTests extends FunSuite {
         ex
       case BsSeq(e) => e
       case BsBoson(nb)=>callParse(nb, expression1)
+      case _ =>
 //      case BsNumber(n) => n
 //      case BsBoolean(b) => b
     }

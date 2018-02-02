@@ -32,7 +32,7 @@ Streaming Data Access for BSON and JSON encoded documents
 
 ## QuickStart Guide
 
-Boson is available through the Central Maven Repository. 
+Boson is available through the Central Maven Repository.
 For SBT users, please add the following dependency in your build.sbt:
 ```scala
 libraryDependencies += Not Yet

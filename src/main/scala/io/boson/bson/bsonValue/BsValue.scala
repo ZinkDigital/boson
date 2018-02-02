@@ -12,12 +12,12 @@ sealed trait BsValue {
 /**
   * Represents a Bson boolean value.
   */
-//case class BsBoolean(value: Boolean) extends BsValue { override def getValue: Boolean = value}
-//
-///**
-//* Represent a Bson number value.
-//*/
-//case class BsNumber(value: BigDecimal) extends BsValue { override def getValue: BigDecimal = value}
+case class BsBoolean(value: Boolean) extends BsValue { override def getValue: Boolean = value}
+
+/**
+* Represent a Bson number value.
+*/
+case class BsNumber(value: BigDecimal) extends BsValue { override def getValue: BigDecimal = value}
 
 /**
   * Represent a Bson number value.
