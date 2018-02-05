@@ -72,6 +72,7 @@ class TinyLanguage extends RegexParsers {
     case (l:Int) ~ Some(m ~ r) ~ _ => ArrExpr(l, Some(m.asInstanceOf[String]), Some(r)) //[#..#]
     case (l:Int) ~ None ~ _  => ArrExpr(l, None, None) //[#]
     case (str:String) ~ _ => ArrExpr(0,Some(str), None )
+    case _ => throw new RuntimeException(E_MOREKEYS)
   }
 
   private def keyWithArrEx: Parser[KeyWithArrExpr] = word ~ arrEx ^^ {

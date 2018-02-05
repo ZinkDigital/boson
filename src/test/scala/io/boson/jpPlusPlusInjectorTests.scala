@@ -1006,7 +1006,7 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val bosonEx: Boson = Boson.extractor(".[2]", (out: BsValue) => futureEx.complete(out))
     bosonEx.go(result)
 
-    assertEquals("Store3ComingSoon", futureEx.join().getValue.asInstanceOf[Vector[List[Any]]].head.head)
+    assertEquals("Store3ComingSoon", futureEx.join().getValue.asInstanceOf[Vector[String]].head)
   }
 
   test("Inj .[first]"){
