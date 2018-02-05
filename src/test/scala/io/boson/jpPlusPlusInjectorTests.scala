@@ -21,7 +21,7 @@ import scala.util.Try
   */
 @RunWith(classOf[JUnitRunner])
 class jpPlusPlusInjectorTests extends FunSuite {
-  //ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   private val hat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
   private val hat2 = new BsonObject().put("Price", 35).put("Color", "White")
   private val hat1 = new BsonObject().put("Price", 48).put("Color", "Red")

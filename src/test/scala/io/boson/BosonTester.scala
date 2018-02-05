@@ -7,11 +7,12 @@ import io.boson.bson.Boson
 import io.boson.bson.bsonImpl.Dictionary._
 import io.boson.bson.bsonValue.BsValue
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.ByteProcessor
+import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 
 import scala.util.{Failure, Success, Try}
 
 object BosonTester extends App {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   def tester[T](f: T => T): Any = {
     val double: T = 2.5.asInstanceOf[T]
     Try(f(double)) match {

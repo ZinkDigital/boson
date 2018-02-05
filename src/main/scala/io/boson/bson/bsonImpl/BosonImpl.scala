@@ -1377,11 +1377,11 @@ class BosonImpl(
                       val buf1: ByteBuf = buffer.readBytes(size)
                       val buf2:ByteBuf = Unpooled.buffer()
                       modifierAll(buf1, dataType, f, buf2 )
+                      buf1.release()
                       buf2.capacity(buf2.writerIndex())
                       val buf3: ByteBuf = execStatementPatternMatch(buf2, list, f)
-                      result.writeBytes(buf3)
-                      buf1.release()
                       buf2.release()
+                      result.writeBytes(buf3)
                       buf3.release()
                     case _  =>
                       modifierAll(buffer, dataType, f, result)
@@ -1397,10 +1397,10 @@ class BosonImpl(
                       val size:Int = buffer.getIntLE(buffer.readerIndex())
                       val buf1: ByteBuf = buffer.readBytes(size)
                       val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
-                      val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
-                      result.writeBytes(buf3)
                       buf1.release()
+                      val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
                       buf2.release()
+                      result.writeBytes(buf3)
                       buf3.release()
                     case _  =>
                       processTypesAll(list, dataType,buffer,result,fieldID,f)
@@ -1615,9 +1615,8 @@ class BosonImpl(
         val length: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonBuf: ByteBuf = buffer.readBytes(length)
         val resultAux: ByteBuf = modifyAll(list,bsonBuf, fieldID, f)
-
-        result.writeBytes(resultAux)
         bsonBuf.release()
+        result.writeBytes(resultAux)
         resultAux.release()
       case D_NULL =>
       case D_INT =>
@@ -2096,6 +2095,7 @@ class BosonImpl(
             while (buffer.getByte(buffer.readerIndex()) != 0 || key.length < 1) {
               val b: Byte = buffer.readByte()
               key.append(b)
+
             }
             val b: Byte = buffer.readByte()
             (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
@@ -2441,6 +2441,7 @@ class BosonImpl(
         result.writeBytes(bytes.duplicate())
         resultCopy.writeIntLE(valueLength)
         resultCopy.writeBytes(bytes.duplicate())
+        bytes.release()
       case D_BSONOBJECT =>
         if(fieldID==EMPTY_KEY){
           val res: BosonImpl = modifyArrayEnd(list, buf, f,condition, limitInf, limitSup)
@@ -2564,6 +2565,9 @@ class BosonImpl(
                         result.writeBytes(buf2)
                       else
                         resultCopy.writeBytes(buf2)
+
+                      buf1.release()
+                      buf2.release()
                     case _ =>
                       processTypesArrayEnd(list, fieldID, dataType, buffer, f,condition,limitInf, limitSup, result, resultCopy)
                   }
@@ -2792,7 +2796,9 @@ class BosonImpl(
                   }
                 }
               }else{
-                result.writeBytes(buf.readBytes(bsonSize))
+                val buf1: ByteBuf = buf.readBytes(bsonSize)
+                result.writeBytes(buf1)
+                buf1.release()
               }
             case _ =>
               processTypesArray(dataType,buf, result)
@@ -2955,8 +2961,8 @@ class BosonImpl(
             val buf1: ByteBuf = buf.readBytes(size)
             val res: ByteBuf =  modifyArrayEnd (list, buf1, f,TO_RANGE, a.toString, b.toString).getByteBuf
             result.writeBytes(res)
-            res.release()
             buf1.release()
+            res.release()
             result.capacity(result.writerIndex())
           case UNTIL_RANGE =>
             val size: Int = buf.getIntLE(buf.readerIndex())

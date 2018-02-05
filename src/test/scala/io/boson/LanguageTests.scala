@@ -11,7 +11,7 @@ import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonValue._
 import io.boson.bson.bsonValue
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.ByteProcessor
+import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 import org.junit.Assert.assertEquals
 
 import scala.util.{Failure, Success, Try}
@@ -22,6 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
 class LanguageTests extends FunSuite {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val arr5: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp",12))
   val arr4: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 18))
   val arr3: BsonArray = new BsonArray().add(new BsonObject().put("doorOpen",arr5)/*.put("fridgeTemp", 20)*/)

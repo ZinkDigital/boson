@@ -5,6 +5,7 @@ import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
 import io.boson.bson.bsonValue.{BsSeq, BsValue}
+import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -17,7 +18,7 @@ import scala.io.Source
   */
 @RunWith(classOf[JUnitRunner])
 class LongInputTests extends FunSuite {
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage
     try {

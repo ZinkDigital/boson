@@ -13,9 +13,8 @@ import io.boson.bson.bsonImpl.Dictionary._
 import io.boson.bson.bsonValue.BsValue
 import io.boson.json.Joson
 import io.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
-
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.ByteProcessor
+import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 import io.vertx.core.json.{Json, JsonArray, JsonObject}
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
@@ -33,7 +32,7 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class APItests extends FunSuite{
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
  /* case class JsonObjectSerializer() extends JsonSerializer[JsonObject] {
     @throws[IOException]
     override def serialize(value: JsonObject, jgen: JsonGenerator, provider: SerializerProvider): Unit = {
