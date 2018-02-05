@@ -1,17 +1,18 @@
 package io.boson
 
-import java.util.concurrent.{CompletableFuture, CountDownLatch}
+import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
-import io.boson.bson.bsonImpl.Constants._
+import io.boson.bson.bsonImpl.Dictionary._
 import io.boson.bson.bsonValue.BsValue
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.ByteProcessor
+import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 
 import scala.util.{Failure, Success, Try}
 
 object BosonTester extends App {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   def tester[T](f: T => T): Any = {
     val double: T = 2.5.asInstanceOf[T]
     Try(f(double)) match {
@@ -24,12 +25,12 @@ object BosonTester extends App {
     }
   }
 
-  val bP: ByteProcessor = (value: Byte) => {
+  /*val bP: ByteProcessor = (value: Byte) => {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
     true
-  }
+  }*/
 
-  val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
+  val obj1: BsonObject = new BsonObject().put("fridgeTemp111", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
   val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)
   val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
@@ -155,20 +156,24 @@ object BosonTester extends App {
 //  boson12.go(a.encodeToBarray())
 //  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
-  val latch = new CountDownLatch(2)
-  val expression1: String = "fridgeTemp.first"
-  val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
-    println(s"----------------------------------- result of extraction: $in ---------------------------")
-    latch.countDown()
-  })
+  val name: String = "Category1"
+  val halfname: String = "ego"
+  val wrong: String = "oge"
+  val wrong1: String = "1"
+  val wrong2: String = "Ce"
 
-  val newFridgeSerialCode: Float = 18.3f
-  val expression2 = "fridgeTemp.first"
-  val inj: Boson = Boson.injector(expression2, (_: Float) => newFridgeSerialCode)
+//  println(s"$name contains $halfname -> ${name.contains(halfname)}")
+//  println(s"$name contains $wrong -> ${name.contains(wrong)}")
+//  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
+//  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
+//  println("*" + wrong)
+//  println(("*" + wrong).charAt(0).equals('*'))
 
-  val fused: Boson = ext.fuse(inj).fuse(ext)
-  fused.go(validatedByteArray)
+    val expression: String = "fridgeReadings.[@fridgeTemp]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(validatedByteArray)
+    println("result of extracting \""+ expression+ "\" -> " + future.join())
+    println("-------------------------------------------------------------------------------------------------------------")
 
-  latch.await()
-  println(5.2)
 }

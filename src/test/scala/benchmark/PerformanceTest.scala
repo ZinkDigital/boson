@@ -43,7 +43,7 @@ object PerformanceTest extends App {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
 
     def bestTimeMeasure[R](block: => R): Quantity[Double] = {
-      val time: Quantity[Double] = config(
+      val time = config(
         Key.exec.benchRuns -> 50
       ) withWarmer {
         new Warmer.Default
@@ -60,9 +60,9 @@ object PerformanceTest extends App {
       callParse(boson.duplicate, "Epoch.first")
     }
     println()
-    println("result1: " + callParse(boson.duplicate, "Epoch.first").asInstanceOf[BsSeq].getValue.head)
+    //println("result1: " + callParse(boson.duplicate, "Epoch.first").asInstanceOf[BsSeq].getValue.head)
     println(s"Benchmark for this test: $result1")
-    println()
+    //println()
 
 
     /**
@@ -72,10 +72,10 @@ object PerformanceTest extends App {
       callParse(boson.duplicate, "SSLNLastName.last")
     }
     println()
-    println("result2: " + new String(callParse(boson.duplicate, "SSLNLastName.last")
-      .asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]))
+//    println("result2: " + new String(callParse(boson.duplicate, "SSLNLastName.last")
+//      .asInstanceOf[BsSeq].value.head.asInstanceOf[Array[Byte]]))
     println(s"Benchmark for this test: $result2")
-    println()
+    //println()
 
     /**
       * Testing performance of extracting all 'Tags' values
@@ -84,9 +84,9 @@ object PerformanceTest extends App {
       callParse(boson.duplicate, "Tags.all")
     }
     println()
-    println("result3: " + callParse(boson.duplicate, "Tags.all").asInstanceOf[BsSeq].getValue)
+//    println("result3: " + callParse(boson.duplicate, "Tags.all").asInstanceOf[BsSeq].getValue)
     println(s"Benchmark for this test: $result3")
-    println()
+    //println()
 
     /**
       * Testing performance of extracting values of some positions of a BsonArray
@@ -95,29 +95,29 @@ object PerformanceTest extends App {
       callParse(boson.duplicate, "Markets.[3 to 5]")
     }
     println()
-    callParse(boson.duplicate, "Markets.[3 to 5]").asInstanceOf[BsSeq]
-      .getValue.head.asInstanceOf[Seq[Any]].foreach(elem => println(s"result4: $elem"))
+//    callParse(boson.duplicate, "Markets.[3 to 5]").asInstanceOf[BsSeq]
+//      .getValue.head.asInstanceOf[Seq[Any]].foreach(elem => println(s"result4: $elem"))
     println(s"Benchmark for this test: $result4")
     println()
 
     /**
       *  Testing performance of extracting with two keys
       * */
-    val result5: Quantity[Double] = bestTimeMeasure {
+    val result5 = bestTimeMeasure {
       callParse(boson.duplicate, "Markets.[10].selectiongroupid")
     }
     println()
-    println("result5: " + callParse(boson.duplicate, "Markets.[50 to 55]")
-      .asInstanceOf[BsSeq].getValue.head)
+    //println("result5: " + callParse(boson.duplicate, "Markets.[50 to 55]")
+      //.asInstanceOf[BsSeq].getValue.head)
     println(s"Benchmark for this test: $result5")
-    println()
+    //println()
   }
 }
 
 object tester extends App {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   try {
-    for {_ <- 0 until 100} {
+    for {_ <- 0 until 1} {
       //println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
       PerformanceTest.run()
     }

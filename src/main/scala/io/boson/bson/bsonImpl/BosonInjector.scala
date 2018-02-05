@@ -3,6 +3,7 @@ package io.boson.bson.bsonImpl
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
+
 import io.boson.bson
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.netty.util.ByteProcessor
@@ -14,21 +15,22 @@ import scala.compat.java8.FunctionConverters._
 
 class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends bson.Boson {
 
-  private val anon: T => T = injectFunction.asScala
+  /*val bP: ByteProcessor = (value: Byte) => {
+    println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
+    true
+  }*/
 
-  private def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):bsonValue.BsValue = {
+  val anon: T => T = injectFunction.asScala
+
+  def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):bsonValue.BsValue = {
     val parser = new TinyLanguage
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          println("Success")
-          println(r)
           new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
         case parser.Error(msg, _) =>
-          println("Error")
           bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) =>
-          println("Failure")
           bsonValue.BsObject.toBson(msg)
       }
     }catch {
@@ -47,7 +49,8 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
       val r: Array[Byte] = parseInj(boson, anon, expression) match {
         case ex: BsException => println(ex.getValue)
           bsonByteEncoding
-        case nb: BsBoson => nb.getValue.getByteBuf.array()
+        case nb: BsBoson =>
+          nb.getValue.getByteBuf.array()
         case x =>
 
           bsonByteEncoding
@@ -62,30 +65,29 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer] = {
-   // val future: CompletableFuture[ByteBuffer] = new CompletableFuture[ByteBuffer]()
     val boson: io.boson.bson.bsonImpl.BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
+    //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    //    boson.getByteBuf.forEachByte(bP)
+    //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     val future: CompletableFuture[ByteBuffer] =
-      CompletableFuture.supplyAsync(() =>{
+    CompletableFuture.supplyAsync(() =>{
 
-       parseInj(boson, anon, expression) match {
+      val r:ByteBuffer = parseInj(boson, anon, expression) match {
         case ex: BsException => println(ex.getValue)
           bsonByteBufferEncoding
         case nb: BsBoson => nb.getValue.getByteBuf.nioBuffer()
-        case _ =>
-          println("Error")
+        case x =>
+
           bsonByteBufferEncoding
       }
 
-
-
-
-        })
+      r
+    })
     //    boson.getByteBuf.forEachByte(bP)
     //    println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
+    //future.get()
     future
-
   }
 
-  override def fuse(boson: bson.Boson): bson.Boson = new BosonFuse(this,boson)
+  override def fuse(boson: bson.Boson): bson.Boson = ??? //  return typpe is wrong
 }

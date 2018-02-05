@@ -20,7 +20,12 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
         case parser.Failure(msg, _) => bsonValue.BsObject.toBson(msg)
       }
     } catch {
-      case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
+      case e: RuntimeException =>
+        //println("RuntimeException")
+        bsonValue.BsObject.toBson(e.getMessage)
+      case e: java.lang.IndexOutOfBoundsException =>
+       // println(e.getMessage)
+        bsonValue.BsObject.toBson(e.getMessage)
     }
   }
 
@@ -52,8 +57,6 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
     future
   }
 
-  override def fuse(boson: bson.Boson): bson.Boson = new BosonFuse(this,boson)
-
-
+  override def fuse(boson: bson.Boson): bson.Boson = ???
 
 }
