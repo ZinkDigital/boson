@@ -29,15 +29,15 @@ assemblyMergeStrategy in assembly := {
     "io.vertx" % "vertx-core" % "3.5.0",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
     "com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
-    "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
-    "io.rest-assured" % "scala-support" % "3.0.6",
-    "io.rest-assured" % "rest-assured" % "3.0.6",
-    "com.squareup.okhttp3" % "mockwebserver" % "3.9.1"
+    "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
     "junit"             %  "junit"       % "4.12"  % Test,
-    "com.novocode" % "junit-interface" % "0.11" % "test"
+    "com.novocode" % "junit-interface" % "0.11" % "test",
+    "io.rest-assured" % "scala-support" % "3.0.6",
+    "io.rest-assured" % "rest-assured" % "3.0.6",
+    "com.squareup.okhttp3" % "mockwebserver" % "3.9.1"
   )
 
 
