@@ -171,10 +171,10 @@ class InjectorsTest extends FunSuite {
     val b1: Option[BosonImpl] = netty.get.modify(netty, "float", (_: Float) => newFloat)
 
 
-    val bP: ByteProcessor = (value: Byte) => {
+    /*val bP: ByteProcessor = (value: Byte) => {
       //println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
-    }
+    }*/
     val result: Any = b1 match {
       case None => List()
       case Some(nb) =>

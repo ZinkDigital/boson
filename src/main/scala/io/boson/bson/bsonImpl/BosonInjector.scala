@@ -15,10 +15,10 @@ import scala.compat.java8.FunctionConverters._
 
 class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends bson.Boson {
 
-  val bP: ByteProcessor = (value: Byte) => {
+  /*val bP: ByteProcessor = (value: Byte) => {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
     true
-  }
+  }*/
 
   val anon: T => T = injectFunction.asScala
 
@@ -27,7 +27,6 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          println("Success")
           new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
         case parser.Error(msg, _) =>
           bsonValue.BsObject.toBson(msg)

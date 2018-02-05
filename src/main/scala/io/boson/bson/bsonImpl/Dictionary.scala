@@ -41,6 +41,8 @@ object Dictionary {
   val C_END: String = "end"
   val C_DOT: String = "."
   val C_DOUBLEDOT: String = ".."
+  val C_LAST: String = "last"  // "end" should be used to maintain consistency
+  val C_RANDOM: String = "random"
 
   val V_NULL: String = "Null"
 
@@ -53,7 +55,7 @@ object Dictionary {
 
   // ERROR MESSAGES
   val E_HALFNAME: String = "Error Parsing HalfName!"
-  val E_MOREKEYS: String = "Not desired case yet"
+  val E_MOREKEYS: String = "Failure parsing!"
 
 
 

@@ -330,7 +330,7 @@ class HorribleTests extends FunSuite {
     boson.go(bsonEvent1.encodeToBarray())
 
     assertEquals(
-      BsException("string matching regex `[/^[a-zA-ZÀ-ſ]+\\d_-]+' expected but `.' found"),
+      BsException("Failure parsing!"),
       future.join())
   }
 

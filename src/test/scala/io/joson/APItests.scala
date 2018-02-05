@@ -86,7 +86,7 @@ class APItests extends FunSuite{
     mapper.writeValue(os, a)
 
     //print encoded json
-    os.toByteArray.foreach(b => println(b.toChar + "  " + b.toInt))
+    //os.toByteArray.foreach(b => println(b.toChar + "  " + b.toInt))
 
     //convert from byte[] to JsonNode
     val s: JsonNode = mapper.readTree(os.toByteArray)

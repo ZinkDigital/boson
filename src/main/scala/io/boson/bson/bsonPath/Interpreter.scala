@@ -23,6 +23,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
+
       statement.head match {
         case MoreKeys(first, list, dots) =>
           println(s"statements: ${List(first) ++ list}")
@@ -30,7 +31,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
-    } else throw new RuntimeException("List of statements is empty.")
+    }else throw new RuntimeException("List of statements is empty.")
   }
 
   private def buildKeyList(first: Statement, statementList: List[Statement], dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
@@ -140,17 +141,41 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
 
-    println(statement.head)
+    //println(statement.head)
     if (statement.nonEmpty) {
+      //println("Statements not empty")
       statement.head match {
         case MoreKeys(first, list, dots) => //  key
-          val united: List[Statement] = list.+:(first)
-          val zipped: List[(Statement, String)] = united.zip(dots)
-          executeMultipleKeysInjector(zipped)
+          first match{
+            case ROOT()=>
+              //println("ROOT() OH YEAH")
+              executeRootInjection()
+            case _ =>
+              val united: List[Statement] = list.+:(first)
+              //println(united)
+              val zipped: List[(Statement, String)] = united.zip(dots)
+
+              //println(zipped)
+              executeMultipleKeysInjector(zipped)
+          }
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
+
+  private def executeRootInjection(): bsonValue.BsValue = {
+
+    val result:bsonValue.BsValue=
+      Try(boson.execRootInjection(boson.getByteBuf, f.get))match{
+        case Success(v)=>
+          val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+          v.release()
+          bsResult
+        case Failure(e)=>bsonValue.BsException(e.getMessage)
+      }
+    result
+   }
+
 
   private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
     val result:bsonValue.BsValue=

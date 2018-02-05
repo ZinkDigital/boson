@@ -77,10 +77,10 @@ class InjectorParserTests extends FunSuite {
   val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
 
-  val bP: ByteProcessor = (value: Byte) => {
+  /*val bP: ByteProcessor = (value: Byte) => {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
     true
-  }
+  }*/
 
   def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage

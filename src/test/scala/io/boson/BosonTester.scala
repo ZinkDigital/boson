@@ -24,10 +24,10 @@ object BosonTester extends App {
     }
   }
 
-  val bP: ByteProcessor = (value: Byte) => {
+  /*val bP: ByteProcessor = (value: Byte) => {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
     true
-  }
+  }*/
 
   val obj1: BsonObject = new BsonObject().put("fridgeTemp111", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
