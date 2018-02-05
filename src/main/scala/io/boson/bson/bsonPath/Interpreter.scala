@@ -1,10 +1,11 @@
 package io.boson.bson.bsonPath
 
-import io.boson.bson.bsonImpl.BosonImpl
+import io.boson.bson.bsonImpl.{BosonImpl, CustomException}
 import io.boson.bson.bsonValue
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
+import io.boson.bson.bsonImpl.Dictionary._
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -13,7 +14,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   def run(): bsonValue.BsValue = {
     f match {
-      case Some(func) => //func /*Inejctor*/
+      case Some(_) => //func /*Inejctor*/
         startInjector(program.statement)
       case None => /*Extractor*/
         start(program.statement)
@@ -22,408 +23,187 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
+
       statement.head match {
-        case KeyWithGrammar(key, grammar) =>
-          executeSelect(key, grammar.selectType) //key.grammar
-        case KeyWithArrExpr(key, arrEx, secondKey) =>
-          secondKey.isDefined match {
-            case true if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#].secondKey
-              executeArraySelectWithTwoKeys(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get, secondKey.get)
-            case true => //key.[#].secondKey
-              executeArraySelectWithTwoKeys(key,arrEx.leftArg,"to",arrEx.leftArg,secondKey.get)
-            case false if arrEx.midArg.isDefined && arrEx.rightArg.isDefined => //key.[#..#]
-              executeArraySelect(key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get)
-            case false => //key.[#]
-              executeArraySelect(key,arrEx.leftArg,"to", arrEx.leftArg)
-          }
-        case ArrExpr(left, mid, right, secondKey) =>
-          secondKey.isDefined match {
-            case true if mid.isDefined && right.isDefined => //[#..#].2ndKey
-              executeArraySelectWithTwoKeys("", left, mid.get, right.get, secondKey.get)
-            case true => //[#].2ndKey
-              executeArraySelectWithTwoKeys("",left, "to", left,secondKey.get)
-            case false if mid.isDefined && right.isDefined => //[#..#]
-              executeArraySelect("", left, mid.get, right.get)
-            case false => //[#]
-              executeArraySelect("",left, "to", left)
-          }
-        case Grammar(selectType) => // "(all|first|last)"
-          executeSelect("", selectType)
+        case MoreKeys(first, list, dots) =>
+          //println(s"statements: ${List(first) ++ list}")
+          //println(s"dotList: $dots")
+          executeMoreKeys(first, list, dots)
+        case _ => throw new RuntimeException("Something went wrong!!!")
       }
-    } else throw new RuntimeException("List of statements is empty.")
+    }else throw new RuntimeException("List of statements is empty.")
   }
 
-//  private def executePosSelect(key: String, left: Int, secondKey: Option[String]): bsonValue.BsValue = {
-//    val keyList =
-//      if (secondKey.isDefined) {
-//        List((key, "onePos"), (secondKey.get, "onePos2nd"))
-//      } else {
-//        List((key, "onePos"))
-//      }
-//    val result: Seq[Any] =
-//      boson.extract(boson.getByteBuf, keyList, Some(left), None) map { v =>
-//        println(s"after extraction of -> $v")
-//        v.asInstanceOf[Seq[Any]]
-//      } getOrElse Seq.empty
-//    result match {
-//      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-//      case v =>
-//          bsonValue.BsObject.toBson {
-//            for (elem <- v) yield {
-//              elem match {
-//                case e: Array[Any] => Compose.composer(e)
-//                case e => e
-//              }
-//            }
-//          } else { //("all")
-//            bsonValue.BsObject.toBson(result.head.asInstanceOf[Array[Any]].length)
-//          }
-//        case "isEmpty" => bsonValue.BsObject.toBson(false)
-//      }
-//    }
-//  }
+  private def buildKeyList(first: Statement, statementList: List[Statement], dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+    val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
+      first match {
+        case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+        case HalfName(halfName) =>
+          halfName.equals(STAR) match {
+            case true => (List((halfName, C_ALL)), List((None, None, EMPTY_KEY)))
+            case false if statementList.nonEmpty => (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case false => (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
+          }
+        case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+        case Key(key) => if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
+        case _ => throw CustomException("Error building key list")
+      }
+    if (statementList.nonEmpty) {
+      val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
+        for (statement <- statementList) yield {
+          statement match {
+            case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, EMPTY_KEY))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))                                                                          //TODO: treat '*'
+            case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+            case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case _ => throw CustomException("Error building key list")
+          }
+        }
+      val secondList: List[(String, String)] = firstList ++ forList.flatMap(p => p._1)
+      val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(p => p._2)
 
-  private def executeArraySelect(key: String, left: Int, mid: String, right: Any): bsonValue.BsValue = {
-    val result =
-      (left, mid, right) match {
-        case (a, ("until" | "Until"), "end") =>
-          val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), Some(a), None)
-          midResult.map(v => {
-            (for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
-              elem.take(elem.length - 1)
-            }).filter(p => p.nonEmpty)
-          }).getOrElse(Seq.empty)
-        case (a, _, "end") => // "[# .. end]"
-          val midResult = boson.extract(boson.getByteBuf, List((key, "limit")), Some(a), None)
-          midResult.map { v =>
-            v.asInstanceOf[Seq[Any]]
-          }.getOrElse(Seq.empty)
+      val thirdList: List[(String, String)] = secondList.zipWithIndex map {elem =>
+        elem._1._2 match {
+          case C_LIMITLEVEL => if(dotsList.take(elem._2+1).last.equals(C_DOUBLEDOT)) (elem._1._1,C_LIMIT) else elem._1
+          case C_LEVEL => println("----- NOT POSSIBLE----"); elem._1
+          case C_FILTER => elem._1
+          case C_NEXT => elem._1
+          case C_ALL => (elem._1._1,C_NEXT)//elem._1
+          case _ => throw CustomException("Error building key list with dots")
+        }
+      }
+      dotsList.last match {
+        case C_DOT =>
+          statementList.last match {
+            case HalfName(halfName) if !halfName.equals(STAR) => (thirdList.take(thirdList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
+            case HalfName(halfName) if halfName.equals(STAR) => (thirdList.take(thirdList.size - 1) ++ List((halfName, C_ALL)), limitList2)
+            case Key(k) => (thirdList.take(thirdList.size - 1) ++ List((k, C_LEVEL)), limitList2)
+            case _ => (thirdList, limitList2)
+          }
+        case C_DOUBLEDOT =>
+          statementList.last match {
+            case HalfName(halfName) => (thirdList.take(thirdList.size - 1) ++ List((halfName, C_ALL)), limitList2) //TODO: treat '*'
+            case Key(k) => (thirdList.take(thirdList.size - 1) ++ List((k, C_ALL)), limitList2)
+            case _ => (thirdList, limitList2)
+          }
+      }
+    } else {
+      (firstList.map { elem =>
+        elem._2 match {
+          case C_LIMITLEVEL => if(dotsList.head.equals(C_DOUBLEDOT)) (elem._1,C_LIMIT) else elem
+          case C_LEVEL => if(dotsList.head.equals(C_DOUBLEDOT)) (elem._1,C_ALL) else elem
+          case C_FILTER => elem
+          case C_NEXT => println("----- NOT POSSIBLE----");if(dotsList.head.equals(C_DOUBLEDOT)) (elem._1,C_ALL) else elem
+          case C_ALL => elem
+        }
+      },limitList1)
+    }
+  }
+
+  private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
+    if(mid.isDefined && right.isDefined) {
+      (left, mid.get.toLowerCase, right.get) match {
+        case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
+        case (a, _, C_END) => List((Some(a),None,TO_RANGE))
         case (a, expr, b) if b.isInstanceOf[Int] =>
-          expr match {
-            case ("to" | "To") =>
-              boson.extract(
-                boson.getByteBuf, List((key, "limit")), Some(a), Some(b.asInstanceOf[Int])
-              ).map { v =>
-                v.asInstanceOf[Seq[Any]]
-              }.getOrElse(Seq.empty)
-            case ("until" | "Until") =>
-              boson.extract(
-                boson.getByteBuf, List((key, "limit")), Some(a), Some(b.asInstanceOf[Int] - 1)
-              ).map { v =>
-                v.asInstanceOf[Seq[Any]]
-              }.getOrElse(Seq.empty)
+          expr.toLowerCase match {
+            case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
+            case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
           }
       }
+    } else { //[#]
+      List((Some(left),Some(left),TO_RANGE))
+    }
+  }
+
+  private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
+    val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, dotsList)
+    //println("after build keylist -> " + keyList._1)
+    //println("after build limitlist -> " + keyList._2)
+    val result: Seq[Any] =
+      boson.extract(boson.getByteBuf, keyList._1, keyList._2) map { v =>
+             v.asInstanceOf[Seq[Any]]
+      } getOrElse Seq.empty[Any]
     result match {
-      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-      case v =>
-        bsonValue.BsObject.toBson {
-          for (elem <- v) yield {
-            elem match {
-              case e: Array[Any] => Compose.composer(e)
-              case e => e
-            }
+      case Seq() => bsonValue.BsObject.toBson(Vector.empty[Any])
+      case v => bsonValue.BsObject.toBson {
+        (for (elem <- v) yield {
+          elem match {
+            case e: Array[Any] => Compose.composer(e)
+            case e => e
           }
+        }).toVector
       }
     }
   }
-
-  private def executeArraySelectWithTwoKeys(key: String, left: Int,
-                                            mid: String, right: Any,
-                                            secondKey: String): bsonValue.BsValue = {
-    val result =
-      (left, mid, right) match {
-        case (a, ("until" | "Until"), "end") =>
-          boson.extract(
-            boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), None
-          ) map { v => {
-            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield {
-              elem.take(elem.length - 1)
-            }
-          }
-          } getOrElse Seq.empty[Any]
-        case (a, _, "end") =>
-          boson.extract(
-            boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), None
-          ) map { v =>
-            v.asInstanceOf[Seq[Any]]
-          } getOrElse Seq.empty[Any]
-        case (a, expr, b) if b.isInstanceOf[Int] =>
-          expr match {
-            case ("to" | "To") =>
-              boson.extract(
-                boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), Some(b.asInstanceOf[Int])
-              ) map { v =>
-                v.asInstanceOf[Seq[Any]]
-              } getOrElse Seq.empty[Any]
-            case ("until" | "Until") =>
-              boson.extract(
-                boson.getByteBuf, List((key, "limit"), (secondKey, "all")), Some(a), Some(b.asInstanceOf[Int] - 1)
-              ) map { v =>
-                v.asInstanceOf[Seq[Any]]
-              } getOrElse Seq.empty[Any]
-          }
-      }
-    result match {
-      case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-      case v =>
-        bsonValue.BsObject.toBson {
-//          val res =
-//            for (elem <- v.asInstanceOf[Seq[Array[Any]]]) yield Compose.composer(elem)
-//          if (res.size>1) res else res.head //
-          for (elem <- v) yield {
-            elem match {
-              case e: Array[Any] => Compose.composer(e)
-              case e => e
-            }
-          }
-        }
-    }
-  }
-
-  private def executeSelect(key: String, selectType: String): bsonValue.BsValue = {
-    val result = boson.extract(boson.getByteBuf, List((key, selectType)))
-    selectType match {
-      case "first" =>
-        if (key.isEmpty) {
-          bsonValue.BsObject.toBson(result.map { v =>
-            Seq(Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).head)
-          }.getOrElse(Seq.empty[Any]))
-        } else {
-          result.map { v =>
-            v.asInstanceOf[Seq[Any]].head match {
-              case p if p.isInstanceOf[Array[Any]] =>
-                bsonValue.BsObject.toBson{
-                  Compose.composer(p.asInstanceOf[Array[Any]])
-                }
-              case p =>
-                bsonValue.BsObject.toBson(Seq(p))
-            }
-          } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
-        }
-      case "last" =>
-        if (key.isEmpty) {
-          bsonValue.BsObject.toBson(result.map(v => Seq(Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head).last)).getOrElse(Seq.empty))
-        } else {
-          result.map { elem =>
-            elem.asInstanceOf[Seq[Any]].last match {
-              case p if p.isInstanceOf[Array[Any]] =>
-                bsonValue.BsObject.toBson(Compose.composer(p.asInstanceOf[Array[Any]]))
-              case p =>
-                bsonValue.BsObject.toBson(Seq(p))
-            }
-          } getOrElse bsonValue.BsObject.toBson(Seq.empty[Any])
-        }
-      case "all" =>
-        if (key.isEmpty) {
-          bsonValue.BsObject.toBson(result.map(v => Compose.composer(v.asInstanceOf[Seq[Array[Any]]].head)).getOrElse(Seq.empty))
-        } else {
-          bsonValue.BsObject.toBson(result.map { v =>
-            v.asInstanceOf[Seq[Any]].map {
-              case array: Array[Any] => Compose.composer(array)
-              case elem => elem
-            }
-          }.getOrElse(Seq.empty))
-        }
-    }
-  }
-  //  (all|first|last)
-
-  @Deprecated
-  private def transformer(value: Seq[Any]): Seq[Any] = {
-    value match {
-      case Seq() => Seq.empty
-      case x :: Nil if x.isInstanceOf[Seq[Any]] =>
-        println("case x :: Nil -> x is list")
-        transformer(x.asInstanceOf[Seq[Any]])
-      case x :: Nil if x.isInstanceOf[Array[Any]] =>
-        println(s"case x :: Nil -> x is arr: ${x.asInstanceOf[Array[Any]].toList}")
-        transformer(x.asInstanceOf[Array[Any]].toList)
-      //x.asInstanceOf[Array[Any]].toList
-      case x :: Nil =>
-        println(s"case x :: Nil -> x is element: $x")
-        x +: Seq()
-      case x :: xs if x.isInstanceOf[Seq[Any]] =>
-        println("case x :: xs -> x is list")
-        transformer(x.asInstanceOf[Seq[Any]]) +: transformer(xs) +: Seq()
-      case x :: xs if x.isInstanceOf[Array[Any]] =>
-        println("case x :: xs -> x is arr")
-        x.asInstanceOf[Array[Any]].toList +: transformer(xs) +: Seq()
-      case x :: xs =>
-        println("case x :: xs -> x is element")
-        Seq(x) +: transformer(xs) +: Seq()
-    }
-  }
-
-
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
+
+    //println(statement.head)
     if (statement.nonEmpty) {
+      //println("Statements not empty")
       statement.head match {
-        case KeyWithGrammar(k,grammar) => //key.grammar
-          executeSelectInjector(k,grammar.selectType)
-        case Grammar(selectType) => // "(all|first|last)"
-          executeSelectInjector("",selectType)
+        case MoreKeys(first, list, dots) => //  key
+          first match{
+            case ROOT()=>
+              //println("ROOT() OH YEAH")
+              executeRootInjection()
+            case _ =>
+              val united: List[Statement] = list.+:(first)
+              //println(united)
+              val zipped: List[(Statement, String)] = united.zip(dots)
 
-        case ArrExpr(left: Int, mid: Option[String], right: Option[Any], None) => // "[# .. #]"
-          println("ArrExpr")
-          println(s"mid is defined? :${mid.isDefined}")
-          executeArraySelectInjector("", left, mid.get, right.get)
-        case KeyWithArrExpr(k,arrEx, None) =>    //key.[#..#]
-
-          executeArraySelectInjector(k,arrEx.leftArg,arrEx.midArg.get,arrEx.rightArg.get)
-
-        /*executeArraySelect(k,arrEx.leftArg,arrEx.midArg,arrEx.rightArg) match {
-          case Seq() => bsonValue.BsObject.toBson(Seq.empty)
-          case v =>
-            bsonValue.BsObject.toBson {
-              for(elem <- v.asInstanceOf[Seq[Array[Any]]]) yield elem.toList
-            }
-        }*/
+              //println(zipped)
+              executeMultipleKeysInjector(zipped)
+          }
+        case _ => throw new RuntimeException("Something went wrong!!!")
       }
     } else throw new RuntimeException("List of statements is empty.")
   }
 
-  def executeSelectInjector(key: String, selectType: String):  bsonValue.BsValue = {
-    selectType match {
-      case "first" =>
-        val result: Try[BosonImpl] = Try(boson.modify(Option(boson), key, f.get).get)
-        result match {
-          case Success(v) =>
-            bsonValue.BsObject.toBson(v)
-          case Failure(e) =>
-            bsonValue.BsException.apply(e.getMessage)
-        }
-      case "all" =>
-        val result: Try[BosonImpl] = Try(new BosonImpl(byteArray = Option(boson.modifyAll(boson.getByteBuf, key, f.get)._1.array())))
-        result match {
-          case Success(v) =>
-            bsonValue.BsObject.toBson(v)
-          case Failure(e) =>
-            bsonValue.BsException.apply(e.getMessage)
-        }
-      case "last"=>
-        // val ocorrencias: Option[Int] = Option(boson.findOcorrences(boson.getByteBuf.duplicate(), key).size-1)
-        val result: Try[BosonImpl] = Try(boson.modifyEnd(boson.getByteBuf.duplicate(), key, f.get)._1)
-        result match {
-          case Success(v) =>
-            bsonValue.BsObject.toBson(v)
-          case Failure(e) =>
-            bsonValue.BsException.apply(e.getMessage)
-        }
-    }
+  private def executeRootInjection(): bsonValue.BsValue = {
+
+    val result:bsonValue.BsValue=
+      Try(boson.execRootInjection(boson.getByteBuf, f.get))match{
+        case Success(v)=>
+          val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+          v.release()
+          bsResult
+        case Failure(e)=>bsonValue.BsException(e.getMessage)
+      }
+    result
+   }
+
+
+  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
+    val result:bsonValue.BsValue=
+      Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, f.get ))match{
+        case Success(v)=>
+          boson.getByteBuf.release()
+          val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+          v.release()
+          bsResult
+        case Failure(e)=>bsonValue.BsException(e.getMessage)      }
+
+    // if Statements size is equal to 1 then cal start Injector
+    // else keep filter the buffer
+    /*if(statements.size==1){
+      //execute statement
+      startInjector(List(statements.head))
+    }else {
+      // filter buffer
+      execStatementPatternMatch(statements)
+    }*/
+    // return BsValue
+result
+    //bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
   }
 
-  def executeArraySelectInjector(key: String,left: Int, mid: String, right: Any): bsonValue.BsValue = {
-println((key, left, mid.toLowerCase(), right))
-    (key, left, mid.toLowerCase(), right) match {
-      case ("", a, "until", "end") =>
-
-        val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f.get, a.toString))
-        //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-
-        midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._2)
-          case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-        }
-
-      case ("", a, "to", "end") => // "[# .. end]"
-
-        val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f.get, a.toString))
-
-        //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-        midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._1)
-          case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-        }
-
-      case ("", a, expr, b) if b.isInstanceOf[Int] =>
-        expr match {
-          case "to" =>
-            val range: Range = a to b.asInstanceOf[Int]
-            val list: ListBuffer[String] = new ListBuffer[String]
-            range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f.get, a.toString, b.toString))
-            //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-            midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._1)
-              case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-            }
-          case "until" =>
-            val range: Range = a until b.asInstanceOf[Int]
-            val list: ListBuffer[String] = new ListBuffer[String]
-            range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEnd(boson.getByteBuf.duplicate(), f.get, a.toString, b.toString))
-            //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-            midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._2)
-              case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-            }
-        }
-      case (k, a, "until", "end") =>
-
-
-        val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k, f.get, a.toString))
-        //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-        midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._2)
-          case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-        }
-      case (k, a, "to", "end") =>
-
-
-        val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k, f.get, a.toString))
-        //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-        midResult match {
-          case Success(v) => bsonValue.BsObject.toBson(v._1)
-          case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-        }
-      case (k, a, expr, b) if b.isInstanceOf[Int] =>
-        expr match {
-          case "to" =>
-            val range: Range = a to b.asInstanceOf[Int]
-            val list: ListBuffer[String] = new ListBuffer[String]
-            range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k, f.get, a.toString, b.toString))
-            //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-            midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._1)
-              case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-            }
-          case "until" =>
-            val range: Range = a until b.asInstanceOf[Int]
-            val list: ListBuffer[String] = new ListBuffer[String]
-            range.foreach( c => list.append(c.toString))
-            val midResult = Try(boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(),k,f.get, a.toString, b.toString))
-            //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-            midResult match {
-              case Success(v) => bsonValue.BsObject.toBson(v._2)
-              case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-            }
-        }
-      /* val some: Try[Option[Any]] = Try(boson.extract(boson.getByteBuf, k, "until", Option(a)))
-       val firstResult: Equals = some match {
-         case Success(v) =>  v.map { v =>
-       v.asInstanceOf[Seq[Array[Any]]]
-       }.getOrElse (Seq.empty)
-           //bsonValue.BsObject.toBson(v)
-         case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-       }
-
-
-       val midResult = Try(boson.modifyArrayEnd(f, a.toString))
-
-
-       //val midResult = boson.extract(boson.getByteBuf, key, "limit", Option(a), None)
-
-       midResult match {
-         case Success(v) => bsonValue.BsObject.toBson(v._2)
-         case Failure(e) => bsonValue.BsException.apply(e.getMessage)
-       }*/
-      case _ => bsonValue.BsException.apply("Invalid Expression.")
-    }
-  }
 }
+
+
 
 object Compose {
 

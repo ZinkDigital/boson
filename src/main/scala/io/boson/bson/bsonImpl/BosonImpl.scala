@@ -307,11 +307,13 @@ class BosonImpl(
     keyList.head._1 match {
       case EMPTY_KEY if keyList.size < 2  && keyList.head._2.equals(C_LIMIT)=>
         val constructed: Iterable[Any] = traverseBsonArray(netty.duplicate(), length, arrayFRIdx, keyList, limitList)
+        //println(s"constructed: $constructed")
         Some(goThroughArrayWithLimit(netty,length,arrayFRIdx,keyList,limitList)) match {
           case Some(x) if x.isEmpty => Some(resultComposer(constructed.toVector))
           case Some(value) => Some(Vector(resultComposer(constructed.toVector),resultComposer(value.toVector)))
         }
       case EMPTY_KEY if keyList.size < 2 =>
+        //println("calling traverseBsonArray")
         Some(traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList)) match {
           case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
           case Some(x) => Some(x.toVector)

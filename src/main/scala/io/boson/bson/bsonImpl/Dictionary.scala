@@ -41,15 +41,14 @@ object Dictionary {
   val C_END: String = "end"
   val C_DOT: String = "."
   val C_DOUBLEDOT: String = ".."
-  val C_LAST: String = "last" // "end" should be used to maintain consistency
+  val C_LAST: String = "last"  // "end" should be used to maintain consistency
   val C_RANDOM: String = "random"
 
   val V_NULL: String = "Null"
 
   // PARSER CONSTANTS
-  val P_NUMBER: String =
-    """\d+(\.\d*)?"""
-  val P_WORD: String = """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+"""
+  val P_NUMBER: String = """\d+(\.\d*)?"""
+  val P_WORD: String =  """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+"""
   val P_CLOSE_BRACKET: String = "]"
   val P_OPEN_BRACKET: String = "["
   val P_HAS_ELEM: String = "[@"
@@ -59,5 +58,7 @@ object Dictionary {
   val E_MOREKEYS: String = "Failure parsing!"
 
 
+
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }
+

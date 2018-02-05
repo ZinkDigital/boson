@@ -2,7 +2,7 @@ package io.boson.bson;
 
 import io.boson.bson.bsonImpl.BosonExtractor;
 import io.boson.bson.bsonImpl.BosonInjector;
-import io.boson.bson.bsonImpl.BosonValidate;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -10,11 +10,6 @@ import java.util.function.Function;
 
 
 public interface Boson {
-
-    static <T> Boson validate(String expression, Consumer<T> validateFunction) {
-
-        return new BosonValidate(expression,validateFunction);
-    }
 
     /**
      * Make an Extractor that will call the extract function (Consumer) according to
@@ -24,9 +19,9 @@ public interface Boson {
      * @param <T>
      * @return a BosonImpl that is a BosonExtractor
      */
-    static <T> Boson extractor(String expression, Consumer<T> extractFunction) {
+    static <T> Boson extractor(String expression, Consumer<T> extractFunction) {    //BosonImpl is the BosonExtractor
         // TODO construct an extractor
-        return new BosonExtractor(expression,extractFunction);
+        return new BosonExtractor<>(expression,extractFunction);
     }
 
     /**
@@ -37,9 +32,9 @@ public interface Boson {
      * @param <T>
      * @return
      */
-        static <T> Boson injector(String expression, Function<T,T> injectFunction) {
+        static <T> Boson injector(String expression, Function<T,T> injectFunction) {    ////BosonImpl is the BosonInjector
         // TODO construct an injector
-        return new BosonInjector(expression,injectFunction);
+        return new BosonInjector<>(expression,injectFunction);
     }
 
     /**
@@ -68,6 +63,6 @@ public interface Boson {
      * @param the BosonImpl to fuse to.
      * @return the fused BosonImpl
      */
-    Boson fuse(final Boson boson);
+    Boson fuse(final Boson boson);  ////BosonImpl maybe will be BosonFuse
 
 }
