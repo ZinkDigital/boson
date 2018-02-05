@@ -356,7 +356,7 @@ class injectorAPITests extends FunSuite {
       boson1.go(result)
       //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
       val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-      assertEquals(Vector(List(2, 3), List(2, 3)), a)
+      assertEquals(Vector(2, 3, 2, 3), a)
   }
 
 

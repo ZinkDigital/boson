@@ -822,7 +822,7 @@ public class APItests {
         Object result = future1.join().getValue();
 
         assertEquals(
-                "Vector(List(Hat, false, 2.2, null, 1000, List(null, List(100000)), 2, Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null)))",
+                "Vector(Hat, false, 2.2, null, 1000, List(null, List(100000)), 2, Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null))",
                 result.toString());
     }
 
@@ -835,7 +835,7 @@ public class APItests {
         Object result = future1.join().getValue();
 
         assertEquals(
-                "Vector(List(Hat, false, 2.2, null, 1000, List(null, List(100000)), 2, Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null)))",
+                "Vector(Hat, false, 2.2, null, 1000, List(null, List(100000)), 2, Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null))",
                 result.toString());
     }
 
@@ -848,7 +848,7 @@ public class APItests {
         Object result = future1.join().getValue();
 
         assertEquals(
-                "Vector(List(Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null)))",
+                "Vector(Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null))",
                 result.toString());
     }
 
@@ -861,7 +861,7 @@ public class APItests {
         Object result = future1.join().getValue();
 
         assertEquals(
-                "Vector(List(Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null)))",
+                "Vector(Map(Quantity -> 500, SomeObj -> Map(blah -> null), one -> false, three -> null))",
                 result.toString());
     }
 
