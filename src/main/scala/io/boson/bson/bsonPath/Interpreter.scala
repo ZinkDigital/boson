@@ -267,6 +267,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
         case ArrExpr(left: Int, mid: Option[String], right: Option[Any], None) => // "[# .. #]"
           println("ArrExpr")
+          println(s"mid is defined? :${mid.isDefined}")
           executeArraySelectInjector("", left, mid.get, right.get)
         case KeyWithArrExpr(k,arrEx, None) =>    //key.[#..#]
 

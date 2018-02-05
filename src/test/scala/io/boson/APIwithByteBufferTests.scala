@@ -1,13 +1,13 @@
 package io.boson
 
 import java.nio.ByteBuffer
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{CompletableFuture, CountDownLatch, TimeUnit}
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
 import io.boson.bson.bsonValue.{BsSeq, BsValue}
 import mapper.Mapper
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertArrayEquals, assertEquals}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -90,7 +90,7 @@ class APIwithByteBufferTests extends FunSuite{
       Map("José" -> Seq("Fly"))
     ))), future.join())
   }
- /*
+
   test("extract with 2nd Key PosV1 w/ key") {
     val expression: String = "[2 to 3].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -144,7 +144,7 @@ class APIwithByteBufferTests extends FunSuite{
       Seq("Fly")
     ))), future.join())
   }
-  */
+
   test("extract first w/ key") {
     val expression: String = "first"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -179,6 +179,7 @@ class APIwithByteBufferTests extends FunSuite{
       Seq("Insecticida")
     )), future.join())
   }
+
   test("extract PosV1") {
     val expression: String = "José.[0 until end]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -229,7 +230,7 @@ class APIwithByteBufferTests extends FunSuite{
       Map("José" -> Seq("Fly"))
     ))), future.join())
   }
-  /*
+
   test("extract with 2nd Key PosV1") {
     val expression: String = "StartUp.[0 until end].José"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -277,7 +278,7 @@ class APIwithByteBufferTests extends FunSuite{
     boson.go(validatedByteArrayObj)
     assertEquals(BsSeq(Seq(Seq())), future.join())
   }
-  */
+
   test("extract first") {
     val expression: String = "StartUp.first"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -458,6 +459,27 @@ class APIwithByteBufferTests extends FunSuite{
     boson1.go(resultValue)
 
     assertEquals(BsSeq(List(18)),future.join() )
+  }
+
+  test("fuse Extractor->Injector->Extractor") {
+    val latch = new CountDownLatch(1)
+    val expression1: String = "[0]"
+    val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
+      assert(Seq(Seq(2.2f)) === in.getValue || Seq(Seq(5.5f)) === in.getValue)
+      latch.countDown()
+    })
+
+    val newFridgeSerialCode: Float = 5.5f
+    val expression2 = "[0 to 0]"
+    val inj: Boson = Boson.injector(expression2, (_: Float) => newFridgeSerialCode)
+
+    val fused: Boson = ext.fuse(inj)
+    val future: CompletableFuture[ByteBuffer] = fused.go(validatedByteBuffer)
+    val fused2: Boson = fused.fuse(ext)
+    val future2: CompletableFuture[ByteBuffer] = fused2.go(future.join())
+
+    //latch.await()
+    assertArrayEquals(future.join().array(), future2.get(1, TimeUnit.SECONDS).array())
   }
 
 }

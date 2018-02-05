@@ -52,7 +52,7 @@ class BosonExtractor[T](expression: String, extractFunction: java.util.function.
     future
   }
 
-  override def fuse(boson: bson.Boson): bson.Boson = ???
+  override def fuse(boson: bson.Boson): bson.Boson = new BosonFuse(this,boson)
 
 
 
