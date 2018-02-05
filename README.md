@@ -51,7 +51,7 @@ boson.go(validBsonArray);
 BsValue extracted = result.join()
 ```
 
-### Injecting in a encoded Bson (Scala)
+### Injecting in an encoded Bson (Scala)
 ```scala
 //  This is the Bson encoded to a byte array
 val validBsonArray: Array[Byte] = bsonEvent.encodeToBarray
@@ -78,7 +78,7 @@ val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 val resultValue: Array[Byte] = result.join()
 ```
 
-### Injecting in a encoded Bson (Java)
+### Injecting in an encoded Bson (Java)
 ```java
 byte[] validBsonArray = bson.encodeToBarray();
 
@@ -90,6 +90,40 @@ CompletableFuture<byte[]> result = boson.go(validBsonArray);
 
 byte[] resultValue =  result.join();
 ```
+
+### Fusing Boson(extractor and injector) (Scala)
+```scala
+// First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.
+val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
+val expression = "name.first"
+val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+val ext: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+
+val inj: Boson = Boson.injector(expression, (in: String) => "newName")
+
+// Then call fuse() on injector or extractor, it returns a new BosonObject
+val fused: Boson = ext.fuse(inj)
+
+// Finally call go() providing the byte array or a ByteBuffer on the new Boson object
+val finalFuture: CompletableFuture[Array[Byte]] = fused.go(validatedByteArray)
+finalFuture.join()
+```
+
+### Fusing Boson(extractor and injector) (Java)
+```java
+final byte[] validatedByteArray  = bsonEvent.encodeToBarray();
+final String expression = "name.first";
+final CompletableFuture<BsValue> future = new CompletableFuture<>();
+final Boson ext = Boson.extractor(expression, (in: BsValue) -> future.complete(in));
+
+final Boson inj = Boson.injector(expression, (in: String) -> "newName");
+
+final Boson fused = ext.fuse(inj);
+
+final CompletableFuture<byte[]> finalFuture = fused.go(validatedByteArray);
+finalFuture.join();
+```
+
 ### Extracting a Json (Java)
 
 ```java

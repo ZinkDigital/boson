@@ -1,6 +1,6 @@
 package io.boson
 
-import java.util.concurrent.{CompletableFuture, CountDownLatch}
+import java.util.concurrent.{CompletableFuture, CountDownLatch, TimeUnit}
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
@@ -11,6 +11,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertArrayEquals
 
 @RunWith(classOf[JUnitRunner])
 class APIwithByteArrTests extends FunSuite {
@@ -159,6 +160,7 @@ class APIwithByteArrTests extends FunSuite {
         Map("fridgeTemp" -> 3.854f, "fanVelocity" -> 20.5, "doorOpen" -> true))),
       future.join())
   }
+
   test("extract PosV1") {
     val expression: String = "fridgeReadings.[1 until 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -308,6 +310,7 @@ class APIwithByteArrTests extends FunSuite {
       boson.go(arr.encodeToBarray())
     }
   }
+
   test("Inject API Double => Double") {
     val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
     val newFridgeSerialCode: Double = 1000.0
@@ -451,6 +454,27 @@ class APIwithByteArrTests extends FunSuite {
     boson1.go(resultValue)
 
     assertEquals(BsSeq(List(18)),future.join() )
+  }
+
+  test("fuse Extractor->Injector->Extractor") {
+    val latch = new CountDownLatch(1)
+    val expression1: String = "fridgeTemp.first"
+    val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
+      assert(Seq(5.2f) === in.getValue || Seq(18.3f) === in.getValue)
+      latch.countDown()
+    })
+
+    val newFridgeSerialCode: Float = 18.3f
+    val expression2 = "fridgeTemp.first"
+    val inj: Boson = Boson.injector(expression2, (_: Float) => newFridgeSerialCode)
+
+    val fused: Boson = ext.fuse(inj)
+    val future: CompletableFuture[Array[Byte]] = fused.go(validatedByteArray)
+    val fused2: Boson = fused.fuse(ext)
+    val future2: CompletableFuture[Array[Byte]] = fused2.go(future.join())
+
+    //latch.await()
+    assertArrayEquals(future.join(), future2.get(1, TimeUnit.SECONDS))
   }
 
 }

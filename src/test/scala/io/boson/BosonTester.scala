@@ -1,6 +1,6 @@
 package io.boson
 
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{CompletableFuture, CountDownLatch}
 
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
@@ -155,15 +155,20 @@ object BosonTester extends App {
 //  boson12.go(a.encodeToBarray())
 //  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
-  val name: String = "Category1"
-  val halfname: String = "ego"
-  val wrong: String = "oge"
-  val wrong1: String = "1"
-  val wrong2: String = "Ce"
+  val latch = new CountDownLatch(2)
+  val expression1: String = "fridgeTemp.first"
+  val ext: Boson = Boson.extractor(expression1, (in: BsValue) => {
+    println(s"----------------------------------- result of extraction: $in ---------------------------")
+    latch.countDown()
+  })
 
-  println(s"$name contains $halfname -> ${name.contains(halfname)}")
-  println(s"$name contains $wrong -> ${name.contains(wrong)}")
-  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
-  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
+  val newFridgeSerialCode: Float = 18.3f
+  val expression2 = "fridgeTemp.first"
+  val inj: Boson = Boson.injector(expression2, (_: Float) => newFridgeSerialCode)
 
+  val fused: Boson = ext.fuse(inj).fuse(ext)
+  fused.go(validatedByteArray)
+
+  latch.await()
+  println(5.2)
 }
