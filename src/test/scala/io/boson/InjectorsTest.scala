@@ -8,9 +8,7 @@ import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue.{BsSeq, BsValue}
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue
-import io.netty.util.ByteProcessor
-
-import io.netty.util.ByteProcessor
+import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -24,7 +22,7 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage
     try {
@@ -171,10 +169,10 @@ class InjectorsTest extends FunSuite {
     val b1: Option[BosonImpl] = netty.get.modify(netty, "float", (_: Float) => newFloat)
 
 
-    val bP: ByteProcessor = (value: Byte) => {
+    /*val bP: ByteProcessor = (value: Byte) => {
       //println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
       true
-    }
+    }*/
     val result: Any = b1 match {
       case None => List()
       case Some(nb) =>

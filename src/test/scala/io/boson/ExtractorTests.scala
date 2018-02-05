@@ -5,6 +5,7 @@ import java.time.Instant
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
 import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ResourceLeakDetector
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -15,7 +16,7 @@ import org.scalatest.junit.JUnitRunner
   */
 @RunWith(classOf[JUnitRunner])
 class ExtractorTests extends FunSuite {
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val obj1: BsonObject = new BsonObject().put("André", 975).put("António", 975L)
   val obj2: BsonObject = new BsonObject().put("Pedro", 1250L).put("José", false)
   val obj3: BsonObject = new BsonObject().put("Américo", 1500).putNull("Amadeu")

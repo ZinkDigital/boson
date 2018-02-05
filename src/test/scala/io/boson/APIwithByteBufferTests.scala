@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture
 import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
+import io.netty.util.ResourceLeakDetector
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -13,7 +14,7 @@ import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class APIwithByteBufferTests extends FunSuite{
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val br4: BsonArray = new BsonArray().add("Insecticida")
   val br1: BsonArray = new BsonArray().add("Tarantula").add("Aracnídius").add(br4)
   val obj1: BsonObject = new BsonObject().put("José", br1)

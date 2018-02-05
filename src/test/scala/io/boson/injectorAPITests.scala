@@ -18,6 +18,8 @@ import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class injectorAPITests extends FunSuite {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
+
   val b11: BsonObject = new BsonObject().put("Title","C++Machine").put("Price", 38)
   val br5: BsonArray = new BsonArray().add(b11)
   val b10: BsonObject = new BsonObject().put("Title","JavaMachine").put("Price", 39)

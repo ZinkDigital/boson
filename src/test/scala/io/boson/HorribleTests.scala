@@ -10,6 +10,7 @@ import org.scalatest.junit.JUnitRunner
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
 import io.boson.bson.{Boson, bsonValue}
+import io.netty.util.ResourceLeakDetector
 import org.junit.Assert.assertEquals
 
 /**
@@ -18,7 +19,7 @@ import org.junit.Assert.assertEquals
 
 @RunWith(classOf[JUnitRunner])
 class HorribleTests extends FunSuite {
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val br4: BsonArray = new BsonArray().add("Insecticida")
   val br1: BsonArray = new BsonArray().add("Tarantula").add("Aracnídius").add(br4)
   val obj11: BsonObject = new BsonObject().put("José", br1)
@@ -330,7 +331,7 @@ class HorribleTests extends FunSuite {
     boson.go(bsonEvent1.encodeToBarray())
 
     assertEquals(
-      BsException("string matching regex `[/^[a-zA-ZÀ-ſ]+\\d_-]+' expected but `.' found"),
+      BsException("Failure parsing!"),
       future.join())
   }
 

@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 
 import bsonLib.BsonObject
 import io.boson.bson.bsonImpl.BosonImpl
+import io.netty.util.ResourceLeakDetector
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -14,6 +15,7 @@ import scala.collection.mutable.ArrayBuffer
   */
 @RunWith(classOf[JUnitRunner])
 class BuffersTest extends FunSuite {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val bsonEvent: BsonObject = new BsonObject().put("kitchen", "dirty".getBytes).put("Grade", 'C').put("CharSequence", "It WORKS!!!")
 
   val exampleBoson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))

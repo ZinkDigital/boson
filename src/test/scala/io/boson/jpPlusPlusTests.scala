@@ -590,7 +590,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val bosonI: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Street?", "im Lost")))
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-      println("injFuture=" + new String(injFuture.join()))
+      //println("injFuture=" + new String(injFuture.join()))
 
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
@@ -612,7 +612,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-      println("injFuture=" + new String(injFuture.join()))
+      //println("injFuture=" + new String(injFuture.join()))
 
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
@@ -663,7 +663,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-      println("injFuture=" + new String(injFuture.join()))
+      //println("injFuture=" + new String(injFuture.join()))
 
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
@@ -687,7 +687,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-      println("injFuture=" + new String(injFuture.join()))
+     // println("injFuture=" + new String(injFuture.join()))
 
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
@@ -737,7 +737,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val bosonI: Boson = Boson.injector(expression, (x: List[Any]) => x.:+("NewEdition!"))
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-      println("injFuture=" + new String(injFuture.join()))
+     // println("injFuture=" + new String(injFuture.join()))
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(injFuture.join())

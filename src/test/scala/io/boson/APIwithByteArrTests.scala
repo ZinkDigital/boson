@@ -6,6 +6,7 @@ import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.Boson
 import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonValue._
+import io.netty.util.ResourceLeakDetector
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -13,7 +14,7 @@ import org.junit.Assert.assertEquals
 
 @RunWith(classOf[JUnitRunner])
 class APIwithByteArrTests extends FunSuite {
-
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
   val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", true)

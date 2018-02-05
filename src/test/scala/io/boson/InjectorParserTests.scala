@@ -57,6 +57,7 @@ import org.junit.Assert.assertEquals
 
 @RunWith(classOf[JUnitRunner])
 class InjectorParserTests extends FunSuite {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5L).put("fanVelocity", 20.5).put("doorOpen", false).putNull("null")
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 6L).put("fanVelocity", 20.6).put("doorOpen", false)
   val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3L).put("fanVelocity", 20.5).put("doorOpen", true)
@@ -77,10 +78,10 @@ class InjectorParserTests extends FunSuite {
   val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
 
-  val bP: ByteProcessor = (value: Byte) => {
+  /*val bP: ByteProcessor = (value: Byte) => {
     println("char= " + value.toChar + " int= " + value.toInt + " byte= " + value)
     true
-  }
+  }*/
 
   def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage
