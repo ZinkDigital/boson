@@ -26,8 +26,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
       statement.head match {
         case MoreKeys(first, list, dots) =>
-          println(s"statements: ${List(first) ++ list}")
-          println(s"dotList: $dots")
+          //println(s"statements: ${List(first) ++ list}")
+          //println(s"dotList: $dots")
           executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }

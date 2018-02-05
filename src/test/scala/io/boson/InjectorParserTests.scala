@@ -393,7 +393,11 @@ class InjectorParserTests extends FunSuite {
 //      case BsNumber(n) => n
 //      case BsBoolean(b) => b
     }
-    assert(Vector(List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")), List(Map("age" -> 28, "country" -> "France", "name" -> "Pedro")))=== resultParser)
+    assertEquals(Vector(
+      Map("age" -> 28, "country" -> "France", "name" -> "Pedro"),
+      Map("age" -> 28, "country" -> "France", "name" -> "Pedro"),
+      Map("age" -> 28, "country" -> "France", "name" -> "Pedro")
+    ), resultParser)
   }
   test("age.all Double => Double"){
 

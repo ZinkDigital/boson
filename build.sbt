@@ -37,7 +37,9 @@ assemblyMergeStrategy in assembly := {
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
     "junit"             %  "junit"       % "4.12"  % Test,
-    "com.novocode" % "junit-interface" % "0.11" % "test"
+    "com.novocode" % "junit-interface" % "0.11" % "test",
+    "com.jayway.jsonpath" % "json-path" % "2.4.0",
+    "org.slf4j" % "slf4j-simple" % "1.7.25"
   )
 
 

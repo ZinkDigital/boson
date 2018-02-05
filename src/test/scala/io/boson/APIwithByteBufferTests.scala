@@ -29,11 +29,10 @@ class APIwithByteBufferTests extends FunSuite{
 
   val validatedByteBuffer: ByteBuffer = ByteBuffer.allocate(validatedByteArray.length)
   validatedByteBuffer.put(validatedByteArray)
-  validatedByteBuffer.flip()
 
   val validatedByteBufferObj: ByteBuffer = ByteBuffer.allocate(validatedByteArrayObj.length)
   validatedByteBufferObj.put(validatedByteArrayObj)
-  validatedByteBufferObj.flip()
+
 
   test("extract PosV1 w/ key") { //TODO: this test in green but is incorrect
     val expression: String = "[2 to 3]"

@@ -1055,9 +1055,9 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       assertEquals(Vector(
-        Seq(Map("Title" -> "JavaMachine", "Price" -> 39)),
-        Seq(Map("Title" -> "ScalaMachine", "Price" -> 40)),
-        Seq(Map("Title" -> "C++Machine", "Price" -> 38))
+        Map("Title" -> "JavaMachine", "Price" -> 39),
+        Map("Title" -> "ScalaMachine", "Price" -> 40),
+        Map("Title" -> "C++Machine", "Price" -> 38)
       ), future.join().getValue)
     }
 
@@ -1071,7 +1071,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(injFuture.join())
 
-      assertEquals("Vector(List(Map(Price -> 39, Title -> JavaMachine, Street -> 1000)), List(Map(Price -> 40, Title -> ScalaMachine, Street -> 1000)), List(Map(Price -> 38, Title -> C++Machine, Street -> 1000)))", future.join().getValue.toString)
+      assertEquals("Vector(Map(Price -> 39, Title -> JavaMachine, Street -> 1000), Map(Price -> 40, Title -> ScalaMachine, Street -> 1000), Map(Price -> 38, Title -> C++Machine, Street -> 1000))", future.join().getValue.toString)
     }
 
     test("Ex ..key1[#].*..[#]"){
