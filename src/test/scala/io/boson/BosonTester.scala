@@ -156,23 +156,13 @@ object BosonTester extends App {
 //  boson12.go(a.encodeToBarray())
 //  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
-  val name: String = "Category1"
-  val halfname: String = "ego"
-  val wrong: String = "oge"
-  val wrong1: String = "1"
-  val wrong2: String = "Ce"
+  val bson: BsonObject = new BsonObject().put("obj", new BsonObject().put("one", 1))
+  val bA: Array[Byte] = bson.encodeToBarray()
 
-//  println(s"$name contains $halfname -> ${name.contains(halfname)}")
-//  println(s"$name contains $wrong -> ${name.contains(wrong)}")
-//  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
-//  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
-//  println("*" + wrong)
-//  println(("*" + wrong).charAt(0).equals('*'))
-
-    val expression: String = "fridgeReadings.[@fridgeTemp]"
+    val expression: String = ".obj"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteArray)
+    boson.go(bA)
     println("result of extracting \""+ expression+ "\" -> " + future.join())
     println("-------------------------------------------------------------------------------------------------------------")
 

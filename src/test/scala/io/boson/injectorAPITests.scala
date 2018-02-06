@@ -12,7 +12,7 @@ import mapper.Mapper
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertTrue}
 
 import scala.collection.mutable
 
@@ -60,7 +60,7 @@ class injectorAPITests extends FunSuite {
   }
 
   test("extract Key.Key") {
-    //println(s"bsonEvent: $bsonEvent")
+    println(s"bsonEvent: $bsonEvent")
     val expression = "Store.Book"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
@@ -71,18 +71,17 @@ class injectorAPITests extends FunSuite {
       Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
       Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
     ))), future.join())
-  }
+  } //TODO: implement return type array
 
   test("extract Key.Key[@elem]") {
     val expression = "Store.Book[@Price]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
-
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
-    )), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br1.getBsonObject(0).encodeToBarray(),br1.getBsonObject(2).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.*halfKey") {
@@ -91,11 +90,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(Seq(
-      Map("Color" -> "Red", "Price" -> 48),
-      Map("Color" -> "White", "Price" -> 35),
-      Map("Color" -> "Blue", "Price" -> 38)
-    ))), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br2.getBsonObject(0).encodeToBarray(),br2.getBsonObject(1).encodeToBarray(),br2.getBsonObject(2).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.halfKey*") {
@@ -104,11 +102,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(Seq(
-      Map("Color" -> "Red", "Price" -> 48),
-      Map("Color" -> "White", "Price" -> 35),
-      Map("Color" -> "Blue", "Price" -> 38)
-    ))), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br2.getBsonObject(0).encodeToBarray(),br2.getBsonObject(1).encodeToBarray(),br2.getBsonObject(2).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.halfKey*halfKey") {
@@ -117,26 +114,25 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(Seq(
-      Map("Color" -> "Red", "Price" -> 48),
-      Map("Color" -> "White", "Price" -> 35),
-      Map("Color" -> "Blue", "Price" -> 38)
-    ))), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br2.getBsonObject(0).encodeToBarray(),br2.getBsonObject(1).encodeToBarray(),br2.getBsonObject(2).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
-//  test("extract Key.*") {     TODO: implement the '*' cases on building keylist
-//    val expression = "Store.*"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(BsSeq(Vector(
-//      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-//        Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
-//        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
-//      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
-//    )), future.join())
-//  }
+  test("extract Key.*") {
+    val expression = "Store.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(BsSeq(Vector(
+      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+        Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
+    )), future.join())
+  } //TODO: implement return type array
 
   test("extract Key[@*elem]") {
     val expression = "Book[@*ce]"
@@ -144,24 +140,26 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
-    )), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br1.getBsonObject(0).encodeToBarray(),br1.getBsonObject(2).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract *[@elem]") {
     val expression = "*[@Price]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
     assertEquals(BsSeq(Vector(
       Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38))),
-      Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)
+      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38))),
+      Map("Color" -> "Red", "Price" -> 48),
+      Map("Color" -> "White", "Price" -> 35),
+      Map("Color" -> "Blue", "Price" -> 38)
     )), future.join())
-  }
+  } //TODO: This test should return 3 more objects
 
   test("extract *[@*elem]") {
     val expression = "*[@*ce]"
@@ -174,7 +172,7 @@ class injectorAPITests extends FunSuite {
         Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38))),
       Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)
     )), future.join())
-  }
+  } //TODO: This test should return 3 more objects
 
   test("extract Key.Key.Key") {
     val expression = "Store.Book.Title"
@@ -195,10 +193,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-      Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))
-    )), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br1.getBsonObject(0).encodeToBarray(),br1.getBsonObject(2).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.*halfKey[@*elem].Key") {
@@ -289,9 +287,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(Seq(
-      Map("Title" -> "JavaMachine", "Price" -> 39)
-    ))), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br4.getBsonObject(0).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.Key[#].Key[@elem]") {
@@ -300,9 +299,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "ScalaMachine", "Price" -> 40)
-    )), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br3.getBsonObject(0).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.Key[@*elem].Key[#]") {
@@ -311,10 +311,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(
-      Seq(Map("Title" -> "JavaMachine", "Price" -> 39)),
-      Seq(Map("Title" -> "C++Machine", "Price" -> 38))
-    )), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br4.getBsonObject(0).encodeToBarray(),br5.getBsonObject(0).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.Key[@elem].Key[@elem]") {
@@ -323,10 +323,10 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    assertEquals(BsSeq(Vector(
-      Map("Title" -> "JavaMachine", "Price" -> 39),
-      Map("Title" -> "C++Machine", "Price" -> 38)
-    )), future.join())
+    val expected: Vector[Array[Byte]] = Vector(br4.getBsonObject(0).encodeToBarray(),br5.getBsonObject(0).encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("MoreKeys 5 bson11.array21[0 until 2].[0 until 2]"){
@@ -393,7 +393,7 @@ class injectorAPITests extends FunSuite {
     boson1.go(result)
     //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-    assertEquals(Vector(List(2, 3)),a  )
+    assertEquals(Vector(2, 3),a  )
 
 
   }
@@ -549,11 +549,30 @@ class injectorAPITests extends FunSuite {
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(result)
-    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    //val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
 
+    val _SEdition1: BsonObject = new BsonObject().put("Price", 39).put("Title", "JavaMachine")
+    val _SEdition2: BsonObject = new BsonObject().put("Price", 40).put("Title", "ScalaMachine")
+    val _SEdition3: BsonObject = new BsonObject().put("Price", 38).put("Title", "C++Machine")
+    val _SpecialEditions1:BsonArray = new BsonArray().add(_SEdition1)
+    val _SpecialEditions2:BsonArray = new BsonArray().add(_SEdition2)
+    val _SpecialEditions3:BsonArray = new BsonArray().add(_SEdition3)
+    val _Book1: BsonObject = new BsonObject().put("Price", 15.5).put("SpecialEditions", _SpecialEditions1).put("Title", "Java")
+    val _Book2: BsonObject = new BsonObject().put("Price", 21.5).put("SpecialEditions", _SpecialEditions2).put("Title", "Scala")
+    val _Book3: BsonObject = new BsonObject().put("Price", 12.6).put("SpecialEditions", _SpecialEditions3).put("Title", "C++")
+    val _Book: BsonArray = new BsonArray().add(_Book1).add(_Book2).add(_Book3)
+    val _Hat1: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val _Hat2: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val _Hat3: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val _Hat: BsonArray = new BsonArray().add(_Hat1).add(_Hat2).add(_Hat3)
+    val _Store: BsonObject = new BsonObject().put("Book", _Book).put("Hat", _Hat).put("WHAT!!!", 10)
 
+    val expected: Vector[Array[Byte]] = Vector(_Store.encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall(b => b._1.sameElements(b._2)))
     //println("|-------- Perform Assertion --------|\n\n")
-    assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
+    //assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
 
 }
