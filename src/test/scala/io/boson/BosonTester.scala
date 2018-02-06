@@ -159,11 +159,13 @@ object BosonTester extends App {
   val bson: BsonObject = new BsonObject().put("obj", new BsonObject().put("one", 1))
   val bA: Array[Byte] = bson.encodeToBarray()
 
-    val expression: String = ".obj"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(bA)
-    println("result of extracting \""+ expression+ "\" -> " + future.join())
-    println("-------------------------------------------------------------------------------------------------------------")
+//    val expression: String = ".obj"
+//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+//    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+//    boson.go(bA)
+//    println("result of extracting \""+ expression+ "\" -> " + future.join())
+//    println("-------------------------------------------------------------------------------------------------------------")
+  val v: Vector[Any] = Vector(2.2f,Seq(""))
+  println(v)
 
 }

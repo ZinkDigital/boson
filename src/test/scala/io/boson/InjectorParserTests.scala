@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 
 import scala.collection.immutable.List
 import scala.util.{Failure, Success, Try}
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertTrue}
 /**
   * Created by Ricardo Martins on 15/12/2017.
   */
@@ -280,10 +280,10 @@ class InjectorParserTests extends FunSuite {
     val bsonArrayEvent: BsonArray = new BsonArray().add(bE).add(bE).add(bE)
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
+    println(bsonArrayEvent)
 
-    val key: String = "fridgeReadings"
     val expression: String = "[0 to end].fridgeReadings[0 to end]"
-    val expression1: String = "[0 to end].fridgeReadings[1 until 2]"
+      val expression1: String = "[0 to end].fridgeReadings[1 until 2]"
     //lazy val res: (BosonImpl, BosonImpl) = boson.modifyArrayEndWithKey(boson.getByteBuf.duplicate(), key,(x:Int) => x*4 , "1", "2")
 
     lazy val resultBoson: BsValue = parseInj(boson,(x:Int) => x*4, expression1 )
@@ -314,7 +314,7 @@ class InjectorParserTests extends FunSuite {
 //      case BsNumber(n) => n
 //      case BsBoolean(b) => b
     }
-    assert(Vector(List(1, 8, 3), List(1, 8, 3), List(1, 8, 3)) === resultParser)
+    assert(Vector(1, 8, 3, 1, 8, 3, 1, 8, 3) === resultParser)
   }
   test("fridgeReadings.[1 until 2] BsonObject => BsonObject"){
 
@@ -326,8 +326,6 @@ class InjectorParserTests extends FunSuite {
     val bsonArrayEvent: BsonArray = new BsonArray().add(bE).add(bE).add(bE)
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
-    val key: String = "fridgeReadings"
-    val expression: String = "[0 to end].fridgeReadings[0 to end]"
     val expression1: String = "[0 to end].fridgeReadings[1 until 2]"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:Map[String, Any]) => x.+(("nick", "Ritchy")), expression1 )
@@ -355,7 +353,12 @@ class InjectorParserTests extends FunSuite {
 //      case BsNumber(n) => n
 //      case BsBoolean(b) => b
     }
-    assert(Vector(List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy")), List(Map("age" -> 28, "country" -> "Spain", "name" -> "Tiago", "nick" -> "Ritchy"))) === resultParser)
+
+    val _obj2: BsonObject = new BsonObject().put("age", 28).put("country", "Spain").put("name", "Tiago").put("nick", "Ritchy")
+    val expected: Vector[Array[Byte]] = Vector(_obj2.encodeToBarray(),_obj2.encodeToBarray(),_obj2.encodeToBarray())
+    val result = resultParser.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
   test("fridge*Readings BsonArray => BsonArray"){
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
@@ -368,8 +371,6 @@ class InjectorParserTests extends FunSuite {
     val bsonArrayEvent: BsonArray = new BsonArray().add(bE).add(bE).add(bE)
     val boson1: BosonImpl = new BosonImpl(byteArray = Option(bsonArrayEvent.encode().getBytes))
 
-    val key: String = "fridgeReadings"
-    val expression: String = "[1 until 2]"
     val expression1: String = "[0 to end].fridge*Readings"
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x:List[Any]) => x:+ Mapper.convert(obj4), expression1 )
@@ -394,11 +395,11 @@ class InjectorParserTests extends FunSuite {
 //      case BsNumber(n) => n
 //      case BsBoolean(b) => b
     }
-    assertEquals(Vector(
-      Map("age" -> 28, "country" -> "France", "name" -> "Pedro"),
-      Map("age" -> 28, "country" -> "France", "name" -> "Pedro"),
-      Map("age" -> 28, "country" -> "France", "name" -> "Pedro")
-    ), resultParser)
+    val _obj4: BsonObject = new BsonObject().put("age", 28).put("country", "France").put("name", "Pedro")
+    val expected: Vector[Array[Byte]] = Vector(_obj4.encodeToBarray(),_obj4.encodeToBarray(),_obj4.encodeToBarray())
+    val result = resultParser.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
   test("age.all Double => Double"){
 
@@ -543,8 +544,11 @@ class InjectorParserTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
-    println(finalResult)
-    assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),finalResult )
+
+    val expected: Vector[Array[Byte]] = Vector(bAux.put("WHAT!!!", 10).encodeToBarray(),bAux.put("WHAT!!!", 10).encodeToBarray(),bAux.put("WHAT!!!", 10).encodeToBarray())
+    val res = finalResult.getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall(b => b._1.sameElements(b._2)))
   }
   test(".*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
@@ -568,7 +572,7 @@ class InjectorParserTests extends FunSuite {
     val finalResult: BsValue = future.join()
     println(finalResult)
     assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10)))),finalResult )
-  }
+  } //TODO: implement return type array
   /*test("test"){
     import scala.collection.JavaConverters._
     val obj1: BsonObject = new BsonObject().put("name", "Ricardo").put("sage", 28).put("age", 28).put("country", "Portugal")

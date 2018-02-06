@@ -6,7 +6,7 @@ import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -83,7 +83,10 @@ class ExtractorTests extends FunSuite {
   test("Extract BsonObject") {
     val bsonEvent: BsonObject = new BsonObject().put("First", obj1).put("Second", obj2).put("Third", obj3)
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
-    assert(Map("Pedro" -> 1250, "José" -> false) === bosonBson.extract(bosonBson.getByteBuf, List(("Second","first")), List((None,None,""))).get.asInstanceOf[Vector[Any]].head)
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Second","first")), List((None,None,""))).get.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Array[Byte]] = Vector(obj2.encodeToBarray())
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("Extract BsonArray") {
@@ -94,7 +97,7 @@ class ExtractorTests extends FunSuite {
         Map("Pedro" -> 1250, "José" -> false),
         Map("Américo" -> 1500, "Amadeu" -> null))
      === result.head)
-  }
+  } //TODO: implement return type array
 
   test("Extract deep layer") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
@@ -105,7 +108,7 @@ class ExtractorTests extends FunSuite {
       Seq("Day3", "Day20", "Day31")
         === bosonBson.extract(bosonBson.getByteBuf, List(("JoséMonthLeave","first")), List((None,None,""))).get.asInstanceOf[Vector[Any]].head
     )
-  }
+  } //TODO: implement return type array
 
   test("Extract nonexistent key") {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))

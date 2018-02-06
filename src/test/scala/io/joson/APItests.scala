@@ -16,7 +16,7 @@ import io.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 import io.vertx.core.json.{Json, JsonArray, JsonObject}
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertArrayEquals}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -112,7 +112,7 @@ class APItests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson1: Joson = Joson.extractor(expression, (in: BsValue) => future.complete(in))
     joson1.go(result)
-    val json1: Any = future.join().getValue
+    val json1: Array[Byte] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head
     println(json1)
 
 
@@ -126,12 +126,12 @@ class APItests extends FunSuite{
     val future1: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future1.complete(in))
     boson1.go(result1)
-    val bson1: Any = future1.join().getValue
+    val bson1: Array[Byte] = future1.join().getValue.asInstanceOf[Vector[Array[Byte]]].head
     println(bson1)
 
 
     println("|-------- Perform Assertion --------|\n\n")
-    assertEquals(json1, bson1)
+    assertArrayEquals(json1, bson1)
 
    // assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
