@@ -330,7 +330,21 @@ class InjectorParserTests extends FunSuite {
     val expression: String = "[0 to end].fridgeReadings[0 to end]"
     val expression1: String = "[0 to end].fridgeReadings[1 until 2]"
 
-    lazy val resultBoson: BsValue = parseInj(boson1,(x:Map[String, Any]) => x.+(("nick", "Ritchy")), expression1 )
+    lazy val resultBoson: BsValue = parseInj(boson1,(x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("nick", "Ritchy"))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    }, expression1 )
+
     lazy val result1: BsValue = Try(resultBoson) match {
       case Success(v) =>
         v
@@ -372,7 +386,24 @@ class InjectorParserTests extends FunSuite {
     val expression: String = "[1 until 2]"
     val expression1: String = "[0 to end].fridge*Readings"
 
-    lazy val resultBoson: BsValue = parseInj(boson1,(x:List[Any]) => x:+ Mapper.convert(obj4), expression1 )
+    //lazy val resultBoson: BsValue = parseInj(boson1,(x:List[Any]) => x:+ Mapper.convert(obj4), expression1 )
+    lazy val resultBoson: BsValue = parseInj(boson1,(x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val newL: List[Any] = l:+ Mapper.convert(obj4)
+      val res: ByteBuf = b.encode(newL)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    }, expression1 )
+
+
+
     lazy val result1: BsValue = Try(resultBoson) match {
       case Success(v) =>
         v
@@ -533,7 +564,21 @@ class InjectorParserTests extends FunSuite {
     //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     val expression = "array[@damnnn]"
-    val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+    //val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("WHAT!!!", 10))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
 
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 
@@ -558,6 +603,26 @@ class InjectorParserTests extends FunSuite {
     val expression = ".*"
     // val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
     val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
+
+
+    (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val newL: List[Any] = l.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10)))
+      val res: ByteBuf = b.encode(newL)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    }
+
+
+
+
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
 
     // apply an extractor to get the new serial code as above.

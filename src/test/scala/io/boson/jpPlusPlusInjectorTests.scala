@@ -8,7 +8,7 @@ import io.boson.bson.Boson
 import io.boson.bson.bsonImpl.BosonImpl
 import io.boson.bson.bsonPath.ArrExpr
 import io.boson.bson.bsonValue.BsValue
-import io.netty.buffer.Unpooled
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
 import org.scalatest.FunSuite
 import org.junit.Assert._
@@ -718,7 +718,24 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
 
     val expression: String = "..*re"
-    val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Hat", "Cap")))
+    //val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Hat", "Cap")))
+
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Hat", "Cap"))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+
+
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
@@ -766,7 +783,22 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val validatedByteArr: Array[Byte] = root.encodeToBarray()
 
     val expression: String = "..[0]"
-    val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("ten", 10)))
+    //val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("ten", 10)))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("ten", 10))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
@@ -818,7 +850,21 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val validatedByteArr: Array[Byte] = root.encodeToBarray()
 
     val expression: String = "..Store[0]"
-    val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("ten", 10)))
+    //val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("ten", 10)))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("ten", 10))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
 
     val result: Array[Byte] = future.join()
@@ -847,7 +893,21 @@ class jpPlusPlusInjectorTests extends FunSuite {
 
     val expression: String =  "..[1 until end]"
 
-    val bosonI: Boson = Boson.injector(expression, (x:Map[String, Any]) => x.+(("Street?", "im Lost")))
+    //val bosonI: Boson = Boson.injector(expression, (x:Map[String, Any]) => x.+(("Street?", "im Lost")))
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
     //println("injFuture="+new String(injFuture.join()))
 
@@ -926,7 +986,21 @@ class jpPlusPlusInjectorTests extends FunSuite {
 
     val expression: String =  ".Store..Book[1 until end]..SpecialEditions[@Price]"
 
-    val bosonI: Boson = Boson.injector(expression, (x:Map[String, Any]) => x.+(("Street?", "im Lost")))
+    //val bosonI: Boson = Boson.injector(expression, (x:Map[String, Any]) => x.+(("Street?", "im Lost")))
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
     //println("injFuture="+new String(injFuture.join()))
 
@@ -962,16 +1036,26 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val store: BsonObject = new BsonObject().put("Book", books).put("Hat", hats)
     val bson: BsonObject = new BsonObject().put("Store", store)
 
-
     val expression: String = "."
-    val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Another", "field")))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Another", "field"))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val future: CompletableFuture[Array[Byte]] = boson.go(bson.encodeToBarray())
     val result: Array[Byte] = future.join()
-
     val futureEx: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val bosonEx: Boson = Boson.extractor(".Another", (out: BsValue) => futureEx.complete(out))
     bosonEx.go(result)
-
     assertEquals("field", futureEx.join().getValue.asInstanceOf[Vector[Any]].head)
   }
 
@@ -995,17 +1079,26 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val store2: BsonObject = new BsonObject().put("Store2", store)
     val bson: BsonArray = new BsonArray().add(store1).add(store2)
 
-
-
     val expression: String = "."
-    val boson: Boson = Boson.injector(expression, (x: List[Any]) => x.:+("Store3ComingSoon"))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val newL: List[Any] = l.:+("Store3ComingSoon")
+      val res: ByteBuf = b.encode(newL)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val future: CompletableFuture[Array[Byte]] = boson.go(bson.encodeToBarray())
     val result: Array[Byte] = future.join()
-
     val futureEx: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val bosonEx: Boson = Boson.extractor(".[2]", (out: BsValue) => futureEx.complete(out))
     bosonEx.go(result)
-
     assertEquals("Store3ComingSoon", futureEx.join().getValue.asInstanceOf[Vector[String]].head)
   }
 
@@ -1029,17 +1122,26 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val store2: BsonObject = new BsonObject().put("Store2", store)
     val bson: BsonArray = new BsonArray().add(store1).add(store2)
 
-
-
     val expression: String = ".[first]"
-    val boson: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Store3ComingSoon", "VerySoon")))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Store3ComingSoon", "VerySoon"))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val future: CompletableFuture[Array[Byte]] = boson.go(bson.encodeToBarray())
     val result: Array[Byte] = future.join()
-
     val futureEx: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val bosonEx: Boson = Boson.extractor(".Store3ComingSoon", (out: BsValue) => futureEx.complete(out))
     bosonEx.go(result)
-
     assertEquals("VerySoon", futureEx.join().getValue.asInstanceOf[Vector[String]].head)
   }
 
@@ -1295,5 +1397,66 @@ class jpPlusPlusInjectorTests extends FunSuite {
     assertTrue(bsonA1.encodeToBarray().zip(bosonRes.join()).forall(db => db._1.equals(db._2)))
   }
 
+  test("Inj key1.[#]"){
+    val bOlvl3: BsonObject = new BsonObject().put("field2", 6)
+    val bAlvl2: BsonArray = new BsonArray().add(4).add(5).add(bOlvl3)
+    val bOlvl2: BsonObject = new BsonObject().put("field2", 7)
+    val bA: BsonArray = new BsonArray().add(1).add(bAlvl2).add(bOlvl2)
+    val bsonA: BsonObject = new BsonObject().put("field1", bA).put("field3","someStuff")
 
+
+    val bO1lvl3: BsonObject = new BsonObject().put("field2", 6)
+    val bA1lvl2: BsonArray = new BsonArray().add(4).add(5).add(bO1lvl3).add(6)
+    val bO1lvl2: BsonObject = new BsonObject().put("field2", 7)
+    val bA1: BsonArray = new BsonArray().add(1).add(bA1lvl2).add(bO1lvl2)
+    val bsonA1: BsonObject = new BsonObject().put("field1", bA1).put("field3","someStuff")
+
+    val boson: Boson = Boson.injector(".field1.[1]",(x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val newL: List[Any] = l.:+(6)
+      val res: ByteBuf = b.encode(newL)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    } )
+
+
+    val bosonRes: CompletableFuture[Array[Byte]] = boson.go(bsonA.encodeToBarray())
+
+    //bosonRes.join().foreach(b => println(s"[${b.toChar}|${b.toInt}]"))
+
+    assert(bsonA1.encodeToBarray().length === bosonRes.join().length)
+    assertTrue(bsonA1.encodeToBarray().zip(bosonRes.join()).forall(db => db._1.equals(db._2)))
+  }
+
+  test("Inj ."){
+    val bOlvl3: BsonObject = new BsonObject().put("field2", 6)
+    val bAlvl2: BsonArray = new BsonArray().add(4).add(5).add(bOlvl3)
+    val bOlvl2: BsonObject = new BsonObject().put("field2", 7)
+    val bA: BsonArray = new BsonArray().add(1).add(bAlvl2).add(bOlvl2)
+    val bsonA: BsonObject = new BsonObject().put("field1", bA).put("field3","someStuff")
+
+
+    val bO1lvl3: BsonObject = new BsonObject().put("field2", 6)
+    val bA1lvl2: BsonArray = new BsonArray().add(4).add(5).add(bO1lvl3)
+    val bO1lvl2: BsonObject = new BsonObject().put("field2", 7)
+    val bA1: BsonArray = new BsonArray().add(1).add(bA1lvl2).add(bO1lvl2)
+    val bsonA1: BsonObject = new BsonObject().put("field1", bA1).put("field3","someStuff")
+
+    val boson: Boson = Boson.injector(".",(x:Int)=> 10)
+
+
+    val bosonRes: CompletableFuture[Array[Byte]] = boson.go(bsonA.encodeToBarray())
+
+    //bosonRes.join().foreach(b => println(s"[${b.toChar}|${b.toInt}]"))
+
+    assert(bsonA1.encodeToBarray().length === bosonRes.join().length)
+    assertTrue(bsonA1.encodeToBarray().zip(bosonRes.join()).forall(db => db._1.equals(db._2)))
+  }
 }

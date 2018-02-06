@@ -540,7 +540,24 @@ class injectorAPITests extends FunSuite {
     val validBsonArray: Array[Byte] = Event.encodeToBarray
 
     val expression = "Store"
-    val boson: Boson = Boson.injector(expression,(in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+    //val boson: Boson = Boson.injector(expression,(in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("WHAT!!!", 10))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+
+
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
     //result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
