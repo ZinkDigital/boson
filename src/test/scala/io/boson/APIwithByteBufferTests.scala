@@ -278,11 +278,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBufferObj)
 
-    assertEquals(BsSeq(Vector(
-      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
-      Seq("Spider"),
-      Seq("Fly")
-    )), future.join())
+    assertEquals(BsSeq(Vector()), future.join())
   }
 
   test("extract everything") {

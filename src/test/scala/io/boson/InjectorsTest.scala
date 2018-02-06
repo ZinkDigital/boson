@@ -14,6 +14,7 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Ricardo Martins on 09/11/2017.
@@ -425,6 +426,21 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "noField")
     }
     assert(Vector() === result
+      , "Contents are not equal")
+  }
+
+  test("Injector: Empty Netty") {
+    val empty: BosonImpl = new BosonImpl(byteArray = Option(new Array[Byte](0)))
+
+      val result: Any = Try(empty.modify(None, "noField", (_: String) => enum.B.toString))match{
+        case Success(v)=>
+         callParse(v.get, "noField")
+        case Failure(e)=>
+          println(e.getMessage)
+          e.getMessage
+      }
+
+    assert("*modify* Input Option[BosonImpl] is not defined" === result
       , "Contents are not equal")
   }
 

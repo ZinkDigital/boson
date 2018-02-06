@@ -141,7 +141,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
 
-    //println(statement.head)
+    println(statement.head)
     if (statement.nonEmpty) {
       //println("Statements not empty")
       statement.head match {

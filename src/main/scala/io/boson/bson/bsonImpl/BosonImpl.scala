@@ -3,20 +3,14 @@ package io.boson.bson.bsonImpl
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
 import java.util
-
 import Dictionary._
 import io.boson.bson.bsonPath._
 import io.netty.buffer.{ByteBuf, Unpooled}
-
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
 import io.boson.bson.bsonPath.Compose
-import io.netty.util.ByteProcessor
-
 import scala.collection.mutable
-
-
 /**
   * Created by Ricardo Martins on 18/09/2017.
   */
@@ -24,21 +18,14 @@ import scala.collection.mutable
   * This class encapsulates one Netty ByteBuf
   *
   */
-
 case class CustomException(smth: String) extends Exception {
   override def getMessage: String = smth
 }
-
-
-
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
                  javaByteBuf: Option[ByteBuffer] = None,
                  scalaArrayBuf: Option[ArrayBuffer[Byte]] = None
                ) {
-
-
-
   /*private val valueOfArgument: String = this match {
     case _ if javaByteBuf.isDefined => javaByteBuf.get.getClass.getSimpleName
     case _ if byteArray.isDefined => byteArray.get.getClass.getSimpleName
@@ -47,7 +34,6 @@ class BosonImpl(
     case _ if scalaArrayBuf.isDefined => scalaArrayBuf.get.getClass.getSimpleName
     case _ => EMPTY_CONSTRUCTOR
   }*/
-
   private val valueOfArgument: String =
     if (javaByteBuf.isDefined) {
       javaByteBuf.get.getClass.getSimpleName
@@ -58,12 +44,11 @@ class BosonImpl(
     } else EMPTY_CONSTRUCTOR
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
-    case ARRAY_BYTE => // Array[Byte]
+    case ARRAY_BYTE =>
       val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
-      // b.writeBytes(byteArray.get)
       b
     case JAVA_BYTEBUFFER => // Java ByteBuffer
-      val buff = javaByteBuf.get
+      val buff: ByteBuffer = javaByteBuf.get
       if(buff.position() != 0) {
         buff.position(0)
         val b: ByteBuf = Unpooled.copiedBuffer(buff)
@@ -82,8 +67,6 @@ class BosonImpl(
   }
 
   private val comparingFunction = (netty: ByteBuf, key: String) => {
-    //if (key.charAt(0).equals('*')) containsKey(netty,key.toCharArray.drop(1).mkString)
-    //else compareKeys(netty, key)
     compareKeys(netty, key)
   }
 
@@ -1050,7 +1033,7 @@ class BosonImpl(
 
   def modify[T](nettyOpt: Option[BosonImpl], fieldID: String, f: (T) => T, selectType: String = ""): Option[BosonImpl] = {
     if (nettyOpt.isEmpty) {
-      None
+      throw CustomException("*modify* Input Option[BosonImpl] is not defined")
     } else {
       val netty: BosonImpl = nettyOpt.get
       val buffer: ByteBuf = netty.getByteBuf.duplicate()
@@ -1058,43 +1041,40 @@ class BosonImpl(
       buffer.getBytes(0, buff, 4)
       val bufferSize: Int = buff.readIntLE() // buffer.readIntLE()
       val seqType: Int = buffer.getByte(4).toInt
-      seqType match {
-        case 0 => None // end of obj
-        case _ =>
-          buffer.getByte(5).toInt match {
-            case 48 => // root obj is BsonArray, call extractFromBsonArray
-              if (fieldID.isEmpty) {
-                Option(new BosonImpl())
-              } else {
-                val startRegionArray: Int = buffer.readerIndex()
-                val valueTotalLength: Int = buffer.readIntLE()
-                val indexOfFinishArray: Int = startRegionArray + valueTotalLength
-                val (midResult, diff): (Option[ByteBuf], Int) = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f)
-                midResult map { buf =>
-                  val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-                val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
-                  Some(new BosonImpl(byteArray = Option(result.array())))
-                } getOrElse {
-                  None
-                }
-              }
-            case _ => // root obj isn't BsonArray, call extractFromBsonObj
-              if (fieldID.isEmpty) {
-                Option(new BosonImpl())
-              } else {
-                val startRegion: Int = buffer.readerIndex()
-                val valueTotalLength: Int = buffer.readIntLE()
-                val indexOfFinish: Int = startRegion + valueTotalLength
-                val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f, selectType)
-                midResult map { buf =>
-                  val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-                  val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
-                  val res = new BosonImpl(byteArray = Option(result.array()))
-                  Some(res)
-                } getOrElse {
-                  None
-                }
-              }
+
+      buffer.getByte(5).toInt match {
+        case 48 => // root obj is BsonArray, call extractFromBsonArray
+          if (fieldID.isEmpty) {
+            Option(new BosonImpl())
+          } else {
+            val startRegionArray: Int = buffer.readerIndex()
+            val valueTotalLength: Int = buffer.readIntLE()
+            val indexOfFinishArray: Int = startRegionArray + valueTotalLength
+            val (midResult, diff): (Option[ByteBuf], Int) = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f)
+            midResult map { buf =>
+              val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
+            val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
+              Some(new BosonImpl(byteArray = Option(result.array())))
+            } getOrElse {
+              None
+            }
+          }
+        case _ => // root obj isn't BsonArray, call extractFromBsonObj
+          if (fieldID.isEmpty) {
+            Option(new BosonImpl())
+          } else {
+            val startRegion: Int = buffer.readerIndex()
+            val valueTotalLength: Int = buffer.readIntLE()
+            val indexOfFinish: Int = startRegion + valueTotalLength
+            val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f, selectType)
+            midResult map { buf =>
+              val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
+              val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
+              val res = new BosonImpl(byteArray = Option(result.array()))
+              Some(res)
+            } getOrElse {
+              None
+            }
           }
       }
     }
@@ -1351,13 +1331,54 @@ class BosonImpl(
     }
   }
 
-  private def isHalfword(fieldID: String, extracted: String): Boolean = {
+ /* private def isHalfword(fieldID: String, extracted: String): Boolean = {
     if(fieldID.contains('*')){
       val list: Array[String] = fieldID.split('*')
       list.forall(str => extracted.contains(str))
     }else{
       false
     }
+  }*/
+  def isHalfword(fieldID: String, extracted:String):Boolean ={
+    //str name of the field given
+    //field name of the field inside boson
+    if(fieldID.contains("*")) {
+      val list: Array[String] = fieldID.split('*')
+      //list.foreach(s =>print(s+" "))
+      //println()
+      // println(fieldID)
+      // println((extracted, list.length))
+      (extracted, list.length) match {
+        case (_, 0) => true
+        case (x, 1) if x.startsWith(list.head) => true
+        case (x, 1) if x.endsWith(list.last) => true
+        case (x, 2) if x.startsWith(list.head) & x.endsWith(list.last) => true
+        case (x, i) if i > 2 =>
+          fieldID match {
+            case s if s.startsWith("*") =>
+              if (!list.head.isEmpty) {
+                if (x.startsWith(list.head))
+                  isHalfword(s.substring(1 + list.head.length), x.substring(list.head.length))
+                else {
+                  isHalfword(s, x.substring(1))
+                }
+              } else {
+                if (x.startsWith(list.apply(1)))
+                  isHalfword(s.substring(1 + list.apply(1).length), x.substring(list.apply(1).length))
+                else {
+                  isHalfword(s, x.substring(1))
+                }
+              }
+            case s if !s.startsWith("*") =>
+              if (x.startsWith(list.head)) {
+                isHalfword(s.substring(list.head.length), extracted.substring(list.head.length))
+              } else {
+                false
+              }
+          }
+        case _ => false
+      }
+    }else false
   }
 
   def modifyAll[T](list: List[(Statement, String)],buffer:ByteBuf, fieldID:String, f:T=>T, result:ByteBuf=Unpooled.buffer()):ByteBuf={
