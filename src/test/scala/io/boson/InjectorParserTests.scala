@@ -385,8 +385,6 @@ class InjectorParserTests extends FunSuite {
     val key: String = "fridgeReadings"
     val expression: String = "[1 until 2]"
     val expression1: String = "[0 to end].fridge*Readings"
-
-    //lazy val resultBoson: BsValue = parseInj(boson1,(x:List[Any]) => x:+ Mapper.convert(obj4), expression1 )
     lazy val resultBoson: BsValue = parseInj(boson1,(x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
       val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
@@ -401,8 +399,6 @@ class InjectorParserTests extends FunSuite {
         array
       }
     }, expression1 )
-
-
 
     lazy val result1: BsValue = Try(resultBoson) match {
       case Success(v) =>

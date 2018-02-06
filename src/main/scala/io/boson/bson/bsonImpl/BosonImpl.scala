@@ -1195,16 +1195,28 @@ class BosonImpl(
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex()) //  length of current obj
         val bson:ByteBuf = buffer.readBytes(valueLength )
-      val bsonObject: Map[String, Any] = decodeBsonObject(bson)
+        val bsonBytes: Array[Byte] =
+          if(bson.hasArray)
+            bson.array()
+        else{
+            val buf1: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+            val array: Array[Byte]= buf1.array()
+            buf1.release()
+            array
+          }
+      //val bsonObject: Map[String, Any] = decodeBsonObject(bson)
         bson.release()
-        val newValue: Any = applyFunction(f, bsonObject)
+        val newValue: Any = applyFunction(f, bsonBytes)
+
         newValue match {
-          case bsonObject1: java.util.Map[_, _] =>
+          case bsonObject1: Array[Byte] =>
+            (newBuffer.writeBytes(bsonObject1), bsonObject1.length - valueLength)
+          /*case bsonObject1: java.util.Map[_, _] =>
             val buf: ByteBuf = encode(bsonObject1)
             (newBuffer.writeBytes(buf), buf.capacity() - valueLength)
           case bsonObject2: Map[String@unchecked, _] =>
             val buf: ByteBuf = encode(bsonObject2)
-            (newBuffer.writeBytes(buf), buf.capacity() - valueLength)
+            (newBuffer.writeBytes(buf), buf.capacity() - valueLength)*/
           case _ =>
             if (newValue == null) {
               throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
@@ -1215,16 +1227,26 @@ class BosonImpl(
       case D_BSONARRAY =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson: ByteBuf = buffer.readBytes(valueLength)
-        val bsonArray: List[Any] = decodeBsonArray(bson)
+        val bsonBytes: Array[Byte] =
+          if(bson.hasArray)
+            bson.array()
+          else{
+            val buf1: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+            val array: Array[Byte]= buf1.array()
+            buf1.release()
+            array
+          }
         bson.release()
-        val newValue: T = applyFunction(f, bsonArray)
+        val newValue: Any = applyFunction(f, bsonBytes)
         newValue match {
-          case bsonArray1: java.util.List[_] =>
+          case bsonArray1: Array[Byte] =>
+            (newBuffer.writeBytes(bsonArray1), bsonArray1.length - valueLength) //  ZERO  for now, cant be zero
+          /*case bsonArray1: java.util.List[_] =>
             val arr:ByteBuf = encode(bsonArray1)
             (newBuffer.writeBytes(arr), arr.capacity() - valueLength) //  ZERO  for now, cant be zero
           case bsonArray2: List[Any] =>
             val arr: ByteBuf = encode(bsonArray2)
-            (newBuffer.writeBytes(arr), arr.capacity() - valueLength) //  ZERO  for now, cant be zero
+            (newBuffer.writeBytes(arr), arr.capacity() - valueLength) //  ZERO  for now, cant be zero*/
           case _ =>
             if (newValue == null) {
               throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
@@ -1501,7 +1523,6 @@ class BosonImpl(
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson:ByteBuf = buffer.readBytes(valueLength )
-        //val bsonObj: Map[String, Any] = decodeBsonObject(bson)
         val bsonBytes: Array[Byte] =
           if(bson.hasArray)
             bson.array()
@@ -1517,17 +1538,6 @@ class BosonImpl(
         Option(newValue) match {
             case Some(x: Array[Byte]) =>
               (result.writeBytes(x), x.length-valueLength)
-          /*case Some(x: util.Map[String@unchecked, _])  =>
-            Try(encode(x)) match {
-              case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }
-          case Some(x: Map[String@unchecked, _])  =>
-            Try(encode(x)) match {
-              case Success(v)=>
-                (result.writeBytes(v), v.capacity()-valueLength)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }*/
           case Some(x)=>
             throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
           case None =>
@@ -1536,7 +1546,6 @@ class BosonImpl(
       case D_BSONARRAY =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson: ByteBuf = buffer.readBytes(valueLength )
-        //val bsonArray: List[Any] = decodeBsonArray(bson)
         val bsonBytes: Array[Byte] =
           if(bson.hasArray)
             bson.array()
@@ -1549,16 +1558,6 @@ class BosonImpl(
         bson.release()
         val value: Any = applyFunction(f, bsonBytes)
         Option(value) match {
-          /*case Some(x:util.List[_]) =>
-            Try(encode(x)) match {
-              case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }
-          case Some(x:List[Any]) =>
-            Try(encode(x)) match {
-              case Success(v)=> (result.writeBytes(v), v.capacity()-valueLength)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }*/
           case Some(x:Array[Byte]) =>
               (result.writeBytes(x), x.length-valueLength)
 
@@ -2009,7 +2008,6 @@ class BosonImpl(
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonObj: ByteBuf = buffer.readBytes(valueLength)
         resultCopy.writeBytes(bsonObj.duplicate())
-       // val map: Map[String, Any] = decodeBsonObject(bsonObj.duplicate())
        val bsonBytes: Array[Byte] =
          if(bsonObj.hasArray)
            bsonObj.array()
@@ -2024,19 +2022,6 @@ class BosonImpl(
         Option(newValue) match {
           case Some(x: Array[Byte]) =>
             result.writeBytes(x)
-          /*case Some(x: util.Map[String@unchecked, _])  =>
-            Try(encode(x)) match {
-              case Success(v)=>
-                result.writeBytes(v)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }
-          case Some(x: Map[String@unchecked, _])  =>
-            Try(encode(x)) match {
-              case Success(v)=>
-                result.writeBytes(v)
-                //resultCopy.writeBytes(bsonObj)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }*/
           case Some(x)=>
             throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
           case None =>
@@ -2046,7 +2031,6 @@ class BosonImpl(
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonArray: ByteBuf = buffer.readBytes(valueLength)
         resultCopy.writeBytes(bsonArray.duplicate())
-       // val list: List[Any] = decodeBsonArray(bsonArray.duplicate())
        val bsonBytes: Array[Byte] =
          if(bsonArray.hasArray)
            bsonArray.array()
@@ -2062,18 +2046,6 @@ class BosonImpl(
         Option(value) match {
           case Some(x: Array[Byte]) =>
             result.writeBytes(x)
-          /*case Some(x:util.List[_]) =>
-            Try(encode(x)) match {
-              case Success(v)=>
-                result.writeBytes(v)
-              case Failure(e) => throw  CustomException(e.getMessage)
-            }
-          case Some(x:List[Any]) =>
-            Try(encode(x)) match {
-              case Success(v) =>
-                result.writeBytes(v)
-              case Failure(e) => throw CustomException(e.getMessage)
-            }*/
           case Some(x) =>
             throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
           case None =>
@@ -2442,7 +2414,7 @@ class BosonImpl(
                     processTypesArray(dataType, buffer.duplicate(), result)
                     processTypesArray(dataType, buffer, resultCopy)
                 }
-              } else throw CustomException("Root is not a BsonArray")
+              } else throw CustomException("*ModifyArrayEnd* Not a Array")
           }
       }
     }
@@ -2800,12 +2772,18 @@ class BosonImpl(
                     }
                   }else{
                     val buf1: ByteBuf = buf.readBytes(bsonSize)
-                    val value0: Map[String, Any] = decodeBsonObject(bsonBuf)
-                    val value1: Map[String, Any] = applyFunction(f, value0).asInstanceOf[Map[String@unchecked, Any]]
-                    val newbuf: ByteBuf = encodeBsonObject(value1)
-                    result.writeBytes(newbuf)
+                    val bsonBytes: Array[Byte] =
+                      if(buf1.hasArray)
+                        buf1.array()
+                    else{
+                        val buf2: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
+                        val array: Array[Byte] = buf2.array()
+                        buf2.release()
+                        array
+                      }
                     buf1.release()
-                    newbuf.release()
+                    val value1: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+                    result.writeBytes(value1)
                     bsonBuf.release()
                   }
                 }else{
