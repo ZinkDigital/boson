@@ -10,6 +10,7 @@ import io.boson.bson.bsonPath.ArrExpr
 import io.boson.bson.bsonValue.BsValue
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
+import mapper.Mapper
 import org.scalatest.FunSuite
 import org.junit.Assert._
 import org.junit.runner.RunWith
@@ -720,9 +721,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String = "..*re"
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("Hat", "Cap"))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -778,9 +779,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String = "..[0]"
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("ten", 10))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -837,9 +838,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String = "..Store[0]"
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("ten", 10))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -871,9 +872,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String =  "..[1 until end]"
     val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -941,9 +942,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String =  ".Store..Book[1 until end]..SpecialEditions[@Price]"
     val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -982,9 +983,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String = "."
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("Another", "field"))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -1025,9 +1026,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String = "."
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val l: List[Any] = Mapper.decodeBsonArray(b.getByteBuf)
       val newL: List[Any] = l.:+("Store3ComingSoon")
-      val res: ByteBuf = b.encode(newL)
+      val res: ByteBuf = Mapper.encode(newL)
       if(res.hasArray)
         res.array()
       else {
@@ -1068,9 +1069,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
     val expression: String = ".[first]"
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("Store3ComingSoon", "VerySoon"))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -1356,9 +1357,9 @@ class jpPlusPlusInjectorTests extends FunSuite {
 
     val boson: Boson = Boson.injector(".field1.[1]",(x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val l: List[Any] = Mapper.decodeBsonArray(b.getByteBuf)
       val newL: List[Any] = l.:+(6)
-      val res: ByteBuf = b.encode(newL)
+      val res: ByteBuf = Mapper.encode(newL)
       if(res.hasArray)
         res.array()
       else {

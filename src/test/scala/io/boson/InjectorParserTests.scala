@@ -115,7 +115,7 @@ class InjectorParserTests extends FunSuite {
       case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
     }
   }
-/*
+
   test("All") {
     val key: String = "fridgeTemp"
     val expression: String = "fridgeReadings[0 to end].fridgeTemp"
@@ -332,9 +332,9 @@ class InjectorParserTests extends FunSuite {
 
     lazy val resultBoson: BsValue = parseInj(boson1,(x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("nick", "Ritchy"))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -387,9 +387,9 @@ class InjectorParserTests extends FunSuite {
     val expression1: String = "[0 to end].fridge*Readings"
     lazy val resultBoson: BsValue = parseInj(boson1,(x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val l: List[Any] = Mapper.decodeBsonArray(b.getByteBuf)
       val newL: List[Any] = l:+ Mapper.convert(obj4)
-      val res: ByteBuf = b.encode(newL)
+      val res: ByteBuf = Mapper.encode(newL)
       if(res.hasArray)
         res.array()
       else {
@@ -563,9 +563,9 @@ class InjectorParserTests extends FunSuite {
     //val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("WHAT!!!", 10))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -587,7 +587,7 @@ class InjectorParserTests extends FunSuite {
     println(finalResult)
     assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),finalResult )
   }
-*/
+
   test(".*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
@@ -598,9 +598,9 @@ class InjectorParserTests extends FunSuite {
     //val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
     val boson: Boson = Boson.injector(expression,     (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
+      val l: List[Any] = Mapper.decodeBsonArray(b.getByteBuf)
       val newL: List[Any] = l.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10)))
-      val res: ByteBuf = b.encode(newL)
+      val res: ByteBuf = Mapper.encode(newL)
       if(res.hasArray)
         res.array()
       else {

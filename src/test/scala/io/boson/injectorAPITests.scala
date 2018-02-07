@@ -541,9 +541,9 @@ class injectorAPITests extends FunSuite {
     val expression = "Store"
     val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("WHAT!!!", 10))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {

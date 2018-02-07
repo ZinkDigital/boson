@@ -174,7 +174,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     val result:bsonValue.BsValue=
       Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, f.get ))match{
         case Success(v)=>
-          boson.getByteBuf.release()
+
           val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
           v.release()
           bsResult
@@ -190,7 +190,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       execStatementPatternMatch(statements)
     }*/
     // return BsValue
-result
+    boson.getByteBuf.release()
+    result
     //bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
   }
 

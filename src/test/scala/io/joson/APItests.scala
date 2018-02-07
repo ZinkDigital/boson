@@ -2,6 +2,7 @@ package io.joson
 
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.CompletableFuture
+
 import bsonLib.{BsonArray, BsonObject}
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -14,6 +15,7 @@ import io.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.{JsonArray, JsonObject}
+import mapper.Mapper
 import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -70,9 +72,9 @@ class APItests extends FunSuite{
     println("|-------- Perform Injection --------|\n")
     val joson: Joson = Joson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("newField!", 100))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
@@ -97,9 +99,9 @@ class APItests extends FunSuite{
     val validBsonArray: Array[Byte] = bson.encodeToBarray
     val boson: Boson = Boson.injector(expression,(x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
       val newM: Map[String, Any] = m.+(("newField!", 100))
-      val res: ByteBuf = b.encode(newM)
+      val res: ByteBuf = Mapper.encode(newM)
       if(res.hasArray)
         res.array()
       else {
