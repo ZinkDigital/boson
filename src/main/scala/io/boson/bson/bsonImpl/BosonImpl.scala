@@ -807,7 +807,7 @@ class BosonImpl(
                       }
                     case _ if keyList.head._2.equals(C_NEXT) | keyList.head._2.equals(C_LEVEL) => errorAnalyzer(limitList.head._3)
                     case _ =>
-                      val midResult = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
+                      val midResult: Iterable[Any] = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
                       if(midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                   }
                 case Some(_) =>
@@ -830,7 +830,7 @@ class BosonImpl(
                         case _ if keyList.head._2.equals(C_NEXT) | keyList.head._2.equals(C_LEVEL) => errorAnalyzer(limitList.head._3)
                         case _ =>
                           println("calling extractFromBsonArray")
-                          val midResult = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
+                          val midResult: Iterable[Any] = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
                           if(midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                       }
                     case Some(_) =>
@@ -849,7 +849,7 @@ class BosonImpl(
                             case Some(x) => Some(resultComposer(x.toVector))
                           }
                         case _ if keyList.head._2.equals(C_FILTER)=>
-                          val midResult = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
+                          val midResult: Iterable[Any] = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
                           if(midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                         case _ =>
                           netty.readerIndex(finishReaderIndex)
@@ -1418,11 +1418,11 @@ class BosonImpl(
                     case (D_BSONOBJECT | D_BSONARRAY) =>
                       val size:Int = buffer.getIntLE(buffer.readerIndex())
                       val buf1: ByteBuf = buffer.readBytes(size)
-                      val buf2:ByteBuf = Unpooled.buffer()
-                      modifierAll(buf1, dataType, f, buf2 )
+                      val buf2:ByteBuf = execStatementPatternMatch(buf1, list, f)
                       buf1.release()
-                      buf2.capacity(buf2.writerIndex())
-                      val buf3: ByteBuf = execStatementPatternMatch(buf2, list, f)
+                      val buf3: ByteBuf = Unpooled.buffer()
+                      modifierAll(buf2, dataType, f, buf3 )
+                      buf3.capacity(buf3.writerIndex())
                       buf2.release()
                       result.writeBytes(buf3)
                       buf3.release()

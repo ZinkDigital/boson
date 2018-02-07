@@ -1599,7 +1599,7 @@ class jpPlusPlusTests extends FunSuite{
       ), future.join().getValue)
     }
 
-    test("Inj ..*"){
+    test("Inj ..* V1"){
       val expression: String = "..*"
 
       val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
@@ -1627,11 +1627,34 @@ class jpPlusPlusTests extends FunSuite{
     test("Inj ..* V2"){
     val expression: String = "..*"
 
+
+
+
+    val root: BsonObject = new BsonObject().put("field1", "OneWord").put("field2", "TwoWords").put("field3", "ThreeWords").put("field4", "FourWords")
+
+
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!") )
+    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(injFuture.join())
+
+    assertEquals("Vector(OneWord!!, TwoWords!!, ThreeWords!!, FourWords!!)", future.join().getValue.toString)
+  }
+
+    test("Inj ..* V3"){
+    val expression: String = "..*"
+
+      val field2: BsonObject = new BsonObject().put("field4", new BsonObject())
+      val field1: BsonObject = new BsonObject().put("field3", new BsonObject())
+      val root: BsonObject = new BsonObject().put("field1",field1 ).put("field2", field2 )
+
     //val bosonI: Boson = Boson.injector(expression, (x: List[Any]) => x.+:("ADDED"))
     val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-      val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
-      val newL: List[Any] = l.:+("ADDED")
+      val l: Map[String, Any] = b.decodeBsonObject(b.getByteBuf)
+      val newL: Map[String, Any] = l.+(("newField", 10))
       val res: ByteBuf = b.encode(newL)
       if(res.hasArray)
         res.array()
@@ -1642,14 +1665,14 @@ class jpPlusPlusTests extends FunSuite{
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(injFuture.join())
 
-    assertEquals("Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hatk -> List(Map(Color -> Red, Price -> 48), Map(Color -> White, Price -> 35), Map(Color -> Blue, Price -> 38), Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
-  } // No change is perform because the values are not the same type
+    assertEquals("Vector(Map(field3 -> Map(newField -> 10), newField -> 10), Map(field4 -> Map(newField -> 10), newField -> 10))", future.join().getValue.toString)
+  }
 
     test("Ex ..key, but multiple keys with same name"){
       val obj2: BsonObject = new BsonObject().put("Store", 1000L)

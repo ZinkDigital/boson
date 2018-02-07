@@ -140,22 +140,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
-
-    println(statement.head)
     if (statement.nonEmpty) {
-      //println("Statements not empty")
       statement.head match {
         case MoreKeys(first, list, dots) => //  key
           first match{
             case ROOT()=>
-              //println("ROOT() OH YEAH")
               executeRootInjection()
             case _ =>
               val united: List[Statement] = list.+:(first)
-              //println(united)
               val zipped: List[(Statement, String)] = united.zip(dots)
-
-              //println(zipped)
               executeMultipleKeysInjector(zipped)
           }
         case _ => throw new RuntimeException("Something went wrong!!!")

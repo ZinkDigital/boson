@@ -115,7 +115,7 @@ class InjectorParserTests extends FunSuite {
       case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
     }
   }
-
+/*
   test("All") {
     val key: String = "fridgeTemp"
     val expression: String = "fridgeReadings[0 to end].fridgeTemp"
@@ -587,21 +587,16 @@ class InjectorParserTests extends FunSuite {
     println(finalResult)
     assertEquals(BsSeq(Vector(Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10), Map("damnnn" -> "DAMMN", "WHAT!!!" -> 10))),finalResult )
   }
+*/
   test(".*"){
     val bAux: BsonObject = new BsonObject().put("damnnn", "DAMMN")
     val bAux1: BsonObject = new BsonObject().put("creep", "DAMMN")
-    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
     val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux).add(bAux1)
     val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
-
-    //val newFridgeSerialCode: String = " what?"
     val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
     val expression = ".*"
-    // val boson: Boson = Boson.injector(expression, (in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
-    val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
-
-
-    (x: Array[Byte]) => {
+    //val boson: Boson = Boson.injector(expression, (in: List[Any]) => in.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10))))
+    val boson: Boson = Boson.injector(expression,     (x: Array[Byte]) => {
       val b: BosonImpl = new BosonImpl(byteArray = Option(x))
       val l: List[Any] = b.decodeBsonArray(b.getByteBuf)
       val newL: List[Any] = l.:+(Mapper.convertBsonObject(new BsonObject().put("WHAT!!!", 10)))
@@ -614,13 +609,8 @@ class InjectorParserTests extends FunSuite {
         buf.release()
         array
       }
-    }
-
-
-
-
+    })
     val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-
     // apply an extractor to get the new serial code as above.
     val resultValue: Array[Byte] = result.join()
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()

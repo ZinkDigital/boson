@@ -47,9 +47,7 @@ class TinyLanguage extends RegexParsers {
       val s: String = list.foldRight("")((a,b) => {a._1.concat(a._2.getOrElse("")).concat(b)})
       HalfName(x.concat(s))
     case None ~ list =>
-
       val s: String = list.foldRight("")((a,b) => {a._1.concat(a._2.getOrElse("")).concat(b)})
-      println(s)
       HalfName(s)
 
     case _ => throw CustomException(E_HALFNAME)
@@ -57,7 +55,6 @@ class TinyLanguage extends RegexParsers {
 
   private def keyHasElem: Parser[HasElem] = key ~ (P_HAS_ELEM ~> word <~ P_CLOSE_BRACKET) ^^ {
     case k ~ w =>
-      println(w)
       HasElem(k.key, w)
   }
 
