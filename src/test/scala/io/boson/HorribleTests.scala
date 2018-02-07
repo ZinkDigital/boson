@@ -154,13 +154,14 @@ class HorribleTests extends FunSuite {
     val expression: String = "   José[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(
-      "Tarantula",
-      "Aracnídius",
-      Seq("Insecticida"),
-      "Spider",
-      "Fly"
-    )), result)
+
+    val expected: Vector[Any] = Vector("Tarantula", "Aracnídius", br4.encodeToBarray(),"Spider","Fly" )
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
   }
 
   test("array prob 2") {
@@ -172,10 +173,10 @@ class HorribleTests extends FunSuite {
         arr11.getBsonObject(0).encodeToBarray(),
         arr11.getBsonObject(1).encodeToBarray(),
         arr11.getBsonObject(2).encodeToBarray(),
-        Seq("Insecticida"),
+        br4.encodeToBarray(),
         "Tarantula",
         "Aracnídius",
-        Seq("Insecticida"),
+        br4.encodeToBarray(),
         "Insecticida",
         "Spider",
         "Fly",

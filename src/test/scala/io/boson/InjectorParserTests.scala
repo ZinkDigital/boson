@@ -570,9 +570,12 @@ class InjectorParserTests extends FunSuite {
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
-    println(finalResult)
-    assertEquals(BsSeq(Vector(List(Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("damnnn" -> "DAMMN"), Map("creep" -> "DAMMN"), Map("WHAT!!!" -> 10)))),finalResult )
-  } //TODO: implement return type array
+
+    val expected: Vector[Array[Byte]] = Vector(bsonArrayEvent.add(new BsonObject().put("WHAT!!!", 10)).encodeToBarray())
+    val res = finalResult.getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall(b => b._1.sameElements(b._2)))
+  }
   /*test("test"){
     import scala.collection.JavaConverters._
     val obj1: BsonObject = new BsonObject().put("name", "Ricardo").put("sage", 28).put("age", 28).put("country", "Portugal")

@@ -94,17 +94,12 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 15))),
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
-      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
-      null,
-      100L,
-      2.3f,
-      false,
-      24
-    ))) === resultParser)
-  } //TODO: implement return type array
+
+    val expected: Vector[Array[Byte]] = Vector(arr.encodeToBarray())
+    val result = resultParser.getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
 
   test("last Pos with limits") {
     val expression: String = "fridgeReadings[7 to end]"

@@ -99,7 +99,6 @@ class ReturnTypes extends FunSuite{
     val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(e => e._1.sameElements(e._2)))
-    //assertArrayEquals(books.encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
   }
 
 }
