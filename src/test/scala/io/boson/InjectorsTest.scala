@@ -14,6 +14,7 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Ricardo Martins on 09/11/2017.
@@ -201,20 +202,17 @@ class InjectorsTest extends FunSuite {
     assert(newDouble === s
       , "Contents are not equal")
   }
-  //  TODO:find a way to inject BsonObject
-//  test("Injector: BsonObject => BsonObject") {
-//
-//    val b1: Option[BosonImpl] = netty.get.modify(netty, "bObj", (_: java.util.Map[String, Object]) => newbObj.getMap) //  .asScala.toMap
-//
-//    val result: Any = b1 match {
-//      case None => List()
-//      case Some(nb) => ext.parse(nb, "bObj", "all")
-//    }
-//    val s: Any = result.asInstanceOf[BsSeq].value.head
-//
-//    assert(Map("newbsonObj" -> "newbsonObj") === s
-//      , "Contents are not equal")
-//  }
+
+  test("Injector: BsonObject => BsonObject") {
+    val b1: Option[BosonImpl] = netty.get.modify(netty, "bObj", (x: Array[Byte])=> newbObj.encodeToBarray())
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => callParse(nb, "bObj")
+    }
+    val s: Any = result.asInstanceOf[BsSeq].value.head
+    assert(Map("newbsonObj" -> "newbsonObj") === s
+      , "Contents are not equal")
+  }
 
   test("Injector: Boolean => Boolean") {
 
@@ -243,35 +241,17 @@ class InjectorsTest extends FunSuite {
     assert(newLong === s
       , "Contents are not equal")
   }
-  //  TODO:find a way to inject BsonArray
-//  test("Injector: BsonArray => BsonArray") {
-//    val b1: Option[BosonImpl] = netty.get.modify(netty, "bsonArray", (_: java.util.List[_]) => Mapper.convert(newbsonArray)) //  .asScala.toArray[Any]
-//
-//    val result: Any = b1 match {
-//      case None => List()
-//      case Some(nb) => ext.parse(nb, "bsonArray", "all")
-//    }
-//    val s: Any = result.asInstanceOf[BsSeq].value
-//
-//    assert(List(List(3, 4, "Bye")) === s,
-//      "Contents are not equal")
-//  }
 
-
-  //  test("Injector: JavaEnum => JavaEnum") {
-  //
-  //    val b1: Option[BosonImpl] = inj.modify(netty, "enumJava", _ => newEnumJava)
-  //
-  //    val result: Any = b1 match {
-  //      case None => List()
-  //      case Some(nb) => ext.parse(nb, "enumJava", "all")
-  //    }
-  //    val s: Any = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
-  //
-  //    println(s)
-  //    assert(newEnumJava.toString === s
-  //      , "Contents are not equal")
-  //  }
+  test("Injector: BsonArray => BsonArray") {
+    val b1: Option[BosonImpl] = netty.get.modify(netty, "bsonArray", (x:Array[Byte]) => newbsonArray.encodeToBarray())
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => callParse(nb, "bsonArray")
+    }
+    val s: Any = result.asInstanceOf[BsSeq].value
+    assert(List(List(3, 4, "Bye")) === s,
+      "Contents are not equal")
+  }
 
   test("Injector: ScalaEnum => ScalaEnum") {
 
@@ -369,20 +349,17 @@ class InjectorsTest extends FunSuite {
     assert(newDouble === s
       , "Contents are not equal")
   }
-  //  TODO:find a way to inject BsonObject
-//  test("Injector BsonArray: BsonObject => BsonObject") {
-//
-//    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bObj", (_: java.util.Map[String, Object]) => Mapper.convert(newbObj)) //  .asScala.toMap
-//
-//    val result: Any = b1 match {
-//      case None => List()
-//      case Some(nb) => ext.parse(nb, "bObj", "all")
-//    }
-//    val s: Any = result.asInstanceOf[BsSeq].value.head
-//
-//    assert(Map("newbsonObj" -> "newbsonObj") === s
-//      , "Contents are not equal")
-//  }
+
+  test("Injector BsonArray: BsonObject => BsonObject") {
+    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bObj", (x:Array[Byte])=> newbObj.encodeToBarray())
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => callParse(nb, "bObj")
+    }
+    val s: Any = result.asInstanceOf[BsSeq].value.head
+    assert(Map("newbsonObj" -> "newbsonObj") === s
+      , "Contents are not equal")
+  }
 
   test("Injector BsonArray: Boolean => Boolean") {
 
@@ -411,35 +388,20 @@ class InjectorsTest extends FunSuite {
     assert(newLong === s
       , "Contents are not equal")
   }
-  //  TODO:find a way to inject BsonArray
-//  test("Injector BsonArray: BsonArray => BsonArray") {
-//
-//    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bsonArray", (_: java.util.List[_]) => Mapper.convert(newbsonArray))
-//
-//    val result: Any = b1 match {
-//      case None => List()
-//      case Some(nb) => ext.parse(nb, "bsonArray", "all")
-//    }
-//    val s: Any = result.asInstanceOf[BsSeq].value
-//
-//    assert(Seq(Seq(3, 4, "Bye")) === s
-//      , "Contents are not equal")
-//  }
 
-  //  test("Injector BsonArray: JavaEnum => JavaEnum") {
-  //
-  //    val b1: Option[BosonImpl] = inj.modify(nettyArray, "enumJava", x => newEnumJava)
-  //
-  //    val result: Any = b1 match {
-  //      case None => List()
-  //      case Some(nb) => ext.parse(nb, "enumJava", "first")
-  //    }
-  //    val s: Any = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
-  //
-  //    println(s)
-  //    assert(newEnumJava.toString === s
-  //      , "Contents are not equal")
-  //  }
+  test("Injector BsonArray: BsonArray => BsonArray") {
+
+    val b1: Option[BosonImpl] = netty.get.modify(nettyArray, "bsonArray", (_: Array[Byte]) => newbsonArray.encodeToBarray())
+
+    val result: Any = b1 match {
+      case None => List()
+      case Some(nb) => callParse(nb, "bsonArray")
+    }
+    val s: Any = result.asInstanceOf[BsSeq].value
+
+    assert(Seq(Seq(3, 4, "Bye")) === s
+      , "Contents are not equal")
+  }
 
   test("Injector BsonArray: ScalaEnum => ScalaEnum") {
 
@@ -466,21 +428,20 @@ class InjectorsTest extends FunSuite {
     assert(Vector() === result
       , "Contents are not equal")
   }
-  /*test("Injector: Enumeration => Enumeration") {
 
-    val b1: Option[BosonImpl] = inj.modify(netty, "enum", x => enum1)
+  test("Injector: Empty Netty") {
+    val empty: BosonImpl = new BosonImpl(byteArray = Option(new Array[Byte](0)))
 
-    val result: Any = b1 match {
-      case None => List()
-      case Some(nb) => ext.parse(nb, "enum", "first")
-    }
+      val result: Any = Try(empty.modify(None, "noField", (_: String) => enum.B.toString))match{
+        case Success(v)=>
+         callParse(v.get, "noField")
+        case Failure(e)=>
+          println(e.getMessage)
+          e.getMessage
+      }
 
-    val s: String = new String(result.asInstanceOf[List[Array[Byte]]].head).replaceAll("\\p{C}", "")
-
-    println(new String(result.asInstanceOf[List[Array[Byte]]].head))
-    assert(enum1.toString === s
+    assert("*modify* Input Option[BosonImpl] is not defined" === result
       , "Contents are not equal")
-  }*/
-
+  }
 
 }

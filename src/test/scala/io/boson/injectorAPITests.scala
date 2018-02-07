@@ -124,19 +124,19 @@ class injectorAPITests extends FunSuite {
     ))), future.join())
   }
 
-//  test("extract Key.*") {     TODO: implement the '*' cases on building keylist
-//    val expression = "Store.*"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(BsSeq(Vector(
-//      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-//        Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
-//        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
-//      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
-//    )), future.join())
-//  }
+  test("extract Key.*") {
+    val expression = "Store.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression,(out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(BsSeq(Vector(
+      Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+        Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+        Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+      Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38))
+    )), future.join())
+  }
 
   test("extract Key[@*elem]") {
     val expression = "Book[@*ce]"
@@ -536,23 +536,29 @@ class injectorAPITests extends FunSuite {
     /*
     * Injection
     * */
-    //println("|-------- Perform Injection --------|\n\n")
-    val validBsonArray: Array[Byte] = Event.encodeToBarray
 
+    val validBsonArray: Array[Byte] = Event.encodeToBarray
     val expression = "Store"
-    val boson: Boson = Boson.injector(expression,(in: Map[String, Any]) => in.+(("WHAT!!!", 10)))
+    val boson: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String,Any] = b.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("WHAT!!!", 10))
+      val res: ByteBuf = b.encode(newM)
+      if(res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
     val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
     val result: Array[Byte] = midResult.join()
-    //result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
-    //println("|-------- Perform Extraction --------|\n\n")
-    //val expression1 = "array.[@damnnn].damnnn.[@google].google"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson1.go(result)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-
-
-    //println("|-------- Perform Assertion --------|\n\n")
     assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
 
