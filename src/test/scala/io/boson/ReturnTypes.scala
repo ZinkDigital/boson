@@ -95,7 +95,7 @@ class ReturnTypes extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(bson.encodeToBarray())
     val expected: Vector[Array[Byte]] =
-      Vector(books.getBsonObject(0).encodeToBarray(),books.getBsonObject(1).encodeToBarray(),books.getBsonObject(2).encodeToBarray())
+      Vector(books.encodeToBarray())
     val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(e => e._1.sameElements(e._2)))

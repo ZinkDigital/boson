@@ -1313,10 +1313,14 @@ class jpPlusPlusTests extends FunSuite{
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(obj1.encodeToBarray())
-      assertEquals(Vector(
-        Map("Store" -> 1000),
-        1000
-      ), future.join().getValue)
+
+      val expected: Vector[Any] = Vector(obj2.encodeToBarray(),1000L)
+      val res = future.join().getValue.asInstanceOf[Vector[Any]]
+      assert(expected.size === res.size)
+      assertTrue(expected.zip(res).forall{
+        case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+        case (e,r) => e.equals(r)
+      })
     }
 
     test("Inj ..key, but multiple keys with same name V1"){

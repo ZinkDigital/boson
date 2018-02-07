@@ -225,11 +225,14 @@ class BosonImpl(
                   case Some(value) => Some(resultComposer(value.toVector))
                 }
               case _ =>
-                println("constructing array matched")
-                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)) match {
-                  case Some(value) if value.isEmpty => None
-                  case Some(value) => Some(value.toVector)
-                }
+                val arr: Array[Byte] = new Array[Byte](valueLength)
+                netty.getBytes(arrayStartReaderIndex,arr,0,valueLength)
+                netty.readerIndex(arrayFinishReaderIndex)
+                Some(arr)
+//                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)) match {
+//                  case Some(value) if value.isEmpty => None
+//                  case Some(value) => Some(value.toVector)
+//                }
             }
           } else {
             //println("key corresponds with array")
@@ -565,18 +568,31 @@ class BosonImpl(
             val finishReaderIndex: Int = startReaderIndex + valueLength2
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                  Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
+                  val arr: Array[Byte] = new Array[Byte](valueLength2)
+                  netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                  netty.readerIndex(finishReaderIndex)
+                  Some(arr)
+                  //Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
                 case Some(_) =>
                   netty.readerIndex(finishReaderIndex)
                   None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get =>
-                      Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
+                      val arr: Array[Byte] = new Array[Byte](valueLength2)
+                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                      netty.readerIndex(finishReaderIndex)
+                      Some(arr)
+                      //Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
                     case Some(_) =>
                       netty.readerIndex(finishReaderIndex)
                       None
-                    case None => Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList).toArray[Any])
+                    case None =>
+                      val arr: Array[Byte] = new Array[Byte](valueLength2)
+                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                      netty.readerIndex(finishReaderIndex)
+                      Some(arr)
+                      //Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList).toArray[Any])
                   }
               }
           case D_BOOLEAN =>
@@ -774,6 +790,7 @@ class BosonImpl(
             val startReaderIndex: Int = netty.readerIndex()
             val valueLength2: Int = netty.readIntLE()
             val finishReaderIndex: Int = startReaderIndex + valueLength2
+            val arr: Array[Byte] = new Array[Byte](valueLength2)
             //println(s"goingthrough and found BsonArray, current keylist: $keyList")
             if(keyList.head._1.equals(EMPTY_KEY)) {  //case [#..#].[#..#] TODO:test it
               //println("gothrough, bsonarray, is EMPTY_KEY")
@@ -823,10 +840,13 @@ class BosonImpl(
                   keyList.head._1 match {
                     case STAR if keyList.size < 2 =>
                       //println("star and keylist.size = 1")
-                      Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
-                        case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-                        case Some(x) => Some(x.toVector)
-                      }
+                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                      netty.readerIndex(finishReaderIndex)
+                      Some(arr)
+//                      Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
+//                        case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+//                        case Some(x) => Some(x.toVector)
+//                      }
                     case STAR if keyList.size > 1 =>
                       //println("star and keylist.size greater than 1")
                       Some(goThroughArrayWithLimit(netty,valueLength2,finishReaderIndex,keyList.drop(1),limitList.drop(1))) match {
@@ -846,10 +866,13 @@ class BosonImpl(
                     case Some(_) if iter >= limitList.head._1.get =>
                       keyList.head._1 match {
                         case STAR if keyList.size < 2 =>
-                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
-                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-                            case Some(x) => Some(x.toVector)
-                          }
+                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                          netty.readerIndex(finishReaderIndex)
+                          Some(arr)
+//                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
+//                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+//                            case Some(x) => Some(x.toVector)
+//                          }
                         case STAR if keyList.size > 1 =>
                           Some(goThroughArrayWithLimit(netty, valueLength2, finishReaderIndex, keyList.drop(1), limitList.drop(1))) match {
                             case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
@@ -867,10 +890,13 @@ class BosonImpl(
                     case None =>
                       keyList.head._1 match {
                         case STAR if keyList.size < 2 =>
-                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
-                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-                            case Some(x) => Some(x.toVector)
-                          }
+                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                          netty.readerIndex(finishReaderIndex)
+                          Some(arr)
+//                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
+//                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+//                            case Some(x) => Some(x.toVector)
+//                          }
                         case STAR if keyList.size > 1 =>
                           Some(goThroughArrayWithLimit(netty, valueLength2, finishReaderIndex, keyList.drop(1), limitList.drop(1))) match {
                             case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
