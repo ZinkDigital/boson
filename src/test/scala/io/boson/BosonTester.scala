@@ -165,7 +165,17 @@ object BosonTester extends App {
 //    boson.go(bA)
 //    println("result of extracting \""+ expression+ "\" -> " + future.join())
 //    println("-------------------------------------------------------------------------------------------------------------")
-  val v: Vector[Any] = Vector(2.2f,Seq(""))
-  println(v)
+  val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
+  val arr444: BsonArray = new BsonArray().add(obj555)//.add(obj555)
+  val obj333: BsonObject = new BsonObject().put("Store", arr444)
+  val arr222: BsonArray = new BsonArray().add(obj333)//.add(obj333)
+  //put("Store",new BsonObject())
+  val obj111: BsonObject = new BsonObject().put("Store", arr222)
+
+  val expression: String = ".Store[@Store]"
+  val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+  boson.go(obj111.encodeToBarray())
+  println("result of extracting \"" + expression + "\" -> " + future.join())
 
 }

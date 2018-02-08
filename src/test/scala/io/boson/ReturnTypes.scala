@@ -28,13 +28,38 @@ class ReturnTypes extends FunSuite{
   private val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", sEditions3)
   private val edition2 = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
   private val sEditions2 = new BsonArray().add(edition2)
-  private val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5).put("SpecialEditions", sEditions2)
+  private val title2 = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", sEditions2)
   private val edition1 = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
   private val sEditions1 = new BsonArray().add(edition1)
   private val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", sEditions1)
   private val books = new BsonArray().add(title1).add(title2).add(title3)
   private val store = new BsonObject().put("Book", books).put("Hat", hats)
   private val bson = new BsonObject().put("Store", store)
+
+  test("") {
+    val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
+    val arr444: BsonArray = new BsonArray().add(obj555)//.add(obj555)
+    val obj333: BsonObject = new BsonObject().put("Store", arr444).put("jtbfi",new BsonObject().put("Store",new BsonArray()))
+    val arr222: BsonArray = new BsonArray().add(obj333).add(obj333)
+    //put("Store",new BsonObject())
+    val obj111: BsonObject = new BsonObject().put("Store", arr222)
+    val expression: String = "Store[@Store]"
+    println(obj111)
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson.go(obj111.encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    println(s"result on test: $res")
+    val expected: Vector[Any] = Vector(obj333.encodeToBarray(),obj555.encodeToBarray(),obj555.encodeToBarray(),obj333.encodeToBarray(),obj555.encodeToBarray(),obj555.encodeToBarray())
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) =>
+        println(s"expected: ${new String(e)}")
+        println(s"result: ${new String(r)}")
+        e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
+  }
 
   test("Matched obj in simple event V1") {
     val expression: String = ".Store"

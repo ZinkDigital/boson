@@ -1610,7 +1610,7 @@ class jpPlusPlusTests extends FunSuite{
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
 
-    test("Inj ..key1[@Key2]"){
+    test("Inj ..key1[@Key2]") {
       val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
       val arr444: BsonArray = new BsonArray().add(obj555).add(obj555)
       val obj333: BsonObject = new BsonObject().put("Store", arr444)
@@ -1627,18 +1627,12 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(injFuture.join())
 
       val xobj555: BsonObject = new BsonObject().put("Store", new BsonArray()).put("Street", 1000)
-      val xarr444: BsonArray = new BsonArray().add(xobj555).add(xobj555)
+      val xobj333: BsonObject = new BsonObject().put("Store", new BsonArray().add(xobj555).add(xobj555)).put("Street", 1000)
 
-      val expected: Vector[Array[Byte]] = Vector(xarr444.encodeToBarray())
+      val expected: Vector[Array[Byte]] = Vector(xobj333.encodeToBarray(), xobj555.encodeToBarray(), xobj555.encodeToBarray(), xobj333.encodeToBarray(), xobj555.encodeToBarray(), xobj555.encodeToBarray())
       val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
-      println(obj111)
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-
-
-      assertEquals(
-        "Vector(Map(Store -> List(Map(Store -> List(), Street -> 1000), Map(Store -> List(), Street -> 1000)), Street -> 1000)," +
-        " Map(Store -> List(Map(Store -> List(), Street -> 1000), Map(Store -> List(), Street -> 1000)), Street -> 1000))", future.join().getValue.toString)
     }
 
 }
