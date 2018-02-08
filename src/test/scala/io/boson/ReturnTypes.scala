@@ -39,24 +39,23 @@ class ReturnTypes extends FunSuite{
   test("") {
     val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
     val arr444: BsonArray = new BsonArray().add(obj555)//.add(obj555)
-    val obj333: BsonObject = new BsonObject().put("Store", arr444).put("jtbfi",new BsonObject().put("Store",new BsonArray()))
-    val arr222: BsonArray = new BsonArray().add(obj333).add(obj333)
+    val obj666: BsonObject = new BsonObject().put("Store",new BsonArray().add(new BsonObject().put("Store",1.1)))
+    val obj333: BsonObject = new BsonObject().put("jtbfi",obj666)//.put("Store", arr444)
+    val arr222: BsonArray = new BsonArray().add(obj333)//.add(obj333)
     //put("Store",new BsonObject())
     val obj111: BsonObject = new BsonObject().put("Store", arr222)
-    val expression: String = "Store[@Store]"
+    val expression: String = "Store[@Store]..Store"
     println(obj111)
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(obj111.encodeToBarray())
     val res = future.join().getValue.asInstanceOf[Vector[Any]]
-    println(s"result on test: $res")
-    val expected: Vector[Any] = Vector(obj333.encodeToBarray(),obj555.encodeToBarray(),obj555.encodeToBarray(),obj333.encodeToBarray(),obj555.encodeToBarray(),obj555.encodeToBarray())
+    //res.foreach(elem => println(s"res: ${new String(elem)}"))
+    val expected: Vector[Any] = Vector(1.1)
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{
-      case (e: Array[Byte],r: Array[Byte]) =>
-        println(s"expected: ${new String(e)}")
-        println(s"result: ${new String(r)}")
-        e.sameElements(r)
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
       case (e,r) => e.equals(r)
     })
   }

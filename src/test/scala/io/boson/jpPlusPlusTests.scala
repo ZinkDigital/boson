@@ -1522,33 +1522,40 @@ class jpPlusPlusTests extends FunSuite{
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
 
-    test("Ex ..*"){
-      val expression: String = "..*"
-      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-      boson.go(validatedByteArr)
-
-      assertEquals(Vector(
-        Map("Book" -> Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
-          Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
-          Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
-          "Hatk" -> Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38),
-            Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39)))))
-      ), future.join().getValue)
-    } //TODO: test is not correct
-
-    test("Inj ..*"){
-      val expression: String = "..*"
-
-      val bosonI: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Street", 1000)))
-      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-
-      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-      boson.go(injFuture.join())
-
-      assertEquals("Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hatk -> List(Map(Color -> Red, Price -> 48), Map(Color -> White, Price -> 35), Map(Color -> Blue, Price -> 38), Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
-    } //TODO: test is not correct
+//    test("Ex ..*"){
+//      val expression: String = "..*"
+//      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+//      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+//      boson.go(validatedByteArr)
+//
+//      assertEquals(Vector(
+//        Map("Book" -> Seq(Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39))),
+//          Map("Title" -> "Scala", "Pri" -> 21.5, "SpecialEditions" -> Seq(Map("Title" -> "ScalaMachine", "Price" -> 40))),
+//          Map("Title" -> "C++", "Price" -> 12.6, "SpecialEditions" -> Seq(Map("Title" -> "C++Machine", "Price" -> 38)))),
+//          "Hatk" -> Seq(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38),
+//            Map("Title" -> "Java", "Price" -> 15.5, "SpecialEditions" -> Seq(Map("Title" -> "JavaMachine", "Price" -> 39)))))
+//      ), future.join().getValue)
+//    } //TODO: test is not correct
+//
+//    test("Inj ..*"){
+//      val expression: String = "..*"
+//
+//      val bosonI: Boson = Boson.injector(expression, (x: Map[String, Any]) => x.+(("Street", 1000)))
+//      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+//
+//      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+//      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+//      boson.go(injFuture.join())
+//
+//      assertEquals("Vector(" +
+//        "Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39)))," +
+//        " Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40)))," +
+//        " Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38))))" +
+//        ", Hatk -> List(Map(Color -> Red, Price -> 48)," +
+//        " Map(Color -> White, Price -> 35)," +
+//        " Map(Color -> Blue, Price -> 38)," +
+//        " Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
+//    } //TODO: test is not correct
 
     test("Ex ..key, but multiple keys with same name"){
       val obj2: BsonObject = new BsonObject().put("Store", 1000L)
