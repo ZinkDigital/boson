@@ -66,5 +66,5 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     future
   }
 
-  override def fuse(boson: bson.Boson): bson.Boson = ??? //  return typpe is wrong
+  override def fuse(boson: bson.Boson): bson.Boson = new BosonFuse(this,boson)
 }
