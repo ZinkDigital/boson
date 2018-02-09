@@ -140,22 +140,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
-
-    //println(statement.head)
     if (statement.nonEmpty) {
-      //println("Statements not empty")
       statement.head match {
         case MoreKeys(first, list, dots) => //  key
           first match{
             case ROOT()=>
-              //println("ROOT() OH YEAH")
               executeRootInjection()
             case _ =>
               val united: List[Statement] = list.+:(first)
-              //println(united)
               val zipped: List[(Statement, String)] = united.zip(dots)
-
-              //println(zipped)
               executeMultipleKeysInjector(zipped)
           }
         case _ => throw new RuntimeException("Something went wrong!!!")
@@ -181,7 +174,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     val result:bsonValue.BsValue=
       Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, f.get ))match{
         case Success(v)=>
-          boson.getByteBuf.release()
+
           val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
           v.release()
           bsResult
@@ -197,7 +190,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       execStatementPatternMatch(statements)
     }*/
     // return BsValue
-result
+    boson.getByteBuf.release()
+    result
     //bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
   }
 

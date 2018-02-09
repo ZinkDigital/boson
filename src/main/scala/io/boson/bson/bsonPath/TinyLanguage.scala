@@ -42,20 +42,25 @@ class TinyLanguage extends RegexParsers {
 
   private def key: Parser[Key] = word ^^ { w => Key(w) }
 
-  private def halfName: Parser[HalfName] = opt(word) ~ STAR ~ opt(word) ^^ {
-    case Some(x) ~ STAR ~ Some(y) => HalfName(x.concat(STAR).concat(y))
-    case None ~ STAR ~ Some(y) => HalfName(STAR.concat(y))
-    case Some(x) ~ STAR ~ None => HalfName(x.concat(STAR))
-    case None ~ STAR ~ None => HalfName(STAR)
+  private def halfName: Parser[HalfName] = opt(word) ~ rep1(STAR ~ opt(word)) ^^ {
+    case Some(x) ~ list =>
+      val s: String = list.foldRight("")((a,b) => {a._1.concat(a._2.getOrElse("")).concat(b)})
+      HalfName(x.concat(s))
+    case None ~ list =>
+      val s: String = list.foldRight("")((a,b) => {a._1.concat(a._2.getOrElse("")).concat(b)})
+      HalfName(s)
+
     case _ => throw CustomException(E_HALFNAME)
   }
 
   private def keyHasElem: Parser[HasElem] = key ~ (P_HAS_ELEM ~> word <~ P_CLOSE_BRACKET) ^^ {
-    case k ~ w => HasElem(k.key, w)
+    case k ~ w =>
+      HasElem(k.key, w)
   }
 
   private def keyHasHalfelem: Parser[HasElem] = key ~ (P_HAS_ELEM ~> halfName <~ P_CLOSE_BRACKET) ^^ {
-    case k ~ w => HasElem(k.key, w.half)
+    case k ~ w =>
+      HasElem(k.key, w.half)
   }
 
   private def halfnameHasElem: Parser[HasElem] = halfName ~ (P_HAS_ELEM ~> word <~ P_CLOSE_BRACKET) ^^ {
