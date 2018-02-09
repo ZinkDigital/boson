@@ -12,6 +12,7 @@ import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+import org.junit.Assert.{assertArrayEquals, assertTrue}
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -210,7 +211,7 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "bObj")
     }
     val s: Any = result.asInstanceOf[BsSeq].value.head
-    assert(Map("newbsonObj" -> "newbsonObj") === s
+    assert(new BsonObject().put("newbsonObj", "newbsonObj").encodeToBarray() === s
       , "Contents are not equal")
   }
 
@@ -249,8 +250,7 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "bsonArray")
     }
     val s: Any = result.asInstanceOf[BsSeq].value
-    assert(List(List(3, 4, "Bye")) === s,
-      "Contents are not equal")
+    assertArrayEquals(newbsonArray.encodeToBarray(), s.asInstanceOf[Vector[Array[Byte]]].head)
   }
 
   test("Injector: ScalaEnum => ScalaEnum") {
@@ -357,7 +357,7 @@ class InjectorsTest extends FunSuite {
       case Some(nb) => callParse(nb, "bObj")
     }
     val s: Any = result.asInstanceOf[BsSeq].value.head
-    assert(Map("newbsonObj" -> "newbsonObj") === s
+    assert(new BsonObject().put("newbsonObj", "newbsonObj").encodeToBarray() === s
       , "Contents are not equal")
   }
 
@@ -399,8 +399,7 @@ class InjectorsTest extends FunSuite {
     }
     val s: Any = result.asInstanceOf[BsSeq].value
 
-    assert(Seq(Seq(3, 4, "Bye")) === s
-      , "Contents are not equal")
+    assertArrayEquals(new BsonArray().add(3).add(4).add("Bye").encodeToBarray(), s.asInstanceOf[Vector[Array[Byte]]].head)
   }
 
   test("Injector BsonArray: ScalaEnum => ScalaEnum") {

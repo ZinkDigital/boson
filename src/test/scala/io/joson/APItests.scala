@@ -16,7 +16,7 @@ import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.{JsonArray, JsonObject}
 import mapper.Mapper
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertArrayEquals}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -91,7 +91,7 @@ class APItests extends FunSuite{
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson1: Joson = Joson.extractor(expression, (in: BsValue) => future.complete(in))
     joson1.go(result)
-    val json1: Any = future.join().getValue
+    val json1: Array[Byte] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head
     println(json1)
 
     println("WORK WITH BOSON\n")
@@ -117,11 +117,11 @@ class APItests extends FunSuite{
     val future1: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future1.complete(in))
     boson1.go(result1)
-    val bson1: Any = future1.join().getValue
+    val bson1: Array[Byte] = future1.join().getValue.asInstanceOf[Vector[Array[Byte]]].head
     println(bson1)
 
     println("|-------- Perform Assertion --------|\n\n")
-    assertEquals(json1, bson1)
+    assertArrayEquals(json1, bson1)
 
   }
 }

@@ -1694,9 +1694,46 @@ class BosonImpl(
 
   private def applyFunction[T](f: T => T, value: Any) : T = {
     Try(f(value.asInstanceOf[T])) match {
-      case Success(v) => v.asInstanceOf[T]
+      case Success(v) =>
+        // println("Success 1")
+        // println( v.asInstanceOf[T])
+        v.asInstanceOf[T]
       case Failure(e) =>
-        throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+        // println("Fail1")
+        value match{
+          case x: Double =>
+            Try(f(x.toFloat.asInstanceOf[T])) match {
+              case Success(v)=>
+                //      println("Success 2")
+                v.asInstanceOf[T]
+              case Failure(e1) =>
+                //     println("EXCEPTION1")
+                throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            }
+          case x:Array[Byte] =>
+            // println("Fail3")
+            // println(f.getClass.getAnnotations.foreach(a => a.toString))
+            // println(new String(x))
+            Try(f(new String(x).asInstanceOf[T])) match {
+              case Success(v)=>
+                //     println("Success 3")
+                //     println(new String(x))
+                //     println(v.asInstanceOf[T])
+                v.asInstanceOf[T]
+              case Failure(e1) =>
+                Try(f(Instant.parse(new String(x)).asInstanceOf[T])) match {
+                  case Success(v)=>
+                    //       println("Success 4")
+                    v.asInstanceOf[T]
+                  case Failure(e2) =>
+                    //       println("EXCEPTION2")
+                    throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+                }
+            }
+          case _ =>
+            //  println("EXCEPTION3")
+            throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+        }
     }
   }
 
