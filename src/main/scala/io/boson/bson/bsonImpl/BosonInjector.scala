@@ -3,7 +3,6 @@ package io.boson.bson.bsonImpl
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
-
 import io.boson.bson
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.netty.util.ByteProcessor
