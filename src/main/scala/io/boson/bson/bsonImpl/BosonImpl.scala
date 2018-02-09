@@ -620,13 +620,13 @@ class BosonImpl(
           case D_NULL =>
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                  Some(null)
+                  Some(V_NULL)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
-                    case Some(_) if iter >= limitList.head._1.get => Some(null)
+                    case Some(_) if iter >= limitList.head._1.get => Some(V_NULL)
                     case Some(_) => None
-                    case None => Some(null)
+                    case None => Some(V_NULL)
                   }
               }
           case D_INT =>
@@ -853,13 +853,13 @@ class BosonImpl(
                   keyList.head._1 match {
                     case STAR if keyList.size < 2 =>
                       //println("star and keylist.size = 1")
-                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
-                      netty.readerIndex(finishReaderIndex)
-                      Some(arr)
-//                      Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
-//                        case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-//                        case Some(x) => Some(x.toVector)
-//                      }
+//                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+//                      netty.readerIndex(finishReaderIndex)
+//                      Some(arr)
+                      Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
+                        case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+                        case Some(x) => Some(x.toVector)
+                      }
                     case STAR if keyList.size > 1 =>
                       //println("star and keylist.size greater than 1")
                       Some(goThroughArrayWithLimit(netty,valueLength2,finishReaderIndex,keyList.drop(1),limitList.drop(1))) match {
@@ -879,13 +879,13 @@ class BosonImpl(
                     case Some(_) if iter >= limitList.head._1.get =>
                       keyList.head._1 match {
                         case STAR if keyList.size < 2 =>
-                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
-                          netty.readerIndex(finishReaderIndex)
-                          Some(arr)
-//                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
-//                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-//                            case Some(x) => Some(x.toVector)
-//                          }
+//                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
+//                          netty.readerIndex(finishReaderIndex)
+//                          Some(arr)
+                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
+                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+                            case Some(x) => Some(x.toVector)
+                          }
                         case STAR if keyList.size > 1 =>
                           Some(goThroughArrayWithLimit(netty, valueLength2, finishReaderIndex, keyList.drop(1), limitList.drop(1))) match {
                             case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
@@ -902,14 +902,14 @@ class BosonImpl(
                       None
                     case None =>
                       keyList.head._1 match {
-                        case STAR if keyList.size < 2 =>
-                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
-                          netty.readerIndex(finishReaderIndex)
-                          Some(arr)
-//                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
-//                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-//                            case Some(x) => Some(x.toVector)
-//                          }
+                        case STAR if keyList.size < 2 =>  //TODO: test more this case
+//                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
+//                          netty.readerIndex(finishReaderIndex)
+//                          Some(arr)
+                          Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
+                            case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
+                            case Some(x) => Some(x.toVector)
+                          }
                         case STAR if keyList.size > 1 =>
                           Some(goThroughArrayWithLimit(netty, valueLength2, finishReaderIndex, keyList.drop(1), limitList.drop(1))) match {
                             case Some(x) if x.isEmpty => None // indexOutOfBounds treatment

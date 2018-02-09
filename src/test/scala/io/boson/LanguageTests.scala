@@ -64,7 +64,7 @@ class LanguageTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
 
-    val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray(),null,100L,2.3f,false)
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray(),"Null",100L,2.3f,false)
     val res = resultParser.getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{
@@ -79,7 +79,7 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings[0 to 7]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    val expected: Vector[Any] = Vector(obj1.encodeToBarray(),obj2.encodeToBarray(),obj3.encodeToBarray(),null,100L,2.3f,false,24)
+    val expected: Vector[Any] = Vector(obj1.encodeToBarray(),obj2.encodeToBarray(),obj3.encodeToBarray(),"Null",100L,2.3f,false,24)
     val res = resultParser.getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{

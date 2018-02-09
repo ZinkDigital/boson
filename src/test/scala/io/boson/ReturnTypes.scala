@@ -64,6 +64,7 @@ class ReturnTypes extends FunSuite{
     val expression: String = ".Store"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    println(bson)
     boson.go(bson.encodeToBarray())
     assertArrayEquals(store.encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
   }
