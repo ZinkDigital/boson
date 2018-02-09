@@ -8,6 +8,8 @@ import okhttp3.mockwebserver.{MockResponse, MockWebServer}
 import org.hamcrest.Matchers._
 import org.junit.{After, Before, Test}
 import org.junit.Assert.assertThat
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 class RestAssured {
 
@@ -41,7 +43,7 @@ class RestAssured {
     response.setHeader("content-type", "application/json")
     webServer.enqueue(response)
 
-    val seq: Seq[Any] = Seq(Seq(2.2))
+    val seq: Seq[Any] = Vector(2.2)
 
     val byteArray = new BsonObject(new JsonObject(
       given().port(webServer.getPort)

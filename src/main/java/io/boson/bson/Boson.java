@@ -13,7 +13,7 @@ public interface Boson {
 
     static <T> Boson validate(String expression, Consumer<T> validateFunction) {
 
-        return new BosonValidate(expression,validateFunction);
+        return new BosonValidate<>(expression,validateFunction);
     }
 
     /**
@@ -25,7 +25,7 @@ public interface Boson {
      * @return a BosonImpl that is a BosonExtractor
      */
     static <T> Boson extractor(String expression, Consumer<T> extractFunction) {
-        // TODO construct an extractor
+
         return new BosonExtractor<>(expression,extractFunction);
     }
 
@@ -38,7 +38,7 @@ public interface Boson {
      * @return
      */
         static <T> Boson injector(String expression, Function<T,T> injectFunction) {
-        // TODO construct an injector
+
         return new BosonInjector<>(expression,injectFunction);
     }
 
