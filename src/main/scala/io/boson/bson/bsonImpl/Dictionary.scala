@@ -45,10 +45,11 @@ object Dictionary {
   val C_RANDOM: String = "random"
 
   val V_NULL: String = "Null"
+  val C_MATCH: String = "Matched"
 
   // PARSER CONSTANTS
   val P_NUMBER: String = """\d+(\.\d*)?"""
-  val P_WORD: String =  """[/^[a-zA-Z\u00C0-\u017F]+\d_-]+"""
+  val P_WORD: String =  """[/^[?a-zA-Z\u00C0-\u017F]+\d_-]+"""
   val P_CLOSE_BRACKET: String = "]"
   val P_OPEN_BRACKET: String = "["
   val P_HAS_ELEM: String = "[@"

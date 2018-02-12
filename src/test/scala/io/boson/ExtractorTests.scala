@@ -6,7 +6,7 @@ import bsonLib.{BsonArray, BsonObject}
 import io.boson.bson.bsonImpl.BosonImpl
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -83,17 +83,19 @@ class ExtractorTests extends FunSuite {
   test("Extract BsonObject") {
     val bsonEvent: BsonObject = new BsonObject().put("First", obj1).put("Second", obj2).put("Third", obj3)
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
-    assert(Map("Pedro" -> 1250, "José" -> false) === bosonBson.extract(bosonBson.getByteBuf, List(("Second","first")), List((None,None,""))).get.asInstanceOf[Vector[Any]].head)
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Second","first")), List((None,None,""))).get.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Array[Byte]] = Vector(obj2.encodeToBarray())
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("Extract BsonArray") {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
-    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Colleagues","first")), List((None,None,""))).get.asInstanceOf[Vector[Array[Any]]]
-    assert(Seq(
-      Map("André" -> 975, "António" -> 975),
-        Map("Pedro" -> 1250, "José" -> false),
-        Map("Américo" -> 1500, "Amadeu" -> null))
-     === result.head)
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Colleagues","all")), List((None,None,""))).get.asInstanceOf[Vector[Array[Any]]]
+
+    val expected: Vector[Array[Byte]] = Vector(arr.encodeToBarray())
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("Extract deep layer") {
@@ -101,10 +103,10 @@ class ExtractorTests extends FunSuite {
     val arr2: BsonArray = new BsonArray().add("Day3").add("Day20").add("Day31")
     obj2.put("JoséMonthLeave", arr2)
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
-    assert(
-      Seq("Day3", "Day20", "Day31")
-        === bosonBson.extract(bosonBson.getByteBuf, List(("JoséMonthLeave","first")), List((None,None,""))).get.asInstanceOf[Vector[Any]].head
-    )
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("JoséMonthLeave","all")), List((None,None,""))).get.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Array[Byte]] = Vector(arr2.encodeToBarray())
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("Extract nonexistent key") {

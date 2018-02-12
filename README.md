@@ -10,6 +10,7 @@ Streaming Data Access for BSON and JSON encoded documents
 	* [Boson](#id-BosonScala)
 		* [Extractor](#id-bosonExtractionScala)
 		* [Injector](#id-bosonInjectionScala)
+		* [Fuse](#id-bosonFuseScala)
 	* [Joson](#id-JosonScala)
 		* [Extractor](#id-josonExtractionScala)
 		* [Injector](#id-josonInjectionScala)
@@ -17,6 +18,7 @@ Streaming Data Access for BSON and JSON encoded documents
 	* [Boson](#id-BosonJava)
 		* [Extractor](#id-extractionJava)
 		* [Injector](#id-injectionJava)
+		* [Fuse](#id-bosonFuseJava)
 	* [Joson](#id-JosonJava)
 		 * [Extractor](#id-josonExtractionJava)
 		 *	[Injector](#id-josonInjectionJava)
@@ -94,7 +96,28 @@ val boson: Boson = Boson.injector(expression, (in: String) => "newName")
 //Trigger injection with encoded Bson:
 val result: Array[Byte] = boson.go(validBsonArray).join()
 ```
+<div id='id-bosonFuseScala'>
 
+### Fuse
+Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.
+```scala
+//First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.
+val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
+
+val expression = "name"
+
+val ext: Boson = Boson.extractor(expression, (in: BsValue) => {
+  // Use 'in' value, this is the value extracted.
+})
+
+val inj: Boson = Boson.injector(expression, (in: String) => "newName")
+
+//Then call fuse() on injector or extractor, it returns a new BosonObject.
+val fused: Boson = ext.fuse(inj)
+
+//Finally call go() providing the byte array or a ByteBuffer on the new Boson object.
+val finalFuture: Array[Byte] = fused.go(validatedByteArray).join()
+```
 <div id='id-JosonScala'/>
 
 ### Joson
@@ -245,6 +268,26 @@ Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
 
 //Trigger injection with encoded Bson:
 byte[] result = boson.go(validatedByteArray).join();
+```
+### Fuse
+Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.
+```java
+//First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.
+final byte[] validatedByteArray  = bsonEvent.encode().array();
+
+final String expression = "name";
+
+final Boson ext = Boson.extractor(expression, (in: BsValue) -> {
+  // Use 'in' value, this is the value extracted.
+});
+
+final Boson inj = Boson.injector(expression, (in: String) -> "newName");
+
+//Then call fuse() on injector or extractor, it returns a new BosonObject.
+final Boson fused = ext.fuse(inj);
+
+//Finally call go() providing the byte array or a ByteBuffer on the new Boson object.
+final byte[] finalFuture = fused.go(validatedByteArray).join();
 ```
 
 <div id='id-JosonJava'/>

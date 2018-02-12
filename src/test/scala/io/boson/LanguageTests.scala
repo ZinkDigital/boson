@@ -12,7 +12,7 @@ import io.boson.bson.bsonValue._
 import io.boson.bson.bsonValue
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.{ByteProcessor, ResourceLeakDetector}
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertTrue}
 
 import scala.util.{Failure, Success, Try}
 
@@ -63,53 +63,57 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings[1 until end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
-      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
-      null,
-      100L,
-      2.3f,
-      false
-    ))) === resultParser)
+
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray(),"Null",100L,2.3f,false)
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
 
   test("[# to #](all Pos)") {
     val expression: String = "fridgeReadings[0 to 7]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 15))),
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
-      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
-      null,
-      100L,
-      2.3f,
-      false,
-      24
-    ))) === resultParser)
+    val expected: Vector[Any] = Vector(obj1.encodeToBarray(),obj2.encodeToBarray(),obj3.encodeToBarray(),"Null",100L,2.3f,false,24)
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
 
   test("all Pos without limits") {
     val expression: String = "fridgeReadings"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.199999809265137, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 15))),
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))),
-      Map("fridgeTemp" -> 3.8540000915527344, "fanVelocity" -> 20.5, "doorOpen" -> List(Map("fridgeTemp" -> 18))),
-      null,
-      100L,
-      2.3f,
-      false,
-      24
-    ))) === resultParser)
+
+    val expected: Vector[Array[Byte]] = Vector(arr.encodeToBarray())
+    val result = resultParser.getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("last Pos with limits") {
     val expression: String = "fridgeReadings[7 to end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(24))) === resultParser)
+    val expected: Vector[Any] = Vector(24)
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
 
   val arr1: BsonArray = new BsonArray().add("Hat").add(false).add(2.2).addNull().add(1000L).add(new BsonArray().addNull()).add(2)
@@ -127,7 +131,15 @@ class LanguageTests extends FunSuite {
     val expression: String = "..Store[@SomeObj]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+    val expected: Vector[Any] = Vector(new BsonObject().put("Quantity",500L).put("SomeObj",new BsonObject().putNull("blah")).put("one",false).putNull("three").encodeToBarray())
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
   test("..key[@elem], doesn't match the elem") {
     val expression: String = "..Store[@Nothing]"
@@ -139,19 +151,43 @@ class LanguageTests extends FunSuite {
     val expression: String = "..Store[@one]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+    val expected: Vector[Any] = Vector(new BsonObject().put("Quantity",500L).put("SomeObj",new BsonObject().putNull("blah")).put("one",false).putNull("three").encodeToBarray())
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
   test("..key[@elem], elem match with Long") {
     val expression: String = "..Store[@Quantity]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+    val expected: Vector[Any] = Vector(new BsonObject().put("Quantity",500L).put("SomeObj",new BsonObject().putNull("blah")).put("one",false).putNull("three").encodeToBarray())
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
   test("..key[@elem], elem match with Null") {
     val expression: String = "..Store[@three]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bE.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(Map("Quantity" -> 500, "SomeObj" -> Map("blah" -> null), "one" -> false, "three" -> null))), result)
+    val expected: Vector[Any] = Vector(new BsonObject().put("Quantity",500L).put("SomeObj",new BsonObject().putNull("blah")).put("one",false).putNull("three").encodeToBarray())
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
+      case (e,r) => e.equals(r)
+    })
   }
 
 
@@ -180,18 +216,28 @@ class LanguageTests extends FunSuite {
     val expression: String = "fridgeReadings[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))
-      )))) === resultParser)
+
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray())
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
   }
 
   test("[# until #]") {
     val expression: String = "fridgeReadings[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(Seq(
-      Map("fridgeTemp" -> 5.0, "fanVelocity" -> 20.6, "thing" -> List(Map("doorOpen" -> List(Map("fridgeTemp" -> 12))))
-      )))) === resultParser)
+
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray())
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
   }
 
   val obj4: BsonObject = new BsonObject().put("fridgeTemp", 5.336f).put("fanVelocity", 40.2).put("doorOpen", true)
@@ -202,29 +248,43 @@ class LanguageTests extends FunSuite {
     val expression: String = "[1 until end]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(
-      Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true),
-      "Temperature"
-    )) === resultParser)
-  }
+
+    val expected: Vector[Any] = Vector(obj4.encodeToBarray(), "Temperature")
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
+  } //TODO: This test should return more results
 
   test("[# to #] w/key") {
     val expression: String = "[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(
-      Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
-      ))) === resultParser)
-  }
+
+    val expected: Vector[Any] = Vector(obj4.encodeToBarray())
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
+  } //TODO: This test should return more results
 
   test("[# until #] w/key") {
     val expression: String = "[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
-    assert(BsSeq(Vector(
-      Map("fridgeTemp" -> 5.335999965667725, "fanVelocity" -> 40.2, "doorOpen" -> true
-      ))) === resultParser)
-  }
+
+    val expected: Vector[Any] = Vector(obj4.encodeToBarray())
+    val res = resultParser.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
+  } //TODO: This test should return more results
 
 
 

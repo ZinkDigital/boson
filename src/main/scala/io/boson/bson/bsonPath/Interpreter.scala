@@ -41,7 +41,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
         case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
         case HalfName(halfName) =>
           halfName.equals(STAR) match {
-            case true => (List((halfName, C_ALL)), List((None, None, EMPTY_KEY)))
+            case true => (List((halfName, C_ALL)), List((None, None, STAR)))
             case false if statementList.nonEmpty => (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
             case false => (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
           }
@@ -55,7 +55,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           statement match {
             case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, EMPTY_KEY))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))                                                                          //TODO: treat '*'
+            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))                                                                          //TODO: treat '*'
             case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
             case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
             case _ => throw CustomException("Error building key list")
@@ -120,8 +120,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
     val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, dotsList)
-    //println("after build keylist -> " + keyList._1)
-    //println("after build limitlist -> " + keyList._2)
+    println("after build keylist -> " + keyList._1)
+    println("after build limitlist -> " + keyList._2)
     val result: Seq[Any] =
       boson.extract(boson.getByteBuf, keyList._1, keyList._2) map { v =>
              v.asInstanceOf[Seq[Any]]
@@ -140,35 +140,17 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
-    if (statement.nonEmpty) {
-      statement.head match {
-        case MoreKeys(first, list, dots) => //  key
-          first match{
-            case ROOT()=>
-              executeRootInjection()
-            case _ =>
-              val united: List[Statement] = list.+:(first)
-              val zipped: List[(Statement, String)] = united.zip(dots)
-              executeMultipleKeysInjector(zipped)
-          }
-        case _ => throw new RuntimeException("Something went wrong!!!")
+    val stat: MoreKeys = statement.head.asInstanceOf[MoreKeys]
+    val united: List[Statement] = stat.list.+:(stat.first)
+    val zipped: List[(Statement, String)] =
+      if(stat.first.isInstanceOf[ROOT]){
+        united.map(e => (e, C_DOT))
+      }else{
+       united.zip(stat.dotList)
       }
-    } else throw new RuntimeException("List of statements is empty.")
+    println(zipped)
+    executeMultipleKeysInjector(zipped)
   }
-
-  private def executeRootInjection(): bsonValue.BsValue = {
-
-    val result:bsonValue.BsValue=
-      Try(boson.execRootInjection(boson.getByteBuf, f.get))match{
-        case Success(v)=>
-          val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
-          v.release()
-          bsResult
-        case Failure(e)=>bsonValue.BsException(e.getMessage)
-      }
-    result
-   }
-
 
   private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
     val result:bsonValue.BsValue=
@@ -179,28 +161,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           v.release()
           bsResult
         case Failure(e)=>bsonValue.BsException(e.getMessage)      }
-
-    // if Statements size is equal to 1 then cal start Injector
-    // else keep filter the buffer
-    /*if(statements.size==1){
-      //execute statement
-      startInjector(List(statements.head))
-    }else {
-      // filter buffer
-      execStatementPatternMatch(statements)
-    }*/
-    // return BsValue
     boson.getByteBuf.release()
     result
-    //bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
   }
-
 }
 
-
-
 object Compose {
-
   def composer(value: Array[Any]): Seq[Any] = {
     val help: ListBuffer[Any] = new ListBuffer[Any]
     for (elem <- value) {

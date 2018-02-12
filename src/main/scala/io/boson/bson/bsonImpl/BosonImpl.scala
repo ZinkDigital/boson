@@ -143,7 +143,6 @@ class BosonImpl(
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-            val map: Map[Any, Any] = scala.collection.immutable.Map[Any, Any]()
             keyList.head._2 match {
               case C_NEXT =>
                 //println("extractFromBsonObj; BsonObject case; condition = 'next'")
@@ -152,11 +151,17 @@ class BosonImpl(
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
               case C_ALL if !keyList.head._1.equals(STAR)=>
                 //println("extractFromBsonObj; BsonObject case; condition = 'all'; returning obj and going to traverse obj looking for more occurrances of the same key")
+                val arr: Array[Byte] = new Array[Byte](valueTotalLength)
+                netty.getBytes(bsonStartReaderIndex,arr,0,valueTotalLength)
                 val midResult: Iterable[Any] = extractFromBsonObj(netty.duplicate(), keyList, bsonFinishReaderIndex, limitList)
-                if (midResult.isEmpty) Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList, limitList))
-                else Some(resultComposer(Vector(Vector(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList, limitList)),resultComposer(midResult.toVector))))
+                netty.readerIndex(bsonFinishReaderIndex)
+                if (midResult.isEmpty) Some(arr)
+                else Some(resultComposer(Vector(Vector(arr),resultComposer(midResult.toVector))))
               case _ =>
-                Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList, limitList))
+                val arr: Array[Byte] = new Array[Byte](valueTotalLength)
+                netty.getBytes(bsonStartReaderIndex,arr,0,valueTotalLength)
+                netty.readerIndex(bsonFinishReaderIndex)
+                Some(arr)
             }
           } else {
             val bsonStartReaderIndex: Int = netty.readerIndex()
@@ -179,7 +184,8 @@ class BosonImpl(
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            //println(s"condition is ${keyList.head._2}")
+            //println(s"keylist: ${keyList}")
+            //println(s"limitlist: ${limitList}")
             keyList.head._2 match {
               case C_NEXT if keyList.head._1.equals(STAR) && keyList.drop(1).head._1.equals(EMPTY_KEY) =>  //case Book[#].*.[#]...
                 //println("case -> Book[#].*.[#]...")
@@ -196,6 +202,17 @@ class BosonImpl(
                 val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitList.drop(1))
                 //println(s"midResult -> $midResult")
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+              case C_LEVEL | C_ALL =>
+                val arr: Array[Byte] = new Array[Byte](valueLength)
+                netty.getBytes(arrayStartReaderIndex,arr,0,valueLength)
+                netty.readerIndex(arrayFinishReaderIndex)
+                Some(arr)
+              case (C_LIMIT | C_LIMITLEVEL) if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER)=>
+                //println("extractFromBsonObj -> matched with BsonArray -> case Filter")
+                Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList,limitList)) match { //TODO: tests this keylist without drop!!!
+                  case Some(value) if value.isEmpty => None
+                  case Some(value) => Some(resultComposer(value.toVector))
+                }
               case _ if keyList.size > 1 =>
                 //println("extractFromBsonObj; BsonArray case; calling goThrough")
                 Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
@@ -203,10 +220,9 @@ class BosonImpl(
                   case Some(value) => Some(resultComposer(value.toVector))
                 }
               case _ =>
-                //println("constructing array matched")
-                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList).toArray[Any]) match {
+                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)) match {
                   case Some(value) if value.isEmpty => None
-                  case Some(value) => Some(value)
+                  case Some(value) => Some(value.toVector)
                 }
             }
           } else {
@@ -313,6 +329,7 @@ class BosonImpl(
           case Some(x) => Some(x.toVector)
         }
       case STAR =>
+        //println("extractfrombsonarray -> case STAR -> calling gothrough")
         Some(goThroughArrayWithLimit(netty,length,arrayFRIdx,keyList.drop(1),limitList)) match {
           case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
           case Some(x) => x
@@ -509,13 +526,13 @@ class BosonImpl(
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-            val map: Map[Any, Any] = scala.collection.immutable.Map[Any, Any]()
+            val arr: Array[Byte] = new Array[Byte](valueTotalLength)
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                    //println(s"bsonObject, case _ , inside limits, keylist: $keyList")
-                    val res: Map[Any, Any] = traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList, List((None,None,EMPTY_RANGE)))
-                    //println(s"res -> $res")
-                    Some(res)
+                //println(s"bsonObject, case _ , inside limits, keylist: $keyList")
+                netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
+                netty.readerIndex(bsonFinishReaderIndex)
+                Some(arr)
               case Some(_) =>
                 //println("not inside limits")
                 netty.readerIndex(bsonFinishReaderIndex)
@@ -524,12 +541,17 @@ class BosonImpl(
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get =>
                     //println(s"keyList inside limits: $keyList")
-                    Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList,List((None,None,EMPTY_RANGE))))
+                    netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
+                    netty.readerIndex(bsonFinishReaderIndex)
+                    Some(arr)
                   case Some(_) =>
                     netty.readerIndex(bsonFinishReaderIndex)
                     None
                   case None =>
-                      Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, keyList,List((None,None,EMPTY_RANGE))))
+                    println("gonna return bsonObject.array")
+                    netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
+                    netty.readerIndex(bsonFinishReaderIndex)
+                    Some(arr)
                 }
             }
           case D_BSONARRAY =>
@@ -538,18 +560,31 @@ class BosonImpl(
             val finishReaderIndex: Int = startReaderIndex + valueLength2
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                  Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
+                  val arr: Array[Byte] = new Array[Byte](valueLength2)
+                  netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                  netty.readerIndex(finishReaderIndex)
+                  Some(arr)
+                  //Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
                 case Some(_) =>
                   netty.readerIndex(finishReaderIndex)
                   None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get =>
-                      Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
+                      val arr: Array[Byte] = new Array[Byte](valueLength2)
+                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                      netty.readerIndex(finishReaderIndex)
+                      Some(arr)
+                      //Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, List((None,None,EMPTY_RANGE))).toArray[Any])
                     case Some(_) =>
                       netty.readerIndex(finishReaderIndex)
                       None
-                    case None => Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList).toArray[Any])
+                    case None =>
+                      val arr: Array[Byte] = new Array[Byte](valueLength2)
+                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+                      netty.readerIndex(finishReaderIndex)
+                      Some(arr)
+                      //Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList).toArray[Any])
                   }
               }
           case D_BOOLEAN =>
@@ -568,13 +603,13 @@ class BosonImpl(
           case D_NULL =>
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                  Some(null)
+                  Some(V_NULL)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
-                    case Some(_) if iter >= limitList.head._1.get => Some(null)
+                    case Some(_) if iter >= limitList.head._1.get => Some(V_NULL)
                     case Some(_) => None
-                    case None => Some(null)
+                    case None => Some(V_NULL)
                   }
               }
           case D_INT =>
@@ -706,27 +741,32 @@ class BosonImpl(
                     None
                   case None =>
                     //println(s"going through arr, found BsonObj, matching keylist condition: ${keyList.head._2}")
-                    keyList.head._2 match {
-                      case C_FILTER =>
-                        //println("goThrough; BsonObject case; condition = 'filter'")
-                        val copyNetty: ByteBuf = netty.duplicate()
-                        findElements(copyNetty, keyList, bsonFinishReaderIndex) match {
-                          case Seq() =>
-                            //println("findElements; didnt found")
-                            netty.readerIndex(copyNetty.readerIndex())
-                            None
-                          case _ if keyList.size > 1 =>
-                            //println(s"findElements; found a match with ${keyList.head}")
-                            val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList.drop(1), bsonFinishReaderIndex, limitList.drop(1))  // keylist drop!!
-                            if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                          case _ =>
-                            //println("gonna traverse obj")
-                            //println(s"limitList, case keylist size = 1: $limitList")
-                            //println(s"keylist: $keyList")
-                            val res: Map[Any, Any] = traverseBsonObj(netty,scala.collection.immutable.Map[Any, Any](),bsonFinishReaderIndex,List((keyList.head._1,"all")),limitList.drop(1))
-                            //println(s"out: $res")
-                            Some(res)
+                    keyList.head._2 match { //TODO:missing case C_LIMIT, not implemented yet besides de filter case
+                      case (C_LIMIT | C_LIMITLEVEL) if keyList.size >1 && keyList.drop(1).head._2.equals(C_FILTER) && !limitList.head._3.equals(STAR) =>
+                        val copyNetty1: ByteBuf = netty.duplicate()
+                        val copyNetty2: ByteBuf = netty.duplicate()
+                        val res = findElements(copyNetty1,copyNetty2, keyList, limitList, bsonStartReaderIndex, bsonFinishReaderIndex)  // keylist still with ("",...)("",filter)
+                        if(res.isEmpty) {
+                          netty.readerIndex(bsonFinishReaderIndex)
+                          None
+                        } else {
+                          netty.readerIndex(bsonFinishReaderIndex)
+                          Some(resultComposer(res.toVector))
                         }
+                      // match {
+//                          case Seq() =>
+//                            netty.readerIndex(copyNetty.readerIndex())
+//                            None
+//                          case _ if keyList.size > 1 =>
+//                            //println(s"findElements; found a match with ${keyList.head}")
+//                            val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList.drop(1), bsonFinishReaderIndex, limitList.drop(1))  // keylist drop!!
+//                            if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+//                          case _ =>
+//                            val arr: Array[Byte] = new Array[Byte](valueTotalLength)
+//                            netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
+//                            netty.readerIndex(bsonFinishReaderIndex)
+//                            Some(arr)
+//                        }
                       case (C_LEVEL | C_ALL | C_LIMITLEVEL) =>
                         //println("goThrough; BsonObject case; condition = 'level' or 'all'")
                         val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList.drop(1))
@@ -746,6 +786,7 @@ class BosonImpl(
             val startReaderIndex: Int = netty.readerIndex()
             val valueLength2: Int = netty.readIntLE()
             val finishReaderIndex: Int = startReaderIndex + valueLength2
+            val arr: Array[Byte] = new Array[Byte](valueLength2)
             //println(s"goingthrough and found BsonArray, current keylist: $keyList")
             if(keyList.head._1.equals(EMPTY_KEY)) {  //case [#..#].[#..#] TODO:test it
               //println("gothrough, bsonarray, is EMPTY_KEY")
@@ -795,6 +836,9 @@ class BosonImpl(
                   keyList.head._1 match {
                     case STAR if keyList.size < 2 =>
                       //println("star and keylist.size = 1")
+//                      netty.getBytes(startReaderIndex,arr,0,valueLength2)
+//                      netty.readerIndex(finishReaderIndex)
+//                      Some(arr)
                       Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
                         case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
                         case Some(x) => Some(x.toVector)
@@ -818,6 +862,9 @@ class BosonImpl(
                     case Some(_) if iter >= limitList.head._1.get =>
                       keyList.head._1 match {
                         case STAR if keyList.size < 2 =>
+//                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
+//                          netty.readerIndex(finishReaderIndex)
+//                          Some(arr)
                           Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
                             case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
                             case Some(x) => Some(x.toVector)
@@ -838,7 +885,10 @@ class BosonImpl(
                       None
                     case None =>
                       keyList.head._1 match {
-                        case STAR if keyList.size < 2 =>
+                        case STAR if keyList.size < 2 =>  //TODO: test more this case
+//                          netty.getBytes(startReaderIndex,arr,0,valueLength2)
+//                          netty.readerIndex(finishReaderIndex)
+//                          Some(arr)
                           Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
                             case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
                             case Some(x) => Some(x.toVector)
@@ -938,84 +988,125 @@ class BosonImpl(
     }
   }
 
-  private def findElements(netty: ByteBuf, keyList: List[(String,String)], bsonFinishReaderIndex: Int): Iterable[Any] = {
+  private def findElements(netty: ByteBuf, nettyUntouched: ByteBuf, keyList: List[(String,String)], limitList: List[(Option[Int], Option[Int], String)],start: Int, finish: Int): Iterable[Any] = {
     val seqType: Int = netty.readByte().toInt
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
-          if (comparingFunction(netty, keyList.head._1)) {
-            val value: Double = netty.readDoubleLE()
-            Some(value)
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+            netty.readDoubleLE()
+            Some(C_MATCH)
           } else {
             netty.readDoubleLE()
             None}
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          if (comparingFunction(netty, keyList.head._1)) {
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
             val valueLength: Int = netty.readIntLE()
-            val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
-            val newArr: Array[Byte] = arr.filter(b => b!=0)
-            Some(newArr)
+            netty.readCharSequence(valueLength, charset)
+            Some(C_MATCH)
           } else {
             netty.readCharSequence(netty.readIntLE(),charset)
             None}
         case D_BSONOBJECT =>
-          if (comparingFunction(netty, keyList.head._1)) {
-            val bsonStartReaderIndex: Int = netty.readerIndex()
-            val valueTotalLength: Int = netty.readIntLE()
-            val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-            val map: Map[Any, Any] = scala.collection.immutable.Map[Any, Any]()
-            Some(traverseBsonObj(netty, map, bsonFinishReaderIndex, List((keyList.head._1,C_ALL)), List((None,None,EMPTY_RANGE))))
-          } else {
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             netty.readerIndex(bsonFinishReaderIndex)
-            None}
+            Some(C_MATCH)
+          } else {
+            val bsonStartReaderIndex: Int = netty.readerIndex()
+            val valueTotalLength: Int = netty.readIntLE()
+            val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
+            keyList.head._2 match {
+              case C_LIMITLEVEL =>
+              netty.readerIndex(bsonFinishReaderIndex)
+              None
+              case C_LIMIT =>
+                val midResult: Iterable[Any] = extractFromBsonObj(netty,keyList,bsonFinishReaderIndex,limitList)
+                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+            }
+          }
         case D_BSONARRAY =>
-          if (comparingFunction(netty, keyList.head._1)) {
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, List((keyList.head._1,C_ALL)),List((None,None,EMPTY_RANGE))))
+            keyList.head._2 match {
+              case C_LIMITLEVEL =>
+                netty.readerIndex(arrayFinishReaderIndex)
+                Some(C_MATCH)
+              case C_LIMIT =>
+                Some(extractFromBsonObj(netty.readerIndex(start+4),keyList,finish,limitList)) match {
+                  case Some(value) if value.isEmpty => Some(C_MATCH)
+                  case Some(value) =>
+                    val arr: Array[Byte] = new Array[Byte](finish - start)
+                    netty.getBytes(start, arr, 0, finish - start)
+                    Some(resultComposer(Vector(Vector(arr),resultComposer(value.toVector))))
+                }
+            }
           } else {
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            netty.readerIndex(arrayFinishReaderIndex)
-            None}
+            keyList.head._2 match {
+              case C_LIMITLEVEL =>
+              netty.readerIndex(arrayFinishReaderIndex)
+              None
+              case C_LIMIT =>
+                Some(extractFromBsonArray(netty,valueLength,arrayFinishReaderIndex,keyList,limitList)) match {
+                  case Some(value) if value.isEmpty => None
+                  case Some(value) => Some(resultComposer(value.toVector))
+                }
+            }
+          }
         case D_BOOLEAN =>
-          if (comparingFunction(netty, keyList.head._1)) {
-            val value: Int = netty.readByte()
-            Some(value == 1)
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+            netty.readByte()
+            Some(C_MATCH)
           } else {
             netty.readByte()
             None}
         case D_NULL =>
-          if (comparingFunction(netty, keyList.head._1)) {
-            Some(V_NULL)
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+            Some(C_MATCH)
           } else None
         case D_INT =>
-          if (comparingFunction(netty, keyList.head._1)) {
-            val value: Double = netty.readIntLE()
-            Some(value)
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+            netty.readIntLE()
+            Some(C_MATCH)
           } else {
             netty.readIntLE()
             None}
         case D_LONG =>
-          if (comparingFunction(netty, keyList.head._1)) {
-            val value: Double = netty.readLongLE()
-            Some(value)
+          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+            netty.readLongLE()
+            Some(C_MATCH)
           } else {
             netty.readLongLE()
             None}
         case D_ZERO_BYTE => None
       }
-    val actualPos2: Int = bsonFinishReaderIndex - netty.readerIndex()
-    actualPos2 match {
-      case x if x > 0 =>
-        finalValue ++ findElements(netty,keyList,bsonFinishReaderIndex)
-      case 0 =>
-        finalValue
+    val actualPos2: Int = finish - netty.readerIndex()
+    finalValue match {
+      case Some(value) if value.equals(C_MATCH)=>
+        keyList.size match {
+          case 2 =>
+            val arr: Array[Byte] = new Array[Byte](finish - start)
+            netty.getBytes(start, arr, 0, finish - start)
+            Some(arr)
+          case x if x > 2  && !keyList.drop(2).head._1.equals(EMPTY_KEY)=>
+            val midResult: Iterable[Any] = extractFromBsonObj(nettyUntouched,keyList.drop(2),finish,limitList.drop(2))
+            if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+        }
+      case Some(value)=> Some(value)
+      case None =>
+        actualPos2 match {
+          case x if x > 0 =>
+            findElements(netty,nettyUntouched,keyList,limitList,start,finish)
+          case 0 =>
+            None
+        }
     }
   }
 
@@ -1031,6 +1122,7 @@ class BosonImpl(
     }
   }
 
+// Injector Starts here
   def modify[T](nettyOpt: Option[BosonImpl], fieldID: String, f: (T) => T, selectType: String = ""): Option[BosonImpl] = {
     if (nettyOpt.isEmpty) {
       throw CustomException("*modify* Input Option[BosonImpl] is not defined")
@@ -1045,30 +1137,30 @@ class BosonImpl(
       buffer.getByte(5).toInt match {
         case 48 => // root obj is BsonArray, call extractFromBsonArray
           if (fieldID.isEmpty) {
-            Option(new BosonImpl())
+            throw CustomException("*modify* Empty Field")
           } else {
             val startRegionArray: Int = buffer.readerIndex()
             val valueTotalLength: Int = buffer.readIntLE()
             val indexOfFinishArray: Int = startRegionArray + valueTotalLength
             val (midResult, diff): (Option[ByteBuf], Int) = findBsonObjectWithinBsonArray(buffer.duplicate(), fieldID, f)
             midResult map { buf =>
-              val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
-            val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf) //  adding the global size to result buffer
+              val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff)//calculates total size
+            val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)//adding the global size to result buffer
               Some(new BosonImpl(byteArray = Option(result.array())))
             } getOrElse {
               None
             }
           }
-        case _ => // root obj isn't BsonArray, call extractFromBsonObj
+        case _ => //root obj isn't BsonArray, call extractFromBsonObj
           if (fieldID.isEmpty) {
-            Option(new BosonImpl())
+            throw CustomException("*modify* Empty Field")
           } else {
             val startRegion: Int = buffer.readerIndex()
             val valueTotalLength: Int = buffer.readIntLE()
             val indexOfFinish: Int = startRegion + valueTotalLength
             val (midResult, diff): (Option[ByteBuf], Int) = matcher(buffer, fieldID, indexOfFinish, f, selectType)
             midResult map { buf =>
-              val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff) //  calculates total size
+              val bufNewTotalSize: ByteBuf = Unpooled.buffer(4).writeIntLE(valueTotalLength + diff)//calculates total size
               val result: ByteBuf = Unpooled.copiedBuffer(bufNewTotalSize, buf)
               val res = new BosonImpl(byteArray = Option(result.array()))
               Some(res)
@@ -1118,137 +1210,63 @@ class BosonImpl(
     seqType match {
       //  TODO: rethink and write it in a proper way
       case D_FLOAT_DOUBLE =>
-        val value: Double =
-          Try(f(buffer.getDoubleLE(buffer.readerIndex()).toFloat.asInstanceOf[T])) match {
-            case Success(v) =>
-              buffer.readDoubleLE() //consume
-              v.asInstanceOf[Float].toDouble
-            case Failure(_) =>
-              Try(f(buffer.getDoubleLE(buffer.readerIndex()).asInstanceOf[T])) match {
-                case Success(v) =>
-                  buffer.readDoubleLE() //consume
-                  v.asInstanceOf[Double]
-                case Failure(m) =>
-                  throw new RuntimeException(m)
-              }
-          }
-        (newBuffer.writeDoubleLE(value), 0)
+        val value0: Any = buffer.readDoubleLE()
+        val value: Any = applyFunction(f, value0)
+        Option(value) match {
+          case Some(n: Float) =>
+            (newBuffer.writeDoubleLE(n.toDouble), 0)
+          case Some(n: Double) =>
+            (newBuffer.writeDoubleLE(n), 0)
+        }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-        val chrSeq: CharSequence = buffer.getCharSequence(buffer.readerIndex(), length, charset).toString.replaceAll("\\p{C}", "")
-        val value: Any =
-          Try(f(new String(Unpooled.copiedBuffer(chrSeq, charset).array()).asInstanceOf[T])) match {
-            case Success(v) => //String and Enum.toString
-              buffer.readCharSequence(length, charset) //consume
-              v.asInstanceOf[String]
-            case Failure(_) =>
-              Try(f(Unpooled.copiedBuffer(chrSeq, charset).array().asInstanceOf[T])) match {
-                case Success(v) => //Array[Byte]
-                  buffer.readCharSequence(length, charset) //consume
-                  v.asInstanceOf[Array[Byte]]
-                case Failure(_) =>
-                  Try(f(chrSeq.asInstanceOf[T])) match {
-                    case Success(v) => //CharSequence
-                      buffer.readCharSequence(length, charset) //consume
-                      v.asInstanceOf[CharSequence]
-                    case Failure(_) =>
-                      Try(f(Instant.parse(chrSeq).asInstanceOf[T])) match {
-                        case Success(v) => //Instant
-                          buffer.readCharSequence(length, charset) //consume
-                          v.asInstanceOf[Instant]
-                        case Failure(m) =>
-                          throw new RuntimeException(m)
-                      }
-                  }
-              }
-          }
-        value match {
-          case n: Array[Byte] =>
-            (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeByte(0), (n.length + 1) - length)
-          case n: String =>
+        val array: ByteBuf = Unpooled.buffer(length-1).writeBytes(buffer.readCharSequence(length-1,charset).toString.getBytes)
+        buffer.readByte()
+        val value: Any = applyFunction(f, array.array())
+        array.release()
+        Option(value) match {
+          case Some(n: Array[Byte]) =>
+            (newBuffer.writeIntLE(n.length + 1).writeBytes(n).writeZero(1), (n.length + 1) - length)
+          case Some(n: String) =>
             val aux: Array[Byte] = n.getBytes()
-            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
-          case n: Instant =>
+            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1), (aux.length + 1) - length)
+          case Some(n: Instant) =>
             val aux: Array[Byte] = n.toString.getBytes()
-            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeByte(0), (aux.length + 1) - length)
+            (newBuffer.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1), (aux.length + 1) - length)
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson:ByteBuf = buffer.readBytes(valueLength )
-        val bsonBytes: Array[Byte] =
-          if(bson.hasArray)
-            bson.array()
-        else{
-            val buf1: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-            val array: Array[Byte]= buf1.array()
-            buf1.release()
-            array
-          }
+        val buf1: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+        val array: Array[Byte]= buf1.array()
+        buf1.release()
+        val bsonBytes: Array[Byte] =array
         bson.release()
-        val newValue: Any = applyFunction(f, bsonBytes)
-
-        newValue match {
-          case bsonObject1: Array[Byte] =>
-            (newBuffer.writeBytes(bsonObject1), bsonObject1.length - valueLength)
-          case _ =>
-            if (newValue == null) {
-              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-            } else {
-              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-            }
-        }
+        val newValue: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+        (newBuffer.writeBytes(newValue), newValue.length - valueLength)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson: ByteBuf = buffer.readBytes(valueLength)
-        val bsonBytes: Array[Byte] =
-          if(bson.hasArray)
-            bson.array()
-          else{
-            val buf1: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-            val array: Array[Byte]= buf1.array()
-            buf1.release()
-            array
-          }
+        val buf1: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+        val array: Array[Byte]= buf1.array()
+        buf1.release()
+        val bsonBytes: Array[Byte] = array
         bson.release()
-        val newValue: Any = applyFunction(f, bsonBytes)
-        newValue match {
-          case bsonArray1: Array[Byte] =>
-            (newBuffer.writeBytes(bsonArray1), bsonArray1.length - valueLength) //  ZERO  for now, cant be zero
-          case _ =>
-            if (newValue == null) {
-              throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
-            } else {
-              throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
-            }
-        }
+        val newValue: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+        (newBuffer.writeBytes(newValue), newValue.length - valueLength) //  ZERO  for now, cant be zero
       case D_BOOLEAN =>
-        val value: Boolean =
-          Try(f(buffer.readBoolean().asInstanceOf[T])) match {
-            case Success(v) =>
-              v.asInstanceOf[Boolean]
-            case Failure(m) =>
-              throw new RuntimeException(m)
-          }
-        (newBuffer.writeBoolean(value), 0)
+        val value0: Boolean = buffer.readBoolean()
+        val value: Any = applyFunction(f, value0)
+        (newBuffer.writeBoolean(value.asInstanceOf[Boolean]), 0)
       case D_NULL => throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
-        val value: Int =
-          Try(f(buffer.readIntLE().asInstanceOf[T])) match {
-            case Success(v) =>
-              v.asInstanceOf[Int]
-            case Failure(m) =>
-              throw new RuntimeException(m)
-          }
-        (newBuffer.writeIntLE(value), 0)
+        val value0: Any = buffer.readIntLE()
+        val value: Any = applyFunction(f, value0)
+        (newBuffer.writeIntLE(value.asInstanceOf[Int]), 0)
       case D_LONG =>
-        val value: Long =
-          Try(f(buffer.readLongLE().asInstanceOf[T])) match {
-            case Success(v) =>
-              v.asInstanceOf[Long]
-            case Failure(m) =>
-              throw new RuntimeException(m)
-          }
-        (newBuffer.writeLongLE(value), 0)
+        val value0: Any = buffer.readLongLE()
+        val value: Any = applyFunction(f, value0)
+        (newBuffer.writeLongLE(value.asInstanceOf[Long]), 0)
     }
   }
 
@@ -1317,16 +1335,8 @@ class BosonImpl(
     }
   }
 
- /* private def isHalfword(fieldID: String, extracted: String): Boolean = {
-    if(fieldID.contains('*')){
-      val list: Array[String] = fieldID.split('*')
-      list.forall(str => extracted.contains(str))
-    }else{
-      false
-    }
-  }*/
   def isHalfword(fieldID: String, extracted:String):Boolean ={
-    if(fieldID.contains("*")) {
+    if(fieldID.contains("*") & extracted.nonEmpty) {
       val list: Array[String] = fieldID.split('*')
       (extracted, list.length) match {
         case (_, 0) => true
@@ -1336,19 +1346,18 @@ class BosonImpl(
         case (x, i) if i > 2 =>
           fieldID match {
             case s if s.startsWith("*") =>
-              if (!list.head.isEmpty) {
-                if (x.startsWith(list.head))
-                  isHalfword(s.substring(1 + list.head.length), x.substring(list.head.length))
-                else {
-                  isHalfword(s, x.substring(1))
-                }
-              } else {
+           //   if (!list.head.isEmpty) {
+           //     if (x.startsWith(list.head))
+           //       isHalfword(s.substring(1 + list.head.length), x.substring(list.head.length))
+           //     else
+           //       isHalfword(s, x.substring(1))
+            //  } else {
                 if (x.startsWith(list.apply(1)))
                   isHalfword(s.substring(1 + list.apply(1).length), x.substring(list.apply(1).length))
                 else {
                   isHalfword(s, x.substring(1))
                 }
-              }
+              //}
             case s if !s.startsWith("*") =>
               if (x.startsWith(list.head)) {
                 isHalfword(s.substring(list.head.length), extracted.substring(list.head.length))
@@ -1480,7 +1489,7 @@ class BosonImpl(
         result.writeLongLE(buffer.readLongLE())
       case D_BOOLEAN =>
         result.writeBoolean(buffer.readBoolean())
-      case _ =>
+      //case _ =>
     }
   }
 
@@ -1491,121 +1500,90 @@ class BosonImpl(
         val value: Any = applyFunction(f, value0)
         Option(value) match {
           case Some(n: Float) =>
-            result.writeDoubleLE(n)
+            result.writeDoubleLE(n.toDouble)
           case Some(n: Double) =>
             result.writeDoubleLE(n)
-          case Some(n) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE")
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
-        val array: ByteBuf = Unpooled.buffer(length).writeBytes(buffer.readCharSequence(length,charset).toString.getBytes)
-        val value: Any = applyFunction(f, new String(array.array()))
+        val array: ByteBuf = Unpooled.buffer(length-1).writeBytes(buffer.readCharSequence(length-1,charset).toString.getBytes)
+        buffer.readByte()
+        val value: Any = applyFunction(f, array.array())
         array.release()
         Option(value) match {
           case Some(n: Array[Byte]) =>
-            result.writeIntLE(n.length).writeBytes(n).writeZero(1)
+            result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
           case Some(n: String) =>
             val aux: Array[Byte] = n.getBytes()
-            result.writeIntLE(aux.length+1).writeBytes(aux).writeZero(1)
+            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
           case Some(n: Instant) =>
             val aux: Array[Byte] = n.toString.getBytes()
-            result.writeIntLE(aux.length).writeBytes(aux).writeZero(1)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson:ByteBuf = buffer.readBytes(valueLength )
-        val bsonBytes: Array[Byte] =
-          if(bson.hasArray)
-            bson.array()
-          else {
-            val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-            val arrayBytes: Array[Byte] = buf.array()
-            buf.release()
-            arrayBytes
-          }
+        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+        val arrayBytes: Array[Byte] = buf.array()
+        buf.release()
+        val bsonBytes: Array[Byte] =arrayBytes
         bson.release()
-        val newValue: Any = applyFunction(f, bsonBytes)
-
-        Option(newValue) match {
-            case Some(x: Array[Byte]) =>
-              (result.writeBytes(x), x.length-valueLength)
-          case Some(x)=>
-            throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-        }
+        val newValue: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+        (result.writeBytes(newValue), newValue.length-valueLength)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bson: ByteBuf = buffer.readBytes(valueLength )
-        val bsonBytes: Array[Byte] =
-          if(bson.hasArray)
-            bson.array()
-          else {
-            val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-            val arrayBytes: Array[Byte] = buf.array()
-            buf.release()
-            arrayBytes
-          }
+        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+        val arrayBytes: Array[Byte] = buf.array()
+        buf.release()
+        val bsonBytes: Array[Byte] = arrayBytes
         bson.release()
-        val value: Any = applyFunction(f, bsonBytes)
-        Option(value) match {
-          case Some(x:Array[Byte]) =>
-              (result.writeBytes(x), x.length-valueLength)
-
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
-        }
+        val value: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+        (result.writeBytes(value), value.length-valueLength)
       case D_BOOLEAN =>
         val value0: Boolean = buffer.readBoolean()
         val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(bool: Boolean) =>
-            result.writeBoolean(bool)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BOOLEAN")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BOOLEAN")
-        }
+        result.writeBoolean(value.asInstanceOf[Boolean])
       case D_NULL =>  throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
         val value0: Any = buffer.readIntLE()
         val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Int) =>
-            result.writeIntLE(n)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_INT")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_INT")
-        }
+        result.writeIntLE(value.asInstanceOf[Int])
       case D_LONG =>
         val value0: Any = buffer.readLongLE()
         val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Long) =>
-            result.writeLongLE(n)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_LONG")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_LONG")
-        }
+        result.writeLongLE(value.asInstanceOf[Long])
     }
   }
 
   private def applyFunction[T](f: T => T, value: Any) : T = {
     Try(f(value.asInstanceOf[T])) match {
-      case Success(v) => v.asInstanceOf[T]
+      case Success(v) =>
+        v.asInstanceOf[T]
       case Failure(e) =>
-        throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+        value match{
+          case x: Double =>
+            Try(f(x.toFloat.asInstanceOf[T])) match {
+              case Success(v)=>
+                v.asInstanceOf[T]
+              case Failure(e1) =>
+                throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            }
+          case x:Array[Byte] =>
+            Try(f(new String(x).asInstanceOf[T])) match {
+              case Success(v)=>
+                v.asInstanceOf[T]
+              case Failure(e1) =>
+                Try(f(Instant.parse(new String(x)).asInstanceOf[T])) match {
+                  case Success(v)=>
+                    v.asInstanceOf[T]
+                  case Failure(e2) =>
+                    throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+                }
+            }
+          case _ =>
+            throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+        }
     }
   }
 
@@ -1646,8 +1624,6 @@ class BosonImpl(
     }
   }
 
-
-
   private def readArrayPos(netty: ByteBuf): Char = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     while (netty.getByte(netty.readerIndex()) != 0) {
@@ -1658,227 +1634,72 @@ class BosonImpl(
     stringList.head
   }
 
-  def modifyEnd[T](buffer: ByteBuf, fieldID:String, f:T=>T, result:ByteBuf=Unpooled.buffer(), resultCopy:ByteBuf=Unpooled.buffer()):(BosonImpl, BosonImpl)={
-    val buf: ByteBuf = buffer.duplicate()
-    val bufSize: Int = buf.readIntLE()
-    while(buf.readerIndex() < bufSize){
-      val dataType: Int = buf.readByte()
-      result.writeByte(dataType)
-      resultCopy.writeByte(dataType)
-      dataType match{
-        case 0 =>
-        case _ =>
-          val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buf.getByte(buf.readerIndex()) != 0 || key.length<1) {
-              val b: Byte = buf.readByte()
-              key.append(b)
-            }
-            val b: Byte = buf.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-          }
-          result.writeBytes(key).writeByte(b)
-          resultCopy.writeBytes(key).writeByte(b)
-          new String(key) match {
-            case x if fieldID.toCharArray.deep == x.toCharArray.deep | isHalfword(fieldID, x)  =>
-              /*
-              * Found a field equal to key
-              * Perform Injection
-              * */
-              result.clear().writeBytes(resultCopy.duplicate())
-              modifierEnd(buf, dataType, f, result, resultCopy)
-            case x if fieldID.toCharArray.deep != x.toCharArray.deep =>
-              /*
-              * Didn't found a field equal to key
-              * Consume value and check deeper Levels
-              * */
-              processTypesEnd(dataType, fieldID, buf, f, result, resultCopy)
-          }
-      }
-    }
-    result.capacity(result.writerIndex())
-    resultCopy.capacity(resultCopy.writerIndex())
-    val a: ByteBuf = Unpooled.buffer(result.capacity()+4).writeIntLE(result.capacity()+4).writeBytes(result)
-    val b: ByteBuf = Unpooled.buffer(resultCopy.capacity()+4).writeIntLE(resultCopy.capacity()+4).writeBytes(resultCopy)
-    (new BosonImpl(byteArray = Option(a.array())),new BosonImpl(byteArray = Option(b.array())))
-  }
-
-  private def processTypesEnd[T](dataType: Int, fieldID: String, buf: ByteBuf, f: (T) => T, result: ByteBuf, resultCopy: ByteBuf) = {
-    dataType match {
-      case D_FLOAT_DOUBLE =>
-        val value0: Double = buf.readDoubleLE()
-        result.writeDoubleLE(value0)
-        resultCopy.writeDoubleLE(value0)
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val valueLength: Int = buf.readIntLE()
-        val bytes: ByteBuf = buf.readBytes(valueLength)
-        result.writeIntLE(valueLength)
-        result.writeBytes(bytes)
-        resultCopy.writeIntLE(valueLength)
-        resultCopy.writeBytes(bytes)
-      case D_BSONOBJECT =>
-        val length: Int = buf.getIntLE(buf.readerIndex())
-        val bsonBuf: ByteBuf = buf.readBytes(length)
-        val resultAux: (BosonImpl,BosonImpl) = modifyEnd(bsonBuf, fieldID, f)
-        val buf0: Array[Byte] = resultAux._1.getByteBuf.array()
-        val buf1: Array[Byte] = resultAux._2.getByteBuf.array()
-        if(buf0.zip(buf1).forall(p => p._1==p._2)){
-          result.writeBytes(resultAux._1.getByteBuf)
-          resultCopy.writeBytes(resultAux._2.getByteBuf)
-        }else{
-          result.clear().writeBytes(resultCopy.duplicate()).writeBytes(resultAux._1.getByteBuf)
-          resultCopy.writeBytes(resultAux._2.getByteBuf)
-        }
-      case D_BSONARRAY =>
-        val length: Int = buf.getIntLE(buf.readerIndex())
-        val bsonBuf: ByteBuf = buf.readBytes(length)
-        val resultAux: (BosonImpl,BosonImpl) = modifyEnd(bsonBuf, fieldID, f)
-       val buf0: Array[Byte] = resultAux._1.getByteBuf.array()
-        val buf1: Array[Byte] = resultAux._2.getByteBuf.array()
-        if(buf0.zip(buf1).forall(p => p._1==p._2)){
-          result.writeBytes(resultAux._1.getByteBuf)
-          resultCopy.writeBytes(resultAux._2.getByteBuf)
-        }else{
-          result.clear().writeBytes(resultCopy.duplicate()).writeBytes(resultAux._1.getByteBuf)
-          resultCopy.writeBytes(resultAux._2.getByteBuf)
-        }
-      case D_NULL =>
-      case D_INT =>
-        val value0: Int = buf.readIntLE()
-        result.writeIntLE(value0)
-        resultCopy.writeIntLE(value0)
-      case D_LONG =>
-        val value0: Long = buf.readLongLE()
-        result.writeLongLE(value0)
-        resultCopy.writeLongLE(value0)
-      case D_BOOLEAN =>
-        val value0: Boolean = buf.readBoolean()
-        result.writeBoolean(value0)
-        resultCopy.writeBoolean(value0)
-      case _ =>
-    }
-  }
-
   private def modifierEnd[T](buffer: ByteBuf, seqType: Int, f: T => T, result: ByteBuf, resultCopy: ByteBuf): Unit = {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value0: Double = buffer.readDoubleLE()
-        resultCopy.writeDoubleLE(value0.asInstanceOf[Double])
+        resultCopy.writeDoubleLE(value0)
         val value: Any = applyFunction(f, value0)
         Option(value) match {
           case Some(n: Float) =>
-            result.writeDoubleLE(n)
+            result.writeDoubleLE(n.toDouble)
           case Some(n: Double) =>
             result.writeDoubleLE(n)
-          case Some(n) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${n.getClass.getSimpleName}. Value type require D_FLOAT_DOUBLE")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_FLOAT_DOUBLE")
         }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = buffer.readIntLE()
         val value0: Array[Byte] = Unpooled.buffer(length-1).writeBytes(buffer.readBytes(length-1)).array()
         resultCopy.writeIntLE(length).writeBytes(value0)
-         buffer.readByte()
-        val value: Any = applyFunction(f, new String(value0))
+        buffer.readByte()
+        val value: Any = applyFunction(f, value0)
         Option(value) match {
           case Some(n: Array[Byte]) =>
-            result.writeIntLE(n.length ).writeBytes(n).writeByte(0)
+            result.writeIntLE(n.length+1 ).writeBytes(n).writeZero(1)
           case Some(n: String) =>
             val aux: Array[Byte] = n.getBytes()
-            result.writeIntLE(aux.length ).writeBytes(aux).writeByte(0)
+            result.writeIntLE(aux.length +1).writeBytes(aux).writeZero(1)
           case Some(n: Instant) =>
             val aux: Array[Byte] = n.toString.getBytes()
-            result.writeIntLE(aux.length ).writeBytes(aux).writeByte(0)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_ARRAYB_INST_STR_ENUM_CHRSEQ")
+            result.writeIntLE(aux.length+1 ).writeBytes(aux).writeZero(1)
         }
       case D_BSONOBJECT =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonObj: ByteBuf = buffer.readBytes(valueLength)
         resultCopy.writeBytes(bsonObj.duplicate())
-       val bsonBytes: Array[Byte] =
-         if(bsonObj.hasArray)
-           bsonObj.array()
-         else {
-           val buf: ByteBuf = Unpooled.buffer(bsonObj.capacity()).writeBytes(bsonObj)
-           val arrayBytes: Array[Byte] = buf.array()
-           buf.release()
-           arrayBytes
-         }
+        val buf: ByteBuf = Unpooled.buffer(bsonObj.capacity()).writeBytes(bsonObj)
+        val arrayBytes: Array[Byte] = buf.array()
+        buf.release()
+        val bsonBytes: Array[Byte] = arrayBytes
         bsonObj.release()
-        val newValue: Any = applyFunction(f,bsonBytes)
-        Option(newValue) match {
-          case Some(x: Array[Byte]) =>
-            result.writeBytes(x)
-          case Some(x)=>
-            throw CustomException(s"Wrong inject type. Injecting type ${newValue.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-        }
+        val newValue: Array[Byte] = applyFunction(f,bsonBytes).asInstanceOf[Array[Byte]]
+        result.writeBytes(newValue)
       case D_BSONARRAY =>
         val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
         val bsonArray: ByteBuf = buffer.readBytes(valueLength)
         resultCopy.writeBytes(bsonArray.duplicate())
-       val bsonBytes: Array[Byte] =
-         if(bsonArray.hasArray)
-           bsonArray.array()
-         else {
-           val buf: ByteBuf = Unpooled.buffer(bsonArray.capacity()).writeBytes(bsonArray)
-           val arrayBytes: Array[Byte] = buf.array()
-           buf.release()
-           arrayBytes
-         }
+        val buf: ByteBuf = Unpooled.buffer(bsonArray.capacity()).writeBytes(bsonArray)
+        val arrayBytes: Array[Byte] = buf.array()
+        buf.release()
+        val bsonBytes: Array[Byte] =arrayBytes
         bsonArray.release()
-
-        val value: Any = applyFunction(f, bsonBytes)
-        Option(value) match {
-          case Some(x: Array[Byte]) =>
-            result.writeBytes(x)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
-        }
+        val value: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+        result.writeBytes(value)
       case D_BOOLEAN =>
         val value0: Boolean = buffer.readBoolean()
         resultCopy.writeBoolean(value0)
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(bool: Boolean) =>
-            result.writeBoolean(bool)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BOOLEAN")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BOOLEAN")
-        }
+        val value: Boolean = applyFunction(f, value0).asInstanceOf[Boolean]
+        result.writeBoolean(value)
       case D_NULL =>  throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
         val value0: Int = buffer.readIntLE()
         resultCopy.writeIntLE(value0)
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Int) =>
-            result.writeIntLE(n)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_INT")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_INT")
-        }
+        val value: Int = applyFunction(f, value0).asInstanceOf[Int]
+        result.writeIntLE(value)
       case D_LONG =>
         val value0: Long = buffer.readLongLE()
         resultCopy.writeLongLE(value0)
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Long) =>
-            result.writeLongLE(n)
-          case Some(x) =>
-            throw CustomException(s"Wrong inject type. Injecting type ${value.getClass.getSimpleName}. Value type require D_LONG")
-          case None =>
-            throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_LONG")
-        }
+        val value: Long = applyFunction(f, value0).asInstanceOf[Long]
+        result.writeLongLE(value)
     }
   }
 
@@ -1889,7 +1710,7 @@ class BosonImpl(
     val startReaderIndex: Int = buffer.readerIndex()
     val originalSize: Int = buffer.readIntLE()
     val exceptions: ListBuffer[Throwable] = new ListBuffer[Throwable]
-    while ((buffer.readerIndex() - startReaderIndex) < originalSize) {
+    while ((buffer.readerIndex() - startReaderIndex) < originalSize && exceptions.size<2) {
       val dataType: Int = buffer.readByte().toInt
       result.writeByte(dataType)
       resultCopy.writeByte(dataType)
@@ -1901,7 +1722,6 @@ class BosonImpl(
             while (buffer.getByte(buffer.readerIndex()) != 0 || key.length < 1) {
               val b: Byte = buffer.readByte()
               key.append(b)
-
             }
             val b: Byte = buffer.readByte()
             (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
@@ -1909,15 +1729,14 @@ class BosonImpl(
           result.writeBytes(key).writeByte(b)
           resultCopy.writeBytes(key).writeByte(b)
           val keyString: String = new String(key)
-
-          //println(keyString + "  " + condition +"   "+ isArray)
           (keyString, condition, limitSup) match {
             case (x, C_END, _) if isArray =>
+              exceptions.clear()
               if (list.size == 1) {
                 if (list.head._2.contains("..")) {
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
-                      if (exceptions.length <=1) {
+                      if (exceptions.isEmpty) {
                         val size: Int = buffer.getIntLE(buffer.readerIndex())
                         val buf1: ByteBuf = buffer.readBytes(size)
                         val bufRes: ByteBuf = Unpooled.buffer()
@@ -1934,72 +1753,75 @@ class BosonImpl(
                         bufRes.release()
                         bufResCopy.release()
                         buf3.release()
-                      } else exceptions.append(exceptions.head)
+                      }
                     case _ =>
-                      //result.clear().writeBytes(resultCopy.duplicate())
-                      //exceptions.clear()
-                      if (exceptions.length <=1) {
+                      if (exceptions.isEmpty) {
                         result.clear().writeBytes(resultCopy.duplicate())
                         Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
                           case Success(_) =>
                           case Failure(e) => exceptions.append(e)
                         }
-                      } else exceptions.append(exceptions.head)
+                      }
                   }
                 } else {
-                  //result.clear().writeBytes(resultCopy.duplicate())
-                  //exceptions.clear()
-                  if (exceptions.length <=1) {
+                  if (exceptions.isEmpty) {
                     result.clear().writeBytes(resultCopy.duplicate())
                     Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
                       case Success(_) =>
                       case Failure(e) => exceptions.append(e)
                     }
-                  } else exceptions.append(exceptions.head)
+                  }
                 }
               } else {
                 if (list.head._2.contains("..") /*&& list.head._1.isInstanceOf[ArrExpr]*/ ) {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
-                      result.clear().writeBytes(resultCopy.duplicate())
-                      val size: Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.readBytes(size)
-                      val buf2: ByteBuf = execStatementPatternMatch(buf1.duplicate(), list, f)
-                      val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)
-                      result.writeBytes(buf3)
-                      resultCopy.writeBytes(buf2)
-                      //processTypesArray(dataType, buffer, resultCopy)
-                      buf1.release()
-                      buf2.release()
-                      buf3.release()
+                      if (exceptions.isEmpty) {
+                        result.clear().writeBytes(resultCopy.duplicate())
+                        val size: Int = buffer.getIntLE(buffer.readerIndex())
+                        val buf1: ByteBuf = buffer.readBytes(size)
+                        val buf2: ByteBuf = execStatementPatternMatch(buf1.duplicate(), list, f)
+                        //val buf3: ByteBuf =
+                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
+                          case Success(v) =>
+                            result.writeBytes(v)
+                            v.release()
+                            resultCopy.writeBytes(buf2)
+                          case Failure(e) => exceptions.append(e)
+                        }
+
+                        //processTypesArray(dataType, buffer, resultCopy)
+                        buf1.release()
+                        buf2.release()
+                      //buf3.release()
+                    }
                     case _ =>
                       processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
                   }
                 } else {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
-                      result.clear().writeBytes(resultCopy.duplicate())
-                      val res: ByteBuf = execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)
+                      if(exceptions.isEmpty) {
+                        result.clear().writeBytes(resultCopy.duplicate())
+                       // val res: ByteBuf =
+                          Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f))match{
+                            case Success(v) =>
+                              result.writeBytes(v)
+                              v.release()
+                              processTypesArray(dataType, buffer, resultCopy)
+                            case Failure(e) => exceptions.append(e)
+                          }
 
-                      //println("RES SIZE=" + res.capacity())
-                      result.writeBytes(res)
-                      processTypesArray(dataType, buffer, resultCopy)
-                      res.release()
+                        //println("RES SIZE=" + res.capacity())
+
+                      }
                     case _ =>
                       processTypesArray(dataType, buffer.duplicate(), result)
                       processTypesArray(dataType, buffer, resultCopy)
                   }
                 }
               }
-
-
-
-
             case (x,_, C_END) if isArray && limitInf.toInt <= keyString.toInt =>
-              /*
-              * Found a field equal to key
-              * Perform Injection
-              * */
               if (list.size == 1) {
                 if (list.head._2.contains("..") /*&& !list.head._1.isInstanceOf[KeyWithArrExpr]*/ ) {
                   dataType match {
@@ -2044,27 +1866,40 @@ class BosonImpl(
                 if (list.head._2.contains("..") /*&& list.head._1.isInstanceOf[ArrExpr]*/ ) {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
-                      resultCopy.clear().writeBytes(result.duplicate())
-                      val size: Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.duplicate().readRetainedSlice(size)
-                      val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
-                      buf1.release()
-                      val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
-                      buf2.release()
-                      result.writeBytes(buf3)
-                      buf3.release()
-                      processTypesArray(dataType, buffer, resultCopy)
+                      if(exceptions.isEmpty) {
+                        resultCopy.clear().writeBytes(result.duplicate())
+                        val size: Int = buffer.getIntLE(buffer.readerIndex())
+                        val buf1: ByteBuf = buffer.duplicate().readRetainedSlice(size)
+                        val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
+                        buf1.release()
+                        // val buf3: ByteBuf =
+                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
+                          case Success(v) =>
+                            buf2.release()
+                            result.writeBytes(v)
+                            v.release()
+                            processTypesArray(dataType, buffer, resultCopy)
+                          case Failure(e) => exceptions.append(e)
+                        }
+                      }else exceptions.append(exceptions.head)
+
                     case _ =>
                       processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
                   }
                 } else {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
-                      resultCopy.clear().writeBytes(result.duplicate())
-                      val res: ByteBuf = execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)
-                      result.writeBytes(res)
-                      processTypesArray(dataType, buffer, resultCopy)
-                      res.release()
+                      if(exceptions.isEmpty) {
+                        resultCopy.clear().writeBytes(result.duplicate())
+                        //val res: ByteBuf =
+                          Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f))match{
+                            case Success(v) =>
+                              result.writeBytes(v)
+                              processTypesArray(dataType, buffer, resultCopy)
+                              v.release()
+                            case Failure(e) => exceptions.append(e)
+                          }
+                      }else exceptions.append(exceptions.head)
                     case _ =>
                       processTypesArray(dataType, buffer.duplicate(), result)
                       processTypesArray(dataType, buffer, resultCopy)
@@ -2091,10 +1926,6 @@ class BosonImpl(
                 processTypesArray(dataType, buffer, resultCopy)
               }
             case (x,_, l) if isArray && (limitInf.toInt <= x.toInt && l.toInt >= x.toInt) =>
-              /*
-              * Found a field equal to key
-              * Perform Injection
-              * */
               if (list.size == 1) {
                 if (list.head._2.contains("..")) {
                   dataType match {
@@ -2140,33 +1971,43 @@ class BosonImpl(
                 if (list.head._2.contains("..") /*&& list.head._1.isInstanceOf[ArrExpr]*/ ) {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
-                      resultCopy.clear().writeBytes(result.duplicate())
-                      val size: Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.duplicate().readBytes(size)
-                      val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
-                      val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
-                      result.writeBytes(buf3)
-                      processTypesArray(dataType, buffer, resultCopy)
-                      buf1.release()
-                      buf2.release()
-                      buf3.release()
+                      if(exceptions.isEmpty) {
+                        resultCopy.clear().writeBytes(result.duplicate())
+                        val size: Int = buffer.getIntLE(buffer.readerIndex())
+                        val buf1: ByteBuf = buffer.duplicate().readBytes(size)
+                        val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
+                        buf1.release()
+                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
+                          case Success(v) =>
+                            result.writeBytes(v)
+                            v.release()
+                            processTypesArray(dataType, buffer, resultCopy)
+                          case Failure(e) => exceptions.append(e)
+                        }
+                        buf2.release()
+                      }else exceptions.append(exceptions.head)
+
                     case _ =>
                       processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
                   }
                 } else {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
-                      resultCopy.clear().writeBytes(result.duplicate())
-                      val res: ByteBuf = execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)
-                      result.writeBytes(res)
-                      processTypesArray(dataType, buffer, resultCopy)
-                      res.release()
+                      if (exceptions.isEmpty) {
+                        resultCopy.clear().writeBytes(result.duplicate())
+                        Try( execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
+                          case Success(v) =>
+                            result.writeBytes(v)
+                            processTypesArray(dataType, buffer, resultCopy)
+                            v.release()
+                          case Failure(e) => exceptions.append(e)
+                        }
+                       } else exceptions.append(exceptions.head)
                     case _ =>
                       processTypesArray(dataType, buffer.duplicate(), result)
                       processTypesArray(dataType, buffer, resultCopy)
                   }
                 }
-
               }
             case (x,_, l) if isArray && (limitInf.toInt > x.toInt || l.toInt < x.toInt) =>
               if (list.head._2.contains(".."))
@@ -2187,7 +2028,7 @@ class BosonImpl(
                 processTypesArray(dataType, buffer.duplicate(), result)
                 processTypesArray(dataType, buffer, resultCopy)
               }
-            case (x,_, l) if !isArray => // big TODO ..[#]
+            case (x,_, l) if !isArray =>
               if (list.head._2.contains("..")) {
                 dataType match {
                   case (D_BSONOBJECT | D_BSONARRAY) =>
@@ -2219,18 +2060,22 @@ class BosonImpl(
         b.release()
         bson
       } else throw exceptions.head
-    else if(condition.equals(UNTIL_RANGE))
-    if (exceptions.length <= 1){
+    else if(condition.equals(UNTIL_RANGE)) {
+
+      if (exceptions.length <= 1) {
         val bson: BosonImpl = new BosonImpl(byteArray = Option(b.array()))
         a.release()
         b.release()
         bson
-      }else throw exceptions.drop(1).head
-    else {
-      val bson: BosonImpl = new BosonImpl(byteArray = Option(a.array()))
-      a.release()
-      b.release()
-      bson
+      } else throw exceptions.head
+    }else {
+
+      if(exceptions.isEmpty) {
+        val bson: BosonImpl = new BosonImpl(byteArray = Option(a.array()))
+        a.release()
+        b.release()
+        bson
+      }else throw exceptions.head
     }
   }
 
@@ -2249,40 +2094,19 @@ class BosonImpl(
         resultCopy.writeBytes(bytes.duplicate())
         bytes.release()
       case D_BSONOBJECT =>
-        if(fieldID==EMPTY_KEY){
-          val res: BosonImpl = modifyArrayEnd(list, buf, f,condition, limitInf, limitSup)
-          if(condition.equals(TO_RANGE))
+        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f,condition, limitInf, limitSup)
+        if(condition.equals(TO_RANGE))
             result.writeBytes(res.getByteBuf)
-          else
+        else
             resultCopy.writeBytes(res.getByteBuf)
-
-          res.getByteBuf.release()
-        }else {
-          val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f,condition, limitInf, limitSup)
-          if(condition.equals(TO_RANGE))
-              result.writeBytes(res.getByteBuf)
-          else
-              resultCopy.writeBytes(res.getByteBuf)
-
-          res.getByteBuf.release()
-        }
+        res.getByteBuf.release()
       case D_BSONARRAY =>
-        if(fieldID==EMPTY_KEY) {
-          val length: Int = buf.getIntLE(buf.readerIndex())
-          val bsonBuf: ByteBuf = buf.readBytes(length)
-          result.writeBytes(bsonBuf.duplicate())
-          resultCopy.writeBytes(bsonBuf.duplicate())
-          bsonBuf.release()
-          None
-        }else{
-          val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f,condition, limitInf, limitSup)
-          if(condition.equals(TO_RANGE))
-            result.writeBytes(res.getByteBuf)
-          else
-            resultCopy.writeBytes(res.getByteBuf)
-
-          res.getByteBuf.release()
-        }
+        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f,condition, limitInf, limitSup)
+        if(condition.equals(TO_RANGE))
+          result.writeBytes(res.getByteBuf)
+        else
+          resultCopy.writeBytes(res.getByteBuf)
+        res.getByteBuf.release()
       case D_NULL =>
         None
       case D_INT =>
@@ -2299,8 +2123,6 @@ class BosonImpl(
         val value0: Boolean = buf.readBoolean()
         result.writeBoolean(value0)
         resultCopy.writeBoolean(value0)
-        None
-      case _ =>
         None
     }
   }
@@ -2339,61 +2161,63 @@ class BosonImpl(
               * */
               if(list.size==1) {
                 if(list.head._2.contains("..")){
-                  dataType match{
-                    case D_BSONARRAY | D_BSONOBJECT =>
-                      val size: Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.readBytes(size)
-                      val res: BosonImpl = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup)
-                      val buf2: ByteBuf = execStatementPatternMatch(res.getByteBuf, list, f)
-                      if (condition.equals(TO_RANGE))
-                        result.writeBytes(buf2)
-                      else
-                        resultCopy.writeBytes(buf2)
-                      buf1.release()
-                      buf2.release()
-                      res.getByteBuf.release()
-                    case _ =>
-                      val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
-                      if (condition.equals(TO_RANGE))
-                        result.writeBytes(res.getByteBuf)
-                      else
-                        resultCopy.writeBytes(res.getByteBuf)
+                  val size: Int = buffer.getIntLE(buffer.readerIndex())
+                  val buf1: ByteBuf = buffer.readBytes(size)
+
+                  val res: BosonImpl = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup)
+                  val buf2: ByteBuf = execStatementPatternMatch(res.getByteBuf, list, f)
+                  if (condition.equals(TO_RANGE))
+                    result.writeBytes(buf2)
+                  else if(condition.equals(UNTIL_RANGE))
+                    resultCopy.writeBytes(buf2)
+                  else{
+                   // println("condition END")
+                    result.writeBytes(buf2)
                   }
+
+                  buf1.release()
+                  buf2.release()
+                  res.getByteBuf.release()
                 }else {
                   val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
                   if (condition.equals(TO_RANGE))
                     result.writeBytes(res.getByteBuf)
-                  else
+                  else if(condition.equals(UNTIL_RANGE))
                     resultCopy.writeBytes(res.getByteBuf)
+                  else{
+                   // println("condition END")
+                    result.writeBytes(res.getByteBuf)
+                  }
+                  res.getByteBuf.release()
                 }
               }else{
                 if(list.head._2.contains("..")){
-                  dataType match{
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val size:Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.readRetainedSlice(size)
-                      val buf2: ByteBuf = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup).getByteBuf
-                      buf1.release()
-                      if (condition.equals(TO_RANGE))
-                        result.writeBytes(buf2)
-                      else
-                        resultCopy.writeBytes(buf2)
-                      buf2.release()
-                    case _ =>
-                      processTypesArrayEnd(list, fieldID, dataType, buffer, f,condition,limitInf, limitSup, result, resultCopy)
+
+                  val size:Int = buffer.getIntLE(buffer.readerIndex())
+                  val buf1: ByteBuf = buffer.readRetainedSlice(size)
+                  val buf2: ByteBuf = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup).getByteBuf
+                  buf1.release()
+                  if (condition.equals(TO_RANGE))
+                    result.writeBytes(buf2)
+                  else if(condition.equals(UNTIL_RANGE))
+                    resultCopy.writeBytes(buf2)
+                  else{
+                   // println("condition END")
+                    result.writeBytes(buf2)
                   }
+                  buf2.release()
+
                 }else{
-                  dataType match{
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
-                      if (condition.equals(TO_RANGE))
-                        result.writeBytes(res.getByteBuf)
-                      else
-                        resultCopy.writeBytes(res.getByteBuf)
-                    case _ =>
-                      processTypesArray(dataType,buffer.duplicate(),result)
-                      processTypesArray(dataType,buffer,resultCopy)
+                  val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
+                  if (condition.equals(TO_RANGE))
+                    result.writeBytes(res.getByteBuf)
+                  else if(condition.equals(UNTIL_RANGE))
+                    resultCopy.writeBytes(res.getByteBuf)
+                  else{
+                   // println("condition End")
+                    result.writeBytes(res.getByteBuf)
                   }
+                  res.getByteBuf.release()
                 }
               }
             case x if (fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x)) && dataType != D_BSONARRAY =>
@@ -2426,8 +2250,12 @@ class BosonImpl(
     resultCopy.release()
     if(condition.equals(TO_RANGE))
       new BosonImpl(byteArray = Option(a.array()))
-    else
+    else if(condition.equals(UNTIL_RANGE))
       new BosonImpl(byteArray = Option(b.array()))
+    else{
+     // println("condition END")
+      new BosonImpl(byteArray = Option(a.array()))
+    }
   }
 
   def modifyHasElem[T](list: List[(Statement, String)],buf: ByteBuf, key: String, elem: String, f: Function[T, T], result:ByteBuf=Unpooled.buffer()): ByteBuf = {
@@ -2455,7 +2283,7 @@ class BosonImpl(
               val newBuf: ByteBuf = searchAndModify(list, buf, elem, f).getByteBuf
               result.writeBytes(newBuf)
               newBuf.release()
-            case x if (key.toCharArray.deep == x.toCharArray.deep || isHalfword(key, x)) && dataType!=D_BSONARRAY =>
+            case x if (key.toCharArray.deep == x.toCharArray.deep || isHalfword(key, x)) && (dataType!=D_BSONARRAY) =>
               if(list.head._2.contains(".."))
                 processTypesHasElem(list, dataType,key,elem,buf, f ,result)
               else
@@ -2509,7 +2337,6 @@ class BosonImpl(
       case D_BOOLEAN =>
         val value0: Boolean = buf.readBoolean()
         result.writeBoolean(value0)
-      case _ =>
     }
   }
 
@@ -2542,39 +2369,24 @@ class BosonImpl(
               if(hasElem){
                 if(list.size==1) {
                   if(list.head._2.contains("..") ){
-                    dataType match {
-                      case (D_BSONOBJECT | D_BSONARRAY) =>
-                        val buf1: ByteBuf = buf.readBytes(bsonSize)
-                        val bsonBytes: Array[Byte] =
-                          if(buf1.hasArray)
-                            buf1.array()
-                          else {
-                            val buf: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
-                            val arrayBytes: Array[Byte] = buf.array()
-                            buf.release()
-                            arrayBytes
-                          }
-                        buf1.release()
-                        val newArray: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-                        val newbuf: ByteBuf = Unpooled.buffer(newArray.length).writeBytes(newArray)
-                        val buf3: ByteBuf = execStatementPatternMatch(newbuf, list, f)
-                        newbuf.release()
-                        result.writeBytes(buf3)
-                        buf3.release()
-                        bsonBuf.release()
-                      case _ => throw CustomException("*SearchAndModify* Not BsonArray or BsonObject")
-                    }
+                    val buf1: ByteBuf = buf.readBytes(bsonSize)
+                    val buf2: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
+                    buf1.release()
+                    val bsonBytes: Array[Byte] = buf2.array()
+                    buf2.release()
+                    val newArray: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+                    val newbuf: ByteBuf = Unpooled.buffer(newArray.length).writeBytes(newArray)
+                    val buf3: ByteBuf = execStatementPatternMatch(newbuf, list, f)
+                    newbuf.release()
+                    result.writeBytes(buf3)
+                    buf3.release()
+                    bsonBuf.release()
                   }else{
                     val buf1: ByteBuf = buf.readBytes(bsonSize)
-                    val bsonBytes: Array[Byte] =
-                      if(buf1.hasArray)
-                        buf1.array()
-                    else{
-                        val buf2: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
-                        val array: Array[Byte] = buf2.array()
-                        buf2.release()
-                        array
-                      }
+                    val buf2: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
+                    val array: Array[Byte] = buf2.array()
+                    buf2.release()
+                    val bsonBytes: Array[Byte] = array
                     buf1.release()
                     val value1: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
                     result.writeBytes(value1)
@@ -2582,34 +2394,20 @@ class BosonImpl(
                   }
                 }else{
                   if(list.head._2.contains("..")){
-                    dataType match {
-                      case (D_BSONARRAY | D_BSONOBJECT)=>
-                        val size: Int = buf.getIntLE(buf.readerIndex())
-                        val buf1: ByteBuf = buf.readBytes(size)
-
-                        val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
-                        val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
-                        result.writeBytes(buf3)
-                        buf1.release()
-                        buf2.release()
-                        buf3.release()
-                        bsonBuf.release()
-                      case _=>
-                        processTypesArray(dataType,buf, result)
-                        bsonBuf.release()
-                    }
-
+                    val size: Int = buf.getIntLE(buf.readerIndex())
+                    val buf1: ByteBuf = buf.readBytes(size)
+                    val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
+                    val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
+                    result.writeBytes(buf3)
+                    buf1.release()
+                    buf2.release()
+                    buf3.release()
+                    bsonBuf.release()
                   }else{
-
-                    dataType match {
-                      case (D_BSONARRAY | D_BSONOBJECT)=>
-                        val buf1: ByteBuf = buf.readBytes(bsonSize)
-                        result.writeBytes(execStatementPatternMatch(bsonBuf, list.drop(1), f))
-                        buf1.release()
-                        bsonBuf.release()
-                      case _=>
-                        processTypesArray(dataType,buf, result)
-                    }
+                    val buf1: ByteBuf = buf.readBytes(bsonSize)
+                    result.writeBytes(execStatementPatternMatch(bsonBuf, list.drop(1), f))
+                    buf1.release()
+                    bsonBuf.release()
                   }
                 }
               }else{
@@ -2662,7 +2460,7 @@ class BosonImpl(
               buf.readIntLE()
             case D_LONG =>
               buf.readLongLE()
-            case _ =>
+            //case _ =>
           }
        }
       }
@@ -2676,10 +2474,15 @@ class BosonImpl(
     statement match{
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
-          if (arrEx.midArg.isDefined && arrEx.rightArg.isDefined){
-            (key, arrEx.leftArg, arrEx.midArg.get, arrEx.rightArg.get)
-          }else{
-            (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg)
+          (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
+            case (i, o1, o2) if o1.isDefined && o2.isDefined  => (key, arrEx.leftArg, o1.get, o2.get)
+            case (i, o1, o2) if o1.isEmpty && o2.isEmpty => (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg)
+            case (0, str, None) =>
+              str.get match{
+                case "first" =>(key, 0, TO_RANGE, 0)
+                case "end" =>(key, 0, C_END, None)
+                case "all" =>(key, 0, TO_RANGE, C_END)
+              }
           }
         val res: ByteBuf = execArrayFunction(newStatementList, buf, f, input._1, input._2, input._3, input._4)
         val finalResult:ByteBuf=result.writeBytes(res)
@@ -2694,20 +2497,9 @@ class BosonImpl(
              str.get match{
                case "first" =>(EMPTY_KEY, 0, TO_RANGE, 0)
                case "end" =>(EMPTY_KEY, 0, C_END, None)
-               case "all" =>(EMPTY_KEY, 0, TO_RANGE, "end")
+               case "all" =>(EMPTY_KEY, 0, TO_RANGE, C_END)
              }
-
          }
-
-
-        /*
-         if (midArg.isDefined && rightArg.isDefined){//[#..#]
-           (EMPTY_KEY, leftArg, midArg.get, rightArg.get)
-         }else{
-        (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
-         }
-        */
-
         val res: ByteBuf = execArrayFunction(newStatementList, buf, f, input._1, input._2, input._3, input._4)
         val finalResult:ByteBuf=result.writeBytes(res).capacity(result.writerIndex())
         res.release()
@@ -2727,7 +2519,14 @@ class BosonImpl(
         result.writeBytes(res)
         res.release()
         result.capacity(result.writerIndex())
-      case _ => throw CustomException("Wrong Statements, Bad Expression.")
+      case ROOT()=>
+        val res: ByteBuf = execRootInjection(buf, f)
+        result.writeBytes(res)
+        res.release()
+        result.capacity(result.writerIndex())
+      ///case _ =>
+        // Never Gets Here
+       // throw CustomException("Wrong Statements, Bad Expression.")
     }
   }
 
@@ -2753,7 +2552,7 @@ class BosonImpl(
         result.capacity(result.writerIndex())
       case (EMPTY_KEY, a, TO_RANGE, C_END) => // "[# .. end]"
         val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readBytes(size)
+        val buf1: ByteBuf = buf.readRetainedSlice(size)
         val res: ByteBuf =  modifyArrayEnd(list, buf1, f,TO_RANGE, a.toString).getByteBuf
         buf1.release()
         result.writeBytes(res)
@@ -2763,7 +2562,7 @@ class BosonImpl(
         expr match {
           case TO_RANGE =>
             val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readBytes(size)
+            val buf1: ByteBuf = buf.readRetainedSlice(size)
             val res: ByteBuf =  modifyArrayEnd (list, buf1, f,TO_RANGE, a.toString, b.toString).getByteBuf
             buf1.release()
             result.writeBytes(res)
@@ -2771,16 +2570,25 @@ class BosonImpl(
             result.capacity(result.writerIndex())
           case UNTIL_RANGE =>
             val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readBytes(size)
+            val buf1: ByteBuf = buf.readRetainedSlice(size)
             val res: ByteBuf =  modifyArrayEnd(list, buf1, f,UNTIL_RANGE, a.toString, b.toString).getByteBuf
             buf1.release()
             result.writeBytes(res)
             res.release()
             result.capacity(result.writerIndex())
         }
-      case (k, a, UNTIL_RANGE, C_END) =>
+      case (k, 0, C_END, None) =>
         val size: Int = buf.getIntLE(buf.readerIndex())
         val buf1: ByteBuf = buf.readBytes(size)
+        val res:ByteBuf  =  modifyArrayEndWithKey(list, buf1,k, f,C_END, 0.toString).getByteBuf
+        result.writeBytes(res)
+        res.release()
+        buf1.release()
+        result.capacity(result.writerIndex())
+
+      case (k, a, UNTIL_RANGE, C_END) =>
+        val size: Int = buf.getIntLE(buf.readerIndex())
+        val buf1: ByteBuf = buf.readRetainedSlice(size)
         val res: ByteBuf = modifyArrayEndWithKey(list, buf1,k, f,UNTIL_RANGE, a.toString).getByteBuf
         buf1.release()
         result.writeBytes(res)
@@ -2788,7 +2596,7 @@ class BosonImpl(
         result.capacity(result.writerIndex())
       case (k, a, TO_RANGE, C_END) =>
         val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readBytes(size)
+        val buf1: ByteBuf = buf.readRetainedSlice(size)
         val res: ByteBuf = modifyArrayEndWithKey(list, buf1,k, f,TO_RANGE, a.toString).getByteBuf
         buf1.release()
         result.writeBytes(res)
@@ -2798,7 +2606,7 @@ class BosonImpl(
         expr match {
           case TO_RANGE =>
             val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readBytes(size)
+            val buf1: ByteBuf = buf.readRetainedSlice(size)
             val res: ByteBuf = modifyArrayEndWithKey(list, buf1,k, f, TO_RANGE, a.toString, b.toString).getByteBuf
             buf1.release()
             result.writeBytes(res)
@@ -2806,271 +2614,121 @@ class BosonImpl(
             result.capacity(result.writerIndex())
           case UNTIL_RANGE =>
             val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readBytes(size)
+            val buf1: ByteBuf = buf.readRetainedSlice(size)
             val res: ByteBuf = modifyArrayEndWithKey(list, buf1,k, f,UNTIL_RANGE, a.toString, b.toString).getByteBuf
             buf1.release()
             result.writeBytes(res)
             res.release()
             result.capacity(result.writerIndex())
         }
-      case _ => throw CustomException("Bad Array Expression!")
     }
   }
 
   def execRootInjection[T](buffer: ByteBuf, f: Function[T, T]): ByteBuf= {
-    val isArray: Boolean = buffer.getByte(5).toChar.isDigit && buffer.getByte(6).toInt.equals(0)
-    if(isArray){
-      val bsonBytes: Array[Byte] =
-        if(buffer.hasArray)
-          buffer.array()
-        else{
-          val buf: ByteBuf = Unpooled.buffer(buffer.capacity()).writeBytes(buffer.duplicate())
-          val array: Array[Byte] = buf.array()
-          buf.release()
-          array
-        }
-      val newBson: Any = applyFunction(f, bsonBytes)
-      Option(newBson) match {
-        case Some(x: Array[Byte]) =>
-          Unpooled.buffer(x.length).writeBytes(x)
-        case Some(x) =>
-          throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BSONARRAY (java List or scala Array)")
-        case None =>
-          throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONARRAY (java List or scala Array)")
-      }
-    }else{
-      val bsonBytes: Array[Byte] =
-      if(buffer.hasArray)
-        buffer.array()
-      else{
-        val buf: ByteBuf = Unpooled.buffer(buffer.capacity()).writeBytes(buffer.duplicate())
-        val array: Array[Byte] = buf.array()
-        buf.release()
-        array
-      }
-      val newBson: Any = applyFunction(f, bsonBytes)
-      Option(newBson) match {
-        case Some(x: Array[Byte]) =>
-          Unpooled.buffer(x.length).writeBytes(x)
-        case Some(x)=>
-          throw CustomException(s"Wrong inject type. Injecting type ${x.getClass.getSimpleName}. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-        case None =>
-          throw CustomException(s"Wrong inject type. Injecting type NULL. Value type require D_BSONOBJECT (java util.Map[String, _] or scala Map[String, Any])")
-      }
-    }
+      val bsonBytes: Array[Byte] = buffer.array()
+      val newBson: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
+      Unpooled.buffer(newBson.length).writeBytes(newBson)
   }
-
-
-
-/*
-  def encode(bson: Any): ByteBuf = {
-    val res: ByteBuf =  bson match {
-      case list: util.List[_] => encodeBsonArray(list.asScala.toList)
-      case list: List[Any] => encodeBsonArray(list)
-      case map : util.Map[String@unchecked, _] => encodeBsonObject(map.asScala.toMap)
-      case map : Map[String@unchecked, _] => encodeBsonObject(map)
-      case array: Array[Byte] => encodeBsonArray(array.toList)
-      case _ => throw CustomException("Wrong input type.")
-    }
-    if(res.hasArray) {
-      res.array()
-    }else{
-      res.duplicate().array()
-    }
-    res
-  }
-
-  private def encodeBsonArray(list: List[Any]): ByteBuf = {
-    val bufSize: ByteBuf = Unpooled.buffer(4)
-    val buf: ByteBuf = Unpooled.buffer()
-    val numElems: Int = list.size
-    for( num <- 0 until numElems){
-      val elem: Any = list(num)
-      elem match {
-        case x: Float =>
-          buf.writeByte(D_FLOAT_DOUBLE).writeBytes(num.toString.getBytes).writeZero(1).writeDoubleLE(x.toDouble)
-        case x: Double =>
-          buf.writeByte(D_FLOAT_DOUBLE).writeBytes(num.toString.getBytes).writeZero(1).writeDoubleLE(x)
-        case x: Array[Byte] =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x).writeZero(1)
-        case x: Instant =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.toString.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
-        case x: String =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x.getBytes).writeZero(1)
-        case x: CharSequence =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
-        case x: Map[String@unchecked, _] =>
-          buf.writeByte(D_BSONOBJECT).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonObject(x))
-        case x: List[Any] =>
-          buf.writeByte(D_BSONARRAY).writeBytes(num.toString.getBytes).writeZero(1).writeBytes(encodeBsonArray(x))
-        case x if Option(x).isEmpty  =>
-          buf.writeByte(D_NULL).writeBytes(num.toString.getBytes).writeZero(1)
-        case x: Int =>
-          buf.writeByte(D_INT).writeBytes(num.toString.getBytes).writeZero(1).writeIntLE(x)
-        case x: Long =>
-          buf.writeByte(D_LONG).writeBytes(num.toString.getBytes).writeZero(1).writeLongLE(x)
-        case x: Boolean =>
-          buf.writeByte(D_BOOLEAN).writeBytes(num.toString.getBytes).writeZero(1).writeBoolean(x)
-        case _ =>
-      }
-    }
-    buf.writeZero(1)
-    buf.capacity(buf.writerIndex())
-    bufSize.writeIntLE(buf.capacity()+4)
-    val finalResult:ByteBuf = Unpooled.buffer(bufSize.capacity()+buf.capacity()).writeBytes(bufSize).writeBytes(buf)
-    buf.release()
-    finalResult
-
-  }
-
-  private def encodeBsonObject(map: Map[String, Any]): ByteBuf = {
-    val bufSize: ByteBuf = Unpooled.buffer(4)
-    val buf: ByteBuf = Unpooled.buffer()
-    val numElems: List[(String, Any)] = map.toList
-    for( num <- numElems){
-      val elem: (String, Any) = num
-      elem._2 match {
-        case x: Float =>
-          buf.writeByte(D_FLOAT_DOUBLE).writeBytes(elem._1.getBytes()).writeZero(1).writeDoubleLE(x.toDouble)
-        case x: Double =>
-          buf.writeByte(D_FLOAT_DOUBLE).writeBytes(elem._1.getBytes()).writeZero(1).writeDoubleLE(x)
-        case x: Array[Byte] =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.length+1).writeBytes(x).writeZero(1)
-        case x: Instant =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.toString.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
-        case x: String =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.length+1).writeBytes(x.getBytes).writeZero(1)
-        case x: CharSequence =>
-          buf.writeByte(D_ARRAYB_INST_STR_ENUM_CHRSEQ).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x.length+1).writeBytes(x.toString.getBytes()).writeZero(1)
-        case x: Map[String@unchecked, _] =>
-          buf.writeByte(D_BSONOBJECT).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonObject(x))
-        case x: List[Any] =>
-          buf.writeByte(D_BSONARRAY).writeBytes(elem._1.getBytes()).writeZero(1).writeBytes(encodeBsonArray(x))
-        case x if Option(x).isEmpty  =>
-          buf.writeByte(D_NULL).writeBytes(elem._1.getBytes()).writeZero(1)
-        case x: Int =>
-          buf.writeByte(D_INT).writeBytes(elem._1.getBytes()).writeZero(1).writeIntLE(x)
-        case x: Long =>
-          buf.writeByte(D_LONG).writeBytes(elem._1.getBytes()).writeZero(1).writeLongLE(x)
-        case x: Boolean =>
-          buf.writeByte(D_BOOLEAN).writeBytes(elem._1.getBytes()).writeZero(1).writeBoolean(x)
-        case _ =>
-      }
-    }
-    buf.writeZero(1)
-    buf.capacity(buf.writerIndex())
-    bufSize.writeIntLE(buf.capacity()+4)
-    Unpooled.copiedBuffer(bufSize, buf)
-  }
-
-  def decodeBsonArray(buf: ByteBuf): List[Any] = {
-    val startIndex: Int = buf.readerIndex()
-    val list: ListBuffer[Any] = new ListBuffer[Any]
-    val bufSize: Int = buf.readIntLE()
-    while((buf.readerIndex()-startIndex)<bufSize) {
-      val dataType: Int = buf.readByte()
-      dataType match{
-        case 0 =>
-        case _ =>
-          val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buf.getByte(buf.readerIndex()) != 0 || key.length < 1) {
-            val b: Byte = buf.readByte()
-            key.append(b)
-          }
-          val b: Byte = buf.readByte()
-          key.append(b)
-          dataType match {
-            case D_FLOAT_DOUBLE =>
-              val number: Double = buf.readDoubleLE()
-              list.append(number)
-            case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-              val size: Int = buf.readIntLE()
-              val str: Array[Byte] = Unpooled.copiedBuffer(buf.readBytes(size)).array()
-
-              list.append(new String(str))
-            case D_BSONOBJECT =>
-              val bsonSize: Int = buf.getIntLE(buf.readerIndex())
-              val bson: ByteBuf = buf.readBytes(bsonSize)
-              val res: Map[String, _] = decodeBsonObject(bson)
-              bson.release()
-              list.append(res)
-            case D_BSONARRAY =>
-              val bsonSize: Int = buf.getIntLE(buf.readerIndex())
-              val bson: ByteBuf = buf.readBytes(bsonSize)
-              val res: List[Any] = decodeBsonArray(bson)
-              bson.release()
-              list.append(res)
-            case D_INT =>
-              val int: Int = buf.readIntLE()
-              list.append(int)
-            case D_NULL =>
-            case D_LONG =>
-              val long: Long = buf.readLongLE()
-              list.append(long)
-            case D_BOOLEAN =>
-              val bool: Boolean = buf.readBoolean()
-              list.append(bool)
-            case _ =>
-          }
-      }
-    }
-    list.toList
-  }
-
-  def decodeBsonObject(buf: ByteBuf): Map[String, Any] = {
-    val startIndex: Int = buf.readerIndex()
-    val map =  new mutable.TreeMap[String, Any]()
-    val bufSize: Int = buf.readIntLE()
-    while((buf.readerIndex()-startIndex)<bufSize) {
-      val dataType: Int = buf.readByte()
-      dataType match {
-        case 0 =>
-        case _ =>
-          val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buf.getByte(buf.readerIndex()) != 0 || key.length < 1) {
-            val b: Byte = buf.readByte()
-            key.append(b)
-          }
-          val b: Byte = buf.readByte()
-          val strKey: String = new String(key.toArray)
-          dataType match {
-            case D_FLOAT_DOUBLE =>
-              val number: Double = buf.readDoubleLE()
-              map.put(strKey, number)
-            case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-              val size: Int = buf.readIntLE()
-              val str: Array[Byte] = Unpooled.copiedBuffer(buf.readCharSequence(size-1,charset).toString.getBytes).array()
-              map.put(strKey, new String(str))
-            case D_BSONOBJECT =>
-              val bsonSize: Int = buf.getIntLE(buf.readerIndex())
-              val bson: ByteBuf = buf.readBytes(bsonSize)
-              val res: Map[String, Any] = decodeBsonObject(bson)
-              map.put(strKey, res)
-              bson.release()
-            case D_BSONARRAY =>
-              val bsonSize: Int = buf.getIntLE(buf.readerIndex())
-              val bson: ByteBuf = buf.readBytes(bsonSize)
-              val res: List[Any] = decodeBsonArray(bson)
-              map.put(strKey, res)
-              bson.release()
-            case D_INT =>
-              val int: Int = buf.readIntLE()
-              map.put(strKey, int)
-            case D_NULL =>
-              map.put(strKey, null)
-            case D_LONG =>
-              val long: Long = buf.readLongLE()
-              map.put(strKey, long)
-            case D_BOOLEAN =>
-              val bool: Boolean = buf.readBoolean()
-              map.put(strKey, bool)
-            case _ =>
-          }
-      }
-    }
-
-    map.toMap
-  }
-  */
 }
 
+
+/* def modifyEnd[T](buffer: ByteBuf, fieldID:String, f:T=>T, result:ByteBuf=Unpooled.buffer(), resultCopy:ByteBuf=Unpooled.buffer()):(BosonImpl, BosonImpl)={
+   val buf: ByteBuf = buffer.duplicate()
+   val bufSize: Int = buf.readIntLE()
+   while(buf.readerIndex() < bufSize){
+     val dataType: Int = buf.readByte()
+     result.writeByte(dataType)
+     resultCopy.writeByte(dataType)
+     dataType match{
+       case 0 =>
+       case _ =>
+         val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
+           val key: ListBuffer[Byte] = new ListBuffer[Byte]
+           while (buf.getByte(buf.readerIndex()) != 0 || key.length<1) {
+             val b: Byte = buf.readByte()
+             key.append(b)
+           }
+           val b: Byte = buf.readByte()
+           (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
+         }
+         result.writeBytes(key).writeByte(b)
+         resultCopy.writeBytes(key).writeByte(b)
+         new String(key) match {
+           case x if fieldID.toCharArray.deep == x.toCharArray.deep | isHalfword(fieldID, x)  =>
+             /*
+             * Found a field equal to key
+             * Perform Injection
+             * */
+             result.clear().writeBytes(resultCopy.duplicate())
+             modifierEnd(buf, dataType, f, result, resultCopy)
+           case x if fieldID.toCharArray.deep != x.toCharArray.deep =>
+             /*
+             * Didn't found a field equal to key
+             * Consume value and check deeper Levels
+             * */
+             processTypesEnd(dataType, fieldID, buf, f, result, resultCopy)
+         }
+     }
+   }
+   result.capacity(result.writerIndex())
+   resultCopy.capacity(resultCopy.writerIndex())
+   val a: ByteBuf = Unpooled.buffer(result.capacity()+4).writeIntLE(result.capacity()+4).writeBytes(result)
+   val b: ByteBuf = Unpooled.buffer(resultCopy.capacity()+4).writeIntLE(resultCopy.capacity()+4).writeBytes(resultCopy)
+   (new BosonImpl(byteArray = Option(a.array())),new BosonImpl(byteArray = Option(b.array())))
+ }
+*/
+/*private def processTypesEnd[T](dataType: Int, fieldID: String, buf: ByteBuf, f: (T) => T, result: ByteBuf, resultCopy: ByteBuf) = {
+  dataType match {
+    case D_FLOAT_DOUBLE =>
+      val value0: Double = buf.readDoubleLE()
+      result.writeDoubleLE(value0)
+      resultCopy.writeDoubleLE(value0)
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+      val valueLength: Int = buf.readIntLE()
+      val bytes: ByteBuf = buf.readBytes(valueLength)
+      result.writeIntLE(valueLength)
+      result.writeBytes(bytes)
+      resultCopy.writeIntLE(valueLength)
+      resultCopy.writeBytes(bytes)
+    case D_BSONOBJECT =>
+      val length: Int = buf.getIntLE(buf.readerIndex())
+      val bsonBuf: ByteBuf = buf.readBytes(length)
+      val resultAux: (BosonImpl,BosonImpl) = modifyEnd(bsonBuf, fieldID, f)
+      val buf0: Array[Byte] = resultAux._1.getByteBuf.array()
+      val buf1: Array[Byte] = resultAux._2.getByteBuf.array()
+      if(buf0.zip(buf1).forall(p => p._1==p._2)){
+        result.writeBytes(resultAux._1.getByteBuf)
+        resultCopy.writeBytes(resultAux._2.getByteBuf)
+      }else{
+        result.clear().writeBytes(resultCopy.duplicate()).writeBytes(resultAux._1.getByteBuf)
+        resultCopy.writeBytes(resultAux._2.getByteBuf)
+      }
+    case D_BSONARRAY =>
+      val length: Int = buf.getIntLE(buf.readerIndex())
+      val bsonBuf: ByteBuf = buf.readBytes(length)
+      val resultAux: (BosonImpl,BosonImpl) = modifyEnd(bsonBuf, fieldID, f)
+     val buf0: Array[Byte] = resultAux._1.getByteBuf.array()
+      val buf1: Array[Byte] = resultAux._2.getByteBuf.array()
+      if(buf0.zip(buf1).forall(p => p._1==p._2)){
+        result.writeBytes(resultAux._1.getByteBuf)
+        resultCopy.writeBytes(resultAux._2.getByteBuf)
+      }else{
+        result.clear().writeBytes(resultCopy.duplicate()).writeBytes(resultAux._1.getByteBuf)
+        resultCopy.writeBytes(resultAux._2.getByteBuf)
+      }
+    case D_NULL =>
+    case D_INT =>
+      val value0: Int = buf.readIntLE()
+      result.writeIntLE(value0)
+      resultCopy.writeIntLE(value0)
+    case D_LONG =>
+      val value0: Long = buf.readLongLE()
+      result.writeLongLE(value0)
+      resultCopy.writeLongLE(value0)
+    case D_BOOLEAN =>
+      val value0: Boolean = buf.readBoolean()
+      result.writeBoolean(value0)
+      resultCopy.writeBoolean(value0)
+    case _ =>
+  }
+}*/

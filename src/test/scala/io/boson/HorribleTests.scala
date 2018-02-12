@@ -11,7 +11,7 @@ import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
 import io.boson.bson.{Boson, bsonValue}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.assertEquals
+import org.junit.Assert.{assertEquals,assertTrue}
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
@@ -154,30 +154,39 @@ class HorribleTests extends FunSuite {
     val expression: String = "   José[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(
-      Seq("Tarantula", "Aracnídius", Seq("Insecticida")),
-      Seq("Spider"),
-      Seq("Fly")
-    )), result)
+
+    val expected: Vector[Any] = Vector("Tarantula", "Aracnídius", br4.encodeToBarray(),"Spider","Fly" )
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
   }
 
   test("array prob 2") {
     val expression: String = "[     0    to   end      ]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr11.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(
-        Map("José" -> Seq("Tarantula", "Aracnídius", Seq("Insecticida"))),
-        Map("José" -> Seq("Spider")),
-        Map("José" -> Seq("Fly")),
-        Seq("Insecticida"),
-      "Tarantula",
-      "Aracnídius",
-      Seq("Insecticida"),
-      "Insecticida",
-      "Spider",
-      "Fly",
-      "Insecticida"
-      )), result)
+    val expected: Vector[Any] =
+      Vector(
+        arr11.getBsonObject(0).encodeToBarray(),
+        arr11.getBsonObject(1).encodeToBarray(),
+        arr11.getBsonObject(2).encodeToBarray(),
+        br4.encodeToBarray(),
+        "Tarantula",
+        "Aracnídius",
+        br4.encodeToBarray(),
+        "Insecticida",
+        "Spider",
+        "Fly",
+        "Insecticida")
+    val res = result.getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall{
+      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
+      case (e,r) => e.equals(r)
+    })
   }
 
   test("array prob 5") {
@@ -187,9 +196,10 @@ class HorribleTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector(
-      Seq("Tarantula", "Aracnídius"),
-      Seq("Spider"),
-      Seq("Fly")
+      "Tarantula",
+      "Aracnídius",
+      "Spider",
+      "Fly"
     )), result)
   }
 
@@ -212,11 +222,10 @@ class HorribleTests extends FunSuite {
     val expression: String = "arr[2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(a2.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
-    assertEquals(BsSeq(Vector(
-      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3)),
-      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3)),
-      Seq(Map("one" -> 1.1, "two" -> 2.2, "three" -> 3.3))
-    )), result)
+    val expected: Vector[Array[Byte]] = Vector(a1.getBsonObject(2).encodeToBarray(),a1.getBsonObject(2).encodeToBarray(),a1.getBsonObject(2).encodeToBarray())
+    val res = result.getValue.asInstanceOf[Vector[Array[Byte]]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall(b => b._1.sameElements(b._2)))
   }
 
   test("1stKey exists many times, looking for another key") {
