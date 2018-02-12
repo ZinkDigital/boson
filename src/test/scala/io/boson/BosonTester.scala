@@ -156,24 +156,26 @@ object BosonTester extends App {
 //  boson12.go(a.encodeToBarray())
 //  println("result of extracting \"" + expression12 + "\" -> " + future12.join())
 
-  val name: String = "Category1"
-  val halfname: String = "ego"
-  val wrong: String = "oge"
-  val wrong1: String = "1"
-  val wrong2: String = "Ce"
+  val bson: BsonObject = new BsonObject().put("obj", new BsonObject().put("one", 1))
+  val bA: Array[Byte] = bson.encodeToBarray()
 
-//  println(s"$name contains $halfname -> ${name.contains(halfname)}")
-//  println(s"$name contains $wrong -> ${name.contains(wrong)}")
-//  println(s"$name contains $wrong1 -> ${name.contains(wrong1)}")
-//  println(s"$name contains $wrong2 -> ${name.contains(wrong2)}")
-//  println("*" + wrong)
-//  println(("*" + wrong).charAt(0).equals('*'))
+//    val expression: String = ".obj"
+//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+//    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+//    boson.go(bA)
+//    println("result of extracting \""+ expression+ "\" -> " + future.join())
+//    println("-------------------------------------------------------------------------------------------------------------")
+  val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
+  val arr444: BsonArray = new BsonArray().add(obj555)//.add(obj555)
+  val obj333: BsonObject = new BsonObject().put("Store", arr444)
+  val arr222: BsonArray = new BsonArray().add(obj333)//.add(obj333)
+  //put("Store",new BsonObject())
+  val obj111: BsonObject = new BsonObject().put("Store", arr222)
 
-    val expression: String = "fridgeReadings.[@fridgeTemp]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(validatedByteArray)
-    println("result of extracting \""+ expression+ "\" -> " + future.join())
-    println("-------------------------------------------------------------------------------------------------------------")
+  val expression: String = ".Store[@Store]"
+  val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+  val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+  boson.go(obj111.encodeToBarray())
+  println("result of extracting \"" + expression + "\" -> " + future.join())
 
 }

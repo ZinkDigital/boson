@@ -45,6 +45,7 @@ object Dictionary {
   val C_RANDOM: String = "random"
 
   val V_NULL: String = "Null"
+  val C_MATCH: String = "Matched"
 
   // PARSER CONSTANTS
   val P_NUMBER: String = """\d+(\.\d*)?"""

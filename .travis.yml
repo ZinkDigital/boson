@@ -2,7 +2,7 @@ matrix:
   include:
     - language: scala
       scala: 2.12.3
-      script: sbt clean "test-only *BuffersTest *ExtractorTests *HorribleTests *LanguageTests *LongInputTests *InjectorsTest *InjectorParserTests *APIwithByteBufferTests *APIwithByteArrTests *injectorAPITests *jpPlusPlusTests *APItests *JosonTests *jpPlusPlusInjectorTests"
+      script: sbt clean "test-only *BuffersTest *ExtractorTests *HorribleTests *LanguageTests *LongInputTests *InjectorsTest *InjectorParserTests *APIwithByteBufferTests *APIwithByteArrTests *injectorAPITests *jpPlusPlusTests *APItests *jpPlusPlusInjectorTests *ReturnTypes *APIFuse *RestAssured"
 
 
     - language: java

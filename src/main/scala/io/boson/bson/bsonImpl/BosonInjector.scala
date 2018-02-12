@@ -3,7 +3,6 @@ package io.boson.bson.bsonImpl
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
-
 import io.boson.bson
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.netty.util.ByteProcessor
@@ -66,5 +65,5 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     future
   }
 
-  override def fuse(boson: bson.Boson): bson.Boson = ??? //  return typpe is wrong
+  override def fuse(boson: bson.Boson): bson.Boson = new BosonFuse(this,boson)
 }
