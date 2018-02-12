@@ -10,10 +10,11 @@ import io.boson.json.Joson
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
 import mapper.Mapper
+import org.junit.Assert
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.{assertEquals, assertTrue}
+import org.junit.Assert._
 
 @RunWith(classOf[JUnitRunner])
 class jpPlusPlusTests extends FunSuite{
@@ -1869,20 +1870,42 @@ class jpPlusPlusTests extends FunSuite{
 //      assertEquals("Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hatk -> List(Map(Color -> Red, Price -> 48), Map(Color -> White, Price -> 35), Map(Color -> Blue, Price -> 38), Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
 //    } // No change is perform because the values are not the same type //TODO: Not implemented yet(extractor), so this test is wrong
 
-//    test("Inj ..* V2"){
-//      val expression: String = "..*"
-//
-//      val root: BsonObject = new BsonObject().put("field1", "OneWord").put("field2", "TwoWords").put("field3", "ThreeWords").put("field4", "FourWords")
-//      val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!"))
-//      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
-//      val rootx: BsonObject = new BsonObject().put("field1", "OneWord!!").put("field2", "TwoWords!!").put("field3", "ThreeWords!!").put("field4", "FourWords!!")
-//
-//      rootx.encodeToBarray().zip(injFuture.join()).foreach(p => println( p._1.toChar + "  " + p._2.toChar))
-//      assertTrue(rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2))
-//  } TODO:Ricardo after merge, fiz this test
+    test("Inj ..* V1"){
+      val expression: String = "..*"
+
+      val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+        val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+        val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
+        val newM: Map[String, Any] = m.+(("Street", 1000))
+        val res: ByteBuf = Mapper.encode(newM)
+        if(res.hasArray)
+          res.array()
+        else {
+          val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+          val array: Array[Byte] = buf.array()
+          buf.release()
+          array
+        }
+      })
+      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+      boson.go(injFuture.join())
+
+      assertEquals("Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hatk -> List(Map(Color -> Red, Price -> 48), Map(Color -> White, Price -> 35), Map(Color -> Blue, Price -> 38), Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
+    } // No change is perform because the values are not the same type
+
+    test("Inj ..* V2"){
+      val expression: String = "..*"
+      val rootx: BsonObject = new BsonObject().put("field1", "OneWord!!").put("field2", "TwoWords!!").put("field3", "ThreeWords!!").put("field4", "FourWords!!")
+      val root: BsonObject = new BsonObject().put("field1", "OneWord").put("field2", "TwoWords").put("field3", "ThreeWords").put("field4", "FourWords")
+      val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!") )
+      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
+      assertTrue(rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2))
+  }
 
     test("Inj ..* V3"){
-      val expression: String = "..*"
+    val expression: String = "..*"
       val field2x: BsonObject = new BsonObject().put("field4", new BsonObject().put("newField", 10)).put("newField", 10)
       val field1x: BsonObject = new BsonObject().put("field3", new BsonObject().put("newField", 10)).put("newField", 10)
       val rootx: BsonObject = new BsonObject().put("field1",field1x ).put("field2", field2x )

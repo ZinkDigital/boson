@@ -583,6 +583,44 @@ class injectorAPITests extends FunSuite {
     //assertEquals(Vector(Map("Book" -> List(Map("Price" -> 15.5, "SpecialEditions" -> List(Map("Price" -> 39, "Title" -> "JavaMachine")), "Title" -> "Java"), Map("Price" -> 21.5, "SpecialEditions" -> List(Map("Price" -> 40, "Title" -> "ScalaMachine")), "Title" -> "Scala"), Map("Price" -> 12.6, "SpecialEditions" -> List(Map("Price" -> 38, "Title" -> "C++Machine")), "Title" -> "C++")), "Hat" -> List(Map("Color" -> "Red", "Price" -> 48), Map("Color" -> "White", "Price" -> 35), Map("Color" -> "Blue", "Price" -> 38)), "WHAT!!!" -> 10)),future.join().getValue  )
   }
 
+  test("API Injetor f= Float => Float") {
+    /*
+    * Montagem do Event de testes
+    * */
+    //println("|-------- Construct the Test Event --------|\n")
+    val SEdition1: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
+    val SEdition2: BsonObject = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
+    val SEdition3: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val SpecialEditions1:BsonArray = new BsonArray().add(SEdition1)
+    val SpecialEditions2:BsonArray = new BsonArray().add(SEdition2)
+    val SpecialEditions3:BsonArray = new BsonArray().add(SEdition3)
+    val Book1: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", SpecialEditions1)
+    val Book2: BsonObject = new BsonObject().put("Title", "Scala").put("Price", 21.5).put("SpecialEditions", SpecialEditions2)
+    val Book3: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", SpecialEditions3)
+    val Book: BsonArray = new BsonArray().add(Book1).add(Book2).add(Book3)
+    val Hat1: BsonObject = new BsonObject().put("Price", 48).put("Color", "Red")
+    val Hat2: BsonObject = new BsonObject().put("Price", 35).put("Color", "White")
+    val Hat3: BsonObject = new BsonObject().put("Price", 38).put("Color", "Blue")
+    val Hat: BsonArray = new BsonArray().add(Hat1).add(Hat2).add(Hat3)
+    val Store: BsonObject = new BsonObject().put("Book", Book).put("Hat", Hat).put("float", 12.3f)
+    val Event: BsonObject = new BsonObject().put("Store", Store)
+
+    /*
+    * Injection
+    * */
+
+    val validBsonArray: Array[Byte] = Event.encodeToBarray
+    val expression = ".Store.float"
+    val boson: Boson = Boson.injector(expression, (x:Float) => x+2.2f)
+    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+    val result: Array[Byte] = midResult.join()
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    boson1.go(result)
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    assertEquals(Vector(14.5) ,future.join().getValue  )
+  }
+
 }
 
 
