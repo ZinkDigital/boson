@@ -187,8 +187,8 @@ class InjectorParserTests extends FunSuite {
   test("[2 to 4] BsonArray as Root Test Type Consistency") {
     val key: String = ""
     val expression: String =  "[2 to 4]"
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEventArray1.encode().getBytes))
-    val resultBoson: BsValue = parseInj(boson, (x:Any) => x.asInstanceOf[Int]*4, expression)
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEventArray1.encodeToBarray()))
+    val resultBoson: BsValue = parseInj(boson, (x:Int) => x*4, expression)
     val resultParser: Any = resultBoson match {
       case ex: BsException =>
         println(ex.getValue)
@@ -645,4 +645,34 @@ class InjectorParserTests extends FunSuite {
   assert(map2 == m)
   }*/
 
+/*
+  test("Ex store"){
+     val hat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
+     val hat2 = new BsonObject().put("Price", 35).put("Color", "White")
+     val hat1 = new BsonObject().put("Price", 48).put("Color", "Red")
+     val hats = new BsonArray().add(hat1).add(hat2).add(hat3)
+     val edition3 = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+     val sEditions3 = new BsonArray().add(edition3)
+     val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", sEditions3)
+     val edition2 = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
+     val sEditions2 = new BsonArray().add(edition2).add(5L).add(true)
+     val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5).put("SpecialEditions", sEditions2)
+     val edition1 = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
+     val sEditions1 = new BsonArray().add(edition1)
+     val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", sEditions1)
+     val books = new BsonArray().add(title1).add(title2).add(title3)
+     val store = new BsonObject().put("Book", books).put("Hat", hats)
+     val bson = new BsonObject().put("Store", store).put("tables#", 5L).put("buy?", true)
+
+    val bsonEvent: BsonObject = bson
+    val validatedByteArr: Array[Byte] = bsonEvent.encodeToBarray()
+
+    val expression = "Book.*..SpecialEditions"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val res = future.join()
+    println(res)
+  }*/
 }

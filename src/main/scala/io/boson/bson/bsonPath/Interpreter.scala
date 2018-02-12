@@ -140,35 +140,17 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
-    if (statement.nonEmpty) {
-      statement.head match {
-        case MoreKeys(first, list, dots) => //  key
-          first match{
-            case ROOT()=>
-              executeRootInjection()
-            case _ =>
-              val united: List[Statement] = list.+:(first)
-              val zipped: List[(Statement, String)] = united.zip(dots)
-              executeMultipleKeysInjector(zipped)
-          }
-        case _ => throw new RuntimeException("Something went wrong!!!")
+    val stat: MoreKeys = statement.head.asInstanceOf[MoreKeys]
+    val united: List[Statement] = stat.list.+:(stat.first)
+    val zipped: List[(Statement, String)] =
+      if(stat.first.isInstanceOf[ROOT]){
+        united.map(e => (e, C_DOT))
+      }else{
+       united.zip(stat.dotList)
       }
-    } else throw new RuntimeException("List of statements is empty.")
+    println(zipped)
+    executeMultipleKeysInjector(zipped)
   }
-
-  private def executeRootInjection(): bsonValue.BsValue = {
-
-    val result:bsonValue.BsValue=
-      Try(boson.execRootInjection(boson.getByteBuf, f.get))match{
-        case Success(v)=>
-          val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
-          v.release()
-          bsResult
-        case Failure(e)=>bsonValue.BsException(e.getMessage)
-      }
-    result
-   }
-
 
   private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
     val result:bsonValue.BsValue=
@@ -179,28 +161,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           v.release()
           bsResult
         case Failure(e)=>bsonValue.BsException(e.getMessage)      }
-
-    // if Statements size is equal to 1 then cal start Injector
-    // else keep filter the buffer
-    /*if(statements.size==1){
-      //execute statement
-      startInjector(List(statements.head))
-    }else {
-      // filter buffer
-      execStatementPatternMatch(statements)
-    }*/
-    // return BsValue
     boson.getByteBuf.release()
     result
-    //bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(result.array())))
   }
-
 }
 
-
-
 object Compose {
-
   def composer(value: Array[Any]): Seq[Any] = {
     val help: ListBuffer[Any] = new ListBuffer[Any]
     for (elem <- value) {

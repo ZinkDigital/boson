@@ -77,16 +77,36 @@ class InjectorsTest extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
     val netty: Option[BosonImpl] = Some(boson)
     val b1: Option[BosonImpl] = boson.modify(netty, "John", (_: String) => "Somebody")
-    //val b1: Option[Boson] =Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))// boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody")._1
-
     val result: Any = b1 match {
       case Some(v) =>
         callParse(v, "John").asInstanceOf[BsSeq].value
-      //for (elem <- callParse(v, "John").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
-        //println("EXCEPTION= " + ext.parse(v, "John", "all").asInstanceOf[BsException].getValue)
       case None => List()
     }
     assert(Vector("Somebody", "Nobody") === result)
+  }
+
+  test("Injector: Deep Level bsonObject Root empry field") {
+    val obj3: BsonObject = new BsonObject().put("John", "Nobody")
+    val obj2: BsonObject = new BsonObject().put("John", "Locke")
+    val arr2: BsonArray = new BsonArray().add(obj2)
+    val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
+    val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
+    val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val netty: Option[BosonImpl] = Some(boson)
+
+
+    val result: Any = Try(boson.modify(netty, "", (_: String) => "Somebody")) match{
+        case Success(v) =>
+      v match {
+        case Some(x) =>
+          callParse(x, "John").asInstanceOf[BsSeq].value
+        case None => List()
+      }
+        case Failure(e) => e.getMessage
+      }
+
+    assert("*modify* Empty Field" === result)
   }
 
   test("Injector: Deep Level bsonArray Root") {
@@ -101,14 +121,34 @@ class InjectorsTest extends FunSuite {
     val netty: Option[BosonImpl] = Some(boson)
 
     val b1: Option[BosonImpl] = boson.modify(netty, "John", (_: String) => "Somebody")
-    //val b1: Option[Boson] = Option(new Boson(byteArray = Option( boson.modifyAll(netty.get.getByteBuf, "John", _ => "Somebody", ocor = Option(0))._1.array())))
     val result: Any = b1 match {
       case Some(v) =>
         callParse(v, "John").asInstanceOf[BsSeq].value
-        //for (elem <- callParse(v, "John").asInstanceOf[BsSeq].value.asInstanceOf[Seq[Array[Byte]]]) yield new String(elem).replaceAll("\\p{C}", "")
       case None => List()
     }
     assert(Vector("Somebody", "Nobody") === result)
+  }
+
+  test("Injector: Deep Level bsonArray Root empty field") {
+    val obj3: BsonObject = new BsonObject().put("John", "Nobody")
+    val obj2: BsonObject = new BsonObject().put("John", "Locke")
+    val arr2: BsonArray = new BsonArray().add(obj2)
+    val obj1: BsonObject = new BsonObject().put("hey", "me").put("will", arr2)
+    val array1: BsonArray = new BsonArray().add(1).add(2).add(obj1)
+    val bsonEvent: BsonObject = new BsonObject().put("sec", 1).put("fridgeTemp", array1).put("bool", "false!!!").put("finally", obj3)
+    val arrayEvent: BsonArray = new BsonArray().add("Dog").add(bsonEvent).addNull()
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val netty: Option[BosonImpl] = Some(boson)
+    val result: Any = Try(boson.modify(netty, "", (_: String) => "Somebody")) match{
+      case Success(v)=>
+        v match {
+          case Some(x) =>
+            callParse(x, "John").asInstanceOf[BsSeq].value
+          case None => List()
+        }
+      case Failure(e)=> e.getMessage
+    }
+    assert("*modify* Empty Field" === result)
   }
 
   test("Injector: Int => Int") {
@@ -400,6 +440,22 @@ class InjectorsTest extends FunSuite {
     val s: Any = result.asInstanceOf[BsSeq].value
 
     assert(Seq(Seq(3, 4, "Bye")) === s
+      , "Contents are not equal")
+  }
+
+  test("Injector BsonArray: BsonArray => BsonArray empty field") {
+
+    val res: Any = Try(netty.get.modify(nettyArray, "", (_: Array[Byte]) => newbsonArray.encodeToBarray()))match{
+      case Success(v) =>
+        v match {
+        case None => List()
+        case Some(nb) => callParse(nb, "bsonArray")
+      }
+      case Failure(e) =>
+        println(e.getMessage)
+        e.getMessage
+    }
+    assert("*modify* Empty Field" === res
       , "Contents are not equal")
   }
 

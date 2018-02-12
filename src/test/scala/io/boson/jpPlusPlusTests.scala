@@ -9,12 +9,12 @@ import io.boson.bson.bsonValue.{BsSeq, BsValue}
 import io.boson.json.Joson
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
-
 import mapper.Mapper
+import org.junit.Assert
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.assertEquals
+import org.junit.Assert._
 
 @RunWith(classOf[JUnitRunner])
 class jpPlusPlusTests extends FunSuite{
@@ -1629,26 +1629,20 @@ class jpPlusPlusTests extends FunSuite{
     } // No change is perform because the values are not the same type
 
     test("Inj ..* V2"){
-    val expression: String = "..*"
-
-
-
-
-    val root: BsonObject = new BsonObject().put("field1", "OneWord").put("field2", "TwoWords").put("field3", "ThreeWords").put("field4", "FourWords")
-
-
-
-    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!") )
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
-
-    assertEquals("Vector(OneWord!!, TwoWords!!, ThreeWords!!, FourWords!!)", future.join().getValue.toString)
+      val expression: String = "..*"
+      val rootx: BsonObject = new BsonObject().put("field1", "OneWord!!").put("field2", "TwoWords!!").put("field3", "ThreeWords!!").put("field4", "FourWords!!")
+      val root: BsonObject = new BsonObject().put("field1", "OneWord").put("field2", "TwoWords").put("field3", "ThreeWords").put("field4", "FourWords")
+      val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!") )
+      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
+      assertTrue(rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2))
   }
 
     test("Inj ..* V3"){
     val expression: String = "..*"
+      val field2x: BsonObject = new BsonObject().put("field4", new BsonObject().put("newField", 10)).put("newField", 10)
+      val field1x: BsonObject = new BsonObject().put("field3", new BsonObject().put("newField", 10)).put("newField", 10)
+      val rootx: BsonObject = new BsonObject().put("field1",field1x ).put("field2", field2x )
+
 
       val field2: BsonObject = new BsonObject().put("field4", new BsonObject())
       val field1: BsonObject = new BsonObject().put("field3", new BsonObject())
@@ -1671,11 +1665,9 @@ class jpPlusPlusTests extends FunSuite{
     })
     val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
 
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+      rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2)
 
-    assertEquals("Vector(Map(field3 -> Map(newField -> 10), newField -> 10), Map(field4 -> Map(newField -> 10), newField -> 10))", future.join().getValue.toString)
+      assertTrue(rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2))
   }
 
     test("Ex ..key, but multiple keys with same name"){
