@@ -1,5 +1,5 @@
-name := "boson"
 organization:="organization name"
+name := "boson"
 version := "version"
 
 scalaVersion := "2.12.3"
@@ -12,20 +12,15 @@ scalacOptions in Test ++= Seq(
 )
 
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
-crossPaths := false
 
 compileOrder := CompileOrder.Mixed
+compileOrder in Test:= CompileOrder.Mixed
 
-scalacOptions in Test ++= Seq(
-  "-encoding",
-  "UTF-8"
-)
-
-testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
-
-// Do not append Scala versions to the generated artifacts
-crossPaths := false
-
+//  Creates a jar with all libraries necessary
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+}
 
   val libraries = Seq(
     "javax.json" % "javax.json-api" % "1.1",
@@ -33,12 +28,19 @@ crossPaths := false
     "de.undercouch" % "bson4jackson" % "2.7.0",
     "io.vertx" % "vertx-core" % "3.5.0",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-    "com.storm-enroute" % "scalameter-core_2.12" % "0.8.2"
+    //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
+    "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
     "junit"             %  "junit"       % "4.12"  % Test,
-    "com.novocode" % "junit-interface" % "0.11" % "test"
+    "com.novocode" % "junit-interface" % "0.11" % "test",
+    "com.jayway.jsonpath" % "json-path" % "2.4.0",
+    "org.slf4j" % "slf4j-simple" % "1.7.25",
+    "io.rest-assured" % "scala-support" % "3.0.6",
+    "io.rest-assured" % "rest-assured" % "3.0.6",
+    "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
+    "com.storm-enroute" %% "scalameter" % "0.8.2"
   )
 
 
