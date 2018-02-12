@@ -34,9 +34,11 @@ class TinyLanguage extends RegexParsers {
   private val number: Regex = P_NUMBER.r
 
   private def word: Parser[String] =P_WORD.r //  symbol "+" is parsed
+  private def toRange: Parser[String] =P_TO_RANGE.r
+  private def untilRange: Parser[String] =P_UNTIL_RANGE.r
 
   def program: Parser[Program] =
-  moreKeysFinal ^^ { s => {
+    moreKeysFinal ^^ { s => {
     new Program(List(s)) }
   }
 
@@ -72,7 +74,7 @@ class TinyLanguage extends RegexParsers {
   }
 
   private def arrEx: Parser[ArrExpr] = P_OPEN_BRACKET ~>
-    (C_FIRST | C_ALL | C_END | ((number ^^ {_.toInt}) ~ opt((TO_RANGE | TO_RANGE | UNTIL_RANGE | UNTIL_RANGE) ~ ((number ^^ {_.toInt}) | C_END))))~ P_CLOSE_BRACKET ^^ {
+    (C_FIRST | C_ALL | C_END | ((number ^^ {_.toInt}) ~ opt((toRange | untilRange) ~ ((number ^^ {_.toInt}) | C_END))))~ P_CLOSE_BRACKET ^^ {
     //case (str) => ArrExpr(-1,Some(str._2), Some(-1) )
     case (l:Int) ~ Some(m ~ r) ~ _ => ArrExpr(l, Some(m.asInstanceOf[String]), Some(r)) //[#..#]
     case (l:Int) ~ None ~ _  => ArrExpr(l, None, None) //[#]
@@ -88,10 +90,10 @@ class TinyLanguage extends RegexParsers {
     case k ~ a => KeyWithArrExpr(k.half, a) //Key[#..]
   }
 
-  private def root: Parser[ROOT] = "." ^^ (k => ROOT())
+  //private def root: Parser[ROOT] = "." ^^ (k => ROOT())
 
   private def moreKeysFinal: Parser[MoreKeys] =  opt(C_DOUBLEDOT | C_DOT) ~ opt(halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem| halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ~ rep((C_DOUBLEDOT | C_DOT) ~ (halfKeyWithArrEx | keyWithArrEx | halfnameHasHalfelem | halfnameHasElem | keyHasHalfelem | keyHasElem | halfName |  arrEx | key) ) ^^ {
-      case Some(dots) ~ None ~ list if dots.equals(".") =>
+      case Some(dots) ~ None ~ list if dots.equals(C_DOT) =>
         MoreKeys(ROOT(), list.map(elem => elem._2), list.map(elem => elem._1))
       case None ~ first ~ list if first.isDefined=>
         MoreKeys(first.get, list.map(elem => elem._2), List(C_DOUBLEDOT) ++ list.map(elem => elem._1)) //this is replacing the original/working moreKeys

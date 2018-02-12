@@ -25,6 +25,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     if (statement.nonEmpty) {
 
       statement.head match {
+        case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
+          //println(s"statements: ${List(first) ++ list}")
+          //println(s"dotList: $dots")
+          executeMoreKeys(first, list, dots)
         case MoreKeys(first, list, dots) =>
           //println(s"statements: ${List(first) ++ list}")
           //println(s"dotList: $dots")
@@ -47,6 +51,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
         case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
         case Key(key) => if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
+        case ROOT() => (List((C_DOT,C_DOT)), List((None,None,EMPTY_RANGE)))
         case _ => throw CustomException("Error building key list")
       }
     if (statementList.nonEmpty) {
@@ -97,6 +102,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case C_FILTER => elem
           case C_NEXT => println("----- NOT POSSIBLE----");if(dotsList.head.equals(C_DOUBLEDOT)) (elem._1,C_ALL) else elem
           case C_ALL => elem
+          case C_DOT => elem
         }
       },limitList1)
     }

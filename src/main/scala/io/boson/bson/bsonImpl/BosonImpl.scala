@@ -87,23 +87,31 @@ class BosonImpl(
               case 48 => // root obj is BsonArray, call extractFromBsonArray
                 netty.readIntLE()
                 val arrayFinishReaderIndex: Int = startReaderIndex + size
-                //if (keyList.head._1.equals(STAR) && keyList.size == 1) { //TODO:probably remove this condition
-                  //println("helkkrmfm")
-                  //Some(traverseBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList))
-                //} else {
-                  val midResult: Iterable[Any] = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
-                  //println(s"out of extract with: $midResult")
-                  if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                //}
+                keyList.head._1 match {
+                  case C_DOT if keyList.size == 1 =>
+                    val arr: Array[Byte] = new Array[Byte](size)
+                    netty.getBytes(startReaderIndex,arr,0,size)
+                    netty.readerIndex(arrayFinishReaderIndex)
+                    Some(Vector(arr))
+                  case _ =>
+                    val midResult: Iterable[Any] = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
+                    //println(s"out of extract with: $midResult")
+                    if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+                }
               case _ => // root obj isn't BsonArray, call extractFromBsonObj
-                if (keyList.head._1.isEmpty) {
-                  None // Doens't make sense to pass "" as a key when root isn't a BsonArray
-                } else {
                   netty.readIntLE()
                   val bsonFinishReaderIndex: Int = startReaderIndex + size
-                  val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-                  if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                }
+                  keyList.head._1 match {
+                    case EMPTY_KEY => None // Doens't make sense to pass "" as a key when root isn't a BsonArray
+                    case C_DOT  if keyList.size == 1 =>
+                      val arr: Array[Byte] = new Array[Byte](size)
+                      netty.getBytes(startReaderIndex,arr,0,size)
+                      netty.readerIndex(bsonFinishReaderIndex)
+                      Some(Vector(arr))
+                    case _ =>
+                      val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
+                      if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+                  }
             }
         }
       case Failure(msg) =>  //when buf is empty
