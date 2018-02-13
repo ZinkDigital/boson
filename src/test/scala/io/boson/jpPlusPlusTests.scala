@@ -63,7 +63,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b2.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store -> checked
@@ -92,7 +92,7 @@ class jpPlusPlusTests extends FunSuite{
       bosonE.go(injFuture.join())
 
       val expected: Vector[Array[Byte]] = Vector(_b2.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -105,7 +105,7 @@ class jpPlusPlusTests extends FunSuite{
 
 
       val expected: Vector[Array[Byte]] = Vector(br1.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store.Book -> checked
@@ -138,7 +138,7 @@ class jpPlusPlusTests extends FunSuite{
       val help: BsonArray = new BsonArray().add("Street?").add(_b3).add(_b4).add(_b8)
 
       val expected: Vector[Array[Byte]] = Vector(help.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -150,7 +150,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
@@ -179,7 +179,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(injFuture.join())
 
       val expected: Vector[Array[Byte]] = Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -191,7 +191,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b4.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store.Book[1] -> checked
@@ -219,7 +219,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(injFuture.join())
 
       val expected: Vector[Array[Byte]] = Vector(_b4.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -423,7 +423,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$..SpecialEditions[?(@.Price)] -> checked
@@ -452,7 +452,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b9.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray(),_b10.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -464,7 +464,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$..SpecialEditions[0] -> checked
@@ -493,7 +493,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b9.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray(),_b10.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))    }
 
@@ -519,7 +519,7 @@ class jpPlusPlusTests extends FunSuite{
           new BsonObject().put("fridgeTemp", 12).encodeToBarray(),
           new BsonObject().put("fridgeTemp", 18).encodeToBarray()
         )
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -558,7 +558,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(new BsonObject().put("fridgeTemp", 15).put("Street?", "im Lost").encodeToBarray(),new BsonObject().put("fridgeTemp", 12).put("Street?", "im Lost").encodeToBarray(),new BsonObject().put("fridgeTemp", 18).put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -570,7 +570,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$..Book[?(@.Price)].SpecialEditions[?(@.Price)] && $..Hatk[?(@.Price)].SpecialEditions[?(@.Price)] -> checked
@@ -599,7 +599,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray(),_b10.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -660,7 +660,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store..SpecialEditions[?(@.Price)] -> checked
@@ -690,7 +690,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b9.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray(),_b10.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -702,7 +702,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store..SpecialEditions[0] -> checked
@@ -732,7 +732,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b9.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray(),_b10.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -770,7 +770,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b9.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store..Book[1:2]..SpecialEditions[?(@.Price)] -> checked
@@ -800,7 +800,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b9.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -833,7 +833,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.Store..Book[?(@.Price)]..SpecialEditions[?(@.Title)] && $.Store..Hatk[?(@.Price)]..SpecialEditions[?(@.Title)] -> checked
@@ -864,7 +864,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(_b10.put("Street?", "im Lost").encodeToBarray(),_b11.put("Street?", "im Lost").encodeToBarray(),_b10.put("Street?", "im Lost").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))    }
 
@@ -945,7 +945,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(br4.encodeToBarray(), br3.encodeToBarray(), br5.encodeToBarray(), br4.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$..Store..Book..SpecialEditions && $..Store..Hatk..SpecialEditions -> checked
@@ -973,12 +973,12 @@ class jpPlusPlusTests extends FunSuite{
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(injFuture.join())
-      val xbr4 = new BsonArray().add(new BsonObject().put("Price", 39).put("Title", "JavaMachine")).add("NewEdition!").encodeToBarray()
-      val xbr3 = new BsonArray().add(new BsonObject().put("Price", 40).put("Title", "ScalaMachine")).add("NewEdition!").encodeToBarray()
-      val xbr5 = new BsonArray().add(new BsonObject().put("Price", 38).put("Title", "C++Machine")).add("NewEdition!").encodeToBarray()
+      val xbr4: Array[Byte] = new BsonArray().add(new BsonObject().put("Price", 39).put("Title", "JavaMachine")).add("NewEdition!").encodeToBarray()
+      val xbr3: Array[Byte] = new BsonArray().add(new BsonObject().put("Price", 40).put("Title", "ScalaMachine")).add("NewEdition!").encodeToBarray()
+      val xbr5: Array[Byte] = new BsonArray().add(new BsonObject().put("Price", 38).put("Title", "C++Machine")).add("NewEdition!").encodeToBarray()
 
       val expected: Vector[Array[Byte]] = Vector(xbr4,xbr3,xbr5,xbr4)
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1015,7 +1015,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(br1.encodeToBarray(), br2.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1062,7 +1062,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(injFuture.join())
 
       val expected: Vector[Array[Byte]] = Vector(xbr1.add("newField!").encodeToBarray(),xbr2.add("newField!").encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1073,7 +1073,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1119,7 +1119,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb10.put("newField!", 100).encodeToBarray(),xb9.put("newField!", 100).encodeToBarray(),xb11.put("newField!", 100).encodeToBarray(),xb10.put("newField!", 100).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1259,7 +1259,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1304,7 +1304,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb10.put("Street", 1000).encodeToBarray(),xb9.put("Street", 1000).encodeToBarray(),xb11.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1413,7 +1413,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1459,7 +1459,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb10.put("Street", 1000).encodeToBarray(),xb9.put("Street", 1000).encodeToBarray(),xb11.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1470,7 +1470,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1516,7 +1516,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb10.put("Street", 1000).encodeToBarray(),xb9.put("Street", 1000).encodeToBarray(),xb11.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1575,7 +1575,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1621,7 +1621,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb10.put("Street", 1000).encodeToBarray(),xb9.put("Street", 1000).encodeToBarray(),xb11.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1633,7 +1633,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Any] = Vector("Java",15.5,br4.encodeToBarray(),"Scala",21.5,br3.encodeToBarray(),"C++",12.6,br5.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Any]]
+      val result: Vector[Any] = future.join().getValue.asInstanceOf[Vector[Any]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall{
         case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
@@ -1652,7 +1652,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(injFuture.join())
 
       val expected: Vector[Any] = Vector("Java",15.5,br4.encodeToBarray(),"Scala",21.5,br3.encodeToBarray(),"C++",12.6,br5.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Any]]
+      val result: Vector[Any] = future.join().getValue.asInstanceOf[Vector[Any]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall{
         case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
@@ -1666,7 +1666,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b3.encodeToBarray(),b4.encodeToBarray(),b8.encodeToBarray(),b5.encodeToBarray(),b6.encodeToBarray(),b7.encodeToBarray(),b3.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1711,7 +1711,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb3.put("Street", 1000).encodeToBarray(),xb4.put("Street", 1000).encodeToBarray(),xb8.put("Street", 1000).encodeToBarray(), xb5.put("Street", 1000).encodeToBarray(),xb6.put("Street", 1000).encodeToBarray(),xb7.put("Street", 1000).encodeToBarray(), xb3.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1722,7 +1722,7 @@ class jpPlusPlusTests extends FunSuite{
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
       boson.go(validatedByteArr)
       val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(),b9.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1769,7 +1769,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb10.put("Street", 1000).encodeToBarray(),xb9.put("Street", 1000).encodeToBarray(),xb11.put("Street", 1000).encodeToBarray(),xb10.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1781,7 +1781,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(validatedByteArr)
 
       val expected: Vector[Array[Byte]] = Vector(b2.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+      val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     } //$.* -> checked
@@ -1826,7 +1826,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xb2.put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -1846,34 +1846,9 @@ class jpPlusPlusTests extends FunSuite{
 //      ), future.join().getValue)
 //    } //TODO: Not implemented yet, so this test is wrong
 
-//    test("Inj ..* V1"){
-//      val expression: String = "..*"
-//
-//      val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//        val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//        val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//        val newM: Map[String, Any] = m.+(("Street", 1000))
-//        val res: ByteBuf = Mapper.encode(newM)
-//        if(res.hasArray)
-//          res.array()
-//        else {
-//          val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//          val array: Array[Byte] = buf.array()
-//          buf.release()
-//          array
-//        }
-//      })
-//      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-//      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//      boson.go(injFuture.join())
-//
-//      assertEquals("Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hatk -> List(Map(Color -> Red, Price -> 48), Map(Color -> White, Price -> 35), Map(Color -> Blue, Price -> 38), Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
-//    } // No change is perform because the values are not the same type //TODO: Not implemented yet(extractor), so this test is wrong
 
-    /*test("Inj ..* V1"){
+    test("Inj ..* V1"){
       val expression: String = "..*"
-
       val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
         val b: BosonImpl = new BosonImpl(byteArray = Option(x))
         val m: Map[String,Any] = Mapper.decodeBsonObject(b.getByteBuf)
@@ -1889,13 +1864,9 @@ class jpPlusPlusTests extends FunSuite{
         }
       })
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-      val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-      val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-      boson.go(injFuture.join())
 
-      assertEquals("Vector(Map(Book -> List(Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))), Map(Title -> Scala, Pri -> 21.5, SpecialEditions -> List(Map(Title -> ScalaMachine, Price -> 40))), Map(Title -> C++, Price -> 12.6, SpecialEditions -> List(Map(Title -> C++Machine, Price -> 38)))), Hatk -> List(Map(Color -> Red, Price -> 48), Map(Color -> White, Price -> 35), Map(Color -> Blue, Price -> 38), Map(Title -> Java, Price -> 15.5, SpecialEditions -> List(Map(Title -> JavaMachine, Price -> 39))))))", future.join().getValue.toString)
-    } // No change is perform because the values are not the same type*/
-  ////TODO: Not implemented yet(extractor), so this test is wrong
+      assertArrayEquals(validatedByteArr, injFuture.join())
+    } // No change is perform because the values are not the same type
 
     test("Inj ..* V2"){
       val expression: String = "..*"
@@ -1948,7 +1919,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(obj1.encodeToBarray())
 
       val expected: Vector[Any] = Vector(obj2.encodeToBarray(),1000L)
-      val res = future.join().getValue.asInstanceOf[Vector[Any]]
+      val res: Vector[Any] = future.join().getValue.asInstanceOf[Vector[Any]]
       assert(expected.size === res.size)
       assertTrue(expected.zip(res).forall{
         case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
@@ -1982,7 +1953,7 @@ class jpPlusPlusTests extends FunSuite{
       boson.go(injFuture.join())
 
       val expected: Vector[Any] = Vector(obj2.encodeToBarray(), 1000L)
-      val result = future.join().getValue.asInstanceOf[Vector[Any]]
+      val result: Vector[Any] = future.join().getValue.asInstanceOf[Vector[Any]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall{
         case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
@@ -2020,7 +1991,7 @@ class jpPlusPlusTests extends FunSuite{
 
       val expected: Vector[Array[Byte]] =
         Vector(xobj22.put("Street", 1000).encodeToBarray(), new BsonObject().put("Street", 1000).encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
@@ -2059,7 +2030,7 @@ class jpPlusPlusTests extends FunSuite{
       val xobj333: BsonObject = new BsonObject().put("Store", new BsonArray().add(xobj555).add(xobj555)).put("Street", 1000)
 
       val expected: Vector[Array[Byte]] = Vector(xobj333.encodeToBarray(), xobj555.encodeToBarray(), xobj555.encodeToBarray(), xobj333.encodeToBarray(), xobj555.encodeToBarray(), xobj555.encodeToBarray())
-      val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
+      val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
       assert(expected.size === result.size)
       assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
     }
