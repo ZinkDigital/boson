@@ -168,6 +168,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 }
 
 object Compose {
+
   def composer(value: Array[Any]): Seq[Any] = {
     val help: ListBuffer[Any] = new ListBuffer[Any]
     for (elem <- value) {

@@ -22,9 +22,7 @@ Streaming Data Access for BSON and JSON encoded documents
 	* [Joson](#id-JosonJava)
 		 * [Extractor](#id-josonExtractionJava)
 		 *	[Injector](#id-josonInjectionJava)
-- [Scala Documentation](#scala-documentation)
-- [Java Documentation](#java-documentation)
-- [Common Documentation](#common-documentation)
+- [Documentation](#documentation)
 	* [BsonPath](#bsonpath)
 		* [Operators](#operators)
 		* [Comparison with JsonPath](#comparison-with-jsonpath)
@@ -341,13 +339,7 @@ Joson joson = Joson.injector(expression,  (Map<String, Object> in) -> {
 String result = joson.go(jsonStr).join();
 ```
 
-# Scala Documentation
-Deep explanation
-
-# Java Documentation
-Deep explanation
-
-# Common Documentation
+# Documentation
 ## BsonPath
 
 BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).

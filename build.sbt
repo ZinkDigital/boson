@@ -28,7 +28,7 @@ assemblyMergeStrategy in assembly := {
     "de.undercouch" % "bson4jackson" % "2.7.0",
     "io.vertx" % "vertx-core" % "3.5.0",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-    "com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
+    //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
     "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
   )
   val testLibraries = Seq(
@@ -39,7 +39,8 @@ assemblyMergeStrategy in assembly := {
     "org.slf4j" % "slf4j-simple" % "1.7.25",
     "io.rest-assured" % "scala-support" % "3.0.6",
     "io.rest-assured" % "rest-assured" % "3.0.6",
-    "com.squareup.okhttp3" % "mockwebserver" % "3.9.1"
+    "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
+    "com.storm-enroute" %% "scalameter" % "0.8.2"
   )
 
 

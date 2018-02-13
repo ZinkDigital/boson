@@ -56,6 +56,7 @@ class jpPlusPlusTests extends FunSuite{
   val validatedByteArr: Array[Byte] = bsonEvent.encodeToBarray()
 
     test("Ex .key"){
+      println(bsonEvent)
       val expression = ".Store"
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
@@ -1845,6 +1846,7 @@ class jpPlusPlusTests extends FunSuite{
 //      ), future.join().getValue)
 //    } //TODO: Not implemented yet, so this test is wrong
 
+
     test("Inj ..* V1"){
       val expression: String = "..*"
       val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
@@ -1862,6 +1864,7 @@ class jpPlusPlusTests extends FunSuite{
         }
       })
       val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+
       assertArrayEquals(validatedByteArr, injFuture.join())
     } // No change is perform because the values are not the same type
 
