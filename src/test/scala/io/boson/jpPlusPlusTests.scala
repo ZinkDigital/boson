@@ -2098,12 +2098,57 @@ class jpPlusPlusTests extends FunSuite {
   }
 
   test("Ex .[first]") {
-    val expression: String = "to"
+    val expression: String = ".[first]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(br1.encodeToBarray())
 
-    val expected: Vector[Any] = Vector(br1.encodeToBarray())
+    val expected: Vector[Any] = Vector(b3.encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex key1.key2[all]") {
+    val expression: String = "Store.Book[all]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(b3.encodeToBarray(),b4.encodeToBarray(),b8.encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex key[end]") {
+    val expression: String = "Book[end]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(b8.encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex key1[end]..key2") {
+    val expression: String = "Book[end]..Title"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Vector[Any] = Vector("C++","C++Machine")
     val res = future.join().getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall {

@@ -30,8 +30,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           //println(s"dotList: $dots")
           executeMoreKeys(first, list, dots)
         case MoreKeys(first, list, dots) =>
-          //println(s"statements: ${List(first) ++ list}")
-          //println(s"dotList: $dots")
+          println(s"statements: ${List(first) ++ list}")
+          println(s"dotList: $dots")
           executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
@@ -109,19 +109,39 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
   }
 
   private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
-    if(mid.isDefined && right.isDefined) {
-      (left, mid.get.toLowerCase, right.get) match {
-        case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
-        case (a, _, C_END) => List((Some(a),None,TO_RANGE))
-        case (a, expr, b) if b.isInstanceOf[Int] =>
-          expr.toLowerCase match {
-            case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
-            case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
-          }
-      }
-    } else { //[#]
-      List((Some(left),Some(left),TO_RANGE))
+    mid.isDefined match {
+      case true if right.isEmpty=>
+        mid.get match {
+          case C_FIRST => List((Some(0),Some(0),TO_RANGE))
+          case C_ALL => List((Some(0),None,TO_RANGE))
+          case C_END => List((Some(0),None,C_END))
+        }
+      case true if right.isDefined =>
+        (left, mid.get.toLowerCase, right.get) match {
+          case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
+          case (a, _, C_END) => List((Some(a),None,TO_RANGE))
+          case (a, expr, b) if b.isInstanceOf[Int] =>
+            expr.toLowerCase match {
+              case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
+              case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
+            }
+        }
+      case false =>
+        List((Some(left),Some(left),TO_RANGE))
     }
+//    if(mid.isDefined && right.isDefined) {
+//      (left, mid.get.toLowerCase, right.get) match {
+//        case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
+//        case (a, _, C_END) => List((Some(a),None,TO_RANGE))
+//        case (a, expr, b) if b.isInstanceOf[Int] =>
+//          expr.toLowerCase match {
+//            case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
+//            case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
+//          }
+//      }
+//    } else { //[#]
+//      List((Some(left),Some(left),TO_RANGE))
+//    }
   }
 
   private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
