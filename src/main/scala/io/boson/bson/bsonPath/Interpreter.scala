@@ -131,7 +131,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
       case v => bsonValue.BsObject.toBson {
         (for (elem <- v) yield {
           elem match {
-            case e: Array[Any] => Compose.composer(e)
+            case e: Array[Any] =>
+              Compose.composer(e)
             case e => e
           }
         }).toVector

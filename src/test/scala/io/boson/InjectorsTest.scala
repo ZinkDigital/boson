@@ -25,6 +25,7 @@ import scala.util.{Failure, Success, Try}
 @RunWith(classOf[JUnitRunner])
 class InjectorsTest extends FunSuite {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
+  /*
   def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage
     try {
@@ -498,5 +499,5 @@ class InjectorsTest extends FunSuite {
     assert("*modify* Input Option[BosonImpl] is not defined" === result
       , "Contents are not equal")
   }
-
+*/
 }

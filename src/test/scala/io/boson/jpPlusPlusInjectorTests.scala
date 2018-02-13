@@ -2596,4 +2596,421 @@ class jpPlusPlusInjectorTests extends FunSuite {
     //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
     assertTrue(bE.zip(result).forall(p => p._1 == p._2))
   }
+  test("Coverage V52 "){
+
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(1L).add(true).add(bson2).addNull()
+    val bsonevent: BsonObject = new BsonObject().put("Books", arrayBooks)
+    //-----------------------------
+
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".Books[3]"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsonevent.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V53 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(1L).add(true).addNull().add(10).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooksx: BsonArray = new BsonArray().add(1L).add(true).addNull().add(10).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[end].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V54 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(1L).add(true).addNull().add(10).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooksx: BsonArray = new BsonArray().add(1L).add(true).addNull().add(10).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".Store[end].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V55 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[0 to end].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V56 "){
+    val arrayBooks: BsonArray = new BsonArray().add(10).add(10)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val arrayBooksx: BsonArray = new BsonArray().add(10).add(10)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[0 to end].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V57 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".Store[0 to end].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V58 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".Store[0 to 1].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V59 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[0 to 1].bool"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V60 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[end]"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V61 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Stor[end]"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V62 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", false).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[0 until 1].bool"
+    val boson: Boson = Boson.injector(expression, (x:Boolean) => {
+      !x
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V63 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", false).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..[0 until 1].bool"
+    val boson: Boson = Boson.injector(expression, (x:Boolean) => {
+      !x
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V64 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", 4L).putNull("Null").put("bool", false).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[first].bool"
+    val boson: Boson = Boson.injector(expression, (x:Boolean) => {
+      !x
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V65 "){
+    val bO: BsonObject = new BsonObject()
+    val bA: BsonArray = new BsonArray()
+    val bson2: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Store[@bool]"
+    val boson: Boson = Boson.injector(expression, (x:Boolean) => {
+      !x
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V66 "){
+    val bO: BsonObject = new BsonObject()
+    val bA: BsonArray = new BsonArray()
+    val bson2: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(new BsonObject()).add(new BsonObject())
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".Store[@bool]"
+    val boson: Boson = Boson.injector(expression, (x:Array[Byte]) => new BsonObject().encodeToBarray())
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V67 "){
+    val bO: BsonObject = new BsonObject()
+    val bA: BsonArray = new BsonArray()
+    val bson2: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".Store[@booeel]"
+    val boson: Boson = Boson.injector(expression, (x:Array[Byte]) => new BsonObject().encodeToBarray())
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+    test("Coverage V68 "){
+    val bO: BsonObject = new BsonObject()
+    val bA: BsonArray = new BsonArray()
+    val bson2: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val arrayBooksx: BsonArray = new BsonArray()
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".*ore"
+    val boson: Boson = Boson.injector(expression, (x:Array[Byte]) => new BsonArray().encodeToBarray())
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V69"){
+    val bO: BsonObject = new BsonObject()
+    val bA: BsonArray = new BsonArray()
+    val bson2: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val arrayBooksx: BsonArray = new BsonArray()
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".*"
+    val boson: Boson = Boson.injector(expression, (x:Array[Byte]) => new BsonArray().encodeToBarray())
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V70"){
+    val bO: BsonObject = new BsonObject()
+    val bA: BsonArray = new BsonArray()
+    val bson2: BsonObject = new BsonObject().put("Lnumber", bO).put("LnumberA", bA).putNull("Null").put("bool", true).put("cenas", 15)
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks).putNull("null")
+
+    //-----------------------------
+
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = ".null"
+    val boson: Boson = Boson.injector(expression, (x:Array[Byte]) => new BsonArray().encodeToBarray())
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsonevent.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
+  test("Coverage V71 "){
+    val bson2: BsonObject = new BsonObject().put("Lnumber",  new BsonObject()).putNull("Null").put("bool", new BsonArray()).put("cenas", 15)
+
+    val arrayBooks: BsonArray = new BsonArray().add(bson2).add(bson2)
+    val bsonevent: BsonObject = new BsonObject().put("Store", arrayBooks)
+    //-----------------------------
+    val bson2x: BsonObject = new BsonObject().put("Lnumber",  new BsonObject()).putNull("Null").put("bool", new BsonArray()).put("cenas", 15)
+
+    val arrayBooksx: BsonArray = new BsonArray().add(bson2x).add(bson2x)
+    val bsoneventx: BsonObject = new BsonObject().put("Store", arrayBooksx)
+
+    val validatedByteArr: Array[Byte] = bsonevent.encodeToBarray()
+    val expression: String = "..Stor[end]"
+    val boson: Boson = Boson.injector(expression, (x:Int) => {
+      x+1
+    })
+    val future: CompletableFuture[Array[Byte]] = boson.go(validatedByteArr)
+    val result: Array[Byte] = future.join()
+    val bE: Array[Byte] = bsoneventx.encodeToBarray()
+    //bE.zip(result).foreach(p => println("["+p._1.toChar+"|"+p._2.toChar+"]"))
+    assertTrue(bE.zip(result).forall(p => p._1 == p._2))
+  }
 }
