@@ -143,7 +143,6 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(bson.encodeToBarray());
         Object result = future1.join().getValue();
-        System.out.println(result);
 
         assertEquals(
                 "Vector(21.5)",
