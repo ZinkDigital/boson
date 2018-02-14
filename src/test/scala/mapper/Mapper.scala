@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util
 
 import bsonLib.{BsonArray, BsonObject}
+import io.boson.bson.bsonImpl.CustomException
 import io.boson.bson.bsonImpl.Dictionary._
 import io.netty.buffer.{ByteBuf, Unpooled}
 
@@ -14,9 +15,7 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by Ricardo Martins on 08/01/2018.
   */
-case class CustomException(smth:String) extends Exception {
-  override def getMessage: String = smth
-}
+
 
 object Mapper {
   import scala.collection.JavaConverters._

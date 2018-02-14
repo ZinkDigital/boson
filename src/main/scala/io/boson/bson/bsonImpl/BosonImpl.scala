@@ -2,7 +2,6 @@ package io.boson.bson.bsonImpl
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
-import java.util
 import Dictionary._
 import io.boson.bson.bsonPath._
 import io.netty.buffer.{ByteBuf, Unpooled}
