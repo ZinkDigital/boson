@@ -568,7 +568,6 @@ public class APItests {
 
     @Test
     public void ExtractPosFromEveryArrayInsideOtherArrayPosEnd() {
-        System.out.println(arrEvent);
         String expression = ".[0 to 2]..[0 to end]";
         CompletableFuture<BsValue> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, future1::complete);
@@ -599,6 +598,7 @@ public class APItests {
 
     @Test
     public void ExtractPosFromEveryArrayInsideOtherArrayPosLimit() {
+        System.out.println(arrEvent);
         String expression = ".[0 to 2]..[0 to 1]";
         CompletableFuture<BsValue> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, future1::complete);
@@ -611,9 +611,10 @@ public class APItests {
         expected.add(title2.encodeToBarray());
         expected.add(edition1.encodeToBarray());
         expected.add(edition2.encodeToBarray());
+        expected.add(edition3.encodeToBarray());
         expected.add(hat1.encodeToBarray());
         expected.add(hat2.encodeToBarray());
-
+        System.out.println("result: "+result);
         assert(result.size() == expected.size());
         for(int i =0;i<result.size();i++) {
             if(result.get(i) instanceof Double) assertTrue(result.get(i) == expected.get(i));
@@ -622,7 +623,7 @@ public class APItests {
             else if(result.get(i)==null && expected.get(i)==null) assertTrue(true);
             else assertTrue(result.get(i).equals(expected.get(i)));
         }
-    }   //TODO: ..[#] ain't searching outside limits deeper, it should return the Map(Title -> C++Machine, ...)
+    }
 
     private ByteBuffer validatedByteBuffer = ByteBuffer.allocate(bson.encodeToBarray().length);
     private ByteBuffer b = validatedByteBuffer.put(bson.encodeToBarray());

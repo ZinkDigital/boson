@@ -219,7 +219,7 @@ class BosonImpl(
               case (C_LIMIT | C_LIMITLEVEL) if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER)=>
                 println("extractingFromBsonObject, matched with Array case filter, callling goThrough")
                 //println("extractFromBsonObj -> matched with BsonArray -> case Filter")
-                Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList,limitList)) match { //TODO: tests this keylist without drop!!!
+                Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList,limitList)) match {
                   case Some(value) if value.isEmpty => None
                   case Some(value) =>
                     println("OUT OF extractingFromBsonObject, matched with Array case filter, callling goThrough")
@@ -924,7 +924,7 @@ class BosonImpl(
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if limitList.head._3.equals(C_END) =>
-                      arrayFRIdx - finishReaderIndex match {  //TODO:tests it
+                      arrayFRIdx - finishReaderIndex match {
                         case 1 =>
                           keyList.head._1 match {
                             case STAR if keyList.size < 2 =>

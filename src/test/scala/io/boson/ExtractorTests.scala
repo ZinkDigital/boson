@@ -70,7 +70,7 @@ class ExtractorTests extends FunSuite {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
     help.writeBytes(bosonBson.extract(bosonBson.getByteBuf, List(("FavoriteSentence","first")), List((None,None,""))).get.asInstanceOf[Vector[Any]].head.asInstanceOf[String].getBytes)
     finalBuf.writeBytes(io.netty.handler.codec.base64.Base64.decode(help))
-    assert("Be the best".getBytes === new String(finalBuf.array()).replaceAll("\\p{C}", "").getBytes) //TODO:eliminate replaceAll from here
+    assert("Be the best".getBytes === new String(finalBuf.array()).replaceAll("\\p{C}", "").getBytes)
   }
 
   test("Extract Array[Byte] w/ String") {
