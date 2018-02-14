@@ -2218,10 +2218,10 @@ class jpPlusPlusTests extends FunSuite {
   test("Ex [# to end]..Key1") {
     val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
     val br5: BsonArray = new BsonArray().add(b11)
-    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
+    val b10: BsonObject = new BsonObject().put("SpecialEditions", br5).put("Title", "JavaMachine").put("Price", 39)
     val br4: BsonArray = new BsonArray().add(b10)
     val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
-    val br3: BsonArray = new BsonArray().add(b9)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
     val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
     val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
     val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
@@ -2239,14 +2239,19 @@ class jpPlusPlusTests extends FunSuite {
     boson.go(bsonEvent.encodeToBarray())
 
     val expected: Vector[Any] = Vector(
+      b11.encodeToBarray(),
       b10.encodeToBarray(),
       b9.encodeToBarray(),
+      b11.encodeToBarray(),
+      b10.encodeToBarray(),
+      b11.encodeToBarray(),
+      b11.encodeToBarray(),
       b11.encodeToBarray(),
       b10.encodeToBarray()
     )
     val res = future.join().getValue.asInstanceOf[Vector[Any]]
     println(s"res: $res")
-    //assert(expected.size === res.size)
+    assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall {
       case (e: Array[Byte], r: Array[Byte]) =>
         println(s"e: $e, r: $r, are they equal? ${e.sameElements(r)}")

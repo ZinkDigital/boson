@@ -249,42 +249,44 @@ class LanguageTests extends FunSuite {
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
 
-    val expected: Vector[Any] = Vector(obj4.encodeToBarray(), "Temperature")
+    val expected: Vector[Any] = Vector(obj4.encodeToBarray(), "Temperature", obj2.encodeToBarray(), obj3.encodeToBarray(), "Null", 100L, 2.3f, false)
     val res = resultParser.getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{
+      case (e,r: Double) => e == r
+      case (e,r) if e == null && r == null => true
       case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
       case (e,r) => e.equals(r)
     })
-  } //TODO: This test should return more results
+  }
 
   test("[# to #] w/key") {
     val expression: String = "[1 to 1]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
 
-    val expected: Vector[Any] = Vector(obj4.encodeToBarray())
+    val expected: Vector[Any] = Vector(obj4.encodeToBarray(), obj2.encodeToBarray())
     val res = resultParser.getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{
       case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
       case (e,r) => e.equals(r)
     })
-  } //TODO: This test should return more results
+  }
 
   test("[# until #] w/key") {
     val expression: String = "[1 until 2]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arrEvent.encode().getBytes))
     val resultParser: BsValue = callParse(boson, expression)
 
-    val expected: Vector[Any] = Vector(obj4.encodeToBarray())
+    val expected: Vector[Any] = Vector(obj4.encodeToBarray(), obj2.encodeToBarray())
     val res = resultParser.getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{
       case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
       case (e,r) => e.equals(r)
     })
-  } //TODO: This test should return more results
+  }
 
 
 
