@@ -252,7 +252,7 @@ class BosonImpl(
                 None
               case _ =>
                 println("traversing BsonObject, didnt match, calling extractFromBsonArray")
-                //println(s"keylist: $keyList, limitlist: $limitList")
+                println(s"keylist: $keyList, limitlist: $limitList")
                 val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
             }
@@ -769,33 +769,17 @@ class BosonImpl(
                     arrayFRIdx - bsonFinishReaderIndex match {
                       case 1 =>
                         println("This is last position!!!")
-                        keyList.head._2 match {
-                          case C_LIMIT if keyList.head._1.equals(EMPTY_KEY) => //case ..[#]
-                            println("going through array, found obj, calling extractFromBsonObj")
-                            val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList) //TODO: check if limitlist doens't need a drop like the next case of C_LIMIT
-                            if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                          case _ =>
-                            val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList.drop(1))  //check this drop
-                            //println(s"extracted from bsonobject: $midResult")
-                            if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                        }
+                        val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList.drop(1))
+                        if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                       case _ =>
                         netty.readerIndex(bsonFinishReaderIndex)
                         None
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
                     //println("normal case inside limits")
-                    keyList.head._2 match {
-                      case C_LIMIT if keyList.head._1.equals(EMPTY_KEY) => //case ..[#]
-                        println("going through array, found obj, case LIMIT EMPTY_KEY, calling extractFromBsonObj")
-                        val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList.drop(1)) //  modified limit to drop 1!!!
-                        if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                      case _ =>
-                        println("going through array, found obj, calling extractFromBsonObj")
-                        val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList.drop(1))  //check this drop
-                        //println(s"extracted from bsonobject: $midResult")
-                        if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-                    }
+                    //println("going through array, found obj, case LIMIT EMPTY_KEY, calling extractFromBsonObj")
+                    val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList.drop(1))
+                    if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                   case Some(_) =>
                     netty.readerIndex(bsonFinishReaderIndex)
                     None
@@ -1080,8 +1064,8 @@ class BosonImpl(
       seqType match {
         case D_FLOAT_DOUBLE =>
           if (comparingFunction(netty, keyList.drop(1).head._1)) {
-            println(s"matched on Double/Float: ${netty.readDoubleLE()}")
-            //netty.readDoubleLE()
+            //println(s"matched on Double/Float: ${netty.readDoubleLE()}")
+            netty.readDoubleLE()
             Some(C_MATCH)
           } else {
             netty.readDoubleLE()
@@ -1092,8 +1076,8 @@ class BosonImpl(
             netty.readCharSequence(valueLength, charset)
             Some(C_MATCH)
           } else {
-            println(s"DIDNT MATCH ON STRING: ${netty.readCharSequence(netty.readIntLE(),charset)}")
-            //netty.readCharSequence(netty.readIntLE(),charset)
+            //println(s"DIDNT MATCH ON STRING: ${netty.readCharSequence(netty.readIntLE(),charset)}")
+            netty.readCharSequence(netty.readIntLE(),charset)
             None}
         case D_BSONOBJECT =>
           if (comparingFunction(netty, keyList.drop(1).head._1)) {
@@ -1188,8 +1172,8 @@ class BosonImpl(
           } else None
         case D_INT =>
           if (comparingFunction(netty, keyList.drop(1).head._1)) {
-            println(s"matched on Int: ${netty.readIntLE()}")
-            //netty.readIntLE()
+            //println(s"matched on Int: ${netty.readIntLE()}")
+            netty.readIntLE()
             Some(C_MATCH)
           } else {
             netty.readIntLE()
