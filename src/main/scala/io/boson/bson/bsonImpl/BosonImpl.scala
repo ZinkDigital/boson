@@ -225,10 +225,10 @@ class BosonImpl(
                     //println("OUT OF extractingFromBsonObject, matched with Array case filter, callling goThrough")
                     Some(resultComposer(value.toVector))
                 }
-//              case C_LIMIT =>
-//                println("extractFromBsonObj, matched with BsonArray, calling extractFromBsonArray with no drops")
-//                val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
-//                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+              case C_LIMIT =>
+                println("extractFromBsonObj, matched with BsonArray, calling extractFromBsonArray with no drops")
+                val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, List((C_MATCH,C_MATCH))++keyList, limitList)
+                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
               case _ if keyList.size > 1 =>
                 //println("extractFromBsonObj; BsonArray case; calling goThrough")
                 Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
@@ -347,19 +347,32 @@ class BosonImpl(
             //println(s"out of goThroughArrayWithLimit with res: $value")
             Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
         }
-//      case _ if keyList.head._2.equals(C_LIMIT)=>
-//        println("non important key, condition LIMIT, calling traverseBsonArray")
-//        val constructed: Iterable[Any] = traverseBsonArray(netty.duplicate(), length, arrayFRIdx, keyList, limitList)
-//        println(s"constructed: $constructed")
-//        println("calling gothrough with List((Some(0), None, TO_RANGE)) ++ limitList")
-//        Some(goThroughArrayWithLimit(netty, length, arrayFRIdx, keyList, List((Some(0), None, TO_RANGE)) ++ limitList)) match {
-//          case Some(x) if x.isEmpty =>
-//            println("out of goThroughArrayWithLimit but res is empty")
-//            Some(resultComposer(constructed.toVector))
-//          case Some(value) =>
-//            println(s"out of goThroughArrayWithLimit with res: $value")
-//            Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
-//        }
+      case _ if keyList.size < 3 && keyList.head._2.equals(C_MATCH) && keyList.drop(1).head._2.equals(C_LIMIT)=>
+        println("non important key, keylist.size < 3, condition LIMIT, calling traverseBsonArray")
+        val constructed: Iterable[Any] = traverseBsonArray(netty.duplicate(), length, arrayFRIdx, keyList.drop(1), limitList)
+        println(s"constructed: $constructed")
+        println("calling gothrough with List((Some(0), None, TO_RANGE)) ++ limitList")
+        Some(goThroughArrayWithLimit(netty, length, arrayFRIdx, keyList.drop(1), List((Some(0), None, TO_RANGE)) ++ limitList)) match {
+          case Some(x) if x.isEmpty =>
+            println("out of goThroughArrayWithLimit but res is empty")
+            Some(resultComposer(constructed.toVector))
+          case Some(value) =>
+            println(s"out of goThroughArrayWithLimit with res: $value")
+            Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
+        }
+      case _ if keyList.head._2.equals(C_MATCH) && keyList.drop(1).head._2.equals(C_LIMIT)=>
+        println("non important key, condition LIMIT, calling traverseBsonArray")
+        val constructed: Iterable[Any] = goThroughArrayWithLimit(netty.duplicate(), length, arrayFRIdx, keyList.drop(2), limitList)
+        println(s"constructed: $constructed")
+        println("calling gothrough with List((Some(0), None, TO_RANGE)) ++ limitList")
+        Some(goThroughArrayWithLimit(netty, length, arrayFRIdx, keyList.drop(1), List((Some(0), None, TO_RANGE)) ++ limitList)) match {
+          case Some(x) if x.isEmpty =>
+            println("out of goThroughArrayWithLimit but res is empty")
+            Some(resultComposer(constructed.toVector))
+          case Some(value) =>
+            println(s"out of goThroughArrayWithLimit with res: $value")
+            Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
+        }
       case EMPTY_KEY if keyList.size < 2 =>
         //println("calling traverseBsonArray")
         Some(traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList)) match {
