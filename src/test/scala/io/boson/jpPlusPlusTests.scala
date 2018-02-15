@@ -458,6 +458,7 @@ class jpPlusPlusTests extends FunSuite {
   }
 
   test("Ex ..key[#] V1") {
+    println(bsonEvent)
     val expression: String = "..SpecialEditions[0]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
@@ -465,6 +466,7 @@ class jpPlusPlusTests extends FunSuite {
 
     val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
     val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    println(s"result: $result")
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   } //$..SpecialEditions[0] -> checked
@@ -2501,6 +2503,38 @@ class jpPlusPlusTests extends FunSuite {
 
     val expected: Vector[Any] = Vector(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)).encodeToBarray())
     val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex...") {
+    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val br5: BsonArray = new BsonArray().add(b11)
+    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
+    val br4: BsonArray = new BsonArray().add(b10)
+    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
+    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+    val expression: String = "SpecialEditions[0]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(b10.encodeToBarray(), b11.encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    println(s"res: $res")
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall {
       case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
