@@ -2634,4 +2634,208 @@ class jpPlusPlusTests extends FunSuite {
     })
   }
 
+  test("Ex Coverage of expression [#]..[#]") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(false)).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "[1 to end]..[all]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(2)
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 1") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "This.*.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(true, new BsonArray().add(1).encodeToBarray(), new BsonObject().encodeToBarray(), new BsonArray().add(2).encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 2") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "This.*.*.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(1,2)
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 3") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "This.*..field[@elem]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector()
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 4") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "This[0 to end].*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(true, new BsonArray().add(1).encodeToBarray(),new BsonObject().encodeToBarray(),new BsonArray().add(2).encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 5") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = ".This[0 to end].[1 to end].*.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector()
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 6") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = ".This[0 to end].[end].*.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector()
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 7") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = ".This[end].*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(new BsonObject().encodeToBarray() ,new BsonArray().add(2).encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 8") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = ".This[end].*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(true,new BsonArray().add(1).encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 9") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = ".This[0 to 1].*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(true,new BsonArray().add(1).encodeToBarray())
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 10") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = ".This[0 to 1].*.*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(1,2)
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex Coverage of expression .* on Arrays case 11") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "This[0 to 1]..field[@elem]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Vector[Any] = Vector()
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
 }
