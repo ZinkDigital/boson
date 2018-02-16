@@ -6,7 +6,7 @@ import io.boson.bson
 import io.boson.bson.bsonValue
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.BsValue
-import io.netty.util.ByteProcessor
+
 
 class BosonExtractor[T](expression: String, extractFunction: java.util.function.Consumer[T]) extends bson.Boson {
 
