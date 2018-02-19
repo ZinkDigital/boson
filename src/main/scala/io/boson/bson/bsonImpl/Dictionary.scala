@@ -50,6 +50,8 @@ object Dictionary {
   // PARSER CONSTANTS
   val P_NUMBER: String = """\d+(\.\d*)?"""
   val P_WORD: String =  """[/^[?a-zA-Z\u00C0-\u017F]+\d_-]+"""
+  val P_TO_RANGE: String = """\b(To|to)\b"""
+  val P_UNTIL_RANGE: String = """\b(Until|until)\b"""
   val P_CLOSE_BRACKET: String = "]"
   val P_OPEN_BRACKET: String = "["
   val P_HAS_ELEM: String = "[@"

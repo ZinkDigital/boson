@@ -36,16 +36,23 @@ class APIwithByteBufferTests extends FunSuite{
 
 
   test("extract PosV1 w/ key") {
+    println(arr)
     val expression: String = "[2 to 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    val expected: Vector[Array[Byte]] = Vector(arr.getBsonObject(2).encodeToBarray(),arr.getBsonObject(3).encodeToBarray())
-    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray(), br4.encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Any]]
+    println(s"result: $result")
     assert(expected.size === result.size)
-    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-  } //TODO: This test should return 1 more objects
+    assertTrue(expected.zip(result).forall{
+      case (e: Array[Byte], r: Array[Byte]) =>
+        println(s"e: $e, r: $r, are they equal? ${e.sameElements(r)}")
+        e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
 
   test("extract PosV2 w/ key") {
     val expression: String = "[2 until 3]"
@@ -53,11 +60,17 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    val expected: Vector[Array[Byte]] = Vector(arr.getBsonObject(2).encodeToBarray())
-    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray(), br4.encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Any]]
+    println(s"result: $result")
     assert(expected.size === result.size)
-    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-  } //TODO: This test should return 1 more objects
+    assertTrue(expected.zip(result).forall{
+      case (e: Array[Byte], r: Array[Byte]) =>
+        println(s"e: $e, r: $r, are they equal? ${e.sameElements(r)}")
+        e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
 
   test("extract PosV3 w/ key") {
     val expression: String = "[2 until end]"
@@ -65,11 +78,16 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    val expected: Vector[Array[Byte]] = Vector(arr.getBsonObject(2).encodeToBarray(),arr.getBsonObject(3).encodeToBarray())
-    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === result.size)
-    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-  } //TODO: This test should return 1 more objects
+    assertTrue(expected.zip(result).forall{
+      case (e: Array[Byte], r: Array[Byte]) =>
+        println(s"e: $e, r: $r, are they equal? ${e.sameElements(r)}")
+        e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
 
   test("extract PosV4 w/ key") {
     val expression: String = "[2 to end]"
@@ -77,14 +95,14 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    val expected: Vector[Any] = Vector(arr.getBsonObject(2).encodeToBarray(),arr.getBsonObject(3).encodeToBarray(),br4.encodeToBarray())
+    val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray(),br4.encodeToBarray(),br4.encodeToBarray())
     val result = future.join().getValue.asInstanceOf[Vector[Any]]
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall{
       case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
       case (e,r) => e.equals(r)
     })
-  } //TODO: This test should return 1 more objects
+  }
 
   test("extract PosV5 w/ key") {
     val expression: String = "[3]"
@@ -92,7 +110,7 @@ class APIwithByteBufferTests extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
     boson.go(validatedByteBuffer)
 
-    val expected: Vector[Array[Byte]] = Vector(arr.getBsonObject(3).encodeToBarray())
+    val expected: Vector[Array[Byte]] = Vector(obj3.encodeToBarray())
     val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))

@@ -25,7 +25,7 @@ class injectorAPITests extends FunSuite {
   val b10: BsonObject = new BsonObject().put("Title","JavaMachine").put("Price", 39)
   val br4: BsonArray = new BsonArray().add(b10)
   val b9: BsonObject = new BsonObject().put("Title","ScalaMachine").put("Price", 40)
-  val br3: BsonArray = new BsonArray().add(b9)//.add(new BsonObject().put("Ti","shit"))
+  val br3: BsonArray = new BsonArray().add(b9)
   val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
   val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
   val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
@@ -148,12 +148,18 @@ class injectorAPITests extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
     boson.go(validatedByteArr)
 
-    val expected: Vector[Array[Byte]] =
-      Vector(br1.getBsonObject(0).encodeToBarray(),br1.getBsonObject(2).encodeToBarray(), b5.encodeToBarray(), b6.encodeToBarray(), b7.encodeToBarray())
-    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    val expected: Vector[Any] =
+      Vector(b3.encodeToBarray(),b10.encodeToBarray(), b9.encodeToBarray(), b8.encodeToBarray(), b11.encodeToBarray(), b5.encodeToBarray(), b6.encodeToBarray(), b7.encodeToBarray())
+    val result = future.join().getValue.asInstanceOf[Vector[Any]]
+    println(s"result: $result")
     assert(expected.size === result.size)
-    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-  } //TODO: This test should return 3 more objects
+    assertTrue(expected.zip(result).forall {
+      case (e: Array[Byte], r: Array[Byte]) =>
+        println(s"e: $e, r: $r, are they equal? ${e.sameElements(r)}")
+        e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
 
   test("extract *[@*elem]") {
     val expression = "*[@*ce]"
@@ -162,11 +168,11 @@ class injectorAPITests extends FunSuite {
     boson.go(validatedByteArr)
 
     val expected: Vector[Array[Byte]] =
-      Vector(br1.getBsonObject(0).encodeToBarray(),br1.getBsonObject(2).encodeToBarray(), b5.encodeToBarray(), b6.encodeToBarray(), b7.encodeToBarray())
+      Vector(b3.encodeToBarray(),b10.encodeToBarray(), b9.encodeToBarray(), b8.encodeToBarray(), b11.encodeToBarray(), b5.encodeToBarray(), b6.encodeToBarray(), b7.encodeToBarray())
     val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-  } //TODO: This test should return 3 more objects
+  }
 
   test("extract Key.Key.Key") {
     val expression = "Store.Book.Title"

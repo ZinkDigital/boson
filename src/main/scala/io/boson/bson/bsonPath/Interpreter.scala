@@ -25,9 +25,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
     if (statement.nonEmpty) {
 
       statement.head match {
-        case MoreKeys(first, list, dots) =>
+        case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
           //println(s"statements: ${List(first) ++ list}")
           //println(s"dotList: $dots")
+          executeMoreKeys(first, list, dots)
+        case MoreKeys(first, list, dots) =>
+          println(s"statements: ${List(first) ++ list}")
+          println(s"dotList: $dots")
           executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
@@ -47,6 +51,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           }
         case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
         case Key(key) => if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
+        case ROOT() => (List((C_DOT,C_DOT)), List((None,None,EMPTY_RANGE)))
         case _ => throw CustomException("Error building key list")
       }
     if (statementList.nonEmpty) {
@@ -55,7 +60,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           statement match {
             case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))                                                                          //TODO: treat '*'
+            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: treat '*'
             case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
             case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
             case _ => throw CustomException("Error building key list")
@@ -97,25 +102,46 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
           case C_FILTER => elem
           case C_NEXT => println("----- NOT POSSIBLE----");if(dotsList.head.equals(C_DOUBLEDOT)) (elem._1,C_ALL) else elem
           case C_ALL => elem
+          case C_DOT => elem
         }
       },limitList1)
     }
   }
 
   private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
-    if(mid.isDefined && right.isDefined) {
-      (left, mid.get.toLowerCase, right.get) match {
-        case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
-        case (a, _, C_END) => List((Some(a),None,TO_RANGE))
-        case (a, expr, b) if b.isInstanceOf[Int] =>
-          expr.toLowerCase match {
-            case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
-            case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
-          }
-      }
-    } else { //[#]
-      List((Some(left),Some(left),TO_RANGE))
+    mid.isDefined match {
+      case true if right.isEmpty=>
+        mid.get match {
+          case C_FIRST => List((Some(0),Some(0),TO_RANGE))
+          case C_ALL => List((Some(0),None,TO_RANGE))
+          case C_END => List((Some(0),None,C_END))
+        }
+      case true if right.isDefined =>
+        (left, mid.get.toLowerCase, right.get) match {
+          case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
+          case (a, _, C_END) => List((Some(a),None,TO_RANGE))
+          case (a, expr, b) if b.isInstanceOf[Int] =>
+            expr.toLowerCase match {
+              case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
+              case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
+            }
+        }
+      case false =>
+        List((Some(left),Some(left),TO_RANGE))
     }
+//    if(mid.isDefined && right.isDefined) {
+//      (left, mid.get.toLowerCase, right.get) match {
+//        case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
+//        case (a, _, C_END) => List((Some(a),None,TO_RANGE))
+//        case (a, expr, b) if b.isInstanceOf[Int] =>
+//          expr.toLowerCase match {
+//            case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
+//            case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
+//          }
+//      }
+//    } else { //[#]
+//      List((Some(left),Some(left),TO_RANGE))
+//    }
   }
 
   private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {

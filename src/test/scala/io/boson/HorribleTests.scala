@@ -1,5 +1,6 @@
 package io.boson
 
+import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
@@ -11,7 +12,7 @@ import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
 import io.boson.bson.{Boson, bsonValue}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.{assertEquals,assertTrue}
+import org.junit.Assert.{assertEquals, assertTrue}
 
 /**
   * Created by Tiago Filipe on 25/10/2017.
@@ -343,5 +344,19 @@ class HorribleTests extends FunSuite {
       BsException("Failure parsing!"),
       future.join())
   }
+
+  test("Empty buf") {
+    val buf: ByteBuffer = ByteBuffer.allocate(0)
+    val expression = "..Store"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(buf)
+
+    assertEquals(
+      BsException("java.lang.IndexOutOfBoundsException"),
+      future.join())
+  }
+
+
 
 }
