@@ -11,17 +11,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
-import scala.None;
-import scala.Option;
-import scala.Tuple2;
-import scala.Tuple3;
-import scala.collection.JavaConverters;
-import scala.collection.immutable.Vector;
-import scala.collection.mutable.ArrayBuffer;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -54,47 +46,6 @@ public class APItests {
 
     }
 
-//    @Test
-//    public void jsonEqualBson() {
-//
-//        String expression = "Store";
-//
-//        System.out.println("WORK WITH JOSON\n");
-//        System.out.println("|-------- Perform Injection --------|\n");
-//        Joson joson = Joson.injector(expression,  (Map<String, Object> in) -> {
-//            in.put("WHAT", 10);
-//            return in;
-//        });
-//        CompletableFuture<String> midResult = joson.go(json);
-//        String result = midResult.join();
-//        System.out.println("|-------- Perform Extraction --------|\n");
-//        CompletableFuture<BsValue> future = new CompletableFuture<>();
-//        Joson joson1 = Joson.extractor(expression, future::complete);
-//        joson1.go(result);
-//        Object json1 = future.join().getValue();
-//        System.out.println(json1);
-//
-//
-//
-//
-//        System.out.println("WORK WITH BOSON\n");
-//        System.out.println("|-------- Perform Injection --------|\n");
-//        Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
-//            in.put("WHAT", 10);
-//            return in;
-//        });
-//        CompletableFuture<byte[]> midResult1 = boson.go(bson.encodeToBarray());
-//        byte[] result1 = midResult1.join();
-//        System.out.println("|-------- Perform Extraction --------|\n");
-//        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
-//        Boson boson1 = Boson.extractor(expression, future1::complete);
-//        boson1.go(result1);
-//        Object bson1 = future1.join().getValue();
-//        System.out.println(bson1);
-//
-//        assertEquals(json1, bson1 );
-//    }
-    //TODO:when merge branches with Ricardo Fix this test!!!
 
     @Test
     public void ExtractFromArrayPos() {
