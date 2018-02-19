@@ -1200,6 +1200,93 @@ public class APItests {
         }
     }
 
+    @Test
+    public void ExtractArrayRoot(){
+        String expression = ".";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(arr1.encodeToBarray());
+
+        scala.collection.immutable.Vector<Object> res = (scala.collection.immutable.Vector<Object>) future1.join().getValue();
+        List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
+        List<Object> expected = new ArrayList<>();
+        expected.add(arr1.encodeToBarray());
+
+        assert (result.size() == expected.size());
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])
+                assertTrue(Arrays.equals((byte[]) result.get(i), (byte[]) expected.get(i)));
+            else if (result.get(i) == null && expected.get(i) == null) assertTrue(true);
+            else assertTrue(result.get(i).equals(expected.get(i)));
+        }
+    }
+
+    @Test
+    public void ExtractObjRoot(){
+        String expression = ".";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(bson.encodeToBarray());
+
+        scala.collection.immutable.Vector<Object> res = (scala.collection.immutable.Vector<Object>) future1.join().getValue();
+        List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
+        List<Object> expected = new ArrayList<>();
+        expected.add(bson.encodeToBarray());
+
+        assert (result.size() == expected.size());
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])
+                assertTrue(Arrays.equals((byte[]) result.get(i), (byte[]) expected.get(i)));
+            else if (result.get(i) == null && expected.get(i) == null) assertTrue(true);
+            else assertTrue(result.get(i).equals(expected.get(i)));
+        }
+    }
+
+    @Test
+    public void Extract_Coverage_1(){
+        String expression = "[end]..[end]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(arr1.encodeToBarray());
+
+        scala.collection.immutable.Vector<Object> res = (scala.collection.immutable.Vector<Object>) future1.join().getValue();
+        List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
+        List<Object> expected = new ArrayList<>();
+        expected.add(100000L);
+        System.out.println("result: "+result);
+        assert (result.size() == expected.size());
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])
+                assertTrue(Arrays.equals((byte[]) result.get(i), (byte[]) expected.get(i)));
+            else if (result.get(i) == null && expected.get(i) == null) assertTrue(true);
+            else assertTrue(result.get(i).equals(expected.get(i)));
+        }
+    }
+
+    @Test
+    public void ExtractFirstPosArray(){
+        System.out.println(arr1);
+        String expression = "[first]";
+        CompletableFuture<BsValue> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, future1::complete);
+        boson.go(arr1.encodeToBarray());
+
+        scala.collection.immutable.Vector<Object> res = (scala.collection.immutable.Vector<Object>) future1.join().getValue();
+        List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
+        List<Object> expected = new ArrayList<>();
+        expected.add("Hat");
+        expected.add("Null");
+        expected.add(100000L);
+
+        assert (result.size() == expected.size());
+        for (int i = 0; i < result.size(); i++) {
+            if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])
+                assertTrue(Arrays.equals((byte[]) result.get(i), (byte[]) expected.get(i)));
+            else if (result.get(i) == null && expected.get(i) == null) assertTrue(true);
+            else assertTrue(result.get(i).equals(expected.get(i)));
+        }
+    }
+
 
 
 

@@ -191,11 +191,18 @@ class LanguageTests extends FunSuite {
   }
 
 
-  test(".[#to#].[#].[#]") {
+  test(".[#to#].[#].[#] No Output") {
     val expression: String = ".[5 to 7].[1].[0]"
     val boson: BosonImpl = new BosonImpl(byteArray = Option(arr1.encode().getBytes))
     val result: BsValue = callParse(boson, expression)
     assertEquals(BsSeq(Vector()), result)
+  }
+
+  test(".[#to#].[#].[#]") {
+    val expression: String = ".[5 to 7].[0]"
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(arr1.encode().getBytes))
+    val result: BsValue = callParse(boson, expression)
+    assertEquals(BsSeq(Vector("Null")), result)
   }
 
   test(".[#toend].[#].[#]") {
