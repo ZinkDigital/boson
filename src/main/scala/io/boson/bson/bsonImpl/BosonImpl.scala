@@ -719,7 +719,7 @@ class BosonImpl(
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if limitList.head._3.equals(C_END) =>
-                      //println("case END")
+                      println("case END")
                       arrayFRIdx - finishReaderIndex match {
                         case 1 =>
                           //println("THIS IS LAST POSITION")
@@ -729,7 +729,7 @@ class BosonImpl(
                               val midResult: Iterable[Any] = extractFromBsonArray(netty,valueLength2, finishReaderIndex, keyList, limitList.drop(1))
                               if(midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                             case _ =>
-                              //println("keylist.size > 1, calling gothrough")
+                              println("keylist.size > 1, calling gothrough")
                               val midResult: Iterable[Any] = goThroughArrayWithLimit(netty, valueLength2, finishReaderIndex, keyList.drop(1), limitList.drop(1))
                               if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                           }
@@ -756,6 +756,7 @@ class BosonImpl(
                   }
               }
             } else {
+              println("gothrough, bsonarray, NOT  EMPTY_KEY")
               limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
                   keyList.head._1 match {
@@ -780,8 +781,10 @@ class BosonImpl(
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if limitList.head._3.equals(C_END) =>
+                      //println("case END")
                       arrayFRIdx - finishReaderIndex match {
                         case 1 =>
+                          //println("THIS IS LAST POSITION")
                           keyList.head._1 match {
                             case STAR if keyList.size < 2 =>
                               Some(traverseBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList.drop(1))) match {
@@ -799,6 +802,7 @@ class BosonImpl(
                               if(midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
                           }
                         case _ =>
+                          //println("NOT LAST POSITION")
                           netty.readerIndex(finishReaderIndex)
                           None
                       }
@@ -947,8 +951,7 @@ class BosonImpl(
                 Some(C_MATCH)
               case C_LIMIT =>
                 Some(extractFromBsonObj(netty.readerIndex(start+4),keyList,finish,limitList)) match {
-                  case Some(value) if value.isEmpty =>
-                    Some(C_MATCH)
+                  case Some(value) if value.isEmpty => Some(C_MATCH)
                   case Some(value) =>
                     val arr: Array[Byte] = new Array[Byte](finish - start)
                     netty.getBytes(start, arr, 0, finish - start)
@@ -991,25 +994,19 @@ class BosonImpl(
                 }
             }
           } else {
-            //println("findElements, didnt matched with BsonArray")
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            //println(s"this array end at $arrayFinishReaderIndex readerIndex")
             keyList.head._2 match {
               case C_LIMITLEVEL =>
-              netty.readerIndex(arrayFinishReaderIndex)
-              None
+                netty.readerIndex(arrayFinishReaderIndex)
+                None
               case C_LIMIT =>
-                //println("case Limit")
-                //println(s"readerIndex at this point -> ${netty.readerIndex()}")
-                Some(extractFromBsonObj(netty.readerIndex(start+4),keyList,finish,limitList)) match {
+                Some(extractFromBsonObj(netty.readerIndex(start + 4), keyList, finish, limitList)) match {
                   case Some(value) if value.isEmpty =>
-                    //println("didnt found!!!")
                     netty.readerIndex(arrayFinishReaderIndex)
                     None
                   case Some(value) =>
-                    //println("found!!!")
                     netty.readerIndex(arrayFinishReaderIndex)
                     //println(s"readerIndex at this point -> ${netty.readerIndex()}")
                     Some(resultComposer(value.toVector))
