@@ -16,7 +16,7 @@ trait Writes[-A] {
 object Writes extends DefaultWrites {
 
   def apply[A](f: A => BsValue): Writes[A] = (a: A) => f(a)
-
+  def apply1[A](f: java.util.function.Function[A,BsValue]): Writes[A] = (a: A) => f(a)
 }
 
 trait DefaultWrites {

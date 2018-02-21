@@ -6,7 +6,6 @@ package io.zink.bosonInterface;
 import io.zink.boson.BosonExtractor;
 import io.zink.boson.BosonInjector;
 import io.zink.boson.BosonValidate;
-import scala.Function1;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -17,8 +16,7 @@ import java.util.function.Function;
 public interface Boson {
 
     static <T> Boson validate(String expression, Consumer<T> validateFunction) {
-
-        return new BosonValidate(expression,validateFunction);
+        return new BosonValidate<>(expression,validateFunction);
     }
 
     /**
@@ -30,8 +28,7 @@ public interface Boson {
      * @return a BosonImpl that is a BosonExtractor
      */
     static <T> Boson extractor(String expression, Consumer<T> extractFunction) {
-
-        return new BosonExtractor(expression,extractFunction);
+        return new BosonExtractor<>(expression,extractFunction);
     }
 
     /**
@@ -42,9 +39,8 @@ public interface Boson {
      * @param <T>
      * @return
      */
-        static <T> Boson injector(String expression, Function1<T, T> injectFunction) {
-
-        return new BosonInjector(expression,injectFunction);
+        static <T> Boson injector(String expression, Function<T, T> injectFunction) {
+        return new BosonInjector<>(expression,injectFunction);
     }
 
     /**

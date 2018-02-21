@@ -16,6 +16,7 @@ import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BosonValidate<T> implements Boson {
 
@@ -27,7 +28,7 @@ public class BosonValidate<T> implements Boson {
         this.validateFunction = validateFunction;
     }
 
-    private Function1<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
+    private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
     private BsValue callParse(BosonImpl boson, String expression){
         TinyLanguage parser = new TinyLanguage();
@@ -37,10 +38,10 @@ public class BosonValidate<T> implements Boson {
                 Interpreter interpreter = new Interpreter<>(boson, (Program) pr.get(), Option.empty());
                 return interpreter.run();
             }else{
-                return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply(writer));
+                return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply(writer));
+            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
     };
 

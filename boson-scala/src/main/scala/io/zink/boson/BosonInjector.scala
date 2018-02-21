@@ -7,13 +7,14 @@ import io.zink.bosonInterface.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.zink.boson.bson.bsonValue.{BsBoson, BsException, BsObject, BsValue}
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.compat.java8.FunctionConverters._
+import scala.concurrent.Future
 
 
-class BosonInjector[T](expression: String, injectFunction: java.util.function.Function[T, T]) extends Boson {
+class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends Boson {
 
-  val anon: T => T = injectFunction.asScala
+  val anon: T => T = injectFunction
 
   def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):BsValue = {
     val parser = new TinyLanguage
@@ -31,10 +32,10 @@ class BosonInjector[T](expression: String, injectFunction: java.util.function.Fu
     }
   }
 
-  override def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]] = {
+  override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-    val future: CompletableFuture[Array[Byte]] =
-      CompletableFuture.supplyAsync(() =>{
+    val future: Future[Array[Byte]] =
+      Future{
       val r: Array[Byte] = parseInj(boson, anon, expression) match {
         case ex: BsException => println(ex.getValue)
           bsonByteEncoding
@@ -44,14 +45,14 @@ class BosonInjector[T](expression: String, injectFunction: java.util.function.Fu
           bsonByteEncoding
       }
       r
-    })
+    }
     future
   }
 
-  override def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer] = {
+  override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
     val boson: BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-    val future: CompletableFuture[ByteBuffer] =
-    CompletableFuture.supplyAsync(() =>{
+    val future: Future[ByteBuffer] =
+    Future{
       val r:ByteBuffer = parseInj(boson, anon, expression) match {
         case ex: BsException => println(ex.getValue)
           bsonByteBufferEncoding
@@ -60,7 +61,7 @@ class BosonInjector[T](expression: String, injectFunction: java.util.function.Fu
           bsonByteBufferEncoding
       }
       r
-    })
+    }
     future
   }
 

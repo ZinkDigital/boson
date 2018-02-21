@@ -14,19 +14,20 @@ import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class BosonExtractor<T> implements Boson {
 
     private String expression;
-    private Consumer<BsValue> extractFunction;
+    private Consumer<T> extractFunction;
 
 
-    public BosonExtractor(String expression, Consumer<BsValue> extractFunction) {
+    public BosonExtractor(String expression, Consumer<T> extractFunction) {
         this.expression = expression;
         this.extractFunction = extractFunction;
     }
 
-    private Function1<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
+    private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
     private BsValue callParse(BosonImpl boson, String expression){
         TinyLanguage parser = new TinyLanguage();
@@ -36,39 +37,35 @@ public class BosonExtractor<T> implements Boson {
              Interpreter interpreter = new Interpreter<>(boson, (Program) pr.get(),Option.empty());
              return interpreter.run();
          }else{
-             return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply(writer));
+             return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
          }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply(writer));
+            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
     };
 
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
-        CompletableFuture<byte[]> future =
-                CompletableFuture.supplyAsync(() -> {
-                    Option<byte[]> opt = Option.apply(bsonByteEncoding);
-                    Option e = Option.empty();
-                    BosonImpl boson = new BosonImpl(opt, e,e);
-                    BsValue value = callParse(boson, expression);
-                    extractFunction.accept(value);
-                    return bsonByteEncoding;
-                });
-        return future;
+        return CompletableFuture.supplyAsync(() -> {
+            Option<byte[]> opt = Option.apply(bsonByteEncoding);
+            Option e = Option.empty();
+            BosonImpl boson = new BosonImpl(opt, e,e);
+            BsValue value = callParse(boson, expression);
+            extractFunction.accept((T)value);
+            return bsonByteEncoding;
+        });
     }
 
     @Override
     public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
-        CompletableFuture<ByteBuffer> future =
-                CompletableFuture.supplyAsync(() -> {
-                    Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
-                    Option e = Option.empty();
-                    BosonImpl boson = new BosonImpl(e,opt,e);
-                    BsValue value = callParse(boson, expression);
-                    extractFunction.accept(value);
-                    return bsonByteBufferEncoding;
-                });
-        return future;
+        return CompletableFuture.supplyAsync(() -> {
+            Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
+            Option e = Option.empty();
+            BosonImpl boson = new BosonImpl(e,opt,e);
+            BsValue value = callParse(boson, expression);
+            extractFunction.accept((T)value);
+            return bsonByteBufferEncoding;
+        });
     }
 
     @Override

@@ -7,9 +7,12 @@ import java.util.function.Consumer
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 import io.vertx.core.json.{JsonArray, JsonObject}
-import io.zink.joson.{JosonExtractor, JosonInjector}
+import io.zink.joson.{JosonExtractor, JosonInjector, JosonValidate}
+
+import scala.concurrent.Future
 
 trait Joson {
+  def validate[T](expression: String, validateFunction: Function[T, Unit]) = new JosonValidate[T](expression, validateFunction)
   /**
     * Make an Extractor that will call the extract function (Consumer) according to
     * the given expression.
@@ -19,9 +22,8 @@ trait Joson {
     * @param < T>
     * @return a BosonImpl that is a BosonExtractor
     */
-  def extractor[T](expression: String, extractFunction: Consumer[T]) = { // TODO construct an extractor
-    new JosonExtractor[T](expression, extractFunction)
-  }
+  def extractor[T](expression: String, extractFunction:Function[T,Unit]) = new JosonExtractor[T](expression, extractFunction)
+
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
@@ -32,9 +34,8 @@ trait Joson {
     * @param < T>
     * @return
     */
-  def injector[T](expression: String, injectFunction: Function[T, T]) = { // TODO construct an injector
-    new JosonInjector[T](expression, injectFunction)
-  }
+  def injector[T](expression: String, injectFunction: Function[T, T]) = new JosonInjector[T](expression, injectFunction)
+
 
   /**
     * Apply this Joson to the String that arrives and at some point in the future complete
@@ -44,7 +45,7 @@ trait Joson {
     * @param the Json string.
     * @return
     */
-  def go(jsonStr: String): CompletableFuture[String]
+  def go(jsonStr: String): Future[String]
 
 
   /**

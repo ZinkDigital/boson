@@ -2,13 +2,15 @@ package io.zink.bosonInterface
 
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
+//import java.util.function.Consumer
 
 import io.zink.boson.{BosonExtractor, BosonInjector, BosonValidate}
 
+import scala.concurrent.Future
+
 
 trait Boson{
-  def validate[T](expression: String, validateFunction: Consumer[T]) = new BosonValidate[T](expression, validateFunction)
+  def validate[T](expression: String, validateFunction: Function[T, Unit]) = new BosonValidate[T](expression, validateFunction)
   /**
     * Make an Extractor that will call the extract function (Consumer) according to
     * the given expression.
@@ -18,7 +20,7 @@ trait Boson{
     * @param < T>
     * @return a BosonImpl that is a BosonExtractor
     */
-  def extractor[T](expression: String, extractFunction: Consumer[T]) = new BosonExtractor[T](expression, extractFunction)
+  def extractor[T](expression: String, extractFunction: Function[T, Unit]) = new BosonExtractor[T](expression, extractFunction)
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
@@ -29,7 +31,7 @@ trait Boson{
     * @param < T>
     * @return
     */
-  def injector[T](expression: String, injectFunction: java.util.function.Function[T, T]) = new BosonInjector[T](expression, injectFunction)
+  def injector[T](expression: String, injectFunction: Function[T, T]) = new BosonInjector[T](expression, injectFunction)
 
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
@@ -39,7 +41,7 @@ trait Boson{
     * @param bsonByteEncoding
     * @return
     */
-  def go(bsonByteEncoding: Array[Byte]): CompletableFuture[Array[Byte]]
+  def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]]
 
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
@@ -49,7 +51,7 @@ trait Boson{
     * @param bsonByteBufferEncoding
     * @return
     */
-  def go(bsonByteBufferEncoding: ByteBuffer): CompletableFuture[ByteBuffer]
+  def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer]
 
 
   /**

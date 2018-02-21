@@ -12,7 +12,7 @@ import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
 import io.zink.boson.bson.bsonValue.*;
 import io.zink.josonInterface.Joson;
-import scala.Function1;
+
 import scala.Option;
 import scala.util.parsing.json.Parser;
 
@@ -33,7 +33,7 @@ public class JosonInjector<T> implements Joson {
     }
 
 
-    private Function1<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
+    private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
     public BsValue parseInj(BosonImpl netty, Function injectFunc, String expression){
         TinyLanguage parser = new TinyLanguage();
@@ -43,10 +43,10 @@ public class JosonInjector<T> implements Joson {
                 Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), Option.apply(injectFunc));
                 return interpreter.run();
             }else{
-                return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply(writer));
+                return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply(writer));
+            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
     };
 
@@ -82,11 +82,8 @@ public class JosonInjector<T> implements Joson {
                                     System.out.println(ex.getMessage());
                                     return jsonStr;
                                 }
-                                //return ((BsBoson) res).getValue().getByteBuf().nioBuffer();
                             default:  return jsonStr;
                         }
-
-
                     });
         }catch(IOException e){
             System.out.println(e.getMessage());

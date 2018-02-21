@@ -6,27 +6,25 @@ import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
 import io.zink.boson.bson.bsonValue.*;
 import io.zink.bosonInterface.Boson;
-import scala.Function1;
 import scala.Option;
 import scala.util.parsing.json.Parser;
-
+import scala.compat.java8.FunctionConverters.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-
 import static scala.Option.*;
 
 public class BosonInjector<T> implements Boson {
-    String expression;
-    Function1<T, T> injectFunction;
+    private String expression;
+    private Function<T, T> injectFunction;
 
-    public BosonInjector(String expression, Function1<T, T> injectFunction) {
+    public BosonInjector(String expression, Function<T, T> injectFunction) {
         this.expression = expression;
         this.injectFunction = injectFunction;
     }
-    private Function1<String, BsValue> writer = BsException$.MODULE$::apply;
+    private Function<String,BsValue> writer = BsException$.MODULE$::apply;
 
-    private BsValue parseInj(BosonImpl netty, Function1<T,T> injectFunc, String expression){
+    private BsValue parseInj(BosonImpl netty, Function<T,T> injectFunc, String expression){
         TinyLanguage parser = new TinyLanguage();
         try{
             Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
@@ -36,10 +34,10 @@ public class BosonInjector<T> implements Boson {
 
                 return res;
             }else{
-                return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply(writer));
+                return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply(writer));
+            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
     };
 

@@ -1,8 +1,6 @@
 package io.zink.joson
 
 import java.io.ByteArrayOutputStream
-import java.util.concurrent.CompletableFuture
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import de.undercouch.bson4jackson.BsonFactory
@@ -11,8 +9,10 @@ import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 import io.zink.josonInterface.Joson
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-class JosonValidate[T](expression: String, validateFunction: java.util.function.Consumer[T]) extends Joson {
+class JosonValidate[T](expression: String, validateFunction: Function[T, Unit]) extends Joson {
   private def callParse(boson: BosonImpl, expression: String): BsValue = {
     val parser = new TinyLanguage
     try {
@@ -35,7 +35,7 @@ class JosonValidate[T](expression: String, validateFunction: java.util.function.
     * @param the Json string.
     * @return
     */
-  override def go(jsonStr: String): CompletableFuture[String] = {
+  override def go(jsonStr: String): Future[String] = {
     val a: JsonObject = new JsonObject(jsonStr)
 
     val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
@@ -50,16 +50,16 @@ class JosonValidate[T](expression: String, validateFunction: java.util.function.
     val bsonByteEncoding: Array[Byte] = os.toByteArray
     os.flush()
 
-    val future: CompletableFuture[String] =
-      CompletableFuture.supplyAsync(() => {
+    val future: Future[String] =
+      Future{
         val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
         callParse(boson, expression) match {
           case (res: BsValue) =>
-            validateFunction.accept(res.asInstanceOf[T])
+            validateFunction(res.asInstanceOf[T])
           case _ => throw new RuntimeException("JosonExtractor -> go() default case!!!")
         }
         jsonStr
-      })
+      }
     future
   }
 
@@ -71,5 +71,5 @@ class JosonValidate[T](expression: String, validateFunction: java.util.function.
     * @param the Joson to fuse to.
     * @return the fused Joson
     */
-  override def fuse(joson: Joson): Joson = ???
+  override def fuse(joson: Joson): Joson = new JosonFuse(this, joson)
 }

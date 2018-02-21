@@ -13,6 +13,8 @@ import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 import io.zink.josonInterface.Joson
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 
 
@@ -22,7 +24,7 @@ import io.zink.josonInterface.Joson
 
 
 
-class JosonExtractor[T](expression: String, extractFunction: Consumer[T]) extends Joson {
+class JosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) extends Joson {
   /**
     * Apply this Joson to the String that arrives and at some point in the future complete
     * the future with the resulting String. In the case of an Extractor this will result in
@@ -45,7 +47,7 @@ class JosonExtractor[T](expression: String, extractFunction: Consumer[T]) extend
     }
   }
 
-  override def go(jsonStr: String): CompletableFuture[String] = {
+  override def go(jsonStr: String):Future[String] = {
     val a: JsonObject = new JsonObject(jsonStr)
 
     val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
@@ -60,16 +62,16 @@ class JosonExtractor[T](expression: String, extractFunction: Consumer[T]) extend
     val bsonByteEncoding: Array[Byte] = os.toByteArray
     os.flush()
 
-    val future: CompletableFuture[String] =
-      CompletableFuture.supplyAsync(() => {
+    val future: Future[String] =
+      Future{
         val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
         callParse(boson, expression) match {
           case (res: BsValue) =>
-            extractFunction.accept(res.asInstanceOf[T])
+            extractFunction(res.asInstanceOf[T])
           case _ => throw new RuntimeException("JosonExtractor -> go() default case!!!")
         }
         jsonStr
-      })
+      }
     future
   }
 
@@ -81,5 +83,5 @@ class JosonExtractor[T](expression: String, extractFunction: Consumer[T]) extend
     * @param the Joson to fuse to.
     * @return the fused Joson
     */
-  override def fuse(joson: Joson): Joson = ???
+  override def fuse(joson: Joson): Joson = new JosonFuse(this, joson)
 }

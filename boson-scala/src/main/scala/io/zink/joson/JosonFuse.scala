@@ -1,9 +1,9 @@
 package io.zink.joson
 
-import java.util.concurrent.CompletableFuture
-
 import io.zink.josonInterface.Joson
-
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 class JosonFuse(first: Joson, second: Joson) extends Joson {
   /**
     * Apply this Joson to the String that arrives and at some point in the future complete
@@ -13,12 +13,23 @@ class JosonFuse(first: Joson, second: Joson) extends Joson {
     * @param the Json string.
     * @return
     */
-  override def go(jsonStr: String): CompletableFuture[String] = {
-    val future: CompletableFuture[String] =
-      CompletableFuture.supplyAsync(() => {
-        val firstFuture: CompletableFuture[String] = first.go(jsonStr)
-        second.go(firstFuture.join()).join()
-      })
+  override def go(jsonStr: String): Future[String] = {
+    val future: Future[String] =
+      Future{
+        val firstFuture: Future[String] = first.go(jsonStr)
+        firstFuture.value.get match{
+          case Success(value) =>
+            second.go(value).value.get match{
+              case Success(secondValue)=>
+                secondValue
+              case Failure(e)=>
+                jsonStr
+            }
+          case Failure(e) =>
+            jsonStr
+        }
+
+      }
     future
   }
 

@@ -3,7 +3,6 @@ package io.zink.joson
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.CompletableFuture
 
-
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import de.undercouch.bson4jackson.BsonFactory
@@ -14,7 +13,9 @@ import io.zink.boson.bson.bsonValue.{BsBoson, BsException, BsObject, BsValue}
 import io.zink.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
 import io.zink.josonInterface.Joson
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.compat.java8.FunctionConverters._
+import scala.concurrent.Future
 
 /**
   * Created by Ricardo Martins on 19/01/2018.
@@ -48,7 +49,7 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     * @return
     */
 
-  override def go(jsonStr: String): CompletableFuture[String] = {
+  override def go(jsonStr: String): Future[String] = {
 
     val a: JsonObject = new JsonObject(jsonStr)
     val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
@@ -63,8 +64,8 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     os.flush()
     val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
 
-    val future: CompletableFuture[String] =
-    CompletableFuture.supplyAsync(() =>{
+    val future: Future[String] =
+    Future{
       val r: String = parseInj(boson, anon, expression) match {
         case ex: BsException =>
           println(ex.getValue)
@@ -83,7 +84,7 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
         case x => jsonStr
       }
       r
-    })
+    }
     future
   }
 
@@ -95,5 +96,5 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     * @param the Joson to fuse to.
     * @return the fused Joson
     */
-  override def fuse(joson: Joson): Joson = ???
+  override def fuse(joson: Joson): Joson = new JosonFuse(this,joson)
 }
