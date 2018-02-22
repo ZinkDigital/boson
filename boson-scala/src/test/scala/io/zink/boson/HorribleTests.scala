@@ -4,15 +4,15 @@ import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
+import io.netty.util.ResourceLeakDetector
 import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import io.zink.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
+import io.zink.boson.bson.bsonValue
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.zink.boson.bson.bsonValue.{BsException, BsSeq, BsValue}
-import io.zink.boson.bson.{Boson, bsonValue}
-import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.{assertEquals, assertTrue}
 
 /**
   * Created by Tiago Filipe on 25/10/2017.

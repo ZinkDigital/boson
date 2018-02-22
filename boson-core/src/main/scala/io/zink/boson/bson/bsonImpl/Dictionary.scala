@@ -2,8 +2,6 @@ package io.zink.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
 
-import io.vertx.core.json.{JsonArray, JsonObject}
-
 
 object Dictionary {
   // BUFFERS CONSTANTS

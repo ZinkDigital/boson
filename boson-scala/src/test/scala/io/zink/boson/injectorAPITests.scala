@@ -1,20 +1,20 @@
 package io.zink.boson
 
-import java.util.concurrent.{CompletableFuture, CountDownLatch}
+import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonValue._
 import mapper.Mapper
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.{assertEquals,assertTrue}
 
-import scala.collection.mutable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
 class injectorAPITests extends FunSuite {
@@ -349,15 +349,16 @@ class injectorAPITests extends FunSuite {
       val expression = "bson11.array21[0 until 2].[0 until 2]" //.[0 to 1].fie*"
       val expression1 = "bson11.array21[0 until 2].[0 until 2]"
       val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
-      val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-      val result: Array[Byte] = midResult.join()
-      //println(s"result size = ${result.length}   resultBYteBuf size = ${s.readIntLE()}   validBsonArray = ${validBsonArray.length}")
-      //validBsonArray.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
-      //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+
+      val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
       val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
       val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-      boson1.go(result)
-      //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+
+      Await.result(midResult, Duration.Inf)
+      val result: Array[Byte] = midResult.value.get.get
+      val finalResult: Future[Array[Byte]] = boson1.go(result)
+      Await.result(finalResult, Duration.Inf)
       val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
       assertEquals(Vector(2, 3, 2, 3), a)
   }
@@ -383,16 +384,15 @@ class injectorAPITests extends FunSuite {
     val expression = "bson11.array21[0 until 2]" //.[0 to 1].fie*"
     val expression1 = "bson11.array21[0 until 2]"
     val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-    val s: ByteBuf = Unpooled.copiedBuffer(result)
-    //println(s"result size = ${result.length}   resultBYteBuf size = ${s.readIntLE()}   validBsonArray = ${validBsonArray.length}")
-    //validBsonArray.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
-    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-    boson1.go(result)
-    //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
+
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector(2, 3),a  )
 
@@ -416,16 +416,14 @@ class injectorAPITests extends FunSuite {
     val expression = "bson11.array21[@i*nt].int"
     val expression1 = "int"
     val boson: Boson = Boson.injector(expression, (in: Int) => in + 2)
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-    val s: ByteBuf = Unpooled.copiedBuffer(result)
-    //println(s"result size = ${result.length}   resultBYteBuf size = ${s.readIntLE()}   validBsonArray = ${validBsonArray.length}")
-    //validBsonArray.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
-    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-    boson1.go(result)
-    //println(future.join()/*.getValue.asInstanceOf[Vector[String]]*/)
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector(2, 0),a  )
 
@@ -446,13 +444,16 @@ class injectorAPITests extends FunSuite {
     val expression = "array[0].damnnn[1].google"
     val expression1 = "google"
     val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-    boson1.go(result)
-    //println(future.join().getValue.asInstanceOf[Vector[String]])
+
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
+
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector("DAMMN", "sdfsf", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
 
@@ -473,13 +474,16 @@ class injectorAPITests extends FunSuite {
     val expression = "arr*ay[0 until 1].damn*n[0 until 1].google"
     val expression1 = "google"
     val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-    boson1.go(result)
-    //println(future.join().getValue.asInstanceOf[Vector[String]])
+
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
+
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector("sdfsf", "DAMMN", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
 
@@ -491,7 +495,6 @@ class injectorAPITests extends FunSuite {
     val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)
     val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
     val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
-    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
     val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux).add(bAux1)
     val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
 
@@ -501,15 +504,15 @@ class injectorAPITests extends FunSuite {
     val expression = "array[@damnnn].damnnn[@google].google"
     val expression1 = "google"
     val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-    boson1.go(result)
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector("sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "sdfsf", "DAMMN"),a  )
-    //result.foreach(b => println(s"byte=${b.toByte}    char=${b.toChar}"))
   }
 
   test("$.Store.* => Store") {
@@ -555,15 +558,14 @@ class injectorAPITests extends FunSuite {
         array
       }
     })
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
-    //result.foreach(b => println("Char="+ b.toChar + "  Int="+b.toInt))
-    //println("|-------- Perform Extraction --------|\n\n")
-    //val expression1 = "array.[@damnnn].damnnn.[@google].google"
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson1.go(result)
-    //val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+
 
     val _SEdition1: BsonObject = new BsonObject().put("Price", 39).put("Title", "JavaMachine")
     val _SEdition2: BsonObject = new BsonObject().put("Price", 40).put("Title", "ScalaMachine")
@@ -582,6 +584,7 @@ class injectorAPITests extends FunSuite {
     val _Store: BsonObject = new BsonObject().put("Book", _Book).put("Hat", _Hat).put("WHAT!!!", 10)
 
     val expected: Vector[Array[Byte]] = Vector(_Store.encodeToBarray())
+    Await.result(finalResult, Duration.Inf)
     val res = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall(b => b._1.sameElements(b._2)))
@@ -618,11 +621,16 @@ class injectorAPITests extends FunSuite {
     val validBsonArray: Array[Byte] = Event.encodeToBarray
     val expression = ".Store.float"
     val boson: Boson = Boson.injector(expression, (x:Float) => x+2.2f)
-    val midResult: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result: Array[Byte] = midResult.join()
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson1.go(result)
+
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
+
     val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
     assertEquals(Vector(14.5) ,future.join().getValue  )
   }

@@ -2,14 +2,13 @@ package io.zink.boson.bson.bsonImpl
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
-import Dictionary._
-import io.zink.boson.bson.bsonPath._
+
 import io.netty.buffer.{ByteBuf, Unpooled}
+import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bsonPath._
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.{Failure, Success, Try}
-import scala.collection.JavaConverters._
-import io.zink.boson.bson.bsonPath.Compose
-import scala.collection.mutable
 /**
   * Created by Ricardo Martins on 18/09/2017.
   */

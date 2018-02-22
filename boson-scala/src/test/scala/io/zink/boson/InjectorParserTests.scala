@@ -2,29 +2,27 @@ package io.zink.boson
 
 
 
-import java.util
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.bsonImpl.BosonImpl
-
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.zink.boson.bson.{Boson, bsonValue}
-import io.zink.boson.bson.bsonValue._
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.{ByteProcessor, ResourceLeakDetector}
-import io.vertx.core.buffer.Buffer
+import io.netty.util.ResourceLeakDetector
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import io.zink.boson.bson.bsonValue._
+import io.zink.boson.bson.bsonValue
 import mapper.Mapper
 import org.junit.runner.RunWith
 
-import scala.collection.mutable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 //import org.scalameter.Events.Failure
+import org.junit.Assert.assertTrue
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
 import scala.collection.immutable.List
 import scala.util.{Failure, Success, Try}
-import org.junit.Assert.{assertEquals,assertTrue}
 /**
   * Created by Ricardo Martins on 15/12/2017.
   */
@@ -577,12 +575,13 @@ class InjectorParserTests extends FunSuite {
       }
     })
 
-    val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+    val result: Future[Array[Byte]] = boson.go(validBsonArray)
 
     // apply an extractor to get the new serial code as above.
-    val resultValue: Array[Byte] = result.join()
+
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    val resultValue: Array[Byte] = Await.result(result, Duration.Inf)
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
 
@@ -614,11 +613,12 @@ class InjectorParserTests extends FunSuite {
         array
       }
     })
-    val result: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
+    val result: Future[Array[Byte]] = boson.go(validBsonArray)
     // apply an extractor to get the new serial code as above.
-    val resultValue: Array[Byte] = result.join()
+   // val resultValue: Array[Byte] = result.join()
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    val resultValue: Array[Byte] = Await.result(result, Duration.Inf)
     boson1.go(resultValue)
     val finalResult: BsValue = future.join()
 

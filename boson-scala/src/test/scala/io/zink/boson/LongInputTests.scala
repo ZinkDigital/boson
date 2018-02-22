@@ -1,12 +1,12 @@
 package io.zink.boson
 
 import bsonLib.BsonObject
+import io.netty.util.ResourceLeakDetector
+import io.vertx.core.json.JsonObject
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.zink.boson.bson.bsonValue
 import io.zink.boson.bson.bsonValue.{BsSeq, BsValue}
-import io.netty.util.ResourceLeakDetector
-import io.vertx.core.json.JsonObject
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner

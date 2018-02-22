@@ -3,8 +3,8 @@ package io.zink.boson
 import java.nio.ByteBuffer
 
 import bsonLib.BsonObject
-import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.netty.util.ResourceLeakDetector
+import io.zink.boson.bson.bsonImpl.BosonImpl
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner

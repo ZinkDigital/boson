@@ -1,17 +1,11 @@
 package io.zink.boson;
 
 import bsonLib.BsonObject;
-
-import io.zink.bosonInterface.Boson;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
-
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 public class BosonTest {
 

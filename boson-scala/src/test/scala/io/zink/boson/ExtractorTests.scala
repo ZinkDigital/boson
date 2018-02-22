@@ -3,10 +3,10 @@ package io.zink.boson
 import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.{assertEquals,assertTrue}
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner

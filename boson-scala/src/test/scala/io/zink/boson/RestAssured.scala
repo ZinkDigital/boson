@@ -1,15 +1,15 @@
 package io.zink.boson
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
 import io.restassured.RestAssured.given
 import io.vertx.core.json.JsonObject
 import okhttp3.mockwebserver.{MockResponse, MockWebServer}
 import org.hamcrest.Matchers._
-import org.junit.{After, Before, Test}
 import org.junit.Assert.assertThat
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.junit.{After, Before, Test}
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 
 class RestAssured {
 
@@ -54,7 +54,8 @@ class RestAssured {
       assertThat(out, equalTo(seq))
     })
 
-    boson.go(byteArray).join()
+    val future: Future[Array[Byte]] = boson.go(byteArray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
   }
 
 }

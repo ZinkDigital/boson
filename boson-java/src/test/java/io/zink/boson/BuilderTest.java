@@ -1,4 +1,4 @@
-package io.boson;
+package io.zink.boson;
 
 
 

@@ -4,27 +4,28 @@ import java.io.ByteArrayOutputStream
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import de.undercouch.bson4jackson.BsonFactory
-import io.zink.boson.bson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonValue.BsValue
-import io.zink.boson.json.Joson
-import io.zink.boson.json.Joson.{JsonArraySerializer, JsonObjectSerializer}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.{JsonArray, JsonObject}
+import io.zink.boson.Boson
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonValue.BsValue
 import mapper.Mapper
-import org.junit.Assert.{assertEquals,assertArrayEquals}
+import org.junit.Assert.assertArrayEquals
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
+import scala.concurrent.{Await, CanAwait, Future}
+import scala.concurrent.duration.Duration
 /**
   * Created by Ricardo Martins on 22/01/2018.
   */
 @RunWith(classOf[JUnitRunner])
-class APItests extends FunSuite{
+class APItests extends FunSuite  {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
 
   val hat3: BsonObject = new BsonObject().put("Price", 38).put("Color", "Blue")
@@ -53,8 +54,8 @@ class APItests extends FunSuite{
     val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
     val os = new ByteArrayOutputStream
     val module = new SimpleModule
-    module.addSerializer(classOf[JsonObject],new JsonObjectSerializer)
-    module.addSerializer(classOf[JsonArray], new JsonArraySerializer)
+    module.addSerializer(classOf[JsonObject],new Joson.JsonObjectSerializer)
+    module.addSerializer(classOf[JsonArray], new Joson.JsonArraySerializer)
     mapper.registerModule(module)
     //convert JsonObject
     mapper.writeValue(os, a)
@@ -85,8 +86,8 @@ class APItests extends FunSuite{
       }
     })
 
-    val midResult: CompletableFuture[String] = joson.go(json)
-    val result: String = midResult.join()
+    val midResult: Future[String] = joson.go(json)
+    val result: String = Await.result(midResult, Duration.Inf)
     println("|-------- Perform Extraction --------|\n")
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson1: Joson = Joson.extractor(expression, (in: BsValue) => future.complete(in))
@@ -111,8 +112,10 @@ class APItests extends FunSuite{
         array
       }
     })
-    val midResult1: CompletableFuture[Array[Byte]] = boson.go(validBsonArray)
-    val result1: Array[Byte] = midResult1.join()
+    val midResult1: Future[Array[Byte]] = boson.go(validBsonArray)
+    //val result1: Array[Byte] = midResult1.join()
+    val result1 = Await.result(midResult1, Duration.Inf)
+    //val result1: Array[Byte] = midResult1.result(Duration.Inf)
     println("|-------- Perform Extraction --------|\n")
     val future1: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1: Boson = Boson.extractor(expression, (in: BsValue) => future1.complete(in))

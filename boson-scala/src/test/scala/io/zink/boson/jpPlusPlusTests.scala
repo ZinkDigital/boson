@@ -1,20 +1,21 @@
 package io.zink.boson
 
-import java.util.concurrent.{CompletableFuture, CountDownLatch, TimeUnit}
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import java.util.concurrent.CompletableFuture
+
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonValue.{BsSeq, BsValue}
-import io.zink.boson.json.Joson
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bsonValue.BsValue
 import mapper.Mapper
-import org.junit.Assert
+import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert._
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
 class jpPlusPlusTests extends FunSuite {
@@ -84,11 +85,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val bosonE: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    bosonE.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    bosonE.go(injResult)
 
     val expected: Vector[Array[Byte]] = Vector(_b2.put("Street?", "im Lost").encodeToBarray())
     val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
@@ -129,11 +131,12 @@ class jpPlusPlusTests extends FunSuite {
       }
     })
 
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
     val help: BsonArray = new BsonArray().add("Street?").add(_b3).add(_b4).add(_b8)
 
     val expected: Vector[Array[Byte]] = Vector(help.encodeToBarray())
@@ -171,11 +174,12 @@ class jpPlusPlusTests extends FunSuite {
       }
     })
 
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] = Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray())
     val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
@@ -211,11 +215,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] = Vector(_b4.put("Street?", "im Lost").encodeToBarray())
     val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
@@ -238,11 +243,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = ".Store.Book[0 to end].Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
   }
@@ -262,11 +268,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = ".Store.Book[@Price].Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, C++!!!)", future.join().getValue.toString)
   }
@@ -287,11 +294,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!)", future.join().getValue.toString)
   }
@@ -311,11 +319,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, JavaMachine!!!, Scala!!!, ScalaMachine!!!, C++!!!, C++Machine!!!, Java!!!, JavaMachine!!!)", future.join().getValue.toString)
   }
@@ -335,11 +344,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..Book.*.Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
   }
@@ -359,11 +369,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..Book.Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java, Scala, C++)", future.join().getValue.toString)
   } //No change is perform, because Book is a Array.
@@ -383,11 +394,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..Book[0 to end].Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, Scala!!!, C++!!!)", future.join().getValue.toString)
   } //Change is perform, because Book is a Array.
@@ -406,11 +418,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..SpecialEditions[@Price].Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!, JavaMachine!!!)", future.join().getValue.toString)
   }
@@ -443,11 +456,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
@@ -486,11 +500,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
@@ -552,11 +567,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(bsonEvent.encodeToBarray())
+    val injFuture: Future[Array[Byte]] = bosonI.go(bsonEvent.encodeToBarray())
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(new BsonObject().put("fridgeTemp", 15).put("Street?", "im Lost").encodeToBarray(), new BsonObject().put("fridgeTemp", 12).put("Street?", "im Lost").encodeToBarray(), new BsonObject().put("fridgeTemp", 18).put("Street?", "im Lost").encodeToBarray())
@@ -593,11 +609,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
@@ -622,11 +639,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..*k[@SpecialEditions].Pr*"
 
     val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(25.5, 31.5, 22.6, 25.5)", future.join().getValue.toString)
   }
@@ -646,11 +664,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = ".Store..Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39)", future.join().getValue.toString)
   } //No Change is perform, because not all values are of the same type
@@ -684,11 +703,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
@@ -726,11 +746,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
@@ -756,11 +777,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = ".Store..Book[0 until end]..Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, JavaMachine!!!, Scala!!!, ScalaMachine!!!)", future.join().getValue.toString)
   }
@@ -793,12 +815,13 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
     //println("injFuture=" + new String(injFuture.join()))
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b9.put("Street?", "im Lost").encodeToBarray())
@@ -819,12 +842,13 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = ".*ore..*k[1 until end]..*Editions..Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
     //println("injFuture=" + new String(injFuture.join()))
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(ScalaMachine!!!)", future.join().getValue.toString)
   }
@@ -858,11 +882,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
@@ -885,12 +910,13 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..Book[0 to end]..Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
     //println("injFuture=" + new String(injFuture.join()))
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(15.5, 39, 40, 12.6, 38)", future.join().getValue.toString)
   } //No Change is perform, because not all values are of the same type
@@ -909,12 +935,13 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Store..Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
     // println("injFuture=" + new String(injFuture.join()))
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39)", future.join().getValue.toString)
   } //No Change is perform, because not all values are of the same type
@@ -933,11 +960,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book[@Price]..Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, JavaMachine!!!, C++!!!, C++Machine!!!)", future.join().getValue.toString)
   }
@@ -971,11 +999,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
     // println("injFuture=" + new String(injFuture.join()))
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
     val xbr4: Array[Byte] = new BsonArray().add(new BsonObject().put("Price", 39).put("Title", "JavaMachine")).add("NewEdition!").encodeToBarray()
     val xbr3: Array[Byte] = new BsonArray().add(new BsonObject().put("Price", 40).put("Title", "ScalaMachine")).add("NewEdition!").encodeToBarray()
     val xbr5: Array[Byte] = new BsonArray().add(new BsonObject().put("Price", 38).put("Title", "C++Machine")).add("NewEdition!").encodeToBarray()
@@ -1002,11 +1031,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "..Book.SpecialEditions..Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(39, 40, 38)", future.join().getValue.toString)
   } // Change is not perform because Book is an array, and the expression misses the Array specification
@@ -1058,11 +1088,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] = Vector(xbr1.add("newField!").encodeToBarray(), xbr2.add("newField!").encodeToBarray())
     val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
@@ -1114,11 +1145,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb10.put("newField!", 100).encodeToBarray(), xb9.put("newField!", 100).encodeToBarray(), xb11.put("newField!", 100).encodeToBarray(), xb10.put("newField!", 100).encodeToBarray())
@@ -1148,11 +1180,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "SpecialEditions[0 to end].*"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(JavaMachine, 39, ScalaMachine, 40, C++Machine, 38, JavaMachine, 39)", future.join().getValue.toString)
   } // Change is not perform because the values are not the same type
@@ -1173,11 +1206,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book.*.Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, Scala!!!, C++!!!)", future.join().getValue.toString)
   }
@@ -1201,11 +1235,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book.*..Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(Java!!!, JavaMachine!!!, Scala!!!, ScalaMachine!!!, C++!!!, C++Machine!!!)", future.join().getValue.toString)
   }
@@ -1222,11 +1257,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book[0 to end].*.Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector()", future.join().getValue.toString)
   }
@@ -1247,11 +1283,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book[0 to end].*..Title"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!)", future.join().getValue.toString)
   }
@@ -1299,11 +1336,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb10.put("Street", 1000).encodeToBarray(), xb9.put("Street", 1000).encodeToBarray(), xb11.put("Street", 1000).encodeToBarray())
@@ -1333,11 +1371,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "SpecialEditions[@Price].*"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(JavaMachine, 39, ScalaMachine, 40, C++Machine, 38, JavaMachine, 39)", future.join().getValue.toString)
   } // Change is not perform because the values are not the same type
@@ -1367,11 +1406,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector()", future.join().getValue.toString)
   }
@@ -1401,11 +1441,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector()", future.join().getValue.toString)
   }
@@ -1454,11 +1495,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb10.put("Street", 1000).encodeToBarray(), xb9.put("Street", 1000).encodeToBarray(), xb11.put("Street", 1000).encodeToBarray())
@@ -1511,11 +1553,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb10.put("Street", 1000).encodeToBarray(), xb9.put("Street", 1000).encodeToBarray(), xb11.put("Street", 1000).encodeToBarray())
@@ -1540,11 +1583,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book[0 to end].*..[0 to end]..Ti*e"
 
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!)", future.join().getValue.toString)
   }
@@ -1563,11 +1607,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book[0 to end].*..[0 to end].Price"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     assertEquals("Vector(49, 50, 48)", future.join().getValue.toString)
   }
@@ -1616,11 +1661,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb10.put("Street", 1000).encodeToBarray(), xb9.put("Street", 1000).encodeToBarray(), xb11.put("Street", 1000).encodeToBarray())
@@ -1648,11 +1694,12 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book.*.*"
 
     val bosonI: Boson = Boson.injector(expression, (x: Int) => x + 10)
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Any] = Vector("Java", 15.5, br4.encodeToBarray(), "Scala", 21.5, br3.encodeToBarray(), "C++", 12.6, br5.encodeToBarray())
     val result: Vector[Any] = future.join().getValue.asInstanceOf[Vector[Any]]
@@ -1707,11 +1754,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb3.put("Street", 1000).encodeToBarray(), xb4.put("Street", 1000).encodeToBarray(), xb8.put("Street", 1000).encodeToBarray(), xb5.put("Street", 1000).encodeToBarray(), xb6.put("Street", 1000).encodeToBarray(), xb7.put("Street", 1000).encodeToBarray(), xb3.put("Street", 1000).encodeToBarray())
@@ -1764,12 +1812,13 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb10.put("Street", 1000).encodeToBarray(), xb9.put("Street", 1000).encodeToBarray(), xb11.put("Street", 1000).encodeToBarray(), xb10.put("Street", 1000).encodeToBarray())
@@ -1822,11 +1871,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Array[Byte]] =
       Vector(xb2.put("Street", 1000).encodeToBarray())
@@ -1867,9 +1917,9 @@ class jpPlusPlusTests extends FunSuite {
           array
         }
       })
-      val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(validatedByteArr)
-
-      assertArrayEquals(validatedByteArr, injFuture.join())
+      val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+      val injResult = Await.result(injFuture, Duration.Inf)
+      assertArrayEquals(validatedByteArr, injResult)
     } // No change is perform because the values are not the same type
 
   test("Inj ..* V2") {
@@ -1877,8 +1927,9 @@ class jpPlusPlusTests extends FunSuite {
     val rootx: BsonObject = new BsonObject().put("field1", "OneWord!!").put("field2", "TwoWords!!").put("field3", "ThreeWords!!").put("field4", "FourWords!!")
     val root: BsonObject = new BsonObject().put("field1", "OneWord").put("field2", "TwoWords").put("field3", "ThreeWords").put("field4", "FourWords")
     val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!"))
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
-    assertTrue(rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2))
+    val injFuture: Future[Array[Byte]] = bosonI.go(root.encodeToBarray())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    assertTrue(rootx.encodeToBarray().zip(injResult).forall(p => p._1 == p._2))
   }
 
   test("Inj ..* V3") {
@@ -1907,11 +1958,11 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(root.encodeToBarray())
+    val injFuture: Future[Array[Byte]] = bosonI.go(root.encodeToBarray())
 
-    rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2)
 
-    assertTrue(rootx.encodeToBarray().zip(injFuture.join()).forall(p => p._1 == p._2))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    assertTrue(rootx.encodeToBarray().zip(injResult).forall(p => p._1 == p._2))
   }
 
   test("Ex ..key, but multiple keys with same name") {
@@ -1950,11 +2001,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(obj1.encodeToBarray())
+    val injFuture: Future[Array[Byte]] = bosonI.go(obj1.encodeToBarray())
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val expected: Vector[Any] = Vector(obj2.encodeToBarray(), 1000L)
     val result: Vector[Any] = future.join().getValue.asInstanceOf[Vector[Any]]
@@ -1985,11 +2037,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(obj11.encodeToBarray())
+    val injFuture: Future[Array[Byte]] = bosonI.go(obj11.encodeToBarray())
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val xobj22: BsonObject = new BsonObject().put("Store", new BsonObject().put("Street", 1000))
 
@@ -2024,11 +2077,12 @@ class jpPlusPlusTests extends FunSuite {
         array
       }
     })
-    val injFuture: CompletableFuture[Array[Byte]] = bosonI.go(obj111.encodeToBarray())
+    val injFuture: Future[Array[Byte]] = bosonI.go(obj111.encodeToBarray())
 
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(injFuture.join())
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
 
     val xobj555: BsonObject = new BsonObject().put("Store", new BsonArray()).put("Street", 1000)
     val xobj333: BsonObject = new BsonObject().put("Store", new BsonArray().add(xobj555).add(xobj555)).put("Street", 1000)
@@ -2372,7 +2426,7 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "[end]..field"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-    boson.go(arr.encodeToBarray())
+    boson.go(arr.encodeToBarray)
 
     val expected: Vector[Any] = Vector("value","value")
     val res = future.join().getValue.asInstanceOf[Vector[Any]]

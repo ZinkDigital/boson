@@ -1,20 +1,15 @@
 package io.zink.boson
 
-import java.nio.{Buffer, ByteBuffer}
-
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import bsonLib.{BsonArray, BsonObject}
+import io.netty.util.ResourceLeakDetector
 import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import io.zink.boson.bson.bsonValue
+import io.zink.boson.bson.bsonValue._
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import io.zink.boson.bson.bsonValue._
-import io.zink.boson.bson.bsonValue
-import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.{ByteProcessor, ResourceLeakDetector}
-import org.junit.Assert.{assertEquals,assertTrue}
-
-import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Tiago Filipe on 18/10/2017.

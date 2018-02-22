@@ -1,13 +1,17 @@
 package io.zink.boson
 
 import java.util.concurrent.{CompletableFuture, TimeUnit}
+
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
 import io.zink.boson.bson.bsonValue.BsValue
+import org.junit.Assert.assertArrayEquals
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.assertArrayEquals
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.util.{Failure, Success}
 
 @RunWith(classOf[JUnitRunner])
 class APIFuse extends FunSuite{
@@ -33,13 +37,27 @@ class APIFuse extends FunSuite{
     val inj: Boson = Boson.injector(expression2, (_: Float) => newFridgeSerialCode)
 
     val fused: Boson = ext.fuse(inj)
-    val future: CompletableFuture[Array[Byte]] = fused.go(validatedByteArray)
+    val future: Future[Array[Byte]] = fused.go(validatedByteArray)
+    Await.result(future, Duration.Inf)//fromNanos(10000000*1000))
+
+    val futureRes = future.value.get match{
+      case Success(value)=> value
+      case Failure(e)=>
+        println(e.getMessage)
+        validatedByteArray
+    }
 
     val fused2: Boson = fused.fuse(ext)
-    val future2: CompletableFuture[Array[Byte]] = fused2.go(future.join())
-
+    val future2: Future[Array[Byte]] = fused2.go(futureRes)
+    Await.result(future2, Duration.Inf)//fromNanos(10000000*1000))
+    val future2Res = future2.value.get match{
+      case Success(value)=> value
+      case Failure(e)=>
+        println(e.getMessage)
+        futureRes
+    }
     //latch.await()
-    assertArrayEquals(future.join(), future2.get(1, TimeUnit.SECONDS))
+    assertArrayEquals(futureRes, future2Res)
   }
 
 }

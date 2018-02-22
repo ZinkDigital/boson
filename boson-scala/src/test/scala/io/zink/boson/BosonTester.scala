@@ -3,11 +3,8 @@ package io.zink.boson
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.netty.util.ResourceLeakDetector
 import io.zink.boson.bson.bsonValue.BsValue
-import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.util.{ByteProcessor, ResourceLeakDetector}
 
 import scala.util.{Failure, Success, Try}
 

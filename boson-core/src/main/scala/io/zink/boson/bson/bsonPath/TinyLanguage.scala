@@ -1,13 +1,10 @@
 package io.zink.boson.bson.bsonPath
 
-import java.io.Serializable
-
 import io.zink.boson.bson.bsonImpl.CustomException
+import io.zink.boson.bson.bsonImpl.Dictionary._
 
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
-import io.zink.boson.bson.bsonImpl.Dictionary._
-import io.restassured.internal.support.ParameterUpdater.Serializer
 
 
 /**

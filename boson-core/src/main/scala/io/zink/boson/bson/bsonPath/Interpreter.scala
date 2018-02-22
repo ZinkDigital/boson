@@ -1,11 +1,11 @@
 package io.zink.boson.bson.bsonPath
 
+import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl.{BosonImpl, CustomException}
 import io.zink.boson.bson.bsonValue
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
-import io.zink.boson.bson.bsonImpl.Dictionary._
 
 /**
   * Created by Tiago Filipe on 02/11/2017.

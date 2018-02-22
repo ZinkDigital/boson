@@ -1,15 +1,11 @@
 package io.zink.boson;
 
 
-import io.zink.boson.json.extractors.*;
 import org.junit.Test;
 
 import javax.json.Json;
 import javax.json.stream.JsonParser;
 import java.io.StringReader;
-import java.math.BigDecimal;
-
-import static org.junit.Assert.assertEquals;
 
 
 public class ExtractorTestJava {

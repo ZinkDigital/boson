@@ -3,13 +3,11 @@ package io.zink.boson
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
 import io.zink.boson.bson.bsonValue.BsValue
+import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.assertEquals
-import org.junit.Assert._
 
 @RunWith(classOf[JUnitRunner])
 class ReturnTypes extends FunSuite{

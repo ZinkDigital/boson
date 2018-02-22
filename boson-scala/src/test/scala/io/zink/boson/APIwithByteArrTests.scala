@@ -3,14 +3,12 @@ package io.zink.boson
 import java.util.concurrent.{CompletableFuture, CountDownLatch}
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonValue._
 import io.netty.util.ResourceLeakDetector
+import io.zink.boson.bson.bsonValue._
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert.{assertEquals, assertTrue}
 
 @RunWith(classOf[JUnitRunner])
 class APIwithByteArrTests extends FunSuite {
