@@ -36,7 +36,7 @@ class ReturnTypes extends FunSuite{
   private val store = new BsonObject().put("Book", books).put("Hat", hats)
   private val bson = new BsonObject().put("Store", store)
 
-  test("") {
+  test("Matched in complex event") {
     val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
     val arr444: BsonArray = new BsonArray().add(obj555)//.add(obj555)
     val obj666: BsonObject = new BsonObject().put("Store",new BsonArray().add(new BsonObject().put("Store",1.1)))

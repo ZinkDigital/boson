@@ -5,7 +5,7 @@ import io.boson.bson.bsonImpl.BosonImpl
 /**
   * Created by Tiago Filipe on 08/11/2017.
   */
-trait Writes[-A] {
+trait   Writes[-A] {
   /**
     * Convert the object into a BsValue
     */
@@ -15,7 +15,8 @@ trait Writes[-A] {
 
 object Writes extends DefaultWrites {
 
-  def apply[A](f: A => BsValue): Writes[A] = (a: A) => f(a)
+  def apply[A](f: A => BsValue): Writes[A] =
+    (a: A) => f(a)
 
 }
 

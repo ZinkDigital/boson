@@ -2,24 +2,44 @@ package io.boson.bson.bsonImpl
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
+
 import Dictionary._
 import io.boson.bson.bsonPath._
 import io.netty.buffer.{ByteBuf, Unpooled}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.{Failure, Success, Try}
-import scala.collection.JavaConverters._
-import io.boson.bson.bsonPath.Compose
-import scala.collection.mutable
-/**
-  * Created by Ricardo Martins on 18/09/2017.
-  */
-/**
-  * This class encapsulates one Netty ByteBuf
-  *
-  */
+
+
+sealed trait Extractor[T] {
+  def applyFunc(f: (T => Unit), value: T): Unit
+}
+
+object Extractor extends DefaultExtractor {
+  def apply[T](f: T => Extractor[T], v: T): Extractor[T] = {
+     f(v)
+  }
+}
+
+trait DefaultExtractor {
+  implicit object StringExtractor extends Extractor[String] {
+    def applyFunc(f: String => Unit, value: String): Unit =
+      f(value)
+  }
+}
+
+
+sealed trait ExtractorFacade {
+  def toPrimitive[T](f: T => Unit, o: T)(implicit tc: Extractor[T]): Unit
+}
+
+object Transform extends ExtractorFacade {
+  def toPrimitive[T](f: T => Unit, o: T)(implicit tc: Extractor[T]): Unit = tc.applyFunc(f,o)
+}
+
 case class CustomException(smth: String) extends Exception {
   override def getMessage: String = smth
 }
+
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
                  javaByteBuf: Option[ByteBuffer] = None,
@@ -127,6 +147,7 @@ class BosonImpl(
             val valueLength: Int = netty.readIntLE()
             val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
             val newArr: Array[Byte] = arr.filter(b => b!=0)
+            Transform.toPrimitive((out: String) => println(s"Extracted: $out"), new String(newArr))
             Some(new String(newArr))
           } else {
             netty.readCharSequence(netty.readIntLE(), charset)
@@ -871,6 +892,7 @@ class BosonImpl(
           //throw new RuntimeException("Path of expression doesn't conform with the event")
         //else
         //println(s"case not until____ seq: $seq")
+        //println("goThroughArrayWithLimit")
         seq.collect { case value if !value.equals(WARNING_CHAR)=> value }
     }
   }

@@ -2,10 +2,18 @@ package io.boson.bson.bsonImpl
 
 import java.nio.ByteBuffer
 import java.util.concurrent.CompletableFuture
+
 import io.boson.bson
 import io.boson.bson.bsonValue
 import io.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.boson.bson.bsonValue.BsValue
+
+import cats.syntax.either._
+import cats.data._
+import cats.data.Validated._
+import cats.implicits._
+
+import io.boson.validation._
 
 
 class BosonExtractor[T](expression: String, extractFunction: java.util.function.Consumer[T]) extends bson.Boson {

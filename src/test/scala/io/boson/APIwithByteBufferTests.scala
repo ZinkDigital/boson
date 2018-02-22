@@ -36,7 +36,6 @@ class APIwithByteBufferTests extends FunSuite{
 
 
   test("extract PosV1 w/ key") {
-    println(arr)
     val expression: String = "[2 to 3]"
     val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
@@ -44,7 +43,6 @@ class APIwithByteBufferTests extends FunSuite{
 
     val expected: Vector[Any] = Vector(obj2.encodeToBarray(),obj3.encodeToBarray(), br4.encodeToBarray())
     val result = future.join().getValue.asInstanceOf[Vector[Any]]
-    println(s"result: $result")
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall{
       case (e: Array[Byte], r: Array[Byte]) =>

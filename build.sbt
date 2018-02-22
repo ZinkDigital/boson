@@ -6,6 +6,8 @@ scalaVersion := "2.12.3"
 
 javacOptions += "-g:none"
 
+scalacOptions += "-Ypartial-unification"
+
 scalacOptions in Test ++= Seq(
   "-encoding",
   "UTF-8"
@@ -29,7 +31,8 @@ assemblyMergeStrategy in assembly := {
     "io.vertx" % "vertx-core" % "3.5.0",
     "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
     //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
-    "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
+    "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
+    "org.typelevel" %% "cats-core" % "1.0.1"
   )
   val testLibraries = Seq(
     "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
