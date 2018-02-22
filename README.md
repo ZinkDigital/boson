@@ -57,25 +57,24 @@ Extraction requires a "BsonPath" expression (see [Operators](#operators) table f
 
 ```scala
 //Encode Bson:
-val validatedByteArray: Array[Byte] = bsonEvent.encode().array()
+val validBson : Array[Byte] = bsonEvent.encode.getBytes
 
 //BsonPath expression:
-val expression: String = "..fridgeReadings.[1].fanVelocity"
+val expression: String = "fridge[1].fanVelocity"
 
-//Synchronization tool:
-val latch: CountDownLatch = new CountDownLatch(1)
+// Want to put the result onto a Stream.
+val valueStream : ValueStream = ValueStream()
 
 //Simple Extractor:
-val boson: Boson = Boson.extractor(expression, (in: BsValue) => {
-  // Use 'in' value, this is the value extracted.
-  latch.countDown()
+val boson: Boson = Boson.extractor(expression, (in: Long) => {
+  valueStream.add(in);
 })
 
 //Trigger extraction with encoded Bson:
-boson.go(validatedByteArray)
+boson.go(validBson)
 
-//Wait to complete extraction:
-latch.await()
+// Function will be called as a result of calling 'go'
+
 ```
 <div id='id-bosonInjectionScala'/>
 
