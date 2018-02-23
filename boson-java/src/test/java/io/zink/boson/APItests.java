@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+
 import static org.junit.Assert.*;
 
 
@@ -48,6 +49,8 @@ public class APItests {
 
     @Test
     public void ExtractFromArrayPos() {
+        ArrayList<Object> al = new ArrayList<>();
+
         String expression = ".Store.Book[1 to 2]";
         CompletableFuture<BsValue> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, future1::complete);
