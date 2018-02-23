@@ -10,20 +10,18 @@ import io.boson.bson.bsonImpl.Dictionary._
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
-class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]] = None) {
+class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Function[T,T]] = None, fExt: Option[Function[R,Unit]] = None) {
 
   def run(): bsonValue.BsValue = {
-    f match {
-      case Some(_) => //func /*Inejctor*/
-        startInjector(program.statement)
-      case None => /*Extractor*/
-        start(program.statement)
+    fInj.isDefined match {
+      case true => startInjector(program.statement)
+      case false if fExt.isDefined => start(program.statement)
+      case false => throw new IllegalArgumentException("Construct Boson object with at least one Function.")
     }
   }
 
   private def start(statement: List[Statement]): bsonValue.BsValue = {
     if (statement.nonEmpty) {
-
       statement.head match {
         case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
           //println(s"statements: ${List(first) ++ list}")
@@ -181,7 +179,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, f: Option[Function[T,T]
 
   private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
     val result:bsonValue.BsValue=
-      Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, f.get ))match{
+      Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get ))match{
         case Success(v)=>
 
           val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))

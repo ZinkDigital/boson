@@ -1,5 +1,7 @@
 package io.boson.bson.bsonImpl
 
+
+
 sealed trait Extractor[T] {
   def applyFunc(f: (T => Unit), value: T): Unit
 }

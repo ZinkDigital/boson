@@ -294,6 +294,7 @@ class BosonImpl(
         case D_LONG =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Long = netty.readLongLE()
+            Transform.toPrimitive((out: Long) => println(s"Extracted: $out"), value)
             Some(value)
           } else {
             netty.readLongLE()
