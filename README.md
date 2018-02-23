@@ -124,6 +124,7 @@ val valueStream : ValueStream = ValueStream()
 //Finally call go() providing the byte array or a ByteBuffer on the new Boson object.
 val result = fused.go(validatedByteArray)
 
+// Function will be called as a result of calling 'go'
 // Puts the result inside our Stream
 valueStream.add(result)
 ```
@@ -258,6 +259,7 @@ Boson boson = Boson.extractor(expression, obj-> {
 
 //Trigger extraction with encoded Bson:
 boson.go(validBson);
+
 // Function will be called as a result of calling 'go'
 
 ```
@@ -312,6 +314,7 @@ final Boson fused = ext.fuse(inj);
 //Finally call go() providing the byte array or a ByteBuffer on the new Boson object.
 final CompletableFuture result = fused.go(validBson);
 
+// Function will be called as a result of calling 'go'
 // Puts the result inside our Array
 arrayList.add(result);
 ```
@@ -363,6 +366,7 @@ Joson joson = Joson.extractor(expression, obj-> {
 //Trigger extraction with Json:
 joson.go(json);
 
+// Function will be called as a result of calling 'go'
 ```
 <div id='id-josonInjectionJava'/>
 
@@ -386,6 +390,7 @@ Joson joson = Joson.injector(expression,  (Integer in) -> {
 //Trigger injection with Json:
 CompletableFuture result = joson.go(json);
 
+// Function will be called as a result of calling 'go'
 // Puts the result inside our Array
 arrayList.add(result)
 ```
