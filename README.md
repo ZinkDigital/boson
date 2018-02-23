@@ -81,10 +81,10 @@ boson.go(validBson)
 Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.
 ```scala
 //Encode Bson:
-val validBsonArray: Array[Byte] = bsonEvent.encode().array()
+val validBson: Array[Byte] = bsonEvent.encode.array
 
 //BsonPath expression:
-val expression: String = "..Store..name"
+val expression: String = "Store.name"
 
 //Simple Injector:
 val boson: Boson = Boson.injector(expression, (in: String) => "newName")
@@ -169,7 +169,7 @@ latch.await()
 Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String and an Higher-Order Function. The returned result is a CompletableFuture[Array[Byte]]. The Injector instance is built only once and can be reused to inject different JSON Strings.
 ```scala
 //BsonPath expression:
-val expression: String = "..Book[1]"
+val expression: String = "Store.Book[0 to end].price"
 
 //Json String:
 val json = “““{
@@ -194,8 +194,8 @@ val json = “““{
               }”””
 
 //Simple Injector:
-val joson: Joson = Joson.injector(expression,  (in: Map[String, Object]) => {
-  in.+(("Title", "Scala"))
+val joson: Joson = Joson.injector(expression,  (in: Int) => {
+  in + 10)
 })
 
 //Trigger injection with Json:
@@ -225,10 +225,10 @@ Extraction requires a "BsonPath" expression (see [Operators](#operators) table f
 
 ```java
 //Encode Bson:
-byte[] validatedByteArray = bsonEvent.encode().array();
+byte[] validBson = bsonEvent.encode().array();
 
 //BsonPath expression:
-String expression = "..Store..SpecialEditions[@Extra]";
+String expression = "Store..SpecialEditions[@Extra]";
 
 //Synchronization tool:
 CountDownLatch latch = new CountDownLatch(1);
@@ -240,7 +240,7 @@ Boson boson = Boson.extractor(expression, obj-> {
 });
 
 //Trigger extraction with encoded Bson:
-boson.go(validatedByteArray);
+boson.go(validatedByteAvalidBsonray);
 
 //Wait to complete extraction:
 latch.await();
@@ -251,15 +251,15 @@ latch.await();
 Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.
 ```java
 //Encode Bson:
-byte[] validatedByteArray = bsonEvent.encode().array();
+byte[] validBson = bsonEvent.encode().array();
 
 //BsonPath expression:
-String expression = "..Store.[2 until 4]";
+String expression = "Store.[0].title";
 
 //Simple Injector:
-Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
-	in.put("WHAT", 10);
-	return in;
+Boson boson = Boson.injector(expression,  (String in) -> {
+	String newValue = in.concat("-Special Edition")
+	return newValue;
 });
 
 //Trigger injection with encoded Bson:
@@ -269,7 +269,7 @@ byte[] result = boson.go(validatedByteArray).join();
 Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.
 ```java
 //First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.
-final byte[] validatedByteArray  = bsonEvent.encode().array();
+final byte[] validBson  = bsonEvent.encode().array();
 
 final String expression = "name";
 
@@ -277,13 +277,13 @@ final Boson ext = Boson.extractor(expression, (in: BsValue) -> {
   // Use 'in' value, this is the value extracted.
 });
 
-final Boson inj = Boson.injector(expression, (in: String) -> "newName");
+final Boson inj = Boson.injector(expression, (String in) -> "newName");
 
 //Then call fuse() on injector or extractor, it returns a new BosonObject.
 final Boson fused = ext.fuse(inj);
 
 //Finally call go() providing the byte array or a ByteBuffer on the new Boson object.
-final byte[] finalFuture = fused.go(validatedByteArray).join();
+final byte[] finalFuture = fused.go(validBson).join();
 ```
 
 <div id='id-JosonJava'/>
@@ -296,10 +296,29 @@ A "Joson" is an object created when constructing an extractor/injector that enca
 Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String, an Higher-Order Function and a Synchrononization tool in case multiple extractions are to be performed. The Extractor instance is built only once and can be reused multiple times to extract from different JSON Strings.
 ```java
 //BsonPath expression:
-String expression = "..Book[1]";
+String expression = "Store.Book[1].Price";
 
 //Json String:
-String jsonStr = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
+String json = “““{
+                    "Store":{
+              		  "Book":[
+              		    {
+              		      "Price":10
+              		    },
+              		    {
+              		      "Price":20
+              		    }
+              		  ],
+              		  "Hat":[
+              		    {
+              		      "Price":30
+              		    },
+              		    {
+              		      "Price":40
+              		    }
+              		  ]
+              		}
+                 }”””
 
 //Synchronization tool:
 CountDownLatch latch = new CountDownLatch(1);
@@ -311,7 +330,7 @@ Joson joson = Joson.extractor(expression, obj-> {
 });
 
 //Trigger extraction with Json:
-joson.go(jsonStr);
+joson.go(json);
 
 //Wait to complete extraction:
 latch.await()
@@ -322,19 +341,18 @@ latch.await()
 Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), a JSON String and a Function. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different JSON Strings.
 ```java
 //BsonPath expression:
-String expression = "..Book[1]";
+String expression = "Store.Book[1].Price";
 
 //Json String:
-String jsonStr = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
+String json = "{\"Store\":{\"Book\":[{\"Price\":10},{\"Price\":20}],\"Hat\":[{\"Price\":30},{\"Price\":40}]}}"
 
 //Simple Injector:
-Joson joson = Joson.injector(expression,  (Map<String, Object> in) -> {
-	in.put("WHAT", 10);
-	return in;
+Joson joson = Joson.injector(expression,  (Integer in) -> {
+	return in+10;
 });
 
 //Trigger injection with Json:
-String result = joson.go(jsonStr).join();
+String result = joson.go(json).join();
 ```
 
 # Documentation
