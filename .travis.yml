@@ -2,9 +2,10 @@ matrix:
   include:
     - language: scala
       scala: 2.12.3
-      script: sbt clean "test-only *BuffersTest *ExtractorTests *HorribleTests *LanguageTests *LongInputTests *InjectorsTest *InjectorParserTests *APIwithByteBufferTests *APIwithByteArrTests *injectorAPITests *jpPlusPlusTests *APItests *jpPlusPlusInjectorTests *ReturnTypes *APIFuse *RestAssured"
+      script: sbt clean "++ 2.12.3 test-only *BuffersTest *ExtractorTests *HorribleTests *LanguageTests *LongInputTests *InjectorsTest *InjectorParserTests *APIwithByteBufferTests *APIwithByteArrTests *injectorAPITests *jpPlusPlusTests *APItests *jpPlusPlusInjectorTests *ReturnTypes *APIFuse *RestAssured *BosonTester *BosonTest *BuilderTest *ExtractorTestJava *APItests *APITestsJ"
 
 
-    - language: java
-      jdk: oraclejdk8
-      script: sbt clean "test-only *BuilderTest *ExtractorTest *APItests *APITestsJ"
+#    - language: java
+#      jdk: oraclejdk8
+#      script: sbt clean "+ test-only *BosonTest *BuilderTest *ExtractorTestJava *APItestsJava *APITestsJ"
+
