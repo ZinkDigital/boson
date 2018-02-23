@@ -1,5 +1,6 @@
 package benchmark
 
+
 import bsonLib.BsonObject
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
@@ -39,7 +40,7 @@ object PerformanceTest extends App {
     val bson: BsonObject = new BsonObject(json)
 
     //val boson: BosonImpl = sI.createBoson(bson.encode().getBytes)
-    val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
+    val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encodeToBarray()))
 
     def bestTimeMeasure[R](block: => R): Quantity[Double] = {
       val time = config(
