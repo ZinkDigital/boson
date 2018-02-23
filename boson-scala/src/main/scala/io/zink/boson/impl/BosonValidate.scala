@@ -17,7 +17,7 @@ class BosonValidate[T](expression: String, validateFunction: Function[T, Unit]) 
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, r.asInstanceOf[Program]).run()
+          new Interpreter(boson, r.asInstanceOf[Program], fExt = Option(validateFunction)).run()
         case parser.Error(msg, _) => BsObject.toBson(msg)
         case parser.Failure(msg, _) => BsObject.toBson(msg)
       }

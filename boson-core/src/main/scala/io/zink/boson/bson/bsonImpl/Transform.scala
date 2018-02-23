@@ -1,5 +1,4 @@
-package io.boson.bson.bsonImpl
-
+package io.zink.boson.bson.bsonImpl
 
 
 sealed trait ExtractorFacade {

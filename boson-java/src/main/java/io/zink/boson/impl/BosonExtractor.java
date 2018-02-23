@@ -36,7 +36,7 @@ public class BosonExtractor<T> implements Boson {
         try{
          Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
          if(pr.successful()){
-             Interpreter interpreter = new Interpreter<>(boson, (Program) pr.get(),Option.empty());
+             Interpreter interpreter = new Interpreter(boson, (Program) pr.get(),Option.empty(), Option.apply(extractFunction));
              return interpreter.run();
          }else{
              return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));

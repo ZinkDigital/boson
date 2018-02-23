@@ -35,7 +35,7 @@ class LanguageTests extends FunSuite {
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, r.asInstanceOf[Program]).run()
+          new Interpreter(boson, r.asInstanceOf[Program], fExt = Option((in: BsValue) => {})).run()
         case parser.Error(msg, _) =>
             bsonValue.BsObject.toBson(msg)
         case parser.Failure(msg, _) =>

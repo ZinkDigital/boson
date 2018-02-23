@@ -43,7 +43,7 @@ public class BosonInjector<T> implements Boson {
             Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
 
-                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), apply(injectFunc));
+                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), apply(injectFunc),empty());
                 BsValue res = interpreter.run();
 
                 return res;

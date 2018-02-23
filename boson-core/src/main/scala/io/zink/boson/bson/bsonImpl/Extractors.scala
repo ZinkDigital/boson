@@ -1,6 +1,4 @@
-package io.boson.bson.bsonImpl
-
-
+package io.zink.boson.bson.bsonImpl
 
 sealed trait Extractor[T] {
   def applyFunc(f: (T => Unit), value: T): Unit

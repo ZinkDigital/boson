@@ -86,7 +86,7 @@ class InjectorParserTests extends FunSuite {
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          val interpreter = new Interpreter(boson, r.asInstanceOf[Program])
+          val interpreter = new Interpreter(boson, r.asInstanceOf[Program], fExt = Option((in: BsValue) => {}))
           interpreter.run()
         case parser.Error(_, _) => bsonValue.BsObject.toBson("Error parsing!")
         case parser.Failure(_, _) => bsonValue.BsObject.toBson("Failure parsing!")
@@ -101,7 +101,7 @@ class InjectorParserTests extends FunSuite {
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          new Interpreter(netty, r.asInstanceOf[Program], Option(f)).run()
+          new Interpreter(netty, r.asInstanceOf[Program], fInj = Option(f)).run()
         case parser.Error(msg, _) => println("Error")
           bsonValue.BsObject.toBson(msg)
 

@@ -21,7 +21,7 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
+          new Interpreter(netty, r.asInstanceOf[Program],fInj = Option(injectFunction)).run()
         case parser.Error(msg, _) =>
           BsObject.toBson(msg)
         case parser.Failure(msg, _) =>

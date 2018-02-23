@@ -1,13 +1,13 @@
-package io.boson
+package io.zink.boson
 
-import java.util.concurrent.CompletableFuture
-
-import bsonLib.{BsonArray, BsonObject}
-import io.boson.bson.Boson
-import io.boson.bson.bsonValue.{BsSeq, BsValue}
+import bsonLib.BsonObject
+import io.zink.boson.bson.bsonValue.BsSeq
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class ChainedExtractorsTest extends FunSuite{
@@ -19,7 +19,8 @@ class ChainedExtractorsTest extends FunSuite{
 
     val expression: String = ".Store.Book"
     val boson: Boson = Boson.extractor(expression, (in: BsSeq) => println(s"I got it: $in"))
-    boson.go(bson.encode.getBytes).join()
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
 
   }
 

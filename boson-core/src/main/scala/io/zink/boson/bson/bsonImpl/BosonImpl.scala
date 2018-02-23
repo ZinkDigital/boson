@@ -5,6 +5,7 @@ import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bsonImpl.Transform._
 import io.zink.boson.bson.bsonPath._
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
