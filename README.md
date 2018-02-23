@@ -74,7 +74,6 @@ val boson: Boson = Boson.extractor(expression, (in: Long) => {
 boson.go(validBson)
 
 // Function will be called as a result of calling 'go'
-
 ```
 <div id='id-bosonInjectionScala'/>
 
