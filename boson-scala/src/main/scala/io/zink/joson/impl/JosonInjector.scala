@@ -8,7 +8,7 @@ import de.undercouch.bson4jackson.BsonFactory
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.zink.boson.bson.bsonValue.{BsBoson, BsException, BsObject, BsValue}
+//import io.zink.boson.bson.bsonValue.{BsBoson, BsException, BsObject, BsValue}
 import io.zink.joson.Joson
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -21,19 +21,23 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
   val anon: T => T = injectFunction
 
-  def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String):BsValue = {
+  def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String): Array[Byte] = {
     val parser = new TinyLanguage
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
           new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
         case parser.Error(msg, _) =>
-          BsObject.toBson(msg)
+          throw new Exception(msg)
+          //BsObject.toBson(msg)
         case parser.Failure(msg, _) =>
-          BsObject.toBson(msg)
+          throw new Exception(msg)
+          //BsObject.toBson(msg)
       }
     }catch {
-      case e: RuntimeException => BsObject.toBson(e.getMessage)
+      case e: RuntimeException =>
+        throw new Exception(e.getMessage)
+        //BsObject.toBson(e.getMessage)
     }
   }
 
@@ -63,24 +67,27 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
     val future: Future[String] =
     Future{
-      val r: String = parseInj(boson, anon, expression) match {
-        case ex: BsException =>
-          println(ex.getValue)
-          jsonStr
-        case nb: BsBoson =>
-          val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
-          val os = new ByteArrayOutputStream
-          val module = new SimpleModule
-          module.addSerializer(classOf[JsonObject],new JsonObjectSerializer)
-          module.addSerializer(classOf[JsonArray], new JsonArraySerializer)
-          mapper.registerModule(module)
-
-          val s: JsonNode = mapper.readTree(nb.getValue.getByteBuf.array())
-          s.toString
-
-        case x => jsonStr
-      }
-      r
+      val byteArr = parseInj(boson, anon, expression)
+      val s: JsonNode = mapper.readTree(byteArr)
+      s.toString
+//      val r: String = parseInj(boson, anon, expression) match {
+//        case ex: BsException =>
+//          println(ex.getValue)
+//          jsonStr
+//        case nb: BsBoson =>
+//          val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
+//          val os = new ByteArrayOutputStream
+//          val module = new SimpleModule
+//          module.addSerializer(classOf[JsonObject],new JsonObjectSerializer)
+//          module.addSerializer(classOf[JsonArray], new JsonArraySerializer)
+//          mapper.registerModule(module)
+//
+//          val s: JsonNode = mapper.readTree(nb.getValue.getByteBuf.array())
+//          s.toString
+//
+//        case x => jsonStr
+//      }
+//      r
     }
     future
   }

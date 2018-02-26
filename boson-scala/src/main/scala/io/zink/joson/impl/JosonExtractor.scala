@@ -8,7 +8,7 @@ import de.undercouch.bson4jackson.BsonFactory
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
+//import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 import io.zink.joson.Joson
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,17 +31,23 @@ class JosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) 
     * @param the Json string.
     * @return
     */
-  private def callParse(boson: BosonImpl, expression: String): BsValue = {
+  private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
           new Interpreter(boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
-        case parser.Error(msg, _) => BsObject.toBson(msg)
-        case parser.Failure(msg, _) => BsObject.toBson(msg)
+        case parser.Error(msg, _) =>
+          throw new Exception(msg)
+          //BsObject.toBson(msg)
+        case parser.Failure(msg, _) =>
+          throw new Exception(msg)
+          //BsObject.toBson(msg)
       }
     } catch {
-      case e: RuntimeException => BsObject.toBson(e.getMessage)
+      case e: RuntimeException =>
+        throw new Exception(e.getMessage)
+        //BsObject.toBson(e.getMessage)
     }
   }
 
@@ -63,12 +69,13 @@ class JosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) 
     val future: Future[String] =
       Future{
         val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-        callParse(boson, expression) match {
-          case (res: BsValue) =>
-            extractFunction(res.asInstanceOf[T])
-          case _ => throw new RuntimeException("JosonExtractor -> go() default case!!!")
-        }
-        jsonStr
+          callParse(boson, expression)
+          jsonStr
+//        match {
+//          case (res: BsValue) =>
+//            extractFunction(res.asInstanceOf[T])
+//          case _ => throw new RuntimeException("JosonExtractor -> go() default case!!!")
+//        }
       }
     future
   }

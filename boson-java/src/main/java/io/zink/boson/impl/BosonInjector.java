@@ -1,10 +1,11 @@
 package io.zink.boson.impl;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.zink.boson.bson.bsonImpl.BosonImpl;
 import io.zink.boson.bson.bsonPath.Interpreter;
 import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
-import io.zink.boson.bson.bsonValue.*;
 import io.zink.boson.Boson;
 import scala.Function1;
 import scala.Option;
@@ -34,9 +35,9 @@ public class BosonInjector<T> implements Boson {
         };
     }
 
-    private Function<String,BsValue> writer = BsException$.MODULE$::apply;
+    //private Function<String,BsValue> writer = BsException$.MODULE$::apply;
 
-    private BsValue parseInj(BosonImpl netty, Function1<T,T> injectFunc, String expression){
+    private byte[] parseInj(BosonImpl netty, Function1<T,T> injectFunc, String expression){
         TinyLanguage parser = new TinyLanguage();
         try{
 
@@ -44,16 +45,16 @@ public class BosonInjector<T> implements Boson {
             if(pr.successful()){
 
                 Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), apply(injectFunc),empty());
-                BsValue res = interpreter.run();
-
-                return res;
+                return interpreter.run();
             }else{
-                return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));
+                throw new RuntimeException("Error inside interpreter.run() ");
+                //return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
+            throw new RuntimeException(e.getMessage());
+            //return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
-    };
+    }
 
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
@@ -62,19 +63,20 @@ public class BosonInjector<T> implements Boson {
         BosonImpl boson = new BosonImpl(opt, e, e);
         CompletableFuture<byte[]> future =
                 CompletableFuture.supplyAsync(() -> {
-                    BsValue res =  parseInj(boson, anon, expression);
-                    try{
-                        switch (res.getClass().getSimpleName()){
-                            case "BsException": return bsonByteEncoding;
-                            case "BsBoson": return ((BsBoson) res).getValue().getByteBuf().array();
-                            default:  return bsonByteEncoding;
-                        }
-
-
-                    }catch(ClassCastException ex){
-                        System.out.println(ex.getMessage());
-                        return bsonByteEncoding;
-                    }
+                    //byte[] res =
+                    return parseInj(boson, anon, expression);
+//                    try{
+//                        switch (res.getClass().getSimpleName()){
+//                            case "BsException": return bsonByteEncoding;
+//                            case "BsBoson": return ((BsBoson) res).getValue().getByteBuf().array();
+//                            default:  return bsonByteEncoding;
+//                        }
+//
+//
+//                    }catch(ClassCastException ex){
+//                        System.out.println(ex.getMessage());
+//                        return bsonByteEncoding;
+//                    }
                 });
         return future;
     }
@@ -86,12 +88,14 @@ public class BosonInjector<T> implements Boson {
         BosonImpl boson = new BosonImpl(opt, e, e);
         CompletableFuture<ByteBuffer> future =
                 CompletableFuture.supplyAsync(() -> {
-                    BsValue res =  parseInj(boson, anon, expression);
-                    switch (res.getClass().getSimpleName()){
-                        case "BsException": return bsonByteBufferEncoding;
-                        case "BsBoson": return ((BsBoson) res).getValue().getByteBuf().nioBuffer();
-                        default:  return bsonByteBufferEncoding;
-                    }
+                    byte[] res =  parseInj(boson, anon, expression);
+                    ByteBuf b = Unpooled.copiedBuffer(res);
+                    return b.nioBuffer();
+//                    switch (res.getClass().getSimpleName()){
+//                        case "BsException": return bsonByteBufferEncoding;
+//                        case "BsBoson": return ((BsBoson) res).getValue().getByteBuf().nioBuffer();
+//                        default:  return bsonByteBufferEncoding;
+//                    }
                 });
         return future;
     }

@@ -4,14 +4,9 @@ import io.zink.boson.bson.bsonImpl.BosonImpl;
 import io.zink.boson.bson.bsonPath.Interpreter;
 import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
-import io.zink.boson.bson.bsonValue.BsException$;
-import io.zink.boson.bson.bsonValue.BsObject$;
-import io.zink.boson.bson.bsonValue.BsValue;
-import io.zink.boson.bson.bsonValue.Writes$;
 import io.zink.boson.Boson;
 import scala.Option;
 import scala.util.parsing.combinator.Parsers;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -27,22 +22,24 @@ public class BosonValidate<T> implements Boson {
         this.validateFunction = validateFunction;
     }
 
-    private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
+    //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
-    private BsValue callParse(BosonImpl boson, String expression){
+    private void callParse(BosonImpl boson, String expression){
         TinyLanguage parser = new TinyLanguage();
         try{
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
                 Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(validateFunction));
-                return interpreter.run();
+                interpreter.run();
             }else{
-                return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
+                throw new RuntimeException("Failure/Error parsing!");
+                //return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
+            throw new RuntimeException(e.getMessage());
+            //return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
-    };
+    }
 
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
@@ -51,8 +48,8 @@ public class BosonValidate<T> implements Boson {
                     Option<byte[]> opt = Option.apply(bsonByteEncoding);
                     Option e = Option.empty();
                     BosonImpl boson = new BosonImpl(opt, e,e);
-                    BsValue value = callParse(boson, expression);
-                    validateFunction.accept((T)value);
+                    callParse(boson, expression);
+                    //validateFunction.accept((T)value);
                     return bsonByteEncoding;
                 });
         return future;
@@ -65,8 +62,8 @@ public class BosonValidate<T> implements Boson {
                     Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
                     Option e = Option.empty();
                     BosonImpl boson = new BosonImpl(e,opt,e);
-                    BsValue value = callParse(boson, expression);
-                    validateFunction.accept((T)value);
+                    callParse(boson, expression);
+                    //validateFunction.accept((T)value);
                     return bsonByteBufferEncoding;
                 });
         return future;

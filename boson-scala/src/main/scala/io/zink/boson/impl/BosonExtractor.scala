@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
+//import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -13,18 +13,21 @@ import scala.concurrent.Future
 
 class BosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) extends Boson {
 
-  private def callParse(boson: BosonImpl, expression: String): BsValue = {
+  private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, r.asInstanceOf[Program], fExt =  Option(extractFunction)).run()
-        case parser.Error(msg, _) => BsObject.toBson(msg)
-        case parser.Failure(msg, _) => BsObject.toBson(msg)
+          new Interpreter(boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
+        case parser.Error(msg, _) =>
+          throw new Exception(msg)
+          //BsObject.toBson(msg)
+        case parser.Failure(msg, _) =>
+          throw new Exception(msg)
+        //BsObject.toBson(msg)
       }
     } catch {
-      case e: RuntimeException =>
-        BsObject.toBson(e.getMessage)
+      case e: RuntimeException => throw new Exception(e.getMessage)
     }
   }
 
@@ -32,12 +35,8 @@ class BosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) 
     val future: Future[Array[Byte]] =
       Future {
         val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-        callParse(boson, expression) match {
-          case (res: BsValue) =>
-            extractFunction(res.asInstanceOf[T])
-          case _ => throw new RuntimeException("BosonExtractor -> go() default case!!!")
-        }
-        bsonByteEncoding
+          callParse(boson, expression)
+          bsonByteEncoding
       }
     future
   }
@@ -46,20 +45,17 @@ class BosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) 
     val future: Future[ByteBuffer] =
       Future {
         val boson: BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-          callParse(boson,expression) match {
-            case (res: BsValue) =>
-              extractFunction(res.asInstanceOf[T])
-            case _ => throw new RuntimeException("BosonExtractor -> go() default case!!!")
-          }
-        bsonByteBufferEncoding
+          callParse(boson, expression)
+          bsonByteBufferEncoding
       }
     future
   }
 
-  override def fuse(boson: Boson): Boson = new BosonFuse(this,boson)
+  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 
   //override def extractor[T](expression: String, extractFunction: Function[T, Unit]): Unit = ???
 }
+
 //val f: Future[Array[Byte]] = Future {
 //val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
 //callParse(boson,expression) match {

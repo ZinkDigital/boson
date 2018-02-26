@@ -10,7 +10,6 @@ import io.zink.boson.bson.bsonImpl.BosonImpl;
 import io.zink.boson.bson.bsonPath.Interpreter;
 import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
-import io.zink.boson.bson.bsonValue.*;
 import io.zink.joson.Joson;
 import scala.Option;
 import scala.util.parsing.json.Parser;
@@ -32,9 +31,9 @@ public class JosonInjector<T> implements Joson {
     }
 
 
-    private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
+    //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
-    public BsValue parseInj(BosonImpl netty, Function injectFunc, String expression){
+    private byte[] parseInj(BosonImpl netty, Function injectFunc, String expression){
         TinyLanguage parser = new TinyLanguage();
         try{
             Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
@@ -42,12 +41,14 @@ public class JosonInjector<T> implements Joson {
                 Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), Option.apply(injectFunc), Option.empty());
                 return interpreter.run();
             }else{
-                return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));
+                throw new RuntimeException("Error inside interpreter.run() ");
+                //return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
+            throw new RuntimeException(e.getMessage());
+            //return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
-    };
+    }
 
 
 
@@ -70,19 +71,20 @@ public class JosonInjector<T> implements Joson {
             BosonImpl boson = new BosonImpl(opt, e, e);
             future =
                     CompletableFuture.supplyAsync(() -> {
-                        BsValue res =  parseInj(boson, injectFunction, expression);
-                        switch (res.getClass().getSimpleName()){
-                            case "BsException": return jsonStr;
-                            case "BsBoson":
-                                try {
-                                    JsonNode s = mapper.readTree(((BsBoson) res).getValue().getByteBuf().array());
-                                    return s.toString();
-                                }catch(IOException ex){
-                                    System.out.println(ex.getMessage());
-                                    return jsonStr;
-                                }
-                            default:  return jsonStr;
+                        byte[] res =  parseInj(boson, injectFunction, expression);
+                        try {
+                            JsonNode s = mapper.readTree(res);
+                            return s.toString();
+                        }catch(IOException ex){
+                            System.out.println(ex.getMessage());
+                            return jsonStr;
                         }
+//                        switch (res.getClass().getSimpleName()){
+//                            case "BsException": return jsonStr;
+//                            case "BsBoson":
+//
+//                            default:  return jsonStr;
+//                        }
                     });
         }catch(IOException e){
             System.out.println(e.getMessage());

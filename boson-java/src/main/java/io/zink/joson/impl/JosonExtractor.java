@@ -9,10 +9,6 @@ import io.zink.boson.bson.bsonImpl.BosonImpl;
 import io.zink.boson.bson.bsonPath.Interpreter;
 import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
-import io.zink.boson.bson.bsonValue.BsException$;
-import io.zink.boson.bson.bsonValue.BsObject$;
-import io.zink.boson.bson.bsonValue.BsValue;
-import io.zink.boson.bson.bsonValue.Writes$;
 import io.zink.joson.Joson;
 import scala.Option;
 import scala.util.parsing.combinator.Parsers;
@@ -35,20 +31,22 @@ public class JosonExtractor<T> implements Joson {
         this.extractFunction = extractFunction;
     }
 
-    private Function<String, BsValue> writer = BsException$.MODULE$::apply;
+    //private Function<String, BsValue> writer = BsException$.MODULE$::apply;
 
-    private BsValue callParse(BosonImpl boson, String expression){
+    private void callParse(BosonImpl boson, String expression){
         TinyLanguage parser = new TinyLanguage();
         try{
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
                 Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(extractFunction));
-                return interpreter.run();
+                interpreter.run();
             }else{
-                return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
+                throw new RuntimeException("Failure/Error parsing!");
+                //return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
             }
         }catch (RuntimeException e){
-            return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
+            throw new RuntimeException(e.getMessage());
+            //return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
     };
 
@@ -73,8 +71,8 @@ public class JosonExtractor<T> implements Joson {
                         Option<byte[]> opt = Option.apply(bsonByteEncoding);
                         Option e = Option.empty();
                         BosonImpl boson = new BosonImpl(opt, e,e);
-                        BsValue value = callParse(boson, expression);
-                        extractFunction.accept((T)value);
+                        callParse(boson, expression);
+                        //extractFunction.accept((T)value);
                         return jsonStr;
                     });
         }catch (IOException e){

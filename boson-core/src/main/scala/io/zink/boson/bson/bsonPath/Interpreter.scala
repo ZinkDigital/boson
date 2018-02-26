@@ -1,9 +1,8 @@
 package io.zink.boson.bson.bsonPath
 
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl.{BosonImpl, CustomException}
-import io.zink.boson.bson.bsonValue
-
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -12,31 +11,79 @@ import scala.util.{Failure, Success, Try}
   */
 class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Function[T,T]] = None, fExt: Option[Function[R,Unit]] = None) {
 
-  def run(): bsonValue.BsValue = {
+  def run(): Array[Byte] = {
     fInj.isDefined match {
       case true => startInjector(program.statement)
-      case false if fExt.isDefined => start(program.statement)
+      case false if fExt.isDefined =>
+        start(program.statement)
+        boson.getByteBuf.array
       case false => throw new IllegalArgumentException("Construct Boson object with at least one Function.")
     }
   }
 
-  private def start(statement: List[Statement]): bsonValue.BsValue = {
+  private def start(statement: List[Statement]): Unit = {
     if (statement.nonEmpty) {
       statement.head match {
         case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
           //println(s"statements: ${List(first) ++ list}")
           //println(s"dotList: $dots")
-          executeMoreKeys(first, list, dots)
+          //executeMoreKeys(first, list, dots)
+          ???
         case MoreKeys(first, list, dots) =>
-          //println(s"statements: ${List(first) ++ list}")
-          //println(s"dotList: $dots")
-          executeMoreKeys(first, list, dots)
+//          println(s"statements: ${List(first) ++ list}")
+//          println(s"dotList: $dots")
+          buildExtractors(List(first) ++ list)
+          //executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     }else throw new RuntimeException("List of statements is empty.")
   }
 
-  private def buildKeyList(first: Statement, statementList: List[Statement], dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+  private def buildExtractors(statementList: List[Statement]): Unit = {
+    val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
+    for( statement <- statementList) yield{
+      statement match {
+        case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
+        case KeyWithArrExpr(key, arrEx) =>(List((key, C_NEXT),(EMPTY_KEY, C_LIMITLEVEL)),List((None, None, EMPTY_KEY))++defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case ArrExpr(l, m, r) =>  (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+        case HalfName(halfName) =>  (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+        case HasElem(key, elem) =>  (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+      }
+    }
+    val keyList: List[(String,String)] = forList.flatMap(elem => elem._1)
+    val limitList: List[(Option[Int], Option[Int], String)] = forList.flatMap(elem => elem._2)
+
+    val finalKeyList: List[(String,String)] =
+    keyList.last._2 match {
+      case C_NEXT => keyList.take(keyList.size-1)++ List((keyList.last._1,C_LEVEL))
+      case _ => keyList
+    }
+    runExtractors(boson.getByteBuf, finalKeyList, limitList)
+  }
+
+  private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
+    println(s"KeyList: $keyList")
+    println(s"LimitList: $limitList")
+    keyList.size match {
+      case 1 =>
+        val res: Iterable[Any] = boson.extract(encodedStructure, fExt.get, keyList, limitList)
+        println(s"RES from last extractor: $res")
+      case _ =>
+        val res: Iterable[Any] = boson.extract(encodedStructure, fExt.get, keyList, limitList)
+        println(s"RES from extractor: $res")
+        if (res.forall(e => e.isInstanceOf[Array[Byte]])) {
+          res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
+            val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
+            runExtractors(b, keyList.drop(1), limitList.drop(1))
+            b.release()
+          }
+        } else {
+          throw CustomException("The given path doesn't correspond with the event structure.")
+        }
+    }
+  }
+
+  /*private def buildKeyList(first: Statement, statementList: List[Statement], dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       first match {
         case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
@@ -58,7 +105,7 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
           statement match {
             case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: treat '*'
+            case HalfName(halfName) =>if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
             case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
             case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
             case _ => throw CustomException("Error building key list")
@@ -105,7 +152,7 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
       },limitList1)
     }
   }
-
+*/
   private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
     mid.isDefined match {
       case true if right.isEmpty=>
@@ -142,7 +189,7 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
 //    }
   }
 
-  private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
+  /*private def executeMoreKeys(first: Statement, list: List[Statement], dotsList: List[String]): bsonValue.BsValue = {
     val keyList: (List[(String, String)], List[(Option[Int], Option[Int], String)]) = buildKeyList(first, list, dotsList)
     //println("after build keylist -> " + keyList._1)
     //println("after build limitlist -> " + keyList._2)
@@ -162,9 +209,9 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
         }).toVector
       }
     }
-  }
+  }*/
 
-  private def startInjector(statement: List[Statement]): bsonValue.BsValue = {
+  private def startInjector(statement: List[Statement]): Array[Byte] = {
     val stat: MoreKeys = statement.head.asInstanceOf[MoreKeys]
     val united: List[Statement] = stat.list.+:(stat.first)
     val zipped: List[(Statement, String)] =
@@ -177,15 +224,18 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
     executeMultipleKeysInjector(zipped)
   }
 
-  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): bsonValue.BsValue = {
-    val result:bsonValue.BsValue=
+  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
+    val result: Array[Byte]=
       Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get ))match{
         case Success(v)=>
-
-          val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
-          v.release()
-          bsResult
-        case Failure(e)=>bsonValue.BsException(e.getMessage)      }
+          //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+          //v.release()
+          //bsResult
+          v.array
+        case Failure(e)=>
+          throw CustomException(e.getMessage)
+          //bsonValue.BsException(e.getMessage)
+          }
     boson.getByteBuf.release()
     result
   }

@@ -6,7 +6,7 @@ import bsonLib.BsonObject
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import io.vertx.core.json.JsonObject
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonValue.BsValue
+//import io.zink.boson.bson.bsonValue.BsValue
 import io.zink.joson.Joson
 import org.scalameter._
 
@@ -41,7 +41,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting a top value of a BsonObject using Joson
     */
-  val joson1: Joson = Joson.extractor(".Epoch", (_: BsValue) => /*future.complete(in)*/{})
+  val joson1: Joson = Joson.extractor(".Epoch", (_: String) => /*future.complete(in)*/{})
   val result1Joson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson1Result: Future[String] = joson1.go(Lib.jsonStr)
@@ -56,7 +56,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting a top value of a BsonObject using Boson
     */
-  val boson1: Boson = Boson.extractor(".Epoch", (_: BsValue) => /*future.complete(in)*/{})
+  val boson1: Boson = Boson.extractor(".Epoch", (_: String) => /*future.complete(in)*/{})
   val result1Boson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson1Result: Future[Array[Byte]] = boson1.go(Lib.validatedByteArray)
@@ -82,7 +82,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting a bottom value of a BsonObject using Joson
     */
-  val joson2: Joson = Joson.extractor("SSLNLastName", (_: BsValue) => /*future.complete(in)*/{})
+  val joson2: Joson = Joson.extractor("SSLNLastName", (_: String) => /*future.complete(in)*/{})
   val result2Joson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson2Result: Future[String] = joson2.go(Lib.jsonStr)
@@ -97,7 +97,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting a bottom value of a BsonObject using Boson
     */
-  val boson2: Boson = Boson.extractor("SSLNLastName", (_: BsValue) => /*future.complete(in)*/{})
+  val boson2: Boson = Boson.extractor("SSLNLastName", (_: String) => /*future.complete(in)*/{})
   val result2Boson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson2Result: Future[Array[Byte]] = boson2.go(Lib.validatedByteArray)
@@ -123,7 +123,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting all 'Tags' values using Joson
     */
-  val joson3: Joson = Joson.extractor("Tags", (_: BsValue) => /*future.complete(in)*/{})
+  val joson3: Joson = Joson.extractor("Tags", (_: Seq[Any]) => /*future.complete(in)*/{})
   val result3Joson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson3Result: Future[String] = joson3.go(Lib.jsonStr)
@@ -139,7 +139,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting all 'Tags' values using Boson
     */
-  val boson3: Boson = Boson.extractor("Tags", (_: BsValue) => /*future.complete(in)*/{})
+  val boson3: Boson = Boson.extractor("Tags", (_: Seq[Any]) => /*future.complete(in)*/{})
   val result3Boson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson3Result: Future[Array[Byte]] = boson3.go(Lib.validatedByteArray)
@@ -166,7 +166,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting values of some positions of a BsonArray using Joson
     */
-  val joson4: Joson = Joson.extractor("Markets[3 to 5]", (_: BsValue) => /*future.complete(in)*/{})
+  val joson4: Joson = Joson.extractor("Markets[3 to 5]", (_: Seq[Any]) => /*future.complete(in)*/{})
   val result4Joson = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson4Result: Future[String] = joson4.go(Lib.jsonStr)
@@ -181,7 +181,7 @@ object PerformanceAPI extends App {
   /**
     * Testing performance of extracting values of some positions of a BsonArray using Boson
     */
-  val boson4: Boson = Boson.extractor("Markets[3 to 5]", (_: BsValue) => /*future.complete(in)*/{})
+  val boson4: Boson = Boson.extractor("Markets[3 to 5]", (_: Seq[Any]) => /*future.complete(in)*/{})
   val result4Boson = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson4Result: Future[Array[Byte]] = boson4.go(Lib.validatedByteArray)
@@ -207,7 +207,7 @@ object PerformanceAPI extends App {
   /**
     *  Testing performance of extracting with two keys, extracting nothing using Joson
     * */
-  val joson5: Joson = Joson.extractor("Markets[10].selectiongroupid", (_: BsValue) => /*future.complete(in)*/{})
+  val joson5: Joson = Joson.extractor("Markets[10].selectiongroupid", (_: Seq[Any]) => /*future.complete(in)*/{})
   val result5Joson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val joson5Result: Future[String] = joson5.go(Lib.jsonStr)
@@ -222,7 +222,7 @@ object PerformanceAPI extends App {
   /**
     *  Testing performance of extracting with two keys, extracting nothing using Boson
     * */
-  val boson5: Boson = Boson.extractor("Markets[10].selectiongroupid", (_: BsValue) => /*future.complete(in)*/{})
+  val boson5: Boson = Boson.extractor("Markets[10].selectiongroupid", (_: Seq[Any]) => /*future.complete(in)*/{})
   val result5Boson: Quantity[Double] = bestTimeMeasure {
     //val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
     val boson5Result: Future[Array[Byte]] = boson5.go(Lib.validatedByteArray)
@@ -415,7 +415,7 @@ object PerformanceTests extends App {
   println()
 
   val latchB1: CountDownLatch = new CountDownLatch(150)
-  val boson1: Boson = Boson.extractor(".Epoch", (in: BsValue) => {
+  val boson1: Boson = Boson.extractor(".Epoch", (in: String) => {
     //println(s"->$in")
     latchB1.countDown()})
     val result1Boson: Quantity[Double] = Lib.bestTimeMeasure {
@@ -426,7 +426,7 @@ object PerformanceTests extends App {
   latchB1.await()
 
   val latchJ1: CountDownLatch = new CountDownLatch(150)
-  val joson1: Joson = Joson.extractor(".Epoch", (_: BsValue) => {latchJ1.countDown()} )
+  val joson1: Joson = Joson.extractor(".Epoch", (_: String) => {latchJ1.countDown()} )
   val result1Joson: Quantity[Double] = Lib.bestTimeMeasure {
     joson1.go(Lib.jsonStr)//.join()
   }
@@ -442,7 +442,7 @@ object PerformanceTests extends App {
   println()
 
   val latchB2: CountDownLatch = new CountDownLatch(150)
-  val boson2: Boson = Boson.extractor("SSLNLastName", (_: BsValue) => {latchB2.countDown()})
+  val boson2: Boson = Boson.extractor("SSLNLastName", (_: String) => {latchB2.countDown()})
   val result2Boson: Quantity[Double] = Lib.bestTimeMeasure {
     boson2.go(Lib.validatedByteArray)//.join()
   }
@@ -451,7 +451,7 @@ object PerformanceTests extends App {
   latchB2.await()
 
   val latchJ2: CountDownLatch = new CountDownLatch(150)
-  val joson2: Joson = Joson.extractor("SSLNLastName", (_: BsValue) => {latchJ2.countDown()} )
+  val joson2: Joson = Joson.extractor("SSLNLastName", (_: String) => {latchJ2.countDown()} )
   val result2Joson: Quantity[Double] = Lib.bestTimeMeasure {
     joson2.go(Lib.jsonStr)//.join()
   }
@@ -467,7 +467,7 @@ object PerformanceTests extends App {
   println()
 
   val latchB3: CountDownLatch = new CountDownLatch(150)
-  val boson3: Boson = Boson.extractor("Tags", (_: BsValue) => {latchB3.countDown()})
+  val boson3: Boson = Boson.extractor("Tags", (_: Seq[Any]) => {latchB3.countDown()})
   val result3Boson: Quantity[Double] = Lib.bestTimeMeasure {
     boson3.go(Lib.validatedByteArray)//.join()
   }
@@ -476,7 +476,7 @@ object PerformanceTests extends App {
   latchB3.await()
 
   val latchJ3: CountDownLatch = new CountDownLatch(150)
-  val joson3: Joson = Joson.extractor("Tags", (_: BsValue) => {latchJ3.countDown()} )
+  val joson3: Joson = Joson.extractor("Tags", (_: Seq[Any]) => {latchJ3.countDown()} )
   val result3Joson: Quantity[Double] = Lib.bestTimeMeasure {
     joson3.go(Lib.jsonStr)//.join()
   }
@@ -492,7 +492,7 @@ object PerformanceTests extends App {
   println()
 
   val latchB4: CountDownLatch = new CountDownLatch(150)
-  val boson4: Boson = Boson.extractor("Markets[3 to 5]", (_: BsValue) => {latchB4.countDown()})
+  val boson4: Boson = Boson.extractor("Markets[3 to 5]", (_: Seq[Any]) => {latchB4.countDown()})
   val result4Boson: Quantity[Double] = Lib.bestTimeMeasure {
     boson4.go(Lib.validatedByteArray)//.join()
   }
@@ -501,7 +501,7 @@ object PerformanceTests extends App {
   latchB4.await()
 
   val latchJ4: CountDownLatch = new CountDownLatch(150)
-  val joson4: Joson = Joson.extractor("Markets[3 to 5]", (_: BsValue) => {latchJ4.countDown()} )
+  val joson4: Joson = Joson.extractor("Markets[3 to 5]", (_: Seq[Any]) => {latchJ4.countDown()} )
   val result4Joson: Quantity[Double] = Lib.bestTimeMeasure {
     joson4.go(Lib.jsonStr)//.join()
   }
@@ -517,7 +517,7 @@ object PerformanceTests extends App {
   println()
 
   val latchB5: CountDownLatch = new CountDownLatch(150)
-  val boson5: Boson = Boson.extractor("Markets[10].selectiongroupid", (_: BsValue) => {latchB5.countDown()})
+  val boson5: Boson = Boson.extractor("Markets[10].selectiongroupid", (_: Seq[Any]) => {latchB5.countDown()})
   val result5Boson: Quantity[Double] = Lib.bestTimeMeasure {
     boson5.go(Lib.validatedByteArray)//.join()
   }
@@ -526,7 +526,7 @@ object PerformanceTests extends App {
   latchB5.await()
 
   val latchJ5: CountDownLatch = new CountDownLatch(150)
-  val joson5: Joson = Joson.extractor("Markets[10].selectiongroupid", (_: BsValue) => {latchJ5.countDown()} )
+  val joson5: Joson = Joson.extractor("Markets[10].selectiongroupid", (_: Seq[Any]) => {latchJ5.countDown()} )
   val result5Joson: Quantity[Double] = Lib.bestTimeMeasure {
     joson5.go(Lib.jsonStr)//.join()
   }

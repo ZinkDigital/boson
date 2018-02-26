@@ -6,7 +6,6 @@ import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 import org.scalameter._
 
 import scala.io.Source
@@ -16,18 +15,24 @@ import scala.io.Source
   */
 object PerformanceTest extends App {
 
-  def callParse(boson: BosonImpl, expression: String): BsValue = {
+  def callParse(boson: BosonImpl, expression: String): Array[Byte] = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
           val interpreter = new Interpreter(boson, r.asInstanceOf[Program])
           interpreter.run()
-        case parser.Error(_, _) => BsObject.toBson("Error parsing!")
-        case parser.Failure(_, _) => BsObject.toBson("Failure parsing!")
+        case parser.Error(msg, _) =>
+        throw new Exception(msg)
+        //BsObject.toBson("Error parsing!")
+        case parser.Failure(msg, _) =>
+          throw new Exception(msg)
+          //BsObject.toBson("Failure parsing!")
       }
     } catch {
-      case e: RuntimeException => BsObject.toBson(e.getMessage)
+      case e: RuntimeException =>
+      throw new Exception(e.getMessage)
+      //BsObject.toBson(e.getMessage)
     }
   }
 
