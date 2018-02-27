@@ -2,7 +2,8 @@ package io.zink.boson.bson.bsonPath
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
-import io.zink.boson.bson.bsonImpl.{BosonImpl, CustomException}
+import io.zink.boson.bson.bsonImpl.{BosonImpl, CustomException, Transform}
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -58,29 +59,76 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
       case C_NEXT => keyList.take(keyList.size-1)++ List((keyList.last._1,C_LEVEL))
       case _ => keyList
     }
-    runExtractors(boson.getByteBuf, finalKeyList, limitList)
+    extract(boson.getByteBuf, finalKeyList, limitList)
+    //runExtractors(boson.getByteBuf, finalKeyList, limitList)
   }
 
-  private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
-    println(s"KeyList: $keyList")
-    println(s"LimitList: $limitList")
+  private def extract(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
+    val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
+    val typeClass =
+      result.size match {
+        case 0 => None
+        case 1 => Some(result.head.getClass.getSimpleName)
+        case _ =>
+          if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
+          else None
+      }
+    println(s"Final result from extraction: $result")
+    if(keyList.forall(p => !p._2.equals(C_LIMITLEVEL))){
+      println(s"NO limitLevel present, result: $result")
+      if (typeClass.isDefined) {
+        typeClass.get match {
+          case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], result.asInstanceOf[Seq[String]].head)
+          case INTEGER => Transform.toPrimitive(fExt.get.asInstanceOf[Int => Unit], result.asInstanceOf[Seq[Int]].head)
+          case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], result.asInstanceOf[Seq[Long]].head)
+          case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], result.asInstanceOf[Seq[Boolean]].head)
+          case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], result.asInstanceOf[Seq[Double]].head)
+        }
+      }
+    } else {
+      if (typeClass.isDefined) {
+        typeClass.get match {
+          case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], result.asInstanceOf[Seq[String]])
+          case INTEGER => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], result.asInstanceOf[Seq[Int]])
+          case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Seq[Long]])
+          case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Seq[Boolean]])
+          case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Seq[Double]])
+        }
+      }
+    }
+  }
+
+  private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
+//    println(s"KeyList: $keyList")
+//    println(s"LimitList: $limitList")
+    val value: Iterable[Any] =
     keyList.size match {
       case 1 =>
         val res: Iterable[Any] = boson.extract(encodedStructure, fExt.get, keyList, limitList)
-        println(s"RES from last extractor: $res")
+        //println(s"RES from last extractor: $res")
+        res
       case _ =>
         val res: Iterable[Any] = boson.extract(encodedStructure, fExt.get, keyList, limitList)
-        println(s"RES from extractor: $res")
-        if (res.forall(e => e.isInstanceOf[Array[Byte]])) {
-          res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
-            val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
-            runExtractors(b, keyList.drop(1), limitList.drop(1))
-            b.release()
-          }
-        } else {
-          throw CustomException("The given path doesn't correspond with the event structure.")
+        res.forall(e => e.isInstanceOf[Array[Byte]]) match {
+          case true /*if keyList.head._1.equals(EMPTY_KEY)*/ =>
+            val result: Iterable[Any] =
+              res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
+                val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
+                runExtractors(b, keyList.drop(1), limitList.drop(1))
+                //b.release()
+              }.seq.reduce(_++_)
+            //println(s"RES from extractor: $result")
+            result
+//          case true if res.size == 1 =>
+//            println("case true and res.size = 1")
+//            val arr: Array[Byte] = res.asInstanceOf[Iterable[Array[Byte]]].head
+//            val b: ByteBuf = Unpooled.buffer(arr.length).writeBytes(arr)
+//            runExtractors(b, keyList.drop(1), limitList.drop(1))
+          case false => throw CustomException("The given path doesn't correspond with the event structure.")
+
         }
     }
+    value
   }
 
   /*private def buildKeyList(first: Statement, statementList: List[Statement], dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {

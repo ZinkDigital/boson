@@ -7,28 +7,171 @@ import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import io.zink.boson.bson.bsonImpl.Transform._
+import org.junit.Assert.assertEquals
 
 @RunWith(classOf[JUnitRunner])
 class ChainedExtractorsTest extends FunSuite{
-  private val book3 = new BsonObject().put("Title", "C++").put("Price", 21.8)
-  private val book2 = new BsonObject().put("Title", "Java").put("Price", 20.3)
-  private val book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6)
-  private val books = new BsonArray().add(book1).add(book2).add(5).add(book3)
-  private val store = new BsonObject().put("Book", books)
-  private val bson = new BsonObject().put("Store", store)
 
+  private val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition",10).put("ForSale", true).put("nPages", 750L)
+  private val _store = new BsonObject().put("Book", _book1)
+  private val _bson = new BsonObject().put("Store", _store)
 
-  private val arr = new BsonArray().add("Store").add("Book").add("allBooks")
-
-  test("Simple String extractor") {
-
-    toPrimitive((in: Seq[Int]) => println(s"Extracted a seq: $in"), Seq(1, 2))
-//    val expression: String = ".[all]"
-//    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => println(s"Extracted a seq: $in"))
-//    val res = boson.go(arr.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-
+  test("Extract Long") {
+    val expression: String = ".Store.Book.nPages"
+    val boson: Boson = Boson.extractor(expression, (in: Long) => {
+      assertEquals(750L, in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
   }
+
+  test("Extract Boolean") {
+    val expression: String = ".Store.Book.ForSale"
+    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
+      assertEquals(true, in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Int") {
+    val expression: String = ".Store.Book.Edition"
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      assertEquals(10, in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Double") {
+    val expression: String = ".Store.Book.Price"
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
+      assert(25.6 === in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract String") {
+    val expression: String = ".Store.Book.Title"
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      assertEquals("Scala", in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract simple Seq[Boolean]") {
+    val arr = new BsonArray().add(true).add(true).add(false)
+
+    val expression: String = ".[all]"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Boolean]) => {
+      assertEquals(Seq(true,true,false), in)
+      println("APPLIED")
+    })
+    val res = boson.go(arr.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract simple Seq[Int]") {
+    val arr = new BsonArray().add(1).add(2).add(3)
+
+    val expression: String = ".[all]"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
+      assertEquals(Seq(1,2,3), in)
+      println("APPLIED")
+    })
+    val res = boson.go(arr.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract simple Seq[String]") {
+    val arr = new BsonArray().add("one").add("two").add("three")
+
+    val expression: String = ".[all]"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
+      assertEquals(Seq("one","two","three"), in)
+      println("APPLIED")
+    })
+    val res = boson.go(arr.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract simple Seq[Long]") {
+    val arr = new BsonArray().add(1000L).add(1001L).add(1002L)
+
+    val expression: String = ".[all]"
+    val boson: Boson = Boson.extractor(expression, (in:  Seq[Long]) => {
+      assertEquals(Seq(1000L,1001L,1002L), in)
+      println("APPLIED")
+    })
+    val res = boson.go(arr.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract simple Seq[Double]") {
+    val arr = new BsonArray().add(1.1).add(2.2).add(3.3)
+
+    val expression: String = ".[all]"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => {
+      assertEquals(Seq(1.1,2.2,3.3), in)
+      println("APPLIED")
+    })
+    val res = boson.go(arr.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+    private val hat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
+    private val hat2 = new BsonObject().put("Price", 35).put("Color", "White")
+    private val hat1 = new BsonObject().put("Price", 48).put("Color", "Red")
+    private val hats = new BsonArray().add(hat1).add(hat2).add(hat3)
+    private val edition3 = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    private val sEditions3 = new BsonArray().add(edition3)
+    private val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", sEditions3)
+    private val edition2 = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
+    private val sEditions2 = new BsonArray().add(edition2)
+    private val title2 = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", sEditions2)
+    private val edition1 = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
+    private val sEditions1 = new BsonArray().add(edition1)
+    private val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", sEditions1)
+    private val books = new BsonArray().add(title1).add(title2).add(title3)
+    private val store = new BsonObject().put("Book", books).put("Hat", hats)
+    private val bson = new BsonObject().put("Store", store)
+
+  test("Extract complex Seq[String]") {
+    val expression: String = ".Store.Book[1 to end].Title"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
+      assertEquals(Seq("Scala","C++"), in)
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract complex Seq[Int]") {
+    val expression: String = ".Store.Book[0 until end].SpecialEditions[all].Price"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
+      assertEquals(Seq(39,40), in)
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract complex Seq[Double]") {
+    val expression: String = ".Store.Book[1 to 3].Price"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => {
+      assertEquals(Seq(12.6), in)
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
 
 }

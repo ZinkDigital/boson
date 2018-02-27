@@ -58,6 +58,13 @@ object Dictionary {
   val E_HALFNAME: String = "Error Parsing HalfName!"
   val E_MOREKEYS: String = "Failure parsing!"
 
+  // TYPES CONSTANTES
+  val STRING: String = "String"
+  val DOUBLE: String = "Double"
+  val INTEGER: String = "Integer"
+  val LONG: String = "Long"
+  val BOOLEAN: String = "Boolean"
+
 
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")

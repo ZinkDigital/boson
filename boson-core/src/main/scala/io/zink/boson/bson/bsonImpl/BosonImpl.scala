@@ -5,7 +5,6 @@ import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
-import io.zink.boson.bson.bsonImpl.Transform._
 import io.zink.boson.bson.bsonPath._
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -113,16 +112,16 @@ class BosonImpl(
   }
 
   // Extracts the value of a key inside a BsonObject
-  private def extractFromBsonObj[T](netty: ByteBuf, fExt: T => Unit, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): Option[Array[Byte]] = {
+  private def extractFromBsonObj[T](netty: ByteBuf, fExt: T => Unit, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
     val seqType: Int = netty.readByte().toInt
-    val finalValue: Option[Array[Byte]] =
+    val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Double = netty.readDoubleLE()
-            Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
-            None
-//            Some(value)
+//            Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
+//            None
+            Some(value)
           } else {
             netty.readDoubleLE()
             None
@@ -132,11 +131,11 @@ class BosonImpl(
             val valueLength: Int = netty.readIntLE()
             val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
             val newArr: Array[Byte] = arr.filter(b => b!=0)
-            println("before")
-            Transform.toPrimitive[String](fExt.asInstanceOf[String => Unit], new String(newArr))
-            println("after")
-            None
-//            Some(new String(newArr))
+            //println("before")
+            //Transform.toPrimitive[String](fExt.asInstanceOf[String => Unit], new String(newArr))
+            //println("after")
+            //None
+            Some(new String(newArr))
           } else {
             netty.readCharSequence(netty.readIntLE(), charset)
             None
@@ -252,9 +251,9 @@ class BosonImpl(
         case D_BOOLEAN =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Int = netty.readByte()
-            Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
-            None
-            //Some(value == 1)
+//            Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
+//            None
+            Some(value == 1)
           } else {
             netty.readByte()
             None
@@ -269,9 +268,9 @@ class BosonImpl(
         case D_INT =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Int = netty.readIntLE()
-            Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
-            None
-            //Some(value)
+//            Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
+//            None
+            Some(value)
           } else {
             netty.readIntLE()
             None
@@ -279,9 +278,9 @@ class BosonImpl(
         case D_LONG =>
           if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Long = netty.readLongLE()
-            Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
-            None
-            //Some(value)
+//            Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
+//            None
+            Some(value)
           } else {
             netty.readLongLE()
             None
@@ -439,22 +438,22 @@ class BosonImpl(
       if (seqType2 != 0) {
         readArrayPos(netty)
       }
-      val newSeq: Option[Array[Byte]] =
+      val newSeq: Option[Any] =
         seqType2 match {
           case D_FLOAT_DOUBLE =>
             val value: Double = netty.readDoubleLE()
               limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                  Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
-                  None
-                  //Some(value)
+                  //Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
+                  //None
+                  Some(value)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get && keyList.size == 1=>
-                      Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
-                      None
-                      //Some(value)
+                      //Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
+                      //None
+                      Some(value)
                     case Some(_) => None
                     case None =>
                       println("case none none")
@@ -468,16 +467,16 @@ class BosonImpl(
             val newField: String = field.toString.filter(p => p != 0)
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                  Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
-                  None
-                  //Some(newField)
+                  //Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
+                  //None
+                  Some(newField)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
-                      Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
-                      None
-                      //Some(newField)
+                      //Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
+                      //None
+                      Some(newField)
                     case Some(_) => None
                     case None =>
                       println("case none none")
@@ -551,16 +550,16 @@ class BosonImpl(
             val value: Int = netty.readByte()
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1=>
-                  Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
-                  None
-                  //Some(value == 1)
+                  //Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
+                  //None
+                  Some(value == 1)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get && keyList.size == 1=>
-                      Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
-                      None
-                      //Some(value == 1)
+                      //Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
+                      //None
+                      Some(value == 1)
                     case Some(_) => None
                     case None => println("case none none")
                       None//Some(value == 1)
@@ -583,16 +582,16 @@ class BosonImpl(
             val value: Int = netty.readIntLE()
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1=>
-                  Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
-                  None
-                  //Some(value)
+                  //Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
+                  //None
+                  Some(value)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get && keyList.size == 1=>
-                      Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
-                      None
-                      //Some(value)
+                      //Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
+                      //None
+                      Some(value)
                     case Some(_) => None
                     case None => println("case none none")
                       None//Some(value)
@@ -602,16 +601,16 @@ class BosonImpl(
             val value: Long = netty.readLongLE()
             limitList.head._2 match {
                 case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1=>
-                  Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
-                  None
-                  //Some(value)
+                  //Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
+                  //None
+                  Some(value)
                 case Some(_) => None
                 case None =>
                   limitList.head._1 match {
                     case Some(_) if iter >= limitList.head._1.get && keyList.size == 1=>
-                      Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
-                      None
-                      //Some(value)
+                      //Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
+                      //None
+                      Some(value)
                     case Some(_) => None
                     case None => println("case none none")
                       None//Some(value)
@@ -628,14 +627,38 @@ class BosonImpl(
           newSeq
       }
     }
+
     val seq: Iterable[Any] = constructWithLimits(0)
-    limitList.head._3 match {
-      case UNTIL_RANGE => seq.take(seq.size-1)
-      case C_END => seq.drop(seq.size-1)
-      case _ =>
-        //Transform.toPrimitive(fExt, seq.toSeq)
-        seq
-    }
+    val finalSeq: Iterable[Any] =
+      limitList.head._3 match {
+        case UNTIL_RANGE => seq.take(seq.size - 1)
+        case C_END => seq.drop(seq.size - 1)
+        case _ => seq
+      }
+//    keyList.size match {
+//      case 1 =>
+//        val typeClass =
+//          finalSeq.size match {
+//            case 0 => None
+//            case 1 => Some(finalSeq.head.getClass.getSimpleName)
+//            case _ =>
+//              if (finalSeq.tail.forall{p => finalSeq.head.getClass.equals(p.getClass)}) Some(finalSeq.head.getClass.getSimpleName)
+//              else None
+//          }
+//        if (typeClass.isDefined) {
+//          typeClass.get match {
+//            case STRING => Transform.toPrimitive(fExt.asInstanceOf[Seq[String] => Unit], finalSeq.asInstanceOf[Seq[String]])
+//            case INTEGER => Transform.toPrimitive(fExt.asInstanceOf[Seq[Int] => Unit], finalSeq.asInstanceOf[Seq[Int]])
+//            case LONG => Transform.toPrimitive(fExt.asInstanceOf[Seq[Long] => Unit], finalSeq.asInstanceOf[Seq[Long]])
+//            case BOOLEAN => Transform.toPrimitive(fExt.asInstanceOf[Seq[Boolean] => Unit], finalSeq.asInstanceOf[Seq[Boolean]])
+//            case DOUBLE => Transform.toPrimitive(fExt.asInstanceOf[Seq[Double] => Unit], finalSeq.asInstanceOf[Seq[Double]])
+//          }
+//        }
+//        finalSeq
+//      case _ =>
+//        finalSeq
+//    }
+    finalSeq
   }
 
   /*private def  goThroughArrayWithLimit(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] =  {
