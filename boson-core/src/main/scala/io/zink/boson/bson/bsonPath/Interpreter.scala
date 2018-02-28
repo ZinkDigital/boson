@@ -10,6 +10,8 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
+
+
 class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Function[T,T]] = None, fExt: Option[Function[R,Unit]] = None) {
 
   def run(): Array[Byte] = {
