@@ -31,14 +31,14 @@ class BosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) 
     }
   }
 
-  override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
-    val future: Future[Array[Byte]] =
-      Future {
+  override def go(bsonByteEncoding: Array[Byte]): Array[Byte] = {
+    //val future: Future[Array[Byte]] =
+      //Future {
         val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
           callParse(boson, expression)
           bsonByteEncoding
-      }
-    future
+      //}
+    //future
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
@@ -51,7 +51,8 @@ class BosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) 
     future
   }
 
-  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
+  override def fuse(boson: Boson): Boson = ???
+  //new BosonFuse(this, boson)
 
   //override def extractor[T](expression: String, extractFunction: Function[T, Unit]): Unit = ???
 }

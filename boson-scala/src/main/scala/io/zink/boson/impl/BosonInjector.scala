@@ -36,10 +36,10 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     }
   }
 
-  override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
+  override def go(bsonByteEncoding: Array[Byte]): Array[Byte] = {
     val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-    val future: Future[Array[Byte]] =
-      Future{
+    //val future: Future[Array[Byte]] =
+      //Future{
       val r: Array[Byte] = parseInj(boson, anon, expression)
 //      match {
 //        case ex: BsException => println(ex.getValue)
@@ -50,8 +50,8 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 //          bsonByteEncoding
 //      }
       r
-    }
-    future
+    //}
+    //future
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
@@ -73,5 +73,6 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     future
   }
 
-  override def fuse(boson: Boson): Boson = new BosonFuse(this,boson)
+  override def fuse(boson: Boson): Boson = ???
+  //new BosonFuse(this,boson)
 }

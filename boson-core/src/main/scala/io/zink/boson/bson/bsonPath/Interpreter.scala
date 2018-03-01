@@ -75,9 +75,9 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else None
       }
-    println(s"Final result from extraction: $result")
+    //println(s"Final result from extraction: $result")
     if(keyList.forall(p => !p._2.equals(C_LIMITLEVEL))){
-      println(s"NO limitLevel present, result: $result")
+      //println(s"NO limitLevel present, result: $result")
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], result.asInstanceOf[Seq[String]].head)
