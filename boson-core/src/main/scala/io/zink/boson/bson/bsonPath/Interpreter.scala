@@ -27,11 +27,11 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
   private def start(statement: List[Statement]): Unit = {
     if (statement.nonEmpty) {
       statement.head match {
-        case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
-          //println(s"statements: ${List(first) ++ list}")
-          //println(s"dotList: $dots")
-          //executeMoreKeys(first, list, dots)
-          ???
+//        case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
+//          //println(s"statements: ${List(first) ++ list}")
+//          //println(s"dotList: $dots")
+//          //executeMoreKeys(first, list, dots)
+//          ???
         case MoreKeys(first, list, dots) =>
 //          println(s"statements: ${List(first) ++ list}")
 //          println(s"dotList: $dots")
@@ -62,11 +62,13 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
       case _ => keyList
     }
     extract(boson.getByteBuf, finalKeyList, limitList)
+    //boson.getByteBuf.release()
     //runExtractors(boson.getByteBuf, finalKeyList, limitList)
   }
 
   private def extract(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
+    //println(s"extracted -> $result")
     val typeClass =
       result.size match {
         case 0 => None
@@ -85,8 +87,9 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
           case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], result.asInstanceOf[Seq[Long]].head)
           case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], result.asInstanceOf[Seq[Boolean]].head)
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], result.asInstanceOf[Seq[Double]].head)
+          case ARRAY_BYTE => Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
         }
-      }
+      } else fExt.get.apply(result.asInstanceOf[R]) //TODO: implement this case
     } else {
       if (typeClass.isDefined) {
         typeClass.get match {
@@ -95,8 +98,9 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
           case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Seq[Long]])
           case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Seq[Boolean]])
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Seq[Double]])
+          case ARRAY_BYTE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
         }
-      }
+      } else fExt.get.apply(result.asInstanceOf[R]) //TODO: implement this case
     }
   }
 

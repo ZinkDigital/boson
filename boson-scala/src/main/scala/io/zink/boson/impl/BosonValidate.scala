@@ -32,8 +32,8 @@ class BosonValidate[T](expression: String, validateFunction: Function[T, Unit]) 
     }
   }
 
-  override def go(bsonByteEncoding: Array[Byte]): Array[Byte] = {
-    //Future{
+  override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
+    Future{
       val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
         callParse(boson,expression)
         bsonByteEncoding
@@ -43,7 +43,7 @@ class BosonValidate[T](expression: String, validateFunction: Function[T, Unit]) 
 //        case _ =>
 //          throw new RuntimeException("BosonExtractor -> go() default case!!!")
 //      }
-    //}
+    }
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer):Future[ByteBuffer] = {

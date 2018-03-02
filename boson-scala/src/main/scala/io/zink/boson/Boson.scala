@@ -43,7 +43,7 @@ trait Boson {
     * @param bsonByteEncoding
     * @return
     */
-  def go(bsonByteEncoding: Array[Byte]): Array[Byte]
+  def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]]
 
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete

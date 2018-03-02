@@ -3,7 +3,7 @@ package io.zink.boson.bson.bsonImpl
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
 
-import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.buffer.{ByteBuf, ByteBufAllocator, PooledByteBufAllocator, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 
@@ -123,7 +123,8 @@ class BosonImpl(
 //            None
             Some(value)
           } else {
-            netty.readDoubleLE()
+            netty.skipBytes(8)
+            //netty.readDoubleLE()
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -137,7 +138,8 @@ class BosonImpl(
             //None
             Some(new String(newArr))
           } else {
-            netty.readCharSequence(netty.readIntLE(), charset)
+            netty.skipBytes(netty.readIntLE())
+            //netty.readCharSequence(netty.readIntLE(), charset)
             None
           }
         case D_BSONOBJECT =>
@@ -255,7 +257,8 @@ class BosonImpl(
 //            None
             Some(value == 1)
           } else {
-            netty.readByte()
+            netty.skipBytes(1)
+            //netty.readByte()
             None
           }
         case D_NULL =>
@@ -272,7 +275,8 @@ class BosonImpl(
 //            None
             Some(value)
           } else {
-            netty.readIntLE()
+            netty.skipBytes(4)
+            //netty.readIntLE()
             None
           }
         case D_LONG =>
@@ -282,19 +286,20 @@ class BosonImpl(
 //            None
             Some(value)
           } else {
-            netty.readLongLE()
+            netty.skipBytes(8)
+            //netty.readLongLE()
             None
           }
-        case D_ZERO_BYTE =>
-          None
+//        case D_ZERO_BYTE =>
+//          None
       }
     finalValue match {
       case None =>
         val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
         actualPos match {
-          case x if x > 0 =>
+          case x if x > 1 =>
             extractFromBsonObj(netty, fExt, keyList, bsonFinishReaderIndex, limitList)
-          case 0 =>
+          case 1 =>
             None
         }
       case Some(value) => // if keyList.head._2.equals(C_LEVEL) || (keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.eq(STAR))  =>  //keyList.head._2.equals("first") ||
@@ -616,14 +621,14 @@ class BosonImpl(
                       None//Some(value)
                   }
               }
-          case D_ZERO_BYTE =>
-            None
+//          case D_ZERO_BYTE =>
+//            None
         }
       val actualPos2: Int = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
-        case x if x > 0 =>
+        case x if x > 1 =>
           newSeq ++ constructWithLimits(iter+1)
-        case 0 =>
+        case 1 =>
           newSeq
       }
     }

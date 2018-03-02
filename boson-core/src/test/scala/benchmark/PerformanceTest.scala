@@ -15,7 +15,7 @@ import scala.io.Source
   */
 object PerformanceTest extends App {
 
-  def callParse(boson: BosonImpl, expression: String): Array[Byte] = {
+  def callParse(boson: BosonImpl, expression: String): Unit /*Array[Byte]*/ = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {

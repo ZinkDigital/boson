@@ -36,10 +36,10 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     }
   }
 
-  override def go(bsonByteEncoding: Array[Byte]): Array[Byte] = {
+  override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-    //val future: Future[Array[Byte]] =
-      //Future{
+    val future: Future[Array[Byte]] =
+      Future{
       val r: Array[Byte] = parseInj(boson, anon, expression)
 //      match {
 //        case ex: BsException => println(ex.getValue)
@@ -50,29 +50,28 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 //          bsonByteEncoding
 //      }
       r
-    //}
-    //future
+    }
+    future
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
     val boson: BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
     val future: Future[ByteBuffer] =
     Future{
-      val r: Array[Byte] = parseInj(boson, anon, expression)
-      val b: ByteBuf = Unpooled.copiedBuffer(r)
-      b.nioBuffer()
+      /*val r: Array[Byte] = */parseInj(boson, anon, expression)
+      //val b: ByteBuf = Unpooled.copiedBuffer(r)
+      //b.nioBuffer()
 //      match {
 //        case ex: BsException => println(ex.getValue)
 //          bsonByteBufferEncoding
 //        case nb: BsBoson => nb.getValue.getByteBuf.nioBuffer()
 //        case _ =>
-//          bsonByteBufferEncoding
+          bsonByteBufferEncoding
 //      }
 //      r
     }
     future
   }
 
-  override def fuse(boson: Boson): Boson = ???
-  //new BosonFuse(this,boson)
+  override def fuse(boson: Boson): Boson = new BosonFuse(this,boson)
 }

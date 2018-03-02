@@ -27,6 +27,7 @@ class JosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
           new Interpreter(netty, r.asInstanceOf[Program], Option(injectFunction)).run()
+          netty.getByteBuf.array()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)

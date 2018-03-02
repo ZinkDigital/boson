@@ -19,6 +19,13 @@ trait DefaultExtractor {
       }
     }
 
+  implicit object ArrByteExtractor extends Extractor[Array[Byte]] {
+    def applyFunc(f: Array[Byte] => Unit, value: Array[Byte]): Array[Byte] = {
+      f(value)
+      value
+    }
+  }
+
   implicit object StringExtractor extends Extractor[String] {
     def applyFunc(f: String => Unit, value: String): String = {
       f(value)
