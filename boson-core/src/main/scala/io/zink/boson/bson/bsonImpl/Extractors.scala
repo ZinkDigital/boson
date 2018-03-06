@@ -19,6 +19,15 @@ trait DefaultExtractor {
       }
     }
 
+//  implicit def ObjExtractor[T: Extractor]: Extractor[Map[String,T]] = new Extractor[Map[String, T]] {
+//    def applyFunc(f: Map[String, T] => Unit, value: Map[String, Any]): Map[String, T] = {
+//      val map: Map[String,Any] =
+//        (for((key,v) <- value)yield {Map(key -> implicitly[Extractor[T]].applyFunc(_ =>{},v))}).foldLeft(Map[String,Any]())((b,a) => b++a)
+//      println(FromMap.to[T].from(map))
+//      value
+//    }
+//  }
+
   implicit object ArrByteExtractor extends Extractor[Array[Byte]] {
     def applyFunc(f: Array[Byte] => Unit, value: Array[Byte]): Array[Byte] = {
       f(value)

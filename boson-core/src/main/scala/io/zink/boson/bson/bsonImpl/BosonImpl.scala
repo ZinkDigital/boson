@@ -117,18 +117,23 @@ class BosonImpl(
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (condition: Boolean,key: String) = _compareKeys(netty,keyList.head._1)
+          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Double = netty.readDoubleLE()
 //            Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
 //            None
-            Some(value)
+            keyList.head._2 match {
+              case "build" => Some(Iterable(key,value))
+              case _ => Some(value)
+            }
           } else {
             netty.skipBytes(8)
             //netty.readDoubleLE()
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (condition: Boolean,key: String) = _compareKeys(netty,keyList.head._1)
+          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val valueLength: Int = netty.readIntLE()
             val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
             val newArr: Array[Byte] = arr.filter(b => b!=0)
@@ -136,7 +141,10 @@ class BosonImpl(
             //Transform.toPrimitive[String](fExt.asInstanceOf[String => Unit], new String(newArr))
             //println("after")
             //None
-            Some(new String(newArr))
+            keyList.head._2 match {
+              case "build" => Some(Iterable(key,new String(newArr)))
+              case _ => Some(new String(newArr))
+            }
           } else {
             netty.skipBytes(netty.readIntLE())
             //netty.readCharSequence(netty.readIntLE(), charset)
@@ -251,40 +259,57 @@ class BosonImpl(
 //            }
           }
         case D_BOOLEAN =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (condition: Boolean,key: String) = _compareKeys(netty,keyList.head._1)
+          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Int = netty.readByte()
 //            Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
 //            None
-            Some(value == 1)
+            keyList.head._2 match {
+              case "build" => Some(Iterable(key,value == 1))
+              case _ => Some(value == 1)
+            }
           } else {
             netty.skipBytes(1)
             //netty.readByte()
             None
           }
         case D_NULL =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
-            None  //TODO: take care of case Null
+          val (condition: Boolean,key: String) = _compareKeys(netty,keyList.head._1)
+          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+            keyList.head._2 match {
+              case "build" => Some(Iterable(key,"Null"))
+              case _ => None
+            }
+            //TODO: take care of case Null
             //Some(V_NULL)
           } else {
             None
           }
         case D_INT =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (condition: Boolean,key: String) = _compareKeys(netty,keyList.head._1)
+          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Int = netty.readIntLE()
 //            Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
 //            None
-            Some(value)
+            keyList.head._2 match {
+              case "build" => Some(Iterable(key,value))
+              case _ => Some(value)
+            }
           } else {
             netty.skipBytes(4)
             //netty.readIntLE()
             None
           }
         case D_LONG =>
-          if (comparingFunction(netty, keyList.head._1) && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (condition: Boolean,key: String) = _compareKeys(netty,keyList.head._1)
+          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             val value: Long = netty.readLongLE()
 //            Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
 //            None
-            Some(value)
+            keyList.head._2 match {
+              case "build" => Some(Iterable(key,value))
+              case _ => Some(value)
+            }
           } else {
             netty.skipBytes(8)
             //netty.readLongLE()
@@ -301,6 +326,14 @@ class BosonImpl(
             extractFromBsonObj(netty, fExt, keyList, bsonFinishReaderIndex, limitList)
           case 1 =>
             None
+        }
+      case Some(_) if keyList.head._2.equals("build") =>
+        val actualPos: Int = bsonFinishReaderIndex - netty.readerIndex()
+        actualPos match {
+          case x if x > 1 =>
+            finalValue ++ extractFromBsonObj(netty,fExt, keyList, bsonFinishReaderIndex, limitList)
+          case 1 =>
+            finalValue
         }
       case Some(value) => // if keyList.head._2.equals(C_LEVEL) || (keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.eq(STAR))  =>  //keyList.head._2.equals("first") ||
         //netty.readerIndex(bsonFinishReaderIndex)
@@ -412,6 +445,17 @@ class BosonImpl(
 //            }
 //        }
     }
+  }
+
+  private def _compareKeys(netty: ByteBuf, key: String): (Boolean,String) = {
+    val arrKeyExtract: ListBuffer[Byte] = new ListBuffer[Byte]
+    var i: Int = netty.readerIndex()
+    while (netty.getByte(i) != 0) {
+      arrKeyExtract.append(netty.readByte())
+      i += 1
+    }
+    netty.readByte() // consume the end String byte
+    (key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep | isHalfword(key, new String(arrKeyExtract.toArray)),new String(arrKeyExtract.toArray))
   }
 
   private def compareKeys(netty: ByteBuf, key: String): Boolean = {

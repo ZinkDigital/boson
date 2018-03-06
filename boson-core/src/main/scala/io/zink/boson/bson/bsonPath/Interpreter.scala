@@ -5,12 +5,15 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl.{BosonImpl, CustomException, Transform}
 
 import scala.collection.mutable.ListBuffer
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
 
+
+case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
 
 class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Function[T,T]] = None, fExt: Option[Function[R,Unit]] = None) {
 
@@ -40,6 +43,21 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     }else throw new RuntimeException("List of statements is empty.")
+  }
+
+  private def constructObj(encodedByteArray: Array[Byte], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = {
+    val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray),keyList,limitList).asInstanceOf[Iterable[Iterable[Any]]].flatten
+    //println(s"res: $res")
+    def help(list: Iterable[Any]): Seq[(String,Any)] = {
+      list match {
+        case (x: String)::(y: Any)::Nil => Seq((x, y))
+        case (x: String)::(y: Any)::xs => Seq((x, y)) ++ help(xs)
+      }
+    }
+    val seqSorted: Seq[(String,Any)] = help(res).map(elem => (elem._1.toLowerCase,elem._2)).sortWith(_._1 < _._1)
+    println(s"Extracted seqSorted = $seqSorted")
+    val book = Compose.fromMap[Book](seqSorted)
+    println(s"caseClass constructed: $book")
   }
 
   private def buildExtractors(statementList: List[Statement]): Unit = {
@@ -79,7 +97,7 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
       }
     //println(s"Final result from extraction: $result")
     if(keyList.forall(p => !p._2.equals(C_LIMITLEVEL))){
-      //println(s"NO limitLevel present, result: $result")
+      //println(s"NO limitLevel present, type: $typeClass")
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], result.asInstanceOf[Seq[String]].head)
@@ -87,7 +105,8 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
           case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], result.asInstanceOf[Seq[Long]].head)
           case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], result.asInstanceOf[Seq[Boolean]].head)
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], result.asInstanceOf[Seq[Double]].head)
-          case ARRAY_BYTE => Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
+          //case ARRAY_BYTE => Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
+          case _ => constructObj(result.head.asInstanceOf[Array[Byte]],List(("*","build")), List((None,None,"")))
         }
       } else fExt.get.apply(result.asInstanceOf[R]) //TODO: implement this case
     } else {
@@ -296,6 +315,36 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[Functio
 }
 
 object Compose {
+  //import org.specs2.mutable.Specification
+  import scala.reflect._
+  import scala.reflect.runtime.universe._
+
+  def fromMap[A: TypeTag : ClassTag](m: Seq[(String, Any)]) = {
+    val rm = runtimeMirror(classTag[A].runtimeClass.getClassLoader)
+    val classTest = typeOf[A].typeSymbol.asClass
+    val classMirror = rm.reflectClass(classTest)
+    val constructor = typeOf[A].decl(termNames.CONSTRUCTOR).asMethod
+    val constructorMirror = classMirror.reflectConstructor(constructor)
+
+    val constructorArgsTuple = constructor.paramLists.flatten.map((param: Symbol) => {
+      (param.name.toString, param.typeSignature)
+    })
+    val constructorArgs =
+      constructorArgsTuple.map {
+        case (name, _type) =>
+          m.find(elem => elem._1.equals(name.toLowerCase)).map { element =>
+            _type match {
+              case t if t =:= typeOf[Double] && element._2.getClass.getSimpleName.equals(DOUBLE) => element._2
+              case t if t =:= typeOf[String] && element._2.getClass.getSimpleName.equals(STRING) => element._2
+              case t if t =:= typeOf[Boolean] && element._2.getClass.getSimpleName.equals(BOOLEAN) => element._2
+              case t if t =:= typeOf[Int] && element._2.getClass.getSimpleName.equals(INTEGER) => element._2
+              case t if t =:= typeOf[Long] && element._2.getClass.getSimpleName.equals(LONG) => element._2
+              case _ => throw new IllegalArgumentException("Different types.")
+            }
+          }.getOrElse(throw new IllegalArgumentException("Different field names."))
+      }
+    constructorMirror(constructorArgs: _*).asInstanceOf[A]
+  }
 
   def composer(value: Array[Any]): Seq[Any] = {
     val help: ListBuffer[Any] = new ListBuffer[Any]
