@@ -9,8 +9,10 @@ import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
-class BosonValidate[T](expression: String, validateFunction: Function[T, Unit]) extends Boson{
+class BosonValidate[T: TypeTag: ClassTag](expression: String, validateFunction: T => Unit) extends Boson{
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage

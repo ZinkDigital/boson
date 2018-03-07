@@ -31,7 +31,7 @@
         "SSLNJurisdiction":"South America",
         "ConsumeInPlayPrices":"Unknown",
         "Sport":"Football"
-        },
+    },
     "GameState":{
             "matchsummary":"0-0 00:00 1st",
             "concisematchsummary":"0-0 00:00 1st",
@@ -57,13 +57,13 @@
                 {
                     "Id":"LMGRbL-2Ehj6-GHYb0cakX-6t9k",
                     "Tags":{
-                        "type":"match_winner",
+                        "Type":"match_winner",
                         "traded_pre_match":"true",
                         "traded_in_play":"true",
                         "name":"Match Winner",
                         "marketgroupid":"7vB9Vw16nu_vLp3h2sMQ5C0iZJk"
-                        },
-                        "Selections":[
+                    },
+                    "Selections":[
                             {
                                 "Id":"khYFoMBYY0wP6YPV570kMtmgiKA",
                                 "Tags":{

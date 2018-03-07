@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream
 import java.util.concurrent.CountDownLatch
 
 import bsonLib.BsonObject
+import com.jayway.jsonpath.spi.json.GsonJsonProvider
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider
 import com.jayway.jsonpath.{Configuration, JsonPath, Option}
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
@@ -348,6 +350,7 @@ object Lib {
   val validatedByteArray: Array[Byte] = bson.encodeToBarray()
 
   def avgPerformance(timesBuffer: ListBuffer[Long]): Double = {
+    //println(timesBuffer)
     val avgMS: Double = (timesBuffer.sum/timesBuffer.size)/1000000.0
     val threshold: Double = avgMS*1.5
     val filteredList: List[Long] = timesBuffer.filter(elem =>  (elem/1000000.0) <= threshold ).toList
@@ -360,8 +363,9 @@ object Lib {
 
 }
 
-object PerformanceTests extends App {
+class Tags(Type: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
 
+object PerformanceTests extends App {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val timesBuffer: ListBuffer[Long] = new ListBuffer[Long]
   val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
@@ -370,6 +374,38 @@ object PerformanceTests extends App {
   import com.jayway.jsonpath.spi.cache.NOOPCache
   val cache: NOOPCache = new NOOPCache
   CacheProvider.setCache(cache)
+
+  val conf2: Configuration = Configuration
+    .builder()
+    .mappingProvider(new GsonMappingProvider())
+    .jsonProvider(new GsonJsonProvider())
+    .build
+  for(_ <- 0 to 1500) yield {
+    val start = System.nanoTime()
+    val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[0].Tags",classOf[Tags])
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  }
+  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[0].Tags")
+  timesBuffer.clear()
+  println()
+
+  val bosonClass: Boson = Boson.extractor[Tags](".Markets[0].Tags", (_: Tags) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+
+  for(_ <- 0 to 1500) yield {
+    val start = System.nanoTime()
+    val fut = bosonClass.go(Lib.validatedByteArray)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  }
+  println(s"Boson With Class time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[0].Tags")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println("------------------------------------------------------------------------------------------")
+  println()
 
     for(_ <- 0 to 1500) yield {
       val start = System.nanoTime()
@@ -457,7 +493,7 @@ object PerformanceTests extends App {
   for(_ <- 0 to 1500) yield {
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
-    JsonPath.read(doc, "$.Markets[*].Tags")
+    val obj: Any = JsonPath.read(doc, "$.Markets[*].Tags")
     val end = System.nanoTime()
     timesBuffer.append(end - start)
   }
@@ -465,7 +501,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   println()
 
-  val boson3: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Array[Byte]]) => {
+  val boson3: Boson = Boson.extractor(".Markets[0].Tags", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })

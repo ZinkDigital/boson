@@ -1,5 +1,7 @@
 package io.zink.boson.bson.bsonImpl
 
+import scala.reflect.runtime.universe._
+
 sealed trait Extractor[T] {
   def applyFunc(f: (T => Unit), value: T): T
 }
@@ -27,6 +29,13 @@ trait DefaultExtractor {
 //      value
 //    }
 //  }
+
+  implicit def ObjExtractor[T: TypeTag]: Extractor[T] = new Extractor[T] {
+    def applyFunc(f: T => Unit, value: T): T = {
+      f(value)
+      value
+    }
+  }
 
   implicit object ArrByteExtractor extends Extractor[Array[Byte]] {
     def applyFunc(f: Array[Byte] => Unit, value: Array[Byte]): Array[Byte] = {

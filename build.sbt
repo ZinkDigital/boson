@@ -57,7 +57,6 @@ val libraries = Seq(
   "de.undercouch" % "bson4jackson" % "2.7.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "io.netty" % "netty-all" % "4.1.22.Final",
-  //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
 )
 val testLibraries = Seq(
@@ -66,6 +65,7 @@ val testLibraries = Seq(
   "io.vertx" % "vertx-core" % "3.5.0",
   "com.novocode" % "junit-interface" % "0.11" % "test",
   "com.jayway.jsonpath" % "json-path" % "2.4.0",
+  "com.google.code.gson" % "gson" % "2.3.1",
   "org.slf4j" % "slf4j-simple" % "1.7.25",
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",

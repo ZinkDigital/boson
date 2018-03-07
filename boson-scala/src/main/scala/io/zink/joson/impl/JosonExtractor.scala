@@ -8,12 +8,13 @@ import de.undercouch.bson4jackson.BsonFactory
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-//import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 import io.zink.joson.Joson
-
+import io.zink.joson.Joson.{JsonArraySerializer, JsonObjectSerializer}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
 
 /**
@@ -22,7 +23,7 @@ import scala.concurrent.Future
 
 
 
-class JosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) extends Joson {
+class JosonExtractor[T: TypeTag: ClassTag](expression: String, extractFunction: T => Unit) extends Joson {
   /**
     * Apply this Joson to the String that arrives and at some point in the future complete
     * the future with the resulting String. In the case of an Extractor this will result in

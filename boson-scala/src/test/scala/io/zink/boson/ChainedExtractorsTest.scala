@@ -9,6 +9,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.junit.Assert.assertEquals
 
+
+case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
+
 @RunWith(classOf[JUnitRunner])
 class ChainedExtractorsTest extends FunSuite{
 
@@ -16,17 +19,25 @@ class ChainedExtractorsTest extends FunSuite{
   private val _store = new BsonObject().put("Book", _book1)
   private val _bson = new BsonObject().put("Store", _store)
 
-  test("Extract Type case class") {
-    case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
+  test("Extract Type class Book") {
     val expression: String = ".Store.Book"
-    val boson: Boson = Boson.extractor(expression, (in: Book) => {
-      println(s"inside extract function -> extracted in: $in")
-      //assertEquals(750L, in)
-      //println("APPLIED")
+    val boson: Boson = Boson.extractor[Book](expression, (in: Book) => {
+      assertEquals(Book("Scala",25.6,10,true,750L), in)
+      println("APPLIED")
     })
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)
   }
+
+//  test("Extract Seq[Type class Book]") {
+//      val expression: String = ".Store.Book[all]"
+//      val boson: Boson = Boson.extractor[Seq[Book]](expression, (in: Seq[Book]) => {
+//        assertEquals(Seq(Book("Scala",25.6,10,true,750L)), in)
+//        println("APPLIED")
+//      })
+//      val res = boson.go(_bson.encode.getBytes)
+//      Await.result(res, Duration.Inf)
+//    }
 
   test("Extract Long") {
     val expression: String = ".Store.Book.nPages"

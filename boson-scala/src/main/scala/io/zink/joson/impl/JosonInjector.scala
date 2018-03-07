@@ -8,8 +8,8 @@ import de.undercouch.bson4jackson.BsonFactory
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-//import io.zink.boson.bson.bsonValue.{BsBoson, BsException, BsObject, BsValue}
 import io.zink.joson.Joson
+import io.zink.joson.Joson.{JsonArraySerializer, JsonObjectSerializer}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

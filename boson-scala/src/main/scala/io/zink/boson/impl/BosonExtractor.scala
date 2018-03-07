@@ -9,9 +9,10 @@ import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
-
-class BosonExtractor[T](expression: String, extractFunction: Function[T, Unit]) extends Boson {
+class BosonExtractor[T: TypeTag : ClassTag](expression: String, extractFunction: T => Unit) extends Boson {
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage

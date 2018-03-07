@@ -6,9 +6,11 @@ import io.zink.boson.impl.{BosonExtractor, BosonInjector, BosonValidate}
 //import java.util.function.Consumer
 
 import scala.concurrent.Future
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
 object Boson {
-  def validate[T](expression: String, validateFunction: Function[T, Unit]) = new BosonValidate[T](expression, validateFunction)
+  def validate[T: TypeTag: ClassTag](expression: String, validateFunction: T => Unit) = new BosonValidate[T](expression, validateFunction)
   /**
     * Make an Extractor that will call the extract function (Consumer) according to
     * the given expression.
@@ -18,7 +20,7 @@ object Boson {
     * @param < T>
     * @return a BosonImpl that is a BosonExtractor
     */
-  def extractor[T](expression: String, extractFunction: Function[T, Unit]) = new BosonExtractor[T](expression, extractFunction)
+  def extractor[T: TypeTag: ClassTag](expression: String, extractFunction: T => Unit) = new BosonExtractor[T](expression, extractFunction)
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
@@ -29,7 +31,7 @@ object Boson {
     * @param < T>
     * @return
     */
-  def injector[T](expression: String, injectFunction: Function[T, T]) = new BosonInjector[T](expression, injectFunction)
+  def injector[T](expression: String, injectFunction: T => T) = new BosonInjector[T](expression, injectFunction)
 
 }
 
