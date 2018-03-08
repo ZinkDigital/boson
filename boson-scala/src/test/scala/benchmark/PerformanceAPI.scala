@@ -363,7 +363,7 @@ object Lib {
 
 }
 
-class Tags(Type: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
+class Tags(Type: String,line: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
 
 object PerformanceTests extends App {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
@@ -382,15 +382,15 @@ object PerformanceTests extends App {
     .build
   for(_ <- 0 to 1500) yield {
     val start = System.nanoTime()
-    val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[0].Tags",classOf[Tags])
+    val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
     val end = System.nanoTime()
     timesBuffer.append(end - start)
   }
-  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[0].Tags")
+  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[1].Tags")
   timesBuffer.clear()
   println()
 
-  val bosonClass: Boson = Boson.extractor[Tags](".Markets[0].Tags", (_: Tags) => {
+  val bosonClass: Boson = Boson.extractor[Tags](".Markets[1].Tags", (_: Tags) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
@@ -401,12 +401,39 @@ object PerformanceTests extends App {
     Await.result(fut, Duration.Inf)
     timesBuffer.append(start)
   }
-  println(s"Boson With Class time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[0].Tags")
+  println(s"Boson With Class time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[1].Tags")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
+
+  for(_ <- 0 to 1500) yield {
+    val start = System.nanoTime()
+    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
+    val obj: java.util.List[Tags] = JsonPath.read(doc, "$.Markets[*].Tags")
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  }
+  println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
+  timesBuffer.clear()
+  println()
+
+  val bosonClass1: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Tags]) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+
+  for(_ <- 0 to 1500) yield {
+    val start = System.nanoTime()
+    val fut = bosonClass1.go(Lib.validatedByteArray)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  }
+  println(s"Boson With Seq[Class] time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all].Tags")
   timesBuffer.clear()
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
   println()
-
+/*
     for(_ <- 0 to 1500) yield {
       val start = System.nanoTime()
       val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
@@ -460,7 +487,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   println()
 
-  val boson2: Boson = Boson.extractor(".Participants[1].Tags.SSLNLastName", (_: Seq[String]) => {
+  val boson2: Boson = Boson.extractor(".Participants[1].Tags.SSLNLastName", (_: String) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
@@ -501,7 +528,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   println()
 
-  val boson3: Boson = Boson.extractor(".Markets[0].Tags", (_: Seq[Array[Byte]]) => {
+  val boson3: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
@@ -617,5 +644,5 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   println("------------------------------------------------------------------------------------------")
   println()
-
+*/
 }

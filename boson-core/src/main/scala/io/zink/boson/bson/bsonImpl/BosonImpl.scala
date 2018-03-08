@@ -684,29 +684,6 @@ class BosonImpl(
         case C_END => seq.drop(seq.size - 1)
         case _ => seq
       }
-//    keyList.size match {
-//      case 1 =>
-//        val typeClass =
-//          finalSeq.size match {
-//            case 0 => None
-//            case 1 => Some(finalSeq.head.getClass.getSimpleName)
-//            case _ =>
-//              if (finalSeq.tail.forall{p => finalSeq.head.getClass.equals(p.getClass)}) Some(finalSeq.head.getClass.getSimpleName)
-//              else None
-//          }
-//        if (typeClass.isDefined) {
-//          typeClass.get match {
-//            case STRING => Transform.toPrimitive(fExt.asInstanceOf[Seq[String] => Unit], finalSeq.asInstanceOf[Seq[String]])
-//            case INTEGER => Transform.toPrimitive(fExt.asInstanceOf[Seq[Int] => Unit], finalSeq.asInstanceOf[Seq[Int]])
-//            case LONG => Transform.toPrimitive(fExt.asInstanceOf[Seq[Long] => Unit], finalSeq.asInstanceOf[Seq[Long]])
-//            case BOOLEAN => Transform.toPrimitive(fExt.asInstanceOf[Seq[Boolean] => Unit], finalSeq.asInstanceOf[Seq[Boolean]])
-//            case DOUBLE => Transform.toPrimitive(fExt.asInstanceOf[Seq[Double] => Unit], finalSeq.asInstanceOf[Seq[Double]])
-//          }
-//        }
-//        finalSeq
-//      case _ =>
-//        finalSeq
-//    }
     finalSeq
   }
 
@@ -1454,7 +1431,7 @@ class BosonImpl(
     }
     list.+=(netty.readByte()) //  consume the end Pos byte
     val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
-    //println(s"readArrayPos: ${stringList.head}")
+    //println(s"readArrayPos: ${stringList}")
     stringList.head
   }
 
