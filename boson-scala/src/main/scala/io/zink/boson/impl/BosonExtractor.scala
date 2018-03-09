@@ -12,7 +12,7 @@ import scala.concurrent.Future
 import scala.reflect._
 import scala.reflect.runtime.universe._
 
-class BosonExtractor[T: TypeTag : ClassTag](expression: String, extractFunction: T => Unit) extends Boson {
+class BosonExtractor[T: TypeTag](expression: String, extractFunction: T => Unit) extends Boson {
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage

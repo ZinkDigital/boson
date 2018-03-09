@@ -330,9 +330,9 @@ object Lib {
 
   def bestTimeMeasure[R](block: => R): Quantity[Double] = {
     val time = config(
-      Key.exec.benchRuns -> 500,
-      Key.exec.minWarmupRuns -> 1000,
-      Key.exec.maxWarmupRuns -> 1000
+      Key.exec.benchRuns -> 5000,
+      Key.exec.minWarmupRuns -> 5000,
+      Key.exec.maxWarmupRuns -> 5000
     ) withWarmer {
       new Warmer.Default
     } measure {
@@ -380,7 +380,7 @@ object PerformanceTests extends App {
     .mappingProvider(new GsonMappingProvider())
     .jsonProvider(new GsonJsonProvider())
     .build
-  for(_ <- 0 to 1500) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
     val end = System.nanoTime()
@@ -390,12 +390,12 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   println()
 
-  val bosonClass: Boson = Boson.extractor[Tags](".Markets[1].Tags", (_: Tags) => {
+  val bosonClass: Boson = Boson.extractor(".Markets[1].Tags", (_: Tags) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 1500) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = bosonClass.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -406,10 +406,9 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println()
 
-  for(_ <- 0 to 1500) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
-    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
-    val obj: java.util.List[Tags] = JsonPath.read(doc, "$.Markets[*].Tags")
+    val obj: java.util.List[Tags] = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[*].Tags",classOf[java.util.List[Tags]])
     val end = System.nanoTime()
     timesBuffer.append(end - start)
   }
@@ -422,7 +421,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 1500) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = bosonClass1.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)

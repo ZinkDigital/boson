@@ -7,7 +7,7 @@ import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import org.junit.Assert.{assertEquals,assertArrayEquals,assertTrue}
+import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
 
 
 case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
@@ -204,6 +204,12 @@ class ChainedExtractorsTest extends FunSuite{
     private val books = new BsonArray().add(title1).add(title2).add(title3)
     private val store = new BsonObject().put("Book", books).put("Hat", hats)
     private val bson = new BsonObject().put("Store", store)
+
+  test("Extract byte[]") {
+
+    val obj = new BsonObject().put("byte[]","Scala".getBytes)
+
+  }
 
   test("Extract complex Seq[String]") {
     val expression: String = ".Store.Book[1 to end].Title"

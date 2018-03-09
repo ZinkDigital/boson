@@ -12,7 +12,7 @@ import scala.reflect._
 import scala.reflect.runtime.universe._
 
 object Joson{
-  def validate[T: TypeTag: ClassTag](expression: String, validateFunction: T => Unit) = new JosonValidate[T](expression, validateFunction)
+  def validate[T: TypeTag](expression: String, validateFunction: T => Unit) = new JosonValidate[T](expression, validateFunction)
   /**
     * Make an Extractor that will call the extract function (Consumer) according to
     * the given expression.
@@ -22,7 +22,7 @@ object Joson{
     * @param < T>
     * @return a BosonImpl that is a BosonExtractor
     */
-  def extractor[T: TypeTag: ClassTag](expression: String, extractFunction: T => Unit) = new JosonExtractor[T](expression, extractFunction)
+  def extractor[T: TypeTag](expression: String, extractFunction: T => Unit) = new JosonExtractor[T](expression, extractFunction)
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
