@@ -3,14 +3,24 @@ package io.zink.boson
 import java.nio.ByteBuffer
 
 import io.zink.boson.impl.{BosonExtractor, BosonInjector, BosonValidate}
+import shapeless.{LabelledGeneric, Lazy}
 //import java.util.function.Consumer
 
 import scala.concurrent.Future
-import scala.reflect._
 import scala.reflect.runtime.universe._
 
+
 object Boson {
-  def validate[T: TypeTag](expression: String, validateFunction: T => Unit) = new BosonValidate[T](expression, validateFunction)
+
+//  def apply[A](implicit f: Lazy[Generic[A]]): Generic[A] = {
+//    val gen = f.value
+//    println(s"gen -> $gen")
+//    gen
+//    }
+
+//  def getGenericObj[A]: Generic[A] = apply[A]
+
+  def validate[T](expression: String, validateFunction: T => Unit) = new BosonValidate[T](expression, validateFunction)
   /**
     * Make an Extractor that will call the extract function (Consumer) according to
     * the given expression.
@@ -20,7 +30,10 @@ object Boson {
     * @param < T>
     * @return a BosonImpl that is a BosonExtractor
     */
-  def extractor[T: TypeTag](expression: String, extractFunction: T => Unit) = new BosonExtractor[T](expression, extractFunction)
+  def extractor[T](expression: String, extractFunction: T => Unit)(implicit f: Lazy[LabelledGeneric[T]]) ={
+    val gen = f.value
+    new BosonExtractor[T](expression, extractFunction, genObj = Some(gen))
+  }
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
@@ -37,6 +50,8 @@ object Boson {
 
 trait Boson {
   //def extractor[T](expression: String, extractFunction: Function[T, Unit])
+
+//  def apply[A](implicit f: Lazy[Generic[A]]): Generic[A]
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor this will result in

@@ -3,23 +3,34 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonImpl.{BosonImpl, FromList}
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import shapeless.{Generic, LabelledGeneric, Typeable}
 //import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.reflect._
 import scala.reflect.runtime.universe._
 
-class BosonExtractor[T: TypeTag](expression: String, extractFunction: T => Unit) extends Boson {
+class BosonExtractor[T](expression: String, extractFunction: T => Unit, genObj: Option[LabelledGeneric[T]] = None) extends Boson {
+  //val genericObj = GenericObj[T]
+//  def mytype[U](implicit m: scala.reflect.Manifest[U]) = m
+//  def myTypeWithoutExtraParam = mytype[T]
+//  val newInstance: Any = myTypeWithoutExtraParam
+  //Generic[newInstance]
+  //val tag = typeTag[T].tpe
+  //Generic[tag]
+  //println(s"TupeTag -> $tag")
+  //FromList
+  //println(s"Type of T: $newInstance")
+  //FromList.to[newInstance].from(List(("","")))
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
+          new Interpreter(boson, r.asInstanceOf[Program], fExt = Option(extractFunction), genObj = genObj).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)

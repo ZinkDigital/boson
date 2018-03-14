@@ -5,14 +5,14 @@ import java.nio.ByteBuffer
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import shapeless.Typeable
 //import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.reflect._
-import scala.reflect.runtime.universe._
 
-class BosonValidate[T: TypeTag](expression: String, validateFunction: T => Unit) extends Boson{
+
+class BosonValidate[T](expression: String, validateFunction: T => Unit) extends Boson{
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage

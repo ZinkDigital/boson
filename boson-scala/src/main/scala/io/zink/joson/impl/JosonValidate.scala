@@ -8,16 +8,16 @@ import de.undercouch.bson4jackson.BsonFactory
 import io.vertx.core.json.{JsonArray, JsonObject}
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import shapeless.Typeable
 //import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 import io.zink.joson.Joson
 import io.zink.joson.Joson.{JsonArraySerializer, JsonObjectSerializer}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.reflect._
-import scala.reflect.runtime.universe._
 
-class JosonValidate[T: TypeTag](expression: String, validateFunction: T => Unit) extends Joson {
+
+class JosonValidate[T](expression: String, validateFunction: T => Unit) extends Joson {
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage
     try {

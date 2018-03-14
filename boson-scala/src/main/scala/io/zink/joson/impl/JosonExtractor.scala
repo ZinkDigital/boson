@@ -10,11 +10,11 @@ import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import io.zink.joson.Joson
 import io.zink.joson.Joson.{JsonArraySerializer, JsonObjectSerializer}
+import shapeless.Typeable
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import scala.reflect._
-import scala.reflect.runtime.universe._
 
 
 /**
@@ -23,7 +23,7 @@ import scala.reflect.runtime.universe._
 
 
 
-class JosonExtractor[T: TypeTag](expression: String, extractFunction: T => Unit) extends Joson {
+class JosonExtractor[T](expression: String, extractFunction: T => Unit) extends Joson {
   /**
     * Apply this Joson to the String that arrives and at some point in the future complete
     * the future with the resulting String. In the case of an Extractor this will result in

@@ -2,21 +2,22 @@ package io.zink.boson.bson.bsonPath
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
-import io.zink.boson.bson.bsonImpl.{BosonImpl, CustomException, Transform}
+import io.zink.boson.bson.bsonImpl._
+import shapeless.{Generic, LabelledGeneric, Typeable}
+//import shapeless.HNil
 
 import scala.collection.mutable.ListBuffer
 //import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
-import scala.reflect._
-import scala.reflect.runtime.universe._
+
 /**
   * Created by Tiago Filipe on 02/11/2017.
   */
 
 
-//case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
+case class Book(title: String, edition: Int, forSale: Boolean)
 
-class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[R => Unit] = None) {
+class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[R => Unit] = None, genObj: Option[LabelledGeneric[R]] = None) {
 
   def run(): Array[Byte] = {
     fInj.isDefined match {
@@ -47,28 +48,39 @@ class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Optio
   }
 
   private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
-    def help(list: Iterable[Any]): Seq[(String, Any)] = {
+    def help(list: Iterable[Any]): List[(String, Any)] = {
       list match {
-        case (x: String) :: (y: Any) :: Nil => Seq((x, y))
-        case (x: String) :: (y: Any) :: xs => Seq((x, y)) ++ help(xs)
+        case (x: String) :: (y: Any) :: Nil => List((x, y))
+        case (x: String) :: (y: Any) :: xs => List((x, y)) ++ help(xs)
       }
     }
     //println("constructObj")
     val constructedObjs =
       encodedSeqByteArray.map { encodedByteArray =>
         val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList).asInstanceOf[Iterable[Iterable[Any]]].flatten
-        val resToTuples: Seq[(String, Any)] = help(res).map(elem => (elem._1.toLowerCase, elem._2))
-        fromMap(resToTuples)
+        val resToTuples: List[(String, Any)] = help(res).map(elem => (elem._1.toLowerCase, elem._2))
+//        case class Book(title: String, price: Double, edition: Int, forsale: Boolean, npages: Long)
+//        val book = Book("",2.2,2,true,10000)
+//        val repr = genObj.get.to(book.asInstanceOf[R])
+//        genObj.get.from(repr)
+        //FromList.to(genObj.get).from(resToTuples)
+        //println(Generic[Book])
+        //GenericObj[Book]
+        //println(FromList.to[Book].from(resToTuples))
+        //fromMap(resToTuples)
+
       }
+
+
     //println(s"constructedObjs: $constructedObjs")
-    constructedObjs.size match {
-      case 1 =>
-        //println(s"constructedObjs: $constructedObjs")
-        Transform.toPrimitive(fExt.get, constructedObjs.head)
-      case _ =>
-        //println(s"constructedObjs: $constructedObjs")
-        Transform.toPrimitive(fExt.get, constructedObjs.asInstanceOf[R])
-    }
+//    constructedObjs.size match {
+//      case 1 =>
+//        //println(s"constructedObjs: $constructedObjs")
+//        Transform.toPrimitive(fExt.get, constructedObjs.head)
+//      case _ =>
+//        //println(s"constructedObjs: $constructedObjs")
+//        Transform.toPrimitive(fExt.get, constructedObjs.asInstanceOf[R])
+//    }
 //    val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList).asInstanceOf[Iterable[Iterable[Any]]].flatten
 //    //println(s"res: $res")
 //    val seqSorted: Seq[(String, Any)] = help(res).map(elem => (elem._1.toLowerCase, elem._2)).sortWith(_._1 < _._1)
@@ -78,7 +90,7 @@ class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Optio
     //println(s"caseClass constructed: $book")
   }
 
-  private def fromMap(m: Seq[(String, Any)]) = {
+  /*private def fromMap(m: Seq[(String, Any)]) = {
     val tArgs = typeOf[R] match {
       case TypeRef(_, _, args) => args
     }
@@ -113,8 +125,9 @@ class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Optio
       }
     constructorMirror(constructorArgs: _*).asInstanceOf[R]
   }
-
+*/
   private def buildExtractors(statementList: List[Statement]): Unit = {
+    //println(s"Generic of Type R: ${Generic[R]}")
     val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
     for( statement <- statementList) yield{
       statement match {
@@ -152,10 +165,10 @@ class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Optio
     //println(s"typeClass: $typeClass")
     //println(s"Final result from extraction: $result")
     if(returnInsideSeq(limitList)){
-      val tArgs = typeOf[R] match {
+      /*val tArgs = typeOf[R] match {
         case TypeRef(_,_,args) => args
       }
-      //println(s"tArgs: $tArgs")
+      //println(s"tArgs: $tArgs")*/
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], result.asInstanceOf[Seq[String]])
@@ -163,8 +176,8 @@ class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Optio
           case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Seq[Long]])
           case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Seq[Boolean]])
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Seq[Double]])
-          case ARRAY_BYTE if tArgs.head =:= typeOf[Array[Byte]] =>
-            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
+//          case ARRAY_BYTE if tArgs.head =:= typeOf[Array[Byte]] =>
+//            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
           case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
         }
       } else fExt.get.apply(result.asInstanceOf[R]) //TODO: implement this case, when there aren't results
@@ -176,8 +189,8 @@ class Interpreter[T, R: TypeTag](boson: BosonImpl, program: Program, fInj: Optio
           case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], result.asInstanceOf[Seq[Long]].head)
           case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], result.asInstanceOf[Seq[Boolean]].head)
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], result.asInstanceOf[Seq[Double]].head)
-          case ARRAY_BYTE if typeOf[R] =:= typeOf[Array[Byte]] =>
-            Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
+//          case ARRAY_BYTE if typeOf[R] =:= typeOf[Array[Byte]] =>
+//            Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
           case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
         }
       } else fExt.get.apply(result.asInstanceOf[R]) //TODO: implement this case, when there aren't results
