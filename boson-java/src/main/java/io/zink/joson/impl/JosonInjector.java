@@ -11,6 +11,7 @@ import io.zink.boson.bson.bsonPath.Interpreter;
 import io.zink.boson.bson.bsonPath.Program;
 import io.zink.boson.bson.bsonPath.TinyLanguage;
 import io.zink.joson.Joson;
+import scala.Function1;
 import scala.Option;
 import scala.util.parsing.json.Parser;
 
@@ -22,10 +23,10 @@ import java.util.function.Function;
 public class JosonInjector<T> implements Joson {
 
     private String expression;
-    private Function<T,T> injectFunction;
+    private Function1<T,T> injectFunction;
 
 
-    public JosonInjector(String expression, Function<T, T> injectFunction) {
+    public JosonInjector(String expression, Function1<T, T> injectFunction) {
         this.expression = expression;
         this.injectFunction = injectFunction;
     }
@@ -33,12 +34,12 @@ public class JosonInjector<T> implements Joson {
 
     //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
-    private byte[] parseInj(BosonImpl netty, Function injectFunc, String expression){
+    private byte[] parseInj(BosonImpl netty, Function1 injectFunc, String expression){
         TinyLanguage parser = new TinyLanguage();
         try{
             Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
-                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), Option.apply(injectFunc), Option.empty());
+                Interpreter interpreter = new Interpreter<T,T>(netty, (Program) pr.get(), Option.apply(injectFunc),Option.empty(), Option.empty());
                 return interpreter.run();
             }else{
                 throw new RuntimeException("Error inside interpreter.run() ");

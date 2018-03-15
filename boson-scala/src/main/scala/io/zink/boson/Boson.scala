@@ -3,11 +3,11 @@ package io.zink.boson
 import java.nio.ByteBuffer
 
 import io.zink.boson.impl.{BosonExtractor, BosonInjector, BosonValidate}
-import shapeless.{LabelledGeneric, Lazy}
+import shapeless.{Generic, LabelledGeneric, Lazy}
 //import java.util.function.Consumer
 
 import scala.concurrent.Future
-import scala.reflect.runtime.universe._
+//import scala.reflect.runtime.universe._
 
 
 object Boson {

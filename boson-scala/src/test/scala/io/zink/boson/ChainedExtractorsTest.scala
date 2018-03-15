@@ -8,6 +8,7 @@ import org.scalatest.junit.JUnitRunner
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
+import shapeless.{Generic, HList}
 
 
 case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
@@ -22,13 +23,22 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Type class Book") {
     val expression: String = ".Store.Book"
-    val boson = Boson.extractor(expression, (out: String) => {})
-//      .extractor(expression, (in: Book) => {
-//      assertEquals(Book("Scala",25.6,10,true,750L), in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
+    val boson = Boson
+      .extractor(expression, (in: Book) => {
+      assertEquals(Book("Scala",25.6,10,true,750L), in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Shapeless") {
+    val gen = Generic[Book1]
+    val book = Book1("Number", 2.0)
+    val l = gen.to(book)
+    println(l)
+    val book1 = gen.from(l)
+    println(book1)
   }
 ///*
 //  test("Extract Type class Book as byte[]") {

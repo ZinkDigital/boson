@@ -3,8 +3,11 @@ package io.zink.boson.bson.bsonPath
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl._
-import shapeless.{Generic, LabelledGeneric, Typeable}
-//import shapeless.HNil
+import shapeless.labelled.FieldType
+import shapeless.ops.record.Keys.Aux
+import shapeless.ops.record._
+import shapeless.{HList, HNil, LabelledGeneric, Witness, the}
+import shapeless.record._
 
 import scala.collection.mutable.ListBuffer
 //import scala.reflect.ClassTag
@@ -15,9 +18,9 @@ import scala.util.{Failure, Success, Try}
   */
 
 
-case class Book(title: String, edition: Int, forSale: Boolean)
+//case class Book(title: String, edition: Int, forSale: Boolean)
 
-class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[R => Unit] = None, genObj: Option[LabelledGeneric[R]] = None) {
+class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[R => Unit] = None, genObj: Option[LabelledGeneric[R]] = None){
 
   def run(): Array[Byte] = {
     fInj.isDefined match {
@@ -40,26 +43,30 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[T => T]
         case MoreKeys(first, list, dots) =>
 //          println(s"statements: ${List(first) ++ list}")
 //          println(s"dotList: $dots")
+          println("first= " + first)
+          println("list= " + list)
+          println("dots= " + dots)
+
           buildExtractors(List(first) ++ list)
           //executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     }else throw new RuntimeException("List of statements is empty.")
   }
-
+  //case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
   private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
     def help(list: Iterable[Any]): List[(String, Any)] = {
       list match {
-        case (x: String) :: (y: Any) :: Nil => List((x, y))
-        case (x: String) :: (y: Any) :: xs => List((x, y)) ++ help(xs)
+        case x: List[Any] if x.length == 0 => List()
+        case x:List[Any] if x.length>=2 => List((x.head.asInstanceOf[String], x.tail.head))++help(x.drop(2))
       }
     }
     //println("constructObj")
-    val constructedObjs =
+    val constructedObjs: Seq[R] =
       encodedSeqByteArray.map { encodedByteArray =>
         val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList).asInstanceOf[Iterable[Iterable[Any]]].flatten
         val resToTuples: List[(String, Any)] = help(res).map(elem => (elem._1.toLowerCase, elem._2))
-//        case class Book(title: String, price: Double, edition: Int, forsale: Boolean, npages: Long)
+        //case class Book(title: String, price: Double, edition: Int, forsale: Boolean, npages: Long)
 //        val book = Book("",2.2,2,true,10000)
 //        val repr = genObj.get.to(book.asInstanceOf[R])
 //        genObj.get.from(repr)
@@ -68,9 +75,30 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[T => T]
         //GenericObj[Book]
         //println(FromList.to[Book].from(resToTuples))
         //fromMap(resToTuples)
+        def rec(list: Seq[(String, Any)]): HList = {
+          list.length match{
+            case 1 =>list.head._2::HNil
+            case _ => list.head._2::rec(list.drop(1))
 
+          }
+        }
+
+
+        val l: Seq[(String, Any)] = help(res)
+
+        val list: HList = rec(l)
+        val a: LabelledGeneric[R] = genObj.get
+        val something: LabelledGeneric[R] = the[LabelledGeneric[R]](a)
+
+
+        println(a)
+        println(something)
+
+
+      ???
       }
-
+  println(constructedObjs)
+    constructedObjs.foreach( r => fExt.get(r))
 
     //println(s"constructedObjs: $constructedObjs")
 //    constructedObjs.size match {
@@ -89,6 +117,7 @@ class Interpreter[T, R](boson: BosonImpl, program: Program, fInj: Option[T => T]
 //    Transform.toPrimitive[R](fExt.get, book)
     //println(s"caseClass constructed: $book")
   }
+
 
   /*private def fromMap(m: Seq[(String, Any)]) = {
     val tArgs = typeOf[R] match {

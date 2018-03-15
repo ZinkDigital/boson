@@ -37,7 +37,7 @@ class JosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter(boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
+          new Interpreter[T,T](boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)

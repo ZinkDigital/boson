@@ -17,12 +17,12 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
   val anon: T => T = injectFunction
 
-  def parseInj[K](netty: BosonImpl, injectFunction: K => K , expression: String): Array[Byte] = {
+  def parseInj(netty: BosonImpl): Array[Byte] = {
     val parser = new TinyLanguage
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          new Interpreter(netty, r.asInstanceOf[Program],fInj = Option(injectFunction)).run()
+          new Interpreter(netty, r.asInstanceOf[Program],fInj = Option(anon)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)
@@ -40,7 +40,7 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
     val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
     val future: Future[Array[Byte]] =
       Future{
-      val r: Array[Byte] = parseInj(boson, anon, expression)
+      val r: Array[Byte] = parseInj(boson)
 //      match {
 //        case ex: BsException => println(ex.getValue)
 //          bsonByteEncoding

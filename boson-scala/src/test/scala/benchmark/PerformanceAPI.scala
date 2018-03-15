@@ -364,74 +364,74 @@ object Lib {
 }
 
 class Tags(Type: String,line: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
-
-object PerformanceTests extends App {
-  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
-  val timesBuffer: ListBuffer[Long] = new ListBuffer[Long]
-  val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
-  val bArr: Array[Byte] = Lib.validatedByteArray
-  import com.jayway.jsonpath.spi.cache.CacheProvider
-  import com.jayway.jsonpath.spi.cache.NOOPCache
-  val cache: NOOPCache = new NOOPCache
-  CacheProvider.setCache(cache)
-
-  val conf2: Configuration = Configuration
-    .builder()
-    .mappingProvider(new GsonMappingProvider())
-    .jsonProvider(new GsonJsonProvider())
-    .build
-  for(_ <- 0 to 10000) yield {
-    val start = System.nanoTime()
-    val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
-    val end = System.nanoTime()
-    timesBuffer.append(end - start)
-  }
-  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[1].Tags")
-  timesBuffer.clear()
-  println()
-
-  val bosonClass: Boson = Boson.extractor(".Markets[1].Tags", (_: Tags) => {
-    val end = System.nanoTime()
-    endTimeBuffer.append(end)
-  })
-
-  for(_ <- 0 to 10000) yield {
-    val start = System.nanoTime()
-    val fut = bosonClass.go(Lib.validatedByteArray)
-    Await.result(fut, Duration.Inf)
-    timesBuffer.append(start)
-  }
-  println(s"Boson With Class time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[1].Tags")
-  timesBuffer.clear()
-  endTimeBuffer.clear()
-  println()
-
-  for(_ <- 0 to 10000) yield {
-    val start = System.nanoTime()
-    val obj: java.util.List[Tags] = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[*].Tags",classOf[java.util.List[Tags]])
-    val end = System.nanoTime()
-    timesBuffer.append(end - start)
-  }
-  println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
-  timesBuffer.clear()
-  println()
-
-  val bosonClass1: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Tags]) => {
-    val end = System.nanoTime()
-    endTimeBuffer.append(end)
-  })
-
-  for(_ <- 0 to 10000) yield {
-    val start = System.nanoTime()
-    val fut = bosonClass1.go(Lib.validatedByteArray)
-    Await.result(fut, Duration.Inf)
-    timesBuffer.append(start)
-  }
-  println(s"Boson With Seq[Class] time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all].Tags")
-  timesBuffer.clear()
-  endTimeBuffer.clear()
-  println("------------------------------------------------------------------------------------------")
-  println()
+//
+//object PerformanceTests extends App {
+//  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
+//  val timesBuffer: ListBuffer[Long] = new ListBuffer[Long]
+//  val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
+//  val bArr: Array[Byte] = Lib.validatedByteArray
+//  import com.jayway.jsonpath.spi.cache.CacheProvider
+//  import com.jayway.jsonpath.spi.cache.NOOPCache
+//  val cache: NOOPCache = new NOOPCache
+//  CacheProvider.setCache(cache)
+//
+//  val conf2: Configuration = Configuration
+//    .builder()
+//    .mappingProvider(new GsonMappingProvider())
+//    .jsonProvider(new GsonJsonProvider())
+//    .build
+//  for(_ <- 0 to 10000) yield {
+//    val start = System.nanoTime()
+//    val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
+//    val end = System.nanoTime()
+//    timesBuffer.append(end - start)
+//  }
+//  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[1].Tags")
+//  timesBuffer.clear()
+//  println()
+//
+//  val bosonClass: Boson = Boson.extractor(".Markets[1].Tags", (_: Tags) => {
+//    val end = System.nanoTime()
+//    endTimeBuffer.append(end)
+//  })
+//
+//  for(_ <- 0 to 10000) yield {
+//    val start = System.nanoTime()
+//    val fut = bosonClass.go(Lib.validatedByteArray)
+//    Await.result(fut, Duration.Inf)
+//    timesBuffer.append(start)
+//  }
+//  println(s"Boson With Class time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[1].Tags")
+//  timesBuffer.clear()
+//  endTimeBuffer.clear()
+//  println()
+//
+//  for(_ <- 0 to 10000) yield {
+//    val start = System.nanoTime()
+//    val obj: java.util.List[Tags] = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[*].Tags",classOf[java.util.List[Tags]])
+//    val end = System.nanoTime()
+//    timesBuffer.append(end - start)
+//  }
+//  println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
+//  timesBuffer.clear()
+//  println()
+//
+//  val bosonClass1: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Tags]) => {
+//    val end = System.nanoTime()
+//    endTimeBuffer.append(end)
+//  })
+//
+//  for(_ <- 0 to 10000) yield {
+//    val start = System.nanoTime()
+//    val fut = bosonClass1.go(Lib.validatedByteArray)
+//    Await.result(fut, Duration.Inf)
+//    timesBuffer.append(start)
+//  }
+//  println(s"Boson With Seq[Class] time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all].Tags")
+//  timesBuffer.clear()
+//  endTimeBuffer.clear()
+//  println("------------------------------------------------------------------------------------------")
+//  println()
 /*
     for(_ <- 0 to 1500) yield {
       val start = System.nanoTime()
@@ -644,4 +644,4 @@ object PerformanceTests extends App {
   println("------------------------------------------------------------------------------------------")
   println()
 */
-}
+//}

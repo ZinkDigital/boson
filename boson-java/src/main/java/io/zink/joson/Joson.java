@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.zink.joson.impl.JosonExtractor;
 import io.zink.joson.impl.JosonInjector;
 import io.zink.joson.impl.JosonValidate;
+import scala.Function1;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -45,9 +46,9 @@ public interface Joson {
      * @param <T>
      * @return
      */
-    static <T> Joson injector(String expression, Function<T, T> injectFunction) {
+    static <T> Joson injector(String expression, Function1<T, T> injectFunction) {
         // TODO construct an injector
-        return new JosonInjector<>(expression, injectFunction);
+        return new JosonInjector<T>(expression, injectFunction);
     }
 
     /**
