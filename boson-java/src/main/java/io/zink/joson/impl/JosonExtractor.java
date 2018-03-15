@@ -38,7 +38,7 @@ public class JosonExtractor<T> implements Joson {
         try{
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
-                Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(extractFunction));
+                Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(extractFunction),Option.empty());
                 interpreter.run();
             }else{
                 throw new RuntimeException("Failure/Error parsing!");

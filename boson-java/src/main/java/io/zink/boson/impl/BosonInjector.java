@@ -44,7 +44,7 @@ public class BosonInjector<T> implements Boson {
             Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
 
-                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), apply(injectFunc),empty());
+                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), apply(injectFunc),empty(),empty());
                 return interpreter.run();
             }else{
                 throw new RuntimeException("Error inside interpreter.run() ");
