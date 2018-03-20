@@ -26,8 +26,7 @@ object Extractor {
   implicit def seqLiterals[A: Extractor]: Extractor[Seq[A]] =
     new Extractor[Seq[A]] {
       def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
-        {println("was here")
-          new BosonExtractor[Seq[A]](expression,extractFunction)}
+        new BosonExtractor[Seq[A]](expression,extractFunction)
     }
 
   implicit val double: Extractor[Double] =

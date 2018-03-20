@@ -52,15 +52,13 @@ useGpg := true,
 publishMavenStyle := true
 )
 val libraries = Seq(
-  "javax.json" % "javax.json-api" % "1.1",
   "org.glassfish" % "javax.json" % "1.1",
   "de.undercouch" % "bson4jackson" % "2.7.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "io.netty" % "netty-all" % "4.1.22.Final",
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
-  "org.spire-math" %% "jawn-ast" % "0.11.0", // remove after understand shapeless
-"org.scala-lang" % "scala-compiler" % "2.11.12"
+  "org.scala-lang" % "scala-compiler" % "2.11.12"
 )
 val testLibraries = Seq(
   "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
