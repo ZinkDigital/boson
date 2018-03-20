@@ -33,7 +33,7 @@ class BosonExtractor[T, R <: HList](expression: String, extractFunction: T => Un
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter[T,R](boson, r.asInstanceOf[Program], fExt = Option(extractFunction), genObj = None).run()
+          new Interpreter[T,R](boson, r.asInstanceOf[Program], fExt = Option(extractFunction), genObj =None).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)

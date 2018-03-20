@@ -14,9 +14,9 @@ import scala.reflect.runtime.universe._
 object Boson {
 
 
-  def validate[T, R <: HList](expression: String, validateFunction: T => Unit)(implicit
-                                                                   f: LabelledGeneric.Aux[T, R],
-                                                                   extract: extractLabels[R]) = new BosonValidate[T,R](expression, validateFunction)
+//  def validate[T, R <: HList](expression: String, validateFunction: T => Unit)(implicit
+//                                                                   f: LabelledGeneric.Aux[T, R],
+//                                                                   extract: extractLabels[R]) = new BosonValidate[T,R](expression, validateFunction)
   /**
     * Make an Extractor that will call the extract function (Consumer) according to
     * the given expression.
@@ -27,17 +27,10 @@ object Boson {
     * @return a BosonImpl that is a BosonExtractor
     */
 
-  import shapeless.record._
-  import shapeless.ops.record._
-  import shapeless.syntax.singleton._
 
   def extractor[T, R <: HList](expression: String, extractFunction: T => Unit)(implicit
                                                                                f: LabelledGeneric.Aux[T, R],
                                                                                extract: extractLabels[R]) = {
-    //implicit val gen = the[LabelledGeneric[T]]
-    //    val genKeys = Keys[gen.Repr]
-    //println(s"gen: $gen")
-    //FromList.to[T].from(List(("title","Scala"),("price",30.5),("edition",10),("forSale",true),("nPages",1000L)))
     new BosonExtractor[T,R](expression, extractFunction)
   }
 
@@ -50,14 +43,13 @@ object Boson {
     * @param < T>
     * @return
     */
-  def injector[T, R <: HList](expression: String, injectFunction: T => T)(implicit
-                                                                          f: LabelledGeneric.Aux[T, R],
-                                                                          extract: extractLabels[R]) = new BosonInjector[T,R](expression, injectFunction)
-
+//  def injector[T, R <: HList](expression: String, injectFunction: T => T)(implicit
+//                                                                          f: LabelledGeneric.Aux[T, R],
+//                                                                          extract: extractLabels[R]) = new BosonInjector[T,R](expression, injectFunction)
 }
 
 trait Boson {
-  //def extractor[T](expression: String, extractFunction: Function[T, Unit])
+
 
 //  def apply[A](implicit f: Lazy[Generic[A]]): Generic[A]
   /**

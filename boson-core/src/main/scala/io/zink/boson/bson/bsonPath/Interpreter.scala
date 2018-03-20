@@ -5,6 +5,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl._
 import shapeless._
 import ops.record._
+import shapeless.LabelledGeneric.Aux
 import shapeless.labelled.{FieldType, field}
 import shapeless.syntax.typeable
 import syntax.singleton._
@@ -52,25 +53,39 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
     }else throw new RuntimeException("List of statements is empty.")
   }
 
-  private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
+  //(List((key, C_NEXT),(EMPTY_KEY, C_LIMITLEVEL)),List((None, None, EMPTY_KEY))++defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+  // keyList = List() //(String, String)
+  // limitList = List() //(Option(Int), Option(Int), String)
+  private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String,Any)]] = {
 //    def help(list: Iterable[Any]): List[(String, Any)] = {
 //      list match {
 //        case (x: String) :: (y: Any) :: Nil => List((x, y))
 //        case (x: String) :: (y: Any) :: xs => List((x, y)) ++ help(xs)
 //      }
 //    }
-
+    println("constructObj:encodedSeqByteArray = " + new String(encodedSeqByteArray.head))
     def help(list: Iterable[Any]): List[(String, Any)] = {
       list match {
         case x: List[Any] if x.isEmpty => List()
-        case x:List[Any] if x.lengthCompare(2) >= 0 => List((x.head.asInstanceOf[String], x.tail.head))++help(x.drop(2))
+        case x:List[Any] if x.lengthCompare(2) >= 0 =>
+          println("help function = " + x.head.asInstanceOf[String])
+          println("help function = " + x.tail.head)
+          List((x.head.asInstanceOf[String], x.tail.head))++help(x.drop(2))
       }
     }
 
     //println("constructObj")
-    val constructedObjs: Seq[T] =
+    val constructedObjs: Seq[List[(String,Any)]] =
       encodedSeqByteArray.map { encodedByteArray =>
-        val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList).asInstanceOf[Iterable[Iterable[Any]]].flatten
+        println("encodedByteArray = "  + encodedSeqByteArray)
+        val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList)
+        //println("Res= " + res)
+        //val by = res.toList.apply(5).asInstanceOf[Array[Byte]]
+        //println(by.asInstanceOf[List[(String, Any)]])
+        println("Res = " + res)
+        //val res0 = res.asInstanceOf[Iterable[Iterable[Any]]].flatten
+        //println("Res0= " + res0)
+        //println("Res0 = " + res0)
         // val resToTuples: List[(String, Any)] = help(res).map(elem => (elem._1.toLowerCase, elem._2))
         //case class Book(title: String, price: Double, edition: Int, forsale: Boolean, npages: Long)
         //        val book = Book("",2.2,2,true,10000)
@@ -81,7 +96,34 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
         //GenericObj[Book]
         //println(FromList.to[Book].from(resToTuples))
         //fromMap(resToTuples)
-        val l: List[(String,Any)] = help(res).map(elem => (elem._1.toLowerCase,elem._2))
+        val res1 = res.map(entry => entry match{
+          case x: List[Any] if x.tail.head.isInstanceOf[Array[Byte]] =>
+            //(List((key, C_NEXT),(EMPTY_KEY, C_LIMITLEVEL)),List((None, None, EMPTY_KEY))++defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            // keyList = List() //(String, String)
+            // limitList = List() //(Option(Int), Option(Int), String)
+            val keyList0 = List((EMPTY_KEY, C_LIMITLEVEL))
+            val limitList0 = List((Option(0), None, TO_RANGE))
+            val something = constructObj(Seq(x.tail.head.asInstanceOf[Array[Byte]]), keyList0, limitList0)
+
+            println("Something= " + something)
+            //TODO reconstruir object extraido
+            println("Rebuilding object/array = " + new String(x.tail.head.asInstanceOf[Array[Byte]]))
+            val so = if(something.forall(entry => entry.head._1.dropRight(1).forall(ch => ch.isDigit))){
+              println("SAO DIGITOS")
+              println(something)
+              println(something.map(entry => entry.map(entry0 => entry0._2)))
+              something.map(entry => entry.map(entry0 => entry0._2)).flatten
+            }else{
+              println("NAO SAO DIGITOS")
+              something
+            }
+            List(x.head.asInstanceOf[String],so )
+          case x  => x
+        })
+
+
+        println("Res1= " + res1)
+        val l: List[(String,Any)] = help(res1.asInstanceOf[Iterable[Iterable[Any]]].flatten).map(elem => (elem._1.toLowerCase,elem._2))
         println(l)
 
         def rec(list: Seq[String]): HList = {
@@ -90,14 +132,17 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
             case _ => list.head::rec(list.drop(1))
           }
         }
+        l
         //val list: HList = rec(l)
         //println(list)
 //        val labl = genObj.get
 //        val r: T = labl.from(list.asInstanceOf[labl.Repr])
 //        println(r)
-        extractLabels.to[T].from[gen.Repr](l)
-      }.collect{ case v if v.nonEmpty => v.get}
-    constructedObjs.map( elem => fExt.get(elem))
+
+        //extractLabels.to[T].from[gen.Repr](l)
+      }//.collect{ case v if v.nonEmpty => v.get}
+    //constructedObjs.map( elem => fExt.get(elem))
+    constructedObjs
 
 
     //println(s"constructedObjs: $constructedObjs")
@@ -185,13 +230,16 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
     val typeClass =
       result.size match {
         case 0 => None
-        case 1 => Some(result.head.getClass.getSimpleName)
+        case 1 =>
+          println(result.head.getClass.getSimpleName)
+          Some(result.head.getClass.getSimpleName)
         case _ =>
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else None
       }
-    //println(s"typeClass: $typeClass")
+    println(s"typeClass: $typeClass")
     //println(s"Final result from extraction: $result")
+    println("returnInsideSeq(limitList) = " + returnInsideSeq(limitList))
     if(returnInsideSeq(limitList)){
       /*val tArgs = typeOf[R] match {
         case TypeRef(_,_,args) => args
@@ -206,7 +254,12 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Seq[Double]])
 //          case ARRAY_BYTE if tArgs.head =:= typeOf[Array[Byte]] =>
 //            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
-          case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
+          case ARRAY_BYTE =>
+            val res = constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
+            val res1 = res.map{entry =>
+              extractLabels.to[T].from[gen.Repr](entry)
+            }.collect{ case v if v.nonEmpty => v.get}
+            res1.map( elem => fExt.get(elem))
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     } else {
@@ -219,30 +272,41 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], result.asInstanceOf[Seq[Double]].head)
 //          case ARRAY_BYTE if typeOf[R] =:= typeOf[Array[Byte]] =>
 //            Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
-          case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
+          case ARRAY_BYTE =>
+            val res = constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
+            val res1 = res.map{entry =>
+              extractLabels.to[T].from[gen.Repr](entry)
+            }.collect{ case v if v.nonEmpty => v.get}
+            res1.map( elem => fExt.get(elem))
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     }
   }
 
   private def returnInsideSeq(limitList: List[(Option[Int], Option[Int], String)]): Boolean = limitList.exists { elem =>
-    elem._1.isDefined match {
+    val res = elem._1.isDefined match {
       case true if elem._2.isEmpty => true
       case true if elem._2.isDefined && elem._2.get != elem._1.get => true
       case true if elem._2.isDefined && elem._2.get == elem._1.get => false
       case false => false
     }
+    println(res)
+    res
     //TODO: missing implementation to verify ".." and "[@.elem]
   }
 
   private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
 //    println(s"KeyList: $keyList")
 //    println(s"LimitList: $limitList")
+    println("KeyList.size = "+keyList.size)
     val value: Iterable[Any] =
     keyList.size match {
       case 1 =>
+        //println("keyList.size = 1")
         val res: Iterable[Any] = boson.extract(encodedStructure, fExt.get, keyList, limitList)
         //println(s"RES from last extractor: $res")
+        println("RunExtractor:RES= " + res)
+        println("keyList.size = res")
         res
       case _ =>
         val res: Iterable[Any] = boson.extract(encodedStructure, fExt.get, keyList, limitList)

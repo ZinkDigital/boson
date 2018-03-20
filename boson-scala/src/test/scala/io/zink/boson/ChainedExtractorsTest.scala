@@ -10,10 +10,11 @@ import scala.concurrent.duration.Duration
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
 
 
-case class Book(price: Double,title: String, edition: Int, forSale: Boolean, nPages: Long)
+case class Book(price: Double,title: String, edition: Int, forSale: Boolean, nPages: Long, array: List[Any])
 
 case class Book1(title: String, price: Double)
-
+case class IntValue(edition: Int)
+case class ArrayValue(array: List[String])
 
 @RunWith(classOf[JUnitRunner])
 class ChainedExtractorsTest extends FunSuite{
@@ -22,10 +23,36 @@ class ChainedExtractorsTest extends FunSuite{
   private val _store = new BsonObject().put("Book", _book1)
   private val _bson = new BsonObject().put("Store", _store)
 
-  test("Extract Type class Book") {
+//  test("Extract Type class Book") {
+//    val expression: String = ".Store.Book"
+//    val boson = Boson.extractor(expression, (in: Book) => {
+//      assertEquals(Book(25.6,"Scala",10,true,750L), in)
+//      println("APPLIED")
+//    })
+//    val res = boson.go(_bson.encode.getBytes)
+//    Await.result(res, Duration.Inf)
+//  }
+//
+//  test("Extract Type class Book1") {
+//    val expression: String = ".Store.Book"
+//    val boson = Boson.extractor(expression, (in: IntValue) => {
+//      assertEquals(IntValue(10), in)
+//      println("APPLIED")
+//    })
+//    val res = boson.go(_bson.encode.getBytes)
+//    Await.result(res, Duration.Inf)
+//  }
+
+  test("Extract Type class Book2") {
+    val array =  new BsonArray().add("Ola").add("Adeus")
+    val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition",10).put("ForSale", true).put("nPages", 750L).put("Array", array)
+    val _store = new BsonObject().put("Book", _book1)
+    val _bson = new BsonObject().put("Store", _store)
+
     val expression: String = ".Store.Book"
-    val boson = Boson.extractor(expression, (in: Book) => {
-      assertEquals(Book(25.6,"Scala",10,true,750L), in)
+    val boson = Boson.extractor(expression, (in: ArrayValue) => {
+      println(in)
+      assertEquals(ArrayValue(List("Ola", "Adeus")), in)
       println("APPLIED")
     })
     val res = boson.go(_bson.encode.getBytes)
