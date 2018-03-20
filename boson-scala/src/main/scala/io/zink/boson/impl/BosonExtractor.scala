@@ -12,9 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.runtime.universe._
 
-class BosonExtractor[T, R <: HList](expression: String, extractFunction: T => Unit)(implicit
-                                                                                    gen: LabelledGeneric.Aux[T, R],
-                                                                                    extract: extractLabels[R]) extends Boson {
+class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends Boson {
   //val genericObj = GenericObj[T]
 //  def mytype[U](implicit m: scala.reflect.Manifest[U]) = m
 //  def myTypeWithoutExtraParam = mytype[T]
@@ -28,12 +26,12 @@ class BosonExtractor[T, R <: HList](expression: String, extractFunction: T => Un
   //FromList.to[newInstance].from(List(("","")))
 
 
-  private def callParse(boson: BosonImpl, expression: String): Unit = {
+  private def callParse(boson: BosonImpl, expression: String): Any = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter[T,R](boson, r.asInstanceOf[Program], fExt = Option(extractFunction), genObj =None).run()
+          new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)

@@ -10,9 +10,7 @@ sealed trait extractLabels[L <: HList] {
 object extractLabels {
 
   implicit val hconsNil: extractLabels[HNil] = new extractLabels[HNil] {
-    def apply(m: List[(String,Any)]): Option[HNil] = {
-      println("hnil implicit called")
-      Some(HNil)}
+    def apply(m: List[(String,Any)]): Option[HNil] = Some(HNil)
   }
 
 
@@ -25,10 +23,10 @@ object extractLabels {
                                                            ): extractLabels[FieldType[K, V] :: TAIL] =
     new extractLabels[FieldType[K, V] :: TAIL] {
       override def apply(m: List[(String,Any)]): Option[FieldType[K, V] :: TAIL] = {
-        println(s" -> ${witness.value.name}")
-        val v = m.find(elem => elem._1.equals(witness.value.name.toLowerCase)).map(v => v._2).getOrElse(None)
-        println(s"return: $v")
-        println(s"after cast -> ${typeable.cast(v)}")
+//        println(s" -> ${witness.value.name}")
+//        val v = m.find(elem => elem._1.equals(witness.value.name.toLowerCase)).map(v => v._2).getOrElse(None)
+//        println(s"return: $v")
+//        println(s"after cast -> ${typeable.cast(v)}")
         val res =
           for {
             v <- m.find(elem => elem._1.equals(witness.value.name.toLowerCase)).map(v => v._2)
@@ -37,7 +35,6 @@ object extractLabels {
           } yield {
             field[K](h) :: t
           }
-        println("qwertyuio: " + res)
         res
       }
     }
@@ -53,3 +50,5 @@ class Convert[A] {
     extract(m).map(gen.from)
   }
 }
+
+
