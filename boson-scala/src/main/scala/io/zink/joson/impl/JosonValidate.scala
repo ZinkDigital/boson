@@ -23,7 +23,7 @@ class JosonValidate[T](expression: String, validateFunction: T => Unit) extends 
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter[T,T](boson, r.asInstanceOf[Program], fExt = Option(validateFunction)).run()
+          //new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(validateFunction)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)

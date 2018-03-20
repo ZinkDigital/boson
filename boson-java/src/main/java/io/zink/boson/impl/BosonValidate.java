@@ -29,7 +29,7 @@ public class BosonValidate<T> implements Boson {
         try{
             Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
-                Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(validateFunction), Option.empty());
+                Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(validateFunction),Option.empty());
                 interpreter.run();
             }else{
                 throw new RuntimeException("Failure/Error parsing!");

@@ -8,11 +8,12 @@ import org.scalatest.junit.JUnitRunner
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
-import shapeless.{Generic, HList}
 
 
-case class Book(title: String, price: Double, edition: Int, forSale: Boolean, nPages: Long)
+case class Book(price: Double,title: String, edition: Int, forSale: Boolean, nPages: Long)
+
 case class Book1(title: String, price: Double)
+
 
 @RunWith(classOf[JUnitRunner])
 class ChainedExtractorsTest extends FunSuite{
@@ -23,22 +24,12 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Type class Book") {
     val expression: String = ".Store.Book"
-    val boson = Boson
-      .extractor(expression, (in: Book) => {
-      assertEquals(Book("Scala",25.6,10,true,750L), in)
+    val boson = Boson.extractor(expression, (in: Book) => {
+      assertEquals(Book(25.6,"Scala",10,true,750L), in)
       println("APPLIED")
     })
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)
-  }
-
-  test("Shapeless") {
-    val gen = Generic[Book1]
-    val book = Book1("Number", 2.0)
-    val l = gen.to(book)
-    println(l)
-    val book1 = gen.from(l)
-    println(book1)
   }
 ///*
 //  test("Extract Type class Book as byte[]") {
@@ -50,7 +41,7 @@ class ChainedExtractorsTest extends FunSuite{
 //    val res = boson.go(_bson.encode.getBytes)
 //    Await.result(res, Duration.Inf)
 //  }
-//*/
+
 //  test("Extract Seq[Type class Book]") {
 //
 //    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
@@ -61,14 +52,14 @@ class ChainedExtractorsTest extends FunSuite{
 //    val bson = new BsonObject().put("Store", store)
 //
 //      val expression: String = ".Store.Book[0 to 1]"
-//      val boson: Boson = Boson.extractor[Seq[Book1]](expression, (in: Seq[Book1]) => {
+//      val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
 //        assertEquals(Seq(Book1("Java",15.5),Book1("Scala",21.5)), in)
 //        println("APPLIED")
 //      })
 //      val res = boson.go(bson.encode.getBytes)
 //      Await.result(res, Duration.Inf)
 //    }
-///*
+
 //  test("Extract Seq[Type class Book] as Seq[byte[]]") {
 //
 //    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)

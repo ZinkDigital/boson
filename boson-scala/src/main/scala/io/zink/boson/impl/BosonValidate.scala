@@ -3,23 +3,25 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import shapeless.Typeable
+import shapeless.{HList, LabelledGeneric, Typeable}
 //import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class BosonValidate[T](expression: String, validateFunction: T => Unit) extends Boson{
+class BosonValidate[T, R <: HList](expression: String, validateFunction: T => Unit)(implicit
+                                                                                    f: LabelledGeneric.Aux[T, R],
+                                                                                    extract: extractLabels[R]) extends Boson{
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter[T, T](boson, r.asInstanceOf[Program], fExt = Option(validateFunction)).run()
+          new Interpreter[T,R](boson, r.asInstanceOf[Program], fExt = Option(validateFunction)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)
