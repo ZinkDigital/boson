@@ -13,7 +13,7 @@ import scala.concurrent.Future
 
 object Extractor {
 
-  def apply[A](expression: String, extractFunction: A => Unit)(implicit ext: Extractor[A]): Boson = ext.extract(expression,extractFunction)
+  //def apply[A](expression: String, extractFunction: A => Unit)(implicit ext: Extractor[A]): Boson = ext.extract(expression,extractFunction)
 
   implicit def caseClass[A, L <:HList](implicit
                                        f: LabelledGeneric.Aux[A, L],
@@ -61,6 +61,8 @@ object Extractor {
 }
 
 object Boson {
+
+  def extractor[A](expression: String, extractFunction: A => Unit)(implicit ext: Extractor[A]): Boson = ext.extract(expression,extractFunction)
 
   def validate[T, R <: HList](expression: String, validateFunction: T => Unit)(implicit
                                                                                f: LabelledGeneric.Aux[T, R],
@@ -138,6 +140,7 @@ trait Extractor[A] {
 
 trait Boson {
 
+  //def extractor[T](expression: String, extractFunction: Function[T, Unit])
 
   //  def apply[A](implicit f: Lazy[Generic[A]]): Generic[A]
   /**

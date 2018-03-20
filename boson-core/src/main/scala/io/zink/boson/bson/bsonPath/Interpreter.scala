@@ -43,7 +43,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case MoreKeys(first, list, dots) =>
 //          println(s"statements: ${List(first) ++ list}")
 //          println(s"dotList: $dots")
-          extract(boson.getByteBuf,List(first) ++ list)
+          val res = extract(boson.getByteBuf,List(first) ++ list)
+        //  println("OUT START")
+          res
           //buildExtractors(List(first) ++ list)
           //executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
@@ -90,16 +92,16 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
             val limitList0 = List((Option(0), None, TO_RANGE))
             val something = constructObj(Seq(x.tail.head.asInstanceOf[Array[Byte]]), keyList0, limitList0)
 
-            println("Something= " + something)
+           // println("Something= " + something)
             //TODO reconstruir object extraido
-            println("Rebuilding object/array = " + new String(x.tail.head.asInstanceOf[Array[Byte]]))
+           // println("Rebuilding object/array = " + new String(x.tail.head.asInstanceOf[Array[Byte]]))
             val so = if(something.forall(entry => entry.head._1.dropRight(1).forall(ch => ch.isDigit))){
-              println("SAO DIGITOS")
-              println(something)
-              println(something.map(entry => entry.map(entry0 => entry0._2)))
+             // println("SAO DIGITOS")
+              //println(something)
+              //println(something.map(entry => entry.map(entry0 => entry0._2)))
               something.map(entry => entry.map(entry0 => entry0._2)).flatten
             }else{
-              println("NAO SAO DIGITOS")
+              //println("NAO SAO DIGITOS")
               something
             }
             List(x.head.asInstanceOf[String],so )
@@ -107,8 +109,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         })
 
 
-        println("Res1= " + res1)
-        val l: List[(String,Any)] = toTuples(res1.asInstanceOf[Iterable[Iterable[Any]]].flatten).map(elem => (elem._1.toLowerCase,elem._2))
+        //println("Res1= " + res1)
+        val l: List[(String,Any)] = toTuples(res1).map(elem => (elem._1.toLowerCase,elem._2))
         l}
     constructedObjs
         //println(l)
@@ -118,7 +120,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
 //            case _ => list.head::rec(list.drop(1))
 //          }
 //        }
-        l
+        //l
         //val list: HList = rec(l)
         //println(list)
 //        val labl = genObj.get
@@ -215,10 +217,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     //println(s"extracted -> $result")
     val typeClass =
       result.size match {
-        case 0 => None
-        case 1 => Some(result.head.getClass.getSimpleName)
+        case 0 =>
+          None
+        case 1 =>
+          Some(result.head.getClass.getSimpleName)
         case _ =>
-          if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
+          if (result.asInstanceOf[List[List[Any]]].tail.forall { (p:List[Any]) => result.asInstanceOf[List[List[Any]]].head.apply(1).getClass.equals(p.apply(1).getClass) }) Some(result.asInstanceOf[List[List[Any]]].head.apply(1).getClass.getSimpleName)
           else None
       }
     //println(s"typeClass: $typeClass")
@@ -230,21 +234,28 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
       //println(s"tArgs: $tArgs")*/
       if (typeClass.isDefined) {
         typeClass.get match {
-          case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], result.asInstanceOf[Seq[String]])
-          case INTEGER => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], result.asInstanceOf[Seq[Int]])
-          case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Seq[Long]])
+          case STRING =>
+            val res = result.asInstanceOf[Seq[List[Any]]].map(l => l.apply(1).asInstanceOf[String])
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit],res)
+          case INTEGER =>
+            val res = result.asInstanceOf[Seq[List[Any]]].map(l => l.apply(1).asInstanceOf[Int])
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], res)
+          case LONG =>
+            val res = result.asInstanceOf[Seq[List[Any]]].map(l => l.apply(1).asInstanceOf[Long])
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], res)
           case BOOLEAN =>
-            println(fExt.get.isInstanceOf[Seq[_]])
-            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Seq[Boolean]])
-          case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Seq[Double]])
+            //println(fExt.get.isInstanceOf[Seq[_]])
+            val res = result.asInstanceOf[Seq[List[Any]]].map(l => l.apply(1).asInstanceOf[Boolean])
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], res)
+
+          case DOUBLE =>
+            val res = result.asInstanceOf[Seq[List[Any]]].map(l => l.apply(1).asInstanceOf[Double])
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], res)
 //          case ARRAY_BYTE if tArgs.head =:= typeOf[Array[Byte]] =>
 //            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
           case ARRAY_BYTE =>
             val res = constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
-            val res1 = res.map{entry =>
-              extractLabels.to[T].from[gen.Repr](entry)
-            }.collect{ case v if v.nonEmpty => v.get}
-            res1.map( elem => fExt.get(elem))
+            res
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     } else {
@@ -259,10 +270,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
 //            Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[Array[Byte]]].head)
           case ARRAY_BYTE =>
             val res = constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
-            val res1 = res.map{entry =>
-              extractLabels.to[T].from[gen.Repr](entry)
-            }.collect{ case v if v.nonEmpty => v.get}
-            res1.map( elem => fExt.get(elem))
+            res
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     }
@@ -275,7 +283,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
       case true if elem._2.isDefined && elem._2.get == elem._1.get => false
       case false => false
     }
-    println(res)
+    //println(res)
     res
     //TODO: missing implementation to verify ".." and "[@.elem]
   }
