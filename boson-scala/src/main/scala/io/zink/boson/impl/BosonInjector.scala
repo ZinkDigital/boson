@@ -14,18 +14,16 @@ import scala.concurrent.Future
 
 
 
-class BosonInjector[T, R <: HList](expression: String, injectFunction: Function[T, T])(implicit
-                                                                                       gen: LabelledGeneric.Aux[T, R],
-                                                                                       extract: extractLabels[R]) extends Boson {
+class BosonInjector[T, R <: HList](expression: String, injectFunction: Function[T, T]) extends Boson {
 
   val anon: T => T = injectFunction
 
-  def parseInj(netty: BosonImpl): Array[Byte] = {
+  def parseInj(netty: BosonImpl): Any = {
     val parser = new TinyLanguage
     try{
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r,_) =>
-          new Interpreter[T,R](netty, r.asInstanceOf[Program],fInj = Option(anon)).run()
+          new Interpreter[T](netty, r.asInstanceOf[Program],fInj = Option(anon)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)
@@ -43,7 +41,7 @@ class BosonInjector[T, R <: HList](expression: String, injectFunction: Function[
     val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
     val future: Future[Array[Byte]] =
       Future{
-      val r: Array[Byte] = parseInj(boson)
+      val r: Array[Byte] = parseInj(boson).asInstanceOf[Array[Byte]]
 //      match {
 //        case ex: BsException => println(ex.getValue)
 //          bsonByteEncoding
@@ -61,17 +59,16 @@ class BosonInjector[T, R <: HList](expression: String, injectFunction: Function[
     val boson: BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
     val future: Future[ByteBuffer] =
     Future{
-      /*val r: Array[Byte] = */parseInj(boson)
-      //val b: ByteBuf = Unpooled.copiedBuffer(r)
-      //b.nioBuffer()
+      val r: Array[Byte] = parseInj(boson).asInstanceOf[Array[Byte]]
+      val b: ByteBuf = Unpooled.copiedBuffer(r)
+      b.nioBuffer()
 //      match {
 //        case ex: BsException => println(ex.getValue)
 //          bsonByteBufferEncoding
 //        case nb: BsBoson => nb.getValue.getByteBuf.nioBuffer()
 //        case _ =>
-          bsonByteBufferEncoding
+         // bsonByteBufferEncoding
 //      }
-//      r
     }
     future
   }

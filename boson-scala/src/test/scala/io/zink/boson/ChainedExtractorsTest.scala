@@ -8,6 +8,7 @@ import org.scalatest.junit.JUnitRunner
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
+import shapeless.{LabelledGeneric, the}
 
 
 case class Book(price: Double,title: String, edition: Int, forSale: Boolean, nPages: Long)
@@ -24,124 +25,126 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Type class Book") {
     val expression: String = ".Store.Book"
-    val boson = Boson.extractor(expression, (in: Book) => {
+    val boson = Extractor(expression, (in: Book) => {
       assertEquals(Book(25.6,"Scala",10,true,750L), in)
+      println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)
   }
-///*
-//  test("Extract Type class Book as byte[]") {
-//    val expression: String = ".Store.Book"
-//    val boson: Boson = Boson.extractor[Array[Byte]](expression, (in: Array[Byte]) => {
-//      assertArrayEquals(_book1.encodeToBarray(), in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
+/*
+  test("Extract Type class Book as byte[]") {
+    val expression: String = ".Store.Book"
+    val boson: Boson = Boson.extractor[Array[Byte]](expression, (in: Array[Byte]) => {
+      assertArrayEquals(_book1.encodeToBarray(), in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
 
-//  test("Extract Seq[Type class Book]") {
-//
-//    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
-//    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
-//    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
-//    val books = new BsonArray().add(title1).add(title2).add(title3)
-//    val store = new BsonObject().put("Book", books)
-//    val bson = new BsonObject().put("Store", store)
-//
-//      val expression: String = ".Store.Book[0 to 1]"
-//      val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
-//        assertEquals(Seq(Book1("Java",15.5),Book1("Scala",21.5)), in)
-//        println("APPLIED")
-//      })
-//      val res = boson.go(bson.encode.getBytes)
-//      Await.result(res, Duration.Inf)
-//    }
+  test("Extract Seq[Type class Book]") {
 
-//  test("Extract Seq[Type class Book] as Seq[byte[]]") {
-//
-//    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
-//    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
-//    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
-//    val books = new BsonArray().add(title1).add(title2).add(title3)
-//    val store = new BsonObject().put("Book", books)
-//    val bson = new BsonObject().put("Store", store)
-//
-//    val expression: String = ".Store.Book[0 to 1]"
-//    val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(),title2.encodeToBarray())
-//    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-//      assert(expected.size === in.size)
-//      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
-//      println("APPLIED")
-//    })
-//    val res = boson.go(bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//*/
-//  test("Extract Long") {
-//    val expression: String = ".Store.Book.nPages"
-//    val boson: Boson = Boson.extractor(expression, (in: Long) => {
-//      assertEquals(750L, in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//
-//  test("Extract Boolean") {
-//    val expression: String = ".Store.Book.ForSale"
-//    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
-//      assertEquals(true, in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//
-//  test("Extract Int") {
-//    val expression: String = ".Store.Book.Edition"
-//    val boson: Boson = Boson.extractor(expression, (in: Int) => {
-//      assertEquals(10, in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//
-//  test("Extract Double") {
-//    val expression: String = ".Store.Book.Price"
-//    val boson: Boson = Boson.extractor(expression, (in: Double) => {
-//      assert(25.6 === in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//
-//  test("Extract String") {
-//    val expression: String = ".Store.Book.Title"
-//    val boson: Boson = Boson.extractor(expression, (in: String) => {
-//      assertEquals("Scala", in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(_bson.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//
-//  test("Extract simple Seq[Boolean]") {
-//    val arr = new BsonArray().add(true).add(true).add(false)
-//
-//    val expression: String = ".[all]"
-//    val boson: Boson = Boson.extractor(expression, (in: Seq[Boolean]) => {
-//      assertEquals(Seq(true,true,false), in)
-//      println("APPLIED")
-//    })
-//    val res = boson.go(arr.encode.getBytes)
-//    Await.result(res, Duration.Inf)
-//  }
-//
+    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
+    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
+    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
+    val books = new BsonArray().add(title1).add(title2).add(title3)
+    val store = new BsonObject().put("Book", books)
+    val bson = new BsonObject().put("Store", store)
+
+      val expression: String = ".Store.Book[0 to 1]"
+      val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
+        assertEquals(Seq(Book1("Java",15.5),Book1("Scala",21.5)), in)
+        println("APPLIED")
+      })
+      val res = boson.go(bson.encode.getBytes)
+      Await.result(res, Duration.Inf)
+    }
+
+  test("Extract Seq[Type class Book] as Seq[byte[]]") {
+
+    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
+    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
+    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
+    val books = new BsonArray().add(title1).add(title2).add(title3)
+    val store = new BsonObject().put("Book", books)
+    val bson = new BsonObject().put("Store", store)
+
+    val expression: String = ".Store.Book[0 to 1]"
+    val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(),title2.encodeToBarray())
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assert(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+*/
+  test("Extract Long") {
+    val expression: String = ".Store.Book.nPages"
+    val boson: Boson = Extractor(expression, (in: Long) => {
+      assertEquals(750L, in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Boolean") {
+    val expression: String = ".Store.Book.ForSale"
+    val boson: Boson = Extractor(expression, (in: Boolean) => {
+      assertEquals(true, in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Int") {
+    val expression: String = ".Store.Book.Edition"
+    val boson: Boson = Extractor(expression, (in: Int) => {
+      assertEquals(10, in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Double") {
+    val expression: String = ".Store.Book.Price"
+    val boson: Boson = Extractor(expression, (in: Double) => {
+      assert(25.6 === in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract String") {
+    val expression: String = ".Store.Book.Title"
+    val boson: Boson = Extractor(expression, (in: String) => {
+      assertEquals("Scala", in)
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract simple Seq[Boolean]") {
+    val arr = new BsonArray().add(true).add(true).add(false)
+
+    val expression: String = ".[all]"
+    val boson: Boson = Extractor(expression, (in: Seq[Boolean]) => {
+      assertEquals(Seq(true,true,false), in)
+      println("APPLIED")
+    })
+    val res = boson.go(arr.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
 //  test("Extract simple Seq[Int]") {
 //    val arr = new BsonArray().add(1).add(2).add(3)
 //

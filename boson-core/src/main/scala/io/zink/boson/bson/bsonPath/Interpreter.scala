@@ -20,21 +20,19 @@ import scala.util.{Failure, Success, Try}
 
 case class Book(title: String, edition: Int, forSale: Boolean)
 
-class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[T => Unit] = None, genObj: Option[LabelledGeneric[T]] = None)
-                      (implicit gen: LabelledGeneric.Aux[T, R],
-                       extract: extractLabels[R]){
+class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[T => Unit] = None) {
 
-  def run(): Array[Byte] = {
+  def run(): Any = {
     fInj.isDefined match {
       case true => startInjector(program.statement)
       case false if fExt.isDefined =>
         start(program.statement)
-        boson.getByteBuf.array
+        //boson.getByteBuf.array
       case false => throw new IllegalArgumentException("Construct Boson object with at least one Function.")
     }
   }
 
-  private def start(statement: List[Statement]): Unit = {
+  private def start(statement: List[Statement]): Any = {
     if (statement.nonEmpty) {
       statement.head match {
 //        case MoreKeys(first, list, dots) if first.isInstanceOf[ROOT]=>
@@ -45,30 +43,29 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
         case MoreKeys(first, list, dots) =>
 //          println(s"statements: ${List(first) ++ list}")
 //          println(s"dotList: $dots")
-          buildExtractors(List(first) ++ list)
+          extract(boson.getByteBuf,List(first) ++ list)
+          //buildExtractors(List(first) ++ list)
           //executeMoreKeys(first, list, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     }else throw new RuntimeException("List of statements is empty.")
   }
 
-  private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
+  private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String,Any)]] = {
 //    def help(list: Iterable[Any]): List[(String, Any)] = {
 //      list match {
 //        case (x: String) :: (y: Any) :: Nil => List((x, y))
 //        case (x: String) :: (y: Any) :: xs => List((x, y)) ++ help(xs)
 //      }
 //    }
-
-    def help(list: Iterable[Any]): List[(String, Any)] = {
+    def toTuples(list: Iterable[Any]): List[(String, Any)] = {
       list match {
         case x: List[Any] if x.isEmpty => List()
-        case x:List[Any] if x.lengthCompare(2) >= 0 => List((x.head.asInstanceOf[String], x.tail.head))++help(x.drop(2))
+        case x: List[Any] if x.lengthCompare(2) >= 0 => List((x.head.asInstanceOf[String], x.tail.head)) ++ toTuples(x.drop(2))
       }
     }
-
     //println("constructObj")
-    val constructedObjs: Seq[T] =
+    val constructedObjs: /*Seq[T]*/ Seq[List[(String,Any)]] =
       encodedSeqByteArray.map { encodedByteArray =>
         val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList).asInstanceOf[Iterable[Iterable[Any]]].flatten
         // val resToTuples: List[(String, Any)] = help(res).map(elem => (elem._1.toLowerCase, elem._2))
@@ -81,23 +78,24 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
         //GenericObj[Book]
         //println(FromList.to[Book].from(resToTuples))
         //fromMap(resToTuples)
-        val l: List[(String,Any)] = help(res).map(elem => (elem._1.toLowerCase,elem._2))
-        println(l)
-
-        def rec(list: Seq[String]): HList = {
-          list.length match{
-            case 1 =>list.head::HNil
-            case _ => list.head::rec(list.drop(1))
-          }
-        }
+        val l: List[(String,Any)] = toTuples(res).map(elem => (elem._1.toLowerCase,elem._2))
+        l}
+    constructedObjs
+        //println(l)
+//        def rec(list: Seq[String]): HList = {
+//          list.length match{
+//            case 1 =>list.head::HNil
+//            case _ => list.head::rec(list.drop(1))
+//          }
+//        }
         //val list: HList = rec(l)
         //println(list)
 //        val labl = genObj.get
 //        val r: T = labl.from(list.asInstanceOf[labl.Repr])
 //        println(r)
-        extractLabels.to[T].from[gen.Repr](l)
-      }.collect{ case v if v.nonEmpty => v.get}
-    constructedObjs.map( elem => fExt.get(elem))
+        //extractLabels.to[T].from[gen.Repr](l)
+      //}.collect{ case v if v.nonEmpty => v.get}
+    //constructedObjs.foreach( elem => fExt.get(elem))
 
 
     //println(s"constructedObjs: $constructedObjs")
@@ -154,7 +152,7 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
     constructorMirror(constructorArgs: _*).asInstanceOf[R]
   }
 */
-  private def buildExtractors(statementList: List[Statement]): Unit = {
+  private def buildExtractors(statementList: List[Statement]): (List[(String,String)],List[(Option[Int], Option[Int], String)]) = {
     //println(s"Generic of Type R: ${Generic[R]}")
     val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
     for( statement <- statementList) yield{
@@ -174,12 +172,14 @@ class Interpreter[T,R <: HList](boson: BosonImpl, program: Program, fInj: Option
       case C_NEXT => keyList.take(keyList.size-1)++ List((keyList.last._1,C_LEVEL))
       case _ => keyList
     }
-    extract(boson.getByteBuf, finalKeyList, limitList)
+    (finalKeyList,limitList)
+    //extract(boson.getByteBuf, finalKeyList, limitList)
     //boson.getByteBuf.release()
     //runExtractors(boson.getByteBuf, finalKeyList, limitList)
   }
 
-  private def extract(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Unit = {
+  private def extract(encodedStructure: ByteBuf, statementList: List[Statement]): Any = {
+    val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(statementList)
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
     //println(s"extracted -> $result")
     val typeClass =
