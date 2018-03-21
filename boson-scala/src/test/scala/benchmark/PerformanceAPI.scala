@@ -9,15 +9,9 @@ import com.jayway.jsonpath.spi.mapper.GsonMappingProvider
 import com.jayway.jsonpath.{Configuration, JsonPath, Option}
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
-import io.zink.boson.{Book, Boson}
-import org.bson.{BSONDecoder, BSONObject, BasicBSONDecoder}
-import shapeless.LabelledGeneric.Aux
-import shapeless.labelled.FieldType
-import shapeless.{HNil, LabelledGeneric, labelled, tag, the}
+import io.zink.boson.{Boson, Extractor}
 
 import scala.collection.mutable.ListBuffer
-//import io.zink.boson.bson.bsonValue.BsValue
-import io.zink.joson.Joson
 import org.scalameter._
 
 import scala.concurrent.duration.Duration
@@ -380,7 +374,7 @@ object PerformanceTests extends App {
     .mappingProvider(new GsonMappingProvider())
     .jsonProvider(new GsonJsonProvider())
     .build
-  /*for(_ <- 0 to 10000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
     val end = System.nanoTime()
@@ -390,7 +384,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   println()
 
-  val bosonClass: Boson = Boson.Extractor.extractor(".Markets[1].Tags", (_: Tags) => {
+  val bosonClass: Boson = Extractor(".Markets[1].Tags", (_: Tags) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
@@ -414,7 +408,7 @@ object PerformanceTests extends App {
   }
   println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
   timesBuffer.clear()
-  println()*/
+  println()
 /*
   val bosonClass1: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Tags]) => {
     val end = System.nanoTime()

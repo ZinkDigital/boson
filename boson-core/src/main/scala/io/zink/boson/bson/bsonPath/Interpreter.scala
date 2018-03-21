@@ -79,7 +79,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         //println(FromList.to[Book].from(resToTuples))
         //fromMap(resToTuples)
         val l: List[(String,Any)] = toTuples(res).map(elem => (elem._1.toLowerCase,elem._2))
-        l}
+        l
+      }
     constructedObjs
         //println(l)
 //        def rec(list: Seq[String]): HList = {
@@ -202,9 +203,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           case STRING => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], result.asInstanceOf[Seq[String]])
           case INTEGER => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], result.asInstanceOf[Seq[Int]])
           case LONG => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Seq[Long]])
-          case BOOLEAN =>
-            println(fExt.get.isInstanceOf[Seq[_]])
-            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Seq[Boolean]])
+          case BOOLEAN => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Seq[Boolean]])
           case DOUBLE => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Seq[Double]])
 //          case ARRAY_BYTE if tArgs.head =:= typeOf[Array[Byte]] =>
 //            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
