@@ -6,20 +6,41 @@ import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
 import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import shapeless.{HList, LabelledGeneric, TypeCase}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+/**
+  * Whenever this class is instantiated the extraction value type is either a Case Class or a sequence of Case Classes.
+  *
+  *
+  * @param expression String parsed to build the extractors.
+  * @param extractFunction  Function to apply to a Case Class
+  * @param extractSeqFunction Function to apply to a sequence of Case Classes
+  * @param gen  LabelledGeneric of the Case Class
+  * @param extract  Trait that transforms HList into Case Classe Instances
+  * @tparam T Case Class
+  * @tparam R HList of the Case Class originated by the LabelledGeneric.Aux
+  */
 class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Option[T => Unit] = None, extractSeqFunction: Option[Seq[T] => Unit] = None)(implicit
                                                                                                                                                          gen: LabelledGeneric.Aux[T, R],
                                                                                                                                                          extract: extractLabels[R]) extends Boson {
-  private val func: Option[T=>Unit] = if(extractFunction.isDefined) extractFunction else Some((a:T)=>println(a))
+  //Interpreter receives a f[T=>Unit], when this class is instantiated with a f[Seq[T]=>Unit] Interpreter needs f[T=>Unit], this was the quickest solution.
+  //private val func: Option[T=>Unit] = if(extractFunction.isDefined) extractFunction else Some((a:T)=>println(a))
+
+  /**
+    * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
+    * statements used to instantiate the Interpreter.
+    *
+    * @param boson  Instance of BosonImpl where extraction/injection is implemented.
+    * @param expression String parsed to build the extractors.
+    * @return
+    */
   private def callParse(boson: BosonImpl, expression: String): Any = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          new Interpreter[T](boson, r.asInstanceOf[Program], fExt = func).run()
+          new Interpreter[T](boson, r.asInstanceOf[Program]).run()
         case parser.Error(msg, _) => throw new Exception(msg)
         case parser.Failure(msg, _) => throw new Exception(msg)
       }
@@ -44,12 +65,12 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
         val result: Seq[T] =
           midRes match {
             case seqTuples(vs) =>
-              vs.map{ elem =>
+              vs.par.map{ elem =>
                 extractLabels.to[T].from[gen.Repr](elem)
-              }.collect { case v if v.nonEmpty => v.get }
+              }.seq.collect { case v if v.nonEmpty => v.get }
             case _ => Seq.empty[T]
           }
-        if(extractFunction.isDefined) {result.foreach( elem => extractFunction.get(elem))} else extractSeqFunction.get(result)
+        if(extractFunction.isDefined) result.foreach( elem => extractFunction.get(elem)) else extractSeqFunction.get(result)
         bsonByteEncoding
       }
     future

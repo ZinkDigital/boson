@@ -1,5 +1,7 @@
 package io.zink.boson
 
+import java.time.Instant
+
 import bsonLib.{BsonArray, BsonObject}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
@@ -25,7 +27,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Type class Book") {
     val expression: String = ".Store.Book"
-    val boson = Extractor(expression, (in: Book) => {
+    val boson = Boson.extractor(expression, (in: Book) => {
       assertEquals(Book(25.6,"Scala",10,true,750L), in)
       println(s"in: $in")
       println("APPLIED")
@@ -33,7 +35,7 @@ class ChainedExtractorsTest extends FunSuite{
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)
   }
-/*
+
   test("Extract Type class Book as byte[]") {
     val expression: String = ".Store.Book"
     val boson: Boson = Boson.extractor[Array[Byte]](expression, (in: Array[Byte]) => {
@@ -42,7 +44,7 @@ class ChainedExtractorsTest extends FunSuite{
     })
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)
-  }*/
+  }
 
   test("Extract Seq[Type class Book]") {
 
@@ -54,14 +56,14 @@ class ChainedExtractorsTest extends FunSuite{
     val bson = new BsonObject().put("Store", store)
 
       val expression: String = ".Store.Book[0 to 1]"
-      val boson: Boson = Extractor(expression, (in: Seq[Book1]) => {
+      val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
         assertEquals(Seq(Book1("Java",15.5),Book1("Scala",21.5)), in)
         println("APPLIED")
       })
       val res = boson.go(bson.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
-/*
+
   test("Extract Seq[Type class Book] as Seq[byte[]]") {
 
     val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
@@ -81,11 +83,10 @@ class ChainedExtractorsTest extends FunSuite{
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
   }
-*/
 
   test("Extract Long") {
     val expression: String = ".Store.Book.nPages"
-    val boson: Boson = Extractor(expression, (in: Long) => {
+    val boson: Boson = Boson.extractor(expression, (in: Long) => {
       assertEquals(750L, in)
       println(s"in: $in")
       println("APPLIED")
@@ -96,7 +97,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Boolean") {
     val expression: String = ".Store.Book.ForSale"
-    val boson: Boson = Extractor(expression, (in: Boolean) => {
+    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(true, in)
       println("APPLIED")
     })
@@ -106,7 +107,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Int") {
     val expression: String = ".Store.Book.Edition"
-    val boson: Boson = Extractor(expression, (in: Int) => {
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(10, in)
       println("APPLIED")
     })
@@ -116,7 +117,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Double") {
     val expression: String = ".Store.Book.Price"
-    val boson: Boson = Extractor(expression, (in: Double) => {
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
       assert(25.6 === in)
       println("APPLIED")
     })
@@ -126,7 +127,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract String") {
     val expression: String = ".Store.Book.Title"
-    val boson: Boson = Extractor(expression, (in: String) => {
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
       assertEquals("Scala", in)
       println("APPLIED")
     })
@@ -134,11 +135,47 @@ class ChainedExtractorsTest extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
+  test("Extract byte[]") {
+
+    val obj = new BsonObject().put("byte","Scala".getBytes)
+    val expression: String = ".byte"
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      assertArrayEquals("Scala".getBytes, in)
+      println("APPLIED")
+    })
+    val res = boson.go(obj.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Instant") {
+    val now = Instant.now
+    val obj = new BsonObject().put("time",now)
+    val expression: String = ".time"
+    val boson: Boson = Boson.extractor(expression, (in: Instant) => {
+      assertEquals(now, in)
+      println("APPLIED")
+    })
+    val res = boson.go(obj.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Float") {
+
+    val obj = new BsonObject().put("floating",2.2f)
+    val expression: String = ".floating"
+    val boson: Boson = Boson.extractor(expression, (in: Float) => {
+      assertTrue(2.2f === in)
+      println("APPLIED")
+    })
+    val res = boson.go(obj.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
   test("Extract simple Seq[Boolean]") {
     val arr = new BsonArray().add(true).add(true).add(false)
 
     val expression: String = ".[all]"
-    val boson: Boson = Extractor(expression, (in: Seq[Boolean]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Boolean]) => {
       assertEquals(Seq(true,true,false), in)
       println("APPLIED")
     })
@@ -150,7 +187,7 @@ class ChainedExtractorsTest extends FunSuite{
     val arr = new BsonArray().add(1).add(2).add(3)
 
     val expression: String = ".[all]"
-    val boson: Boson = Extractor(expression, (in: Seq[Int]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
       assertEquals(Seq(1,2,3), in)
       println("APPLIED")
     })
@@ -162,7 +199,7 @@ class ChainedExtractorsTest extends FunSuite{
     val arr = new BsonArray().add("one").add("two").add("three")
 
     val expression: String = ".[all]"
-    val boson: Boson = Extractor(expression, (in: Seq[String]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
       assertEquals(Seq("one","two","three"), in)
       println("APPLIED")
     })
@@ -174,7 +211,7 @@ class ChainedExtractorsTest extends FunSuite{
     val arr = new BsonArray().add(1000L).add(1001L).add(1002L)
 
     val expression: String = ".[all]"
-    val boson: Boson = Extractor(expression, (in:  Seq[Long]) => {
+    val boson: Boson = Boson.extractor(expression, (in:  Seq[Long]) => {
       assertEquals(Seq(1000L,1001L,1002L), in)
       println("APPLIED")
     })
@@ -186,7 +223,7 @@ class ChainedExtractorsTest extends FunSuite{
     val arr = new BsonArray().add(1.1).add(2.2).add(3.3)
 
     val expression: String = ".[all]"
-    val boson: Boson = Extractor(expression, (in: Seq[Double]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => {
       assertEquals(Seq(1.1,2.2,3.3), in)
       println("APPLIED")
     })
@@ -211,15 +248,9 @@ class ChainedExtractorsTest extends FunSuite{
     private val store = new BsonObject().put("Book", books).put("Hat", hats)
     private val bson = new BsonObject().put("Store", store)
 
-  test("Extract byte[]") {
-
-    val obj = new BsonObject().put("byte[]","Scala".getBytes)
-
-  }
-
   test("Extract complex Seq[String]") {
     val expression: String = ".Store.Book[1 to end].Title"
-    val boson: Boson = Extractor(expression, (in: Seq[String]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
       assertEquals(Seq("Scala","C++"), in)
       println("APPLIED")
     })
@@ -229,7 +260,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract complex Seq[Int]") {
     val expression: String = ".Store.Book[0 until end].SpecialEditions[all].Price"
-    val boson: Boson = Extractor(expression, (in: Seq[Int]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
       assertEquals(Seq(39,40), in)
       println("APPLIED")
     })
@@ -239,7 +270,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract complex Seq[Double]") {
     val expression: String = ".Store.Book[1 to 3].Price"
-    val boson: Boson = Extractor(expression, (in: Seq[Double]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => {
       assertEquals(Seq(12.6), in)
       println("APPLIED")
     })

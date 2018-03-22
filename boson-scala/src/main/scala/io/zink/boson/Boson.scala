@@ -1,73 +1,97 @@
 package io.zink.boson
 
 import java.nio.ByteBuffer
+import java.time.Instant
 
 import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.impl.{BosonExtractor, BosonExtractorObj, BosonInjector, BosonValidate}
 import shapeless.{HList, LabelledGeneric}
+
 import scala.concurrent.Future
 
-object Extractor {
-
-  def apply[A](expression: String, extractFunction: A => Unit)(implicit ext: Extractor[A]): Boson = ext.extract(expression,extractFunction)
-
-  implicit def caseClass[A, L <:HList](implicit
-                                       f: LabelledGeneric.Aux[A, L],
-                                       ext: extractLabels[L]): Extractor[A] =
-    new Extractor[A] {
-      def extract(expression: String, extractFunction: A => Unit): Boson =
-        new BosonExtractorObj[A,L](expression,extractFunction = Option(extractFunction))
-    }
-
-  implicit def seqCaseClass[A, L <:HList](implicit
-                                       f: LabelledGeneric.Aux[A, L],
-                                       ext: extractLabels[L]): Extractor[Seq[A]] = {
-    new Extractor[Seq[A]] {
-      def extract(expression: String, extractFunction: Seq[A] => Unit): Boson = {
-        println("was here")
-        new BosonExtractorObj[A, L](expression, extractSeqFunction = Option(extractFunction))(f,ext)
-      }
-    }
-  }
-
-  implicit def seqLiterals[A, Coll[X]]: Extractor[Coll[A]] =
-    new Extractor[Coll[A]] {
-      def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
-        {println("seqLiterals implicit");new BosonExtractor[Coll[A]](expression,extractFunction)}
-    }
-
-  implicit val double: Extractor[Double] =
-    new Extractor[Double] {
-      override def extract(expression: String, extractFunction: Double => Unit): Boson =
-        new BosonExtractor[Double](expression,extractFunction)
-    }
-
-  implicit val long: Extractor[Long] =
-    new Extractor[Long] {
-      override def extract(expression: String, extractFunction: Long => Unit): Boson =
-        new BosonExtractor[Long](expression,extractFunction)
-    }
-
-  implicit val int: Extractor[Int] =
-    new Extractor[Int] {
-      override def extract(expression: String, extractFunction: Int => Unit): Boson =
-        new BosonExtractor[Int](expression,extractFunction)
-    }
-
-  implicit val string: Extractor[String] =
-    new Extractor[String] {
-      override def extract(expression: String, extractFunction: String => Unit): Boson =
-        new BosonExtractor[String](expression,extractFunction)
-    }
-
-  implicit val boolean: Extractor[Boolean] =
-    new Extractor[Boolean] {
-      override def extract(expression: String, extractFunction: Boolean => Unit): Boson =
-        new BosonExtractor[Boolean](expression,extractFunction)
-    }
-}
 
 object Boson {
+
+  trait extractor[A] {
+    def extract(expression: String, extractFunction: A => Unit): Boson
+  }
+
+  object extractor {
+
+    def apply[A](expression: String, extractFunction: A => Unit)(implicit ext: extractor[A]): Boson = ext.extract(expression, extractFunction)
+
+    implicit def caseClass[A, L <: HList](implicit
+                                          f: LabelledGeneric.Aux[A, L],
+                                          ext: extractLabels[L]): extractor[A] =
+      new extractor[A] {
+        def extract(expression: String, extractFunction: A => Unit): Boson =
+          new BosonExtractorObj[A, L](expression, extractFunction = Option(extractFunction))
+      }
+
+    implicit def seqCaseClass[A, L <: HList](implicit
+                                             f: LabelledGeneric.Aux[A, L],
+                                             ext: extractLabels[L]): extractor[Seq[A]] = {
+      new extractor[Seq[A]] {
+        def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
+          new BosonExtractorObj[A, L](expression, extractSeqFunction = Option(extractFunction))(f, ext)
+
+      }
+    }
+
+    implicit def seqLiterals[A, Coll[X]]: extractor[Coll[A]] =
+      new extractor[Coll[A]] {
+        def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
+          new BosonExtractor[Coll[A]](expression, extractFunction)
+      }
+
+    implicit val arrByte: extractor[Array[Byte]] =
+      new extractor[Array[Byte]] {
+        override def extract(expression: String, extractFunction: Array[Byte] => Unit): Boson =
+          new BosonExtractor[Array[Byte]](expression,extractFunction)
+      }
+
+    implicit val double: extractor[Double] =
+      new extractor[Double] {
+        override def extract(expression: String, extractFunction: Double => Unit): Boson =
+          new BosonExtractor[Double](expression, extractFunction)
+      }
+
+    implicit val float: extractor[Float] =
+      new extractor[Float] {
+        override def extract(expression: String, extractFunction: Float => Unit): Boson =
+          new BosonExtractor[Float](expression, extractFunction)
+      }
+
+    implicit val instant: extractor[Instant] =
+      new extractor[Instant] {
+        override def extract(expression: String, extractFunction: Instant => Unit): Boson =
+          new BosonExtractor[Instant](expression, extractFunction)
+      }
+
+    implicit val long: extractor[Long] =
+      new extractor[Long] {
+        override def extract(expression: String, extractFunction: Long => Unit): Boson =
+          new BosonExtractor[Long](expression, extractFunction)
+      }
+
+    implicit val int: extractor[Int] =
+      new extractor[Int] {
+        override def extract(expression: String, extractFunction: Int => Unit): Boson =
+          new BosonExtractor[Int](expression, extractFunction)
+      }
+
+    implicit val string: extractor[String] =
+      new extractor[String] {
+        override def extract(expression: String, extractFunction: String => Unit): Boson =
+          new BosonExtractor[String](expression, extractFunction)
+      }
+
+    implicit val boolean: extractor[Boolean] =
+      new extractor[Boolean] {
+        override def extract(expression: String, extractFunction: Boolean => Unit): Boson =
+          new BosonExtractor[Boolean](expression, extractFunction)
+      }
+  }
 
   def validate[T, R <: HList](expression: String, validateFunction: T => Unit)(implicit
                                                                                f: LabelledGeneric.Aux[T, R],
@@ -99,9 +123,6 @@ object Boson {
 
 }
 
-trait Extractor[A] {
-  def extract(expression: String, extractFunction: A => Unit): Boson
-}
 
 trait Boson {
   /**
