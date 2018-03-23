@@ -1,12 +1,9 @@
 package io.zink.boson.bson.bsonPath
 
 import java.time.Instant
-
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl._
-import shapeless._
-
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -14,16 +11,34 @@ import scala.util.{Failure, Success, Try}
   * Created by Tiago Filipe on 02/11/2017.
   */
 
-
-case class Book(title: String, edition: Int, forSale: Boolean)
-
+/**
+  * Class that handles both processes of Injection and Extraction.
+  *
+  * @param boson Instance of BosonImpl.
+  * @param program  ADT containing a list of Statements.
+  * @param fInj Function used in Injection process.
+  * @param fExt Function used in Extraction process.
+  * @tparam T Type specified by the User.
+  */
 class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = None, fExt: Option[T => Unit] = None) {
 
+  /**
+    * Run is the only public method of the object Interpreter and depending on which function it was instantiated with it chooses whether it starts
+    * an injection or an extraction process.
+    *
+    * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
+    */
   def run(): Any = {
     if (fInj.isDefined) startInjector(program.statement)
     else start(program.statement)
   }
 
+  /**
+    * Method that initiates the proccess of extraction based on a Statement list provided by the parser.
+    *
+    * @param statement  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
+    * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
+    */
   private def start(statement: List[Statement]): Any = {
     if (statement.nonEmpty) {
       statement.head match {
@@ -33,8 +48,20 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     } else throw new RuntimeException("List of statements is empty.")
   }
 
+  /**
+    * This method does the final extraction of an Object.
+    *
+    * @param encodedSeqByteArray  Sequence of BsonObjects encoded.
+    * @param keyList  Pairs of Keys and Conditions used to decode the encodedSeqByteArray
+    * @param limitList  Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
+    * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
+    */
   private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
-
+    /**
+      *
+      * @param list List with Keys and Values from extracted objects
+      * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
+      */
     def toTuples(list: Iterable[Any]): List[(String, Any)] = {
       list match {
         case x: List[Any] if x.isEmpty => List()
@@ -49,44 +76,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     }.seq
   }
 
-  /*private def fromMap(m: Seq[(String, Any)]) = {
-    val tArgs = typeOf[R] match {
-      case TypeRef(_, _, args) => args
-    }
-    val runType =
-      tArgs match {
-        case x: Seq[Any] if x.isEmpty => typeOf[R]
-        case x => x.head
-      }
-    //println(s"runtype -> $runType")
-    val rm = runtimeMirror(getClass.getClassLoader)
-    val classTest = runType.typeSymbol.asClass
-    val classMirror = rm.reflectClass(classTest)
-    val constructor = runType.decl(termNames.CONSTRUCTOR).asMethod
-    val constructorMirror = classMirror.reflectConstructor(constructor)
-
-    val constructorArgsTuple = constructor.paramLists.flatten.map((param: Symbol) => {
-      (param.name.toString, param.typeSignature)
-    })
-    val constructorArgs =
-      constructorArgsTuple.map {
-        case (name, _type) =>
-          m.find(elem => elem._1.equals(name.toLowerCase)).map { element =>
-            _type match {
-              case t if t =:= typeOf[Double] && element._2.getClass.getSimpleName.equals(DOUBLE) => element._2
-              case t if t =:= typeOf[String] && element._2.getClass.getSimpleName.equals(STRING) => element._2
-              case t if t =:= typeOf[Boolean] && element._2.getClass.getSimpleName.equals(BOOLEAN) => element._2
-              case t if t =:= typeOf[Int] && element._2.getClass.getSimpleName.equals(INTEGER) => element._2
-              case t if t =:= typeOf[Long] && element._2.getClass.getSimpleName.equals(LONG) => element._2
-              case _ => throw new IllegalArgumentException(s"Argument $name has different type of key with same name from the extracted object.")
-            }
-          }.getOrElse(throw new IllegalArgumentException(s"Missing argument $name in the extracted object."))
-      }
-    constructorMirror(constructorArgs: _*).asInstanceOf[R]
-  }
-*/
+  /**
+    * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
+    *
+    * @param statementList  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
+    * @return Tuple with (KeyList,LimitList)
+    */
   private def buildExtractors(statementList: List[Statement]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
-    //println(s"Generic of Type R: ${Generic[R]}")
     val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
       for (statement <- statementList) yield {
         statement match {
@@ -106,15 +102,19 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case _ => keyList
       }
     (finalKeyList, limitList)
-    //extract(boson.getByteBuf, finalKeyList, limitList)
-    //boson.getByteBuf.release()
-    //runExtractors(boson.getByteBuf, finalKeyList, limitList)
   }
 
+  /**
+    * Extract is the method which puts together the process of extraction and applies the function provided by the User
+    * or, in case of Object extraction, provides a list of pairs (Key,Value) extracted from the desired Object.
+    *
+    * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
+    * @param statementList  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
+    * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
+    */
   private def extract(encodedStructure: ByteBuf, statementList: List[Statement]): Any = {
     val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(statementList)
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
-    println(s"extracted -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -123,10 +123,16 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else None
       }
-    println(s"typeClass: $typeClass")
     applyFunction(result,limitList,typeClass)
   }
 
+  /**
+    * ReturnInsideSeq returns a Boolean which indicates whether the extracted result should be returned inside
+    * a sequence or not.
+    *
+    * @param limitList  List of Tuple3 with Ranges and Conditions
+    * @return Boolean
+    */
   private def returnInsideSeq(limitList: List[(Option[Int], Option[Int], String)]): Boolean = limitList.exists { elem =>
     elem._1.isDefined match {
       case true if elem._2.isEmpty => true
@@ -137,30 +143,34 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     //TODO: missing implementation to verify ".." and "[@.elem]
   }
 
+  /**
+    * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
+    * between Interpreter with BosonImpl.
+    *
+    * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
+    * @param keyList  List of pairs (Key,Condition) used to perform extraction according to the User.
+    * @param limitList  List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
+    * @return Extracted result.
+    */
   private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
-    //    println(s"KeyList: $keyList")
-    //    println(s"LimitList: $limitList")
     val value: Iterable[Any] =
-    keyList.size match {
-      case 1 =>
-        val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
-        //println(s"RES from last extractor: $res")
-        res
-      case _ =>
-        val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
-        res.forall(e => e.isInstanceOf[Array[Byte]]) match {
-          case true /*if keyList.head._1.equals(EMPTY_KEY)*/ =>
-            val result: Iterable[Any] =
-              res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
-                val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
-                runExtractors(b, keyList.drop(1), limitList.drop(1))
-                //b.release()
-              }.seq.reduce(_ ++ _)
-            //println(s"RES from extractor: $result")
-            result
-          case false => throw CustomException("The given path doesn't correspond with the event structure.")
-        }
-    }
+      keyList.size match {
+        case 1 =>
+          val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
+          res
+        case _ =>
+          val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
+          res.forall(e => e.isInstanceOf[Array[Byte]]) match {
+            case true =>
+              val result: Iterable[Any] =
+                res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
+                  val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
+                  runExtractors(b, keyList.drop(1), limitList.drop(1))
+                }.seq.reduce(_ ++ _)
+              result
+            case false => throw CustomException("The given path doesn't correspond with the event structure.")
+          }
+      }
     value
   }
 
@@ -275,6 +285,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     }
   }
 
+  /**
+    * DefineLimits takes a set of arguments that represent a range defined by the User through BsonPath and transforms it
+    * into a Tuple3.
+    *
+    * @param left Integer representing the lower limit of a Range.
+    * @param mid  String indicating which type of Range it is.
+    * @param right  Integer representing the upper limit of a Range.
+    * @return Returns a Tuple3 used to represent a range.
+    */
   private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
     mid.isDefined match {
       case true if right.isEmpty =>
