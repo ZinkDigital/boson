@@ -14,7 +14,7 @@ import scala.concurrent.Future
 
 
 
-class BosonInjector[T, R <: HList](expression: String, injectFunction: Function[T, T]) extends Boson {
+class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends Boson {
 
   val anon: T => T = injectFunction
 
