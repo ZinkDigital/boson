@@ -163,7 +163,7 @@ object Boson {
   }
 
 
-  def validate[T, R <: HList](expression: String, validateFunction: T => Unit) = new BosonValidate[T, R](expression, validateFunction)
+  def validate[T](expression: String, validateFunction: T => Unit) = new BosonValidate[T](expression, validateFunction)
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
@@ -196,7 +196,7 @@ trait Boson {
     * the immutable byte array being returned unmodified.
     *
     * @param bsonByteBufferEncoding Array[Byte] encoded wrapped in a ByteBuffer.
-    * @return Future with original or a modified Array[Byte].
+    * @return Future with original or a modified ByteBuffer.
     */
   def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer]
 

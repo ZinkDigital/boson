@@ -38,8 +38,8 @@ public class JosonInjector<T> implements Joson {
         try{
             Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
             if(pr.successful()){
-                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), Option.apply(injectFunc), Option.empty(),Option.empty());
-                return interpreter.run();
+                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), Option.apply(injectFunc), Option.empty());
+                return (byte[])interpreter.run();
             }else{
                 throw new RuntimeException("Error inside interpreter.run() ");
                 //return BsObject$.MODULE$.toBson("Error inside interpreter.run() ", Writes$.MODULE$.apply1(writer));

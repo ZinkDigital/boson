@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class BosonValidate[T, R <: HList](expression: String, validateFunction: T => Unit) extends Boson{
+class BosonValidate[T](expression: String, validateFunction: T => Unit) extends Boson{
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage

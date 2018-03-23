@@ -24,8 +24,6 @@ import scala.concurrent.Future
 class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Option[T => Unit] = None, extractSeqFunction: Option[Seq[T] => Unit] = None)(implicit
                                                                                                                                                          gen: LabelledGeneric.Aux[T, R],
                                                                                                                                                          extract: extractLabels[R]) extends Boson {
-  //Interpreter receives a f[T=>Unit], when this class is instantiated with a f[Seq[T]=>Unit] Interpreter needs f[T=>Unit], this was the quickest solution.
-  //private val func: Option[T=>Unit] = if(extractFunction.isDefined) extractFunction else Some((a:T)=>println(a))
 
   /**
     * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
@@ -33,7 +31,7 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     *
     * @param boson  Instance of BosonImpl where extraction/injection is implemented.
     * @param expression String parsed to build the extractors.
-    * @return
+    * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
   private def callParse(boson: BosonImpl, expression: String): Any = {
     val parser = new TinyLanguage
@@ -48,13 +46,14 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
       case e: RuntimeException => throw new Exception(e.getMessage)
     }
   }
+
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor this will result in
     * the immutable byte array being returned unmodified.
     *
-    * @param bsonByteEncoding
-    * @return
+    * @param bsonByteEncoding Array[Byte] encoded
+    * @return Future with original Array[Byte].
     */
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] =
@@ -81,14 +80,24 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     * the future with the resulting byte array. In the case of an Extractor tis will result in
     * the immutable byte array being returned unmodified.
     *
-    * @param bsonByteBufferEncoding
-    * @return
+    * @param bsonByteBufferEncoding Array[Byte] encoded wrapped in a ByteBuffer.
+    * @return Future with original ByteBuffer.
     */
   override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
     val future: Future[ByteBuffer] =
       Future {
         val boson: BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-        callParse(boson, expression)
+        val midRes: Any = callParse(boson, expression)
+        val seqTuples = TypeCase[Seq[List[(String,Any)]]]
+        val result: Seq[T] =
+          midRes match {
+            case seqTuples(vs) =>
+              vs.par.map{ elem =>
+                extractLabels.to[T].from[gen.Repr](elem)
+              }.seq.collect { case v if v.nonEmpty => v.get }
+            case _ => Seq.empty[T]
+          }
+        if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
         bsonByteBufferEncoding
       }
     future
@@ -99,7 +108,7 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     * boson that is the parameter in teh case of update/read conflicts.
     * the immutable byte array being returned unmodified.
     *
-    * @param the BosonImpl to fuse to.
+    * @param boson BosonImpl to fuse to.
     * @return the fused BosonImpl
     */
   override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
