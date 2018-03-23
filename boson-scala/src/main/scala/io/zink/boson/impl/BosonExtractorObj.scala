@@ -70,7 +70,7 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
               }.seq.collect { case v if v.nonEmpty => v.get }
             case _ => Seq.empty[T]
           }
-        if(extractFunction.isDefined) result.foreach( elem => extractFunction.get(elem)) else extractSeqFunction.get(result)
+        if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
         bsonByteEncoding
       }
     future
