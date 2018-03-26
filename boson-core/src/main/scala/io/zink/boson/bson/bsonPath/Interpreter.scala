@@ -86,9 +86,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
         case Key(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
-        case Key(key) => if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALL)), List((None, None, EMPTY_KEY)))
-        case KeyWithArrExpr(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_NEXT), (EMPTY_KEY, C_LIMITLEVEL)), List((None, None, EMPTY_KEY)) ++ defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-        case KeyWithArrExpr(key, arrEx) => (List((key, C_NEXT), (EMPTY_KEY, C_LIMIT)), List((None, None, EMPTY_KEY)) ++ defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case Key(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALL)), List((None, None, EMPTY_KEY)))
+        case KeyWithArrExpr(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
         case ArrExpr(l, m, r) if dotsList.head.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
         case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
         case HalfName(halfName) =>
@@ -110,9 +110,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           statement <- statementList.zip(dotsList.tail)
         } yield {
           statement._1 match {
-            case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: Handle the case of ..key..key
-            case KeyWithArrExpr(key, arrEx) if statement._2.equals(C_DOT)=> (List((key, C_NEXT), (EMPTY_KEY, C_LIMITLEVEL)), List((None, None, EMPTY_KEY)) ++ defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-            case KeyWithArrExpr(key, arrEx) => (List((key, C_NEXT), (EMPTY_KEY, C_LIMIT)), List((None, None, EMPTY_KEY)) ++ defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case Key(key) if statement._2.equals(C_DOT)=> (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: Handle the case of ..key..key
+            case Key(key) => (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
+            case KeyWithArrExpr(key, arrEx) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) if statement._2.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
             case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
             case HalfName(halfName) => if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: Handle the case of ..key..key
@@ -200,8 +201,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case true if elem._2.isDefined && elem._2.get == elem._1.get => false
         case false => false
       }
-      //TODO: missing implementation to verify ".." and "[@.elem]
-    } || dotsList.exists( e => e.equals(C_DOUBLEDOT))
+    } || dotsList.exists( e => e.equals(C_DOUBLEDOT)) //TODO: missing implementation to verify "[@.elem]"
 
   /**
     * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
@@ -225,12 +225,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res.forall(e => e.isInstanceOf[Array[Byte]]) match {
             case true =>
-              val result: Iterable[Any] =
+              val result: Iterable[Iterable[Any]] =
                 res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
                   val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
                   runExtractors(b, keyList.drop(1), limitList.drop(1))
-                }.seq.reduce(_ ++ _)
-              result
+                }.seq
+              if(result.nonEmpty)result.reduce(_ ++ _) else result
             case false => throw CustomException("The given path doesn't correspond with the event structure.")
           }
       }

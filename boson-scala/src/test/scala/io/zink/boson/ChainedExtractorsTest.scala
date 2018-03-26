@@ -355,4 +355,37 @@ class ChainedExtractorsTest extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
+  test("Extract .Key1.Key2..Key3, Seq[String]") {
+    val expression: String = ".Store.Book..Title"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
+      assertEquals(Seq("Java","JavaMachine","Scala","ScalaMachine","C++","C++Machine"), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract .Key1.Key2..Key3, Seq[Int]") {  //TODO:implement the applyFunc
+    val expression: String = ".Store.SpecialEditions..Price"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
+      assertEquals(Seq(), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract .Key1..Key2..Key3, Seq[Int]") {
+    val expression: String = ".Store..SpecialEditions..Price"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
+      assertEquals(Seq(39,40,38), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
 }
