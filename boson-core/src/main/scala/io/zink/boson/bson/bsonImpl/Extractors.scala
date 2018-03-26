@@ -77,4 +77,11 @@ trait DefaultExtractor {
     }
   }
 
+  implicit object AnyExtractor extends Extractor[Any] {
+    def applyFunc(f: Any => Unit, value: Any): Any ={
+      f(value)
+      value
+    }
+  }
+
 }

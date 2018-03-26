@@ -3,6 +3,7 @@ package io.zink.boson
 import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
+import com.jayway.jsonpath.{Configuration, JsonPath}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -10,7 +11,6 @@ import org.scalatest.junit.JUnitRunner
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
-import shapeless.{LabelledGeneric, the}
 
 
 case class Book(price: Double,title: String, edition: Int, forSale: Boolean, nPages: Long)
@@ -289,10 +289,10 @@ class ChainedExtractorsTest extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
-  test("Extract ..Long") {
-    val expression: String = "..Book[0]"
-    val boson: Boson = Boson.extractor(expression, (in: Long) => {
-      //assertEquals(750L, in)
+  test("Extract ..Key, Seq[String]") {
+    val expression: String = "..Title"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
+      assertEquals(Seq("Java","JavaMachine","Scala","ScalaMachine","C++","C++Machine"), in)
       println(s"in: $in")
       println("APPLIED")
     })
@@ -300,5 +300,59 @@ class ChainedExtractorsTest extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
+  test("Extract ..Key, Seq[Any]") {
+    val expression: String = "..Price"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
+      assertEquals(Seq(15.5,39,40,12.6,38,48,35,38), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+
+  //TODO:
+  //    val doc: Any = Configuration.defaultConfiguration().jsonProvider().parse(bson.asJson().toString)
+  //    val list: java.util.List[String] = JsonPath.read(doc, "$..Title")
+  //    println(list)
+
+  test("Extract ..Key[#], Seq[Array[Byte]]") {
+    val expression: String = "..Book[all]"
+    val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(),title2.encodeToBarray(),title3.encodeToBarray())
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract ..[#], Seq[Array[Byte]]") {
+    val expression: String = "..[all]"
+    val expected: Seq[Array[Byte]] =
+      Seq(title1.encodeToBarray,edition1.encodeToBarray,title2.encodeToBarray,edition2.encodeToBarray,title3.encodeToBarray,edition3.encodeToBarray,hat1.encodeToBarray,hat2.encodeToBarray,hat3.encodeToBarray)
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract ..Key1..Key2, Seq[Any]") {  //TODO:implement search inside match
+    val expression: String = "..Book..Price"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
+      assertEquals(Seq(15.5,39,40,12.6,38), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
 
 }

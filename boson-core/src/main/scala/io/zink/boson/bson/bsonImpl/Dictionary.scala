@@ -65,6 +65,7 @@ object Dictionary {
   val LONG: String = "Long"
   val BOOLEAN: String = "Boolean"
   val ARRBYTE: String = "byte[]"
+  val ANY: String = "Any"
 
 
 
