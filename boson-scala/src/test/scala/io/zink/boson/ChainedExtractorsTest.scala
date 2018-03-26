@@ -278,5 +278,27 @@ class ChainedExtractorsTest extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
+  test("Extract Root") {
+    val expression: String = "."
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      assertArrayEquals(_bson.encodeToBarray(),  in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract ..Long") {
+    val expression: String = "..Book[0]"
+    val boson: Boson = Boson.extractor(expression, (in: Long) => {
+      //assertEquals(750L, in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
 
 }

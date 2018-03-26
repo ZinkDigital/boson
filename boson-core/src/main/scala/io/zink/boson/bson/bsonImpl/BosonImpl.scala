@@ -77,32 +77,32 @@ class BosonImpl(
               case 48 =>
                 netty.readIntLE()
                 val arrayFinishReaderIndex: Int = startReaderIndex + size
-                extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
-//                keyList.head._1 match {
-//                  case C_DOT if keyList.size == 1 =>
-//                    val arr: Array[Byte] = new Array[Byte](size)
-//                    netty.getBytes(startReaderIndex,arr,0,size)
-//                    netty.readerIndex(arrayFinishReaderIndex)
-//                    Some(Vector(arr))
-//                  case _ =>
-//                    val midResult: Iterable[Any] = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
-//                    if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-//                }
+                //extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
+                keyList.head._1 match {
+                  case C_DOT if keyList.lengthCompare(1) == 0 =>
+                    val arr: Array[Byte] = new Array[Byte](size)
+                    netty.getBytes(startReaderIndex,arr,0,size)
+                    netty.readerIndex(arrayFinishReaderIndex)
+                    Some(arr)
+                  case _ =>
+                    extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
+                    //if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+                }
               case _ =>
                 netty.readIntLE()
                 val bsonFinishReaderIndex: Int = startReaderIndex + size
-                extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-//                keyList.head._1 match {
-//                  case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => None
-//                  case C_DOT if keyList.size == 1 =>
-//                    val arr: Array[Byte] = new Array[Byte](size)
-//                    netty.getBytes(startReaderIndex, arr, 0, size)
-//                    netty.readerIndex(bsonFinishReaderIndex)
-//                    Some(Vector(arr))
-//                  case _ =>
-//                    val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-//                    if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-//                }
+                //extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
+                keyList.head._1 match {
+                  case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => None
+                  case C_DOT if keyList.lengthCompare(1) == 0 =>
+                    val arr: Array[Byte] = new Array[Byte](size)
+                    netty.getBytes(startReaderIndex, arr, 0, size)
+                    netty.readerIndex(bsonFinishReaderIndex)
+                    Some(arr)
+                  case _ =>
+                    extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
+                    //if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
+                }
             }
         }
       case Failure(msg) =>
