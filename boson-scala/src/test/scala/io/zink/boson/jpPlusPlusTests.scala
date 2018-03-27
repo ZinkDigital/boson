@@ -1,150 +1,147 @@
-//package io.zink.boson
-//
-//import java.util.concurrent.CompletableFuture
-//
-//import bsonLib.{BsonArray, BsonObject}
-//import io.netty.buffer.{ByteBuf, Unpooled}
-//import io.netty.util.ResourceLeakDetector
-//import io.zink.boson.bson.bsonImpl.BosonImpl
-//import io.zink.boson.bson.bsonImpl.Dictionary._
-//import io.zink.boson.bson.bsonValue.BsValue
-//import mapper.Mapper
-//import org.junit.Assert._
-//import org.junit.runner.RunWith
-//import org.scalatest.FunSuite
-//import org.scalatest.junit.JUnitRunner
-//
-//import scala.concurrent.duration.Duration
-//import scala.concurrent.{Await, Future}
-//
-//@RunWith(classOf[JUnitRunner])
-//class jpPlusPlusTests extends FunSuite {
-//  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
-//  val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
-//  val br5: BsonArray = new BsonArray().add(b11)
-//  val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
-//  val br4: BsonArray = new BsonArray().add(b10)
-//  val b9: BsonObject = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
-//  val br3: BsonArray = new BsonArray().add(b9)
-//  val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//  val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//  val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//  val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
-//  val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
-//  val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
-//  val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-//  val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
-//  val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
-//  val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
-//
-//  val _b11: BsonObject = new BsonObject().put("Price", 38).put("Title", "C++Machine")
-//  val _br5: BsonArray = new BsonArray().add(_b11)
-//  val _b10: BsonObject = new BsonObject().put("Price", 39).put("Title", "JavaMachine")
-//  val _br4: BsonArray = new BsonArray().add(_b10)
-//  val _b9: BsonObject = new BsonObject().put("Price", 40).put("Title", "ScalaMachine")
-//  val _br3: BsonArray = new BsonArray().add(_b9)
-//  val _b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//  val _b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//  val _b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//  val _b4: BsonObject = new BsonObject().put("Pri", 21.5).put("SpecialEditions", _br3).put("Title", "Scala")
-//  val _b3: BsonObject = new BsonObject().put("Price", 15.5).put("SpecialEditions", _br4).put("Title", "Java")
-//  val _b8: BsonObject = new BsonObject().put("Price", 12.6).put("SpecialEditions", _br5).put("Title", "C++")
-//  val _br1: BsonArray = new BsonArray().add(_b3).add(_b4).add(_b8)
-//  val _br2: BsonArray = new BsonArray().add(_b5).add(_b6).add(_b7).add(_b3)
-//  val _b2: BsonObject = new BsonObject().put("Book", _br1).put("Hatk", _br2)
-//  val _bsonEvent: BsonObject = new BsonObject().put("Store", _b2)
-//
-//  val validatedByteArr: Array[Byte] = bsonEvent.encodeToBarray()
-//
-//  test("Ex .key") {
-//    val expression = ".Store"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b2.encodeToBarray())
-//    val result = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$.Store -> checked
-//
-//  test("Inj .key") {
-//    val expression: String = ".Store"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val bosonE: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    bosonE.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] = Vector(_b2.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex .key1.key2") {
-//    val expression = ".Store.Book"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//
-//    val expected: Vector[Array[Byte]] = Vector(br1.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$.Store.Book -> checked
-//
-//  test("Inj .key1.key2") {
-//    val expression: String = ".Store.Book"
-//
-//    //val bosonI: Boson = Boson.injector(expression, (x: List[Any]) => x.+:("Street?"))
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val l: List[Any] = Mapper.decodeBsonArray(b.getByteBuf)
-//      val newL: List[Any] = l.+:("Street?")
-//      val res: ByteBuf = Mapper.encode(newL)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//    val help: BsonArray = new BsonArray().add("Street?").add(_b3).add(_b4).add(_b8)
-//
-//    val expected: Vector[Array[Byte]] = Vector(help.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
+package io.zink.boson
+
+import java.util.concurrent.CompletableFuture
+
+import bsonLib.{BsonArray, BsonObject}
+import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.util.ResourceLeakDetector
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonImpl.Dictionary._
+import mapper.Mapper
+import org.junit.Assert._
+import org.junit.runner.RunWith
+import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+
+@RunWith(classOf[JUnitRunner])
+class jpPlusPlusTests extends FunSuite {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
+  val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+  val br5: BsonArray = new BsonArray().add(b11)
+  val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
+  val br4: BsonArray = new BsonArray().add(b10)
+  val b9: BsonObject = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
+  val br3: BsonArray = new BsonArray().add(b9)
+  val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+  val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+  val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+  val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+  val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+  val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+  val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+  val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+  val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+  val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+
+  val validatedByteArr: Array[Byte] = bsonEvent.encodeToBarray()
+
+  val _b11: BsonObject = new BsonObject().put("Price", 38).put("Title", "C++Machine")
+  val _br5: BsonArray = new BsonArray().add(_b11)
+  val _b10: BsonObject = new BsonObject().put("Price", 39).put("Title", "JavaMachine")
+  val _br4: BsonArray = new BsonArray().add(_b10)
+  val _b9: BsonObject = new BsonObject().put("Price", 40).put("Title", "ScalaMachine")
+  val _br3: BsonArray = new BsonArray().add(_b9)
+  val _b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+  val _b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+  val _b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+  val _b4: BsonObject = new BsonObject().put("Pri", 21.5).put("SpecialEditions", _br3).put("Title", "Scala")
+  val _b3: BsonObject = new BsonObject().put("Price", 15.5).put("SpecialEditions", _br4).put("Title", "Java")
+  val _b8: BsonObject = new BsonObject().put("Price", 12.6).put("SpecialEditions", _br5).put("Title", "C++")
+  val _br1: BsonArray = new BsonArray().add(_b3).add(_b4).add(_b8)
+  val _br2: BsonArray = new BsonArray().add(_b5).add(_b6).add(_b7).add(_b3)
+  val _b2: BsonObject = new BsonObject().put("Book", _br1).put("Hatk", _br2)
+  val _bsonEvent: BsonObject = new BsonObject().put("Store", _b2)
+
+  test("Ex .key") {
+    val expression = ".Store"
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Array[Byte] = b2.encodeToBarray()
+    val result = future.join()
+    assertTrue(expected.sameElements(result))
+  } //$.Store -> checked
+/*
+  test("Inj .key") {
+    val expression: String = ".Store"
+
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val bosonE: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    bosonE.go(injResult)
+
+    val expected: Vector[Array[Byte]] = Vector(_b2.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+  test("Ex .key1.key2") {
+    val expression = ".Store.Book"
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+
+    val expected: Array[Byte] = br1.encodeToBarray()
+    val result: Array[Byte] = future.join()
+    assertTrue(expected.sameElements(result))
+  } //$.Store.Book -> checked
+/*
+  test("Inj .key1.key2") {
+    val expression: String = ".Store.Book"
+
+    //val bosonI: Boson = Boson.injector(expression, (x: List[Any]) => x.+:("Street?"))
+
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val l: List[Any] = Mapper.decodeBsonArray(b.getByteBuf)
+      val newL: List[Any] = l.+:("Street?")
+      val res: ByteBuf = Mapper.encode(newL)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+    val help: BsonArray = new BsonArray().add("Street?").add(_b3).add(_b4).add(_b8)
+
+    val expected: Vector[Array[Byte]] = Vector(help.encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
 //  test("Ex .key1.key2[@elem1].key3[@elem2]") {
 //    val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
 //    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
@@ -2928,5 +2925,5 @@
 //      case (e, r) => e.equals(r)
 //    })
 //  }
-//
-//}
+
+}

@@ -396,7 +396,7 @@ class ChainedExtractorsTest extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
-  test("Extract ..Key1..Key2, Seq[Any]") {  //TODO:implement search inside match
+  test("Extract ..Key1..Key2, Seq[Any] V1") {  //TODO:implement search inside match
     val expression: String = "..Book..Price"
     val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
       assertEquals(Seq(15.5,39,40,12.6,38), in)
@@ -489,6 +489,22 @@ class ChainedExtractorsTest extends FunSuite{
     val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
       assertTrue(expected.size === in.size)
       assertTrue(expected.zip(in).forall{b => b._1.sameElements(b._2)})
+      println(s"in: $in")
+      println("APPLIED")
+    })
+
+    val res = boson.go(xBson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract ..key1..key2, Seq[String] V2") {
+    val expression: String = "..*k..Title"
+
+    val expected: Seq[String] =
+      Seq("Java","JavaMachine","Scala","ScalaMachine","C++","C++Machine","Java","JavaMachine","Scala","ScalaMachine","C++","C++Machine","JavaMachine")
+
+    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
+      assert(expected === in)
       println(s"in: $in")
       println("APPLIED")
     })

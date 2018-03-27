@@ -94,7 +94,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case HalfName(halfName) =>
           halfName.equals(STAR) match {
             case true => (List((halfName, C_ALL)), List((None, None, STAR)))
-            case false if statementList.nonEmpty => (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case false if statementList.nonEmpty && dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case false if statementList.nonEmpty => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
             case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
             case false => (List((halfName, C_ALL)), List((None, None, EMPTY_KEY)))
           }
@@ -116,7 +117,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
             case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
             case ArrExpr(l, m, r) if statement._2.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
             case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
-            case HalfName(halfName) => if(halfName.equals(STAR)) (List((halfName, C_ALL)), List((None, None, STAR))) else (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: Handle the case of ..key..key
+            case HalfName(halfName) =>
+              halfName.equals(STAR) match {
+                case true => (List((halfName, C_ALL)), List((None, None, STAR)))
+                case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+                case false  => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
+//                case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
+//                case false => (List((halfName, C_ALL)), List((None, None, EMPTY_KEY)))
+              }
             case HasElem(key, elem) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
             case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
 
@@ -130,7 +138,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
       statementList.last match {
         case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
         case HalfName(halfName) if !halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
-        case HalfName(halfName) if halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
+//        case HalfName(halfName) if halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
         case Key(k) if dotsList.last.equals(C_DOT)=> (secondList.take(secondList.size - 1) ++ List((k, C_LEVEL)), limitList2)
         case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, C_ALL)), limitList2)
         case _ => (secondList, limitList2)
@@ -182,7 +190,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
+    //println(s"typeClass: $typeClass")
     applyFunction(result,limitList,typeClass,dotsList)
   }
 
@@ -216,12 +224,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
-          println("case keylist.size = 1")
-          println(s"keyList: $keyList")
+          //println("case keylist.size = 1")
+          //println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case _ =>
-          println("case keylist.size = _")
+          //println("case keylist.size = _")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res.forall(e => e.isInstanceOf[Array[Byte]]) match {
             case true =>
@@ -234,6 +242,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
             case false => throw CustomException("The given path doesn't correspond with the event structure.")
           }
       }
+    //println(s"final value from runing extractors ----> $value")
     value
   }
 
@@ -284,7 +293,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               }
             }
           case ARRAY_BYTE if fExt.isDefined =>
-            println("Seq[byte[]], fExt.isDefined")
+            //println("Seq[byte[]], fExt.isDefined")
             val res = result.asInstanceOf[Iterable[Array[Byte]]].toSeq
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], res)) match {
               case Success(_) =>
