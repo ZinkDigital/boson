@@ -49,6 +49,10 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
       Future {
         val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
           callParse(boson, expression)
+        println("BosonExtractor GO")
+
+        //val gen0 = new LabelledGeneric.Aux[T, L]
+
           bsonByteEncoding
       }
     future

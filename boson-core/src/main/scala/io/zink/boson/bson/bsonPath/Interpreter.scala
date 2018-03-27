@@ -254,7 +254,11 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
 //          case ARRAY_BYTE if tArgs.head =:= typeOf[Array[Byte]] =>
 //            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Seq[Array[Byte]]])
           case ARRAY_BYTE =>
-            val res = constructObj(result.asInstanceOf[Seq[Array[Byte]]],List(("*","build")), List((None,None,"")))
+            val res0 = result.asInstanceOf[Seq[List[Any]]].map(l => l.apply(1).asInstanceOf[Array[Byte]])
+            val res = constructObj(res0,List(("*","build")), List((None,None,"")))
+            println(res)
+
+
             res
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results

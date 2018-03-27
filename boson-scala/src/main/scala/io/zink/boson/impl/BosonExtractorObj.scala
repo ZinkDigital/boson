@@ -39,6 +39,9 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: T =>
       Future {
         val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
         val midRes: Any = callParse(boson, expression)
+        println("BosonExtractorObj GO")
+        println(midRes)
+
         val result: Seq[T] =
           midRes match {  //List[(String, Any)]
             case x if x.isInstanceOf[Seq[Any]] && x.asInstanceOf[Seq[Any]].nonEmpty =>

@@ -15,7 +15,6 @@ object extractLabels {
 
 
 
-
     implicit def hconsFromList[K <: Symbol, V, TAIL <: HList](implicit
                                                             witness: Witness.Aux[K],
                                                             typeable: Typeable[V],

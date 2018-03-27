@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 
 import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.impl.{BosonExtractor, BosonExtractorObj, BosonInjector, BosonValidate}
+import shapeless.UnaryTCConstraint.*->*
 import shapeless.{HList, LabelledGeneric, Lazy, the}
 //import java.util.function.Consumer
 import scala.tools.reflect.ToolBox
@@ -16,15 +17,33 @@ object Extractor {
   //def apply[A](expression: String, extractFunction: A => Unit)(implicit ext: Extractor[A]): Boson = ext.extract(expression,extractFunction)
 
   implicit def caseClass[A, L <:HList](implicit
-                                       f: LabelledGeneric.Aux[A, L],
-                                       ext: extractLabels[L]): Extractor[A] =
+                                            f: LabelledGeneric.Aux[A, L],
+                                            ext: extractLabels[L]): Extractor[A] =
     new Extractor[A] {
       def extract(expression: String, extractFunction: A => Unit): Boson =
         new BosonExtractorObj[A,L](expression,extractFunction)
     }
 
+  implicit def seqCaseClass[Seq[A],L <:HList](implicit
+                                       f: LabelledGeneric.Aux[Seq[A], L],
+                                       ext: extractLabels[A]): Extractor[Seq[A]] =
+    new Extractor[Seq[A]] {
+//      def extract(expression: String, extractFunction: A => Unit): Boson ={
+//
+//        new BosonExtractorObj[A,L](expression,extractFunction)
+//      }
+      println("seqCaseClass override extract")
+
+      override def extract(expression: String, extractFunction: Seq[A] => Unit): Boson ={
+        new BosonExtractorObj[Seq[A],L](expression,extractFunction)
+      }
+
+    }
+
+
   implicit def seqLiterals[A: Extractor]: Extractor[Seq[A]] =
     new Extractor[Seq[A]] {
+      println("seqLiterals")
       def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
         new BosonExtractor[Seq[A]](expression,extractFunction)
     }
