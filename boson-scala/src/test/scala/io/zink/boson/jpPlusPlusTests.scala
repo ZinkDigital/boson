@@ -142,634 +142,649 @@ class jpPlusPlusTests extends FunSuite {
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 */
-//  test("Ex .key1.key2[@elem1].key3[@elem2]") {
-//    val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
-//
-//  test("Inj .key1.key2[@elem1].key3[@elem2]") {
-//    val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] = Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex .key1.key2[#]") {
-//    val expression: String = ".Store.Book[1]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b4.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$.Store.Book[1] -> checked
-//
-//  test("Inj .key1.key2[#]") {
-//    val expression: String = ".Store.Book[1]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] = Vector(_b4.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex .key1.key2[# to end].key3") {
-//    val expression: String = ".Store.Book[0 to end].Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(Vector(
-//      15.5, 12.6
-//    ), future.join().getValue)
-//  } //$.Store.Book[:].Price -> checked
-//
-//  test("Inj .key1.key2[# to end].key3") {
-//    val expression: String = ".Store.Book[0 to end].Price"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex .key1.key2[@elem].key3") {
-//    val expression: String = ".Store.Book[@Price].Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(Vector(
-//      "Java", "C++"
-//    ), future.join().getValue)
-//  } //$.Store.Book[?(@.Price)].Title -> checked
-//
-//  test("Inj .key1.key2[@elem].key3") {
-//    val expression: String = ".Store.Book[@Price].Title"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(Java!!!, C++!!!)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex .key1.key2[#].key3[@elem].k*y") {
-//    val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      "JavaMachine", "ScalaMachine", "C++Machine"
-//    ), future.join().getValue)
-//  } //$.Store.Book[:].SpecialEditions[?(@.Price)].Title -> checked
-//
-//  //-----------------------------------------------------------------------------------------------------//
-//
-//  test("Inj .key1.key2[#].key3[@elem].k*y") {
-//    val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex ..key V1") {
-//    val expression: String = "..Title" // || "Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(Vector(
-//      "Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "Java", "JavaMachine"
-//    ), future.join().getValue)
-//  } //$..Title -> checked
-//
-//  test("Inj ..key V1") {
-//    val expression: String = "..Title"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(Java!!!, JavaMachine!!!, Scala!!!, ScalaMachine!!!, C++!!!, C++Machine!!!, Java!!!, JavaMachine!!!)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex ..key V2") {
-//    val expression: String = "..Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(Vector(
-//      15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39
-//    ), future.join().getValue)
-//  } //$..Price -> checked
-//
-//  test("Inj ..key V2") {
-//    val expression: String = "..Book.*.Price"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex ..key1.key2") {
-//    val expression: String = "..Book.Title" //  || "Book.Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(Vector(
-//      "Java", "Scala", "C++"
-//    ), future.join().getValue)
-//  } //$..Book[:].Title -> checked
-//
-//  test("Inj ..key1.key2") {
-//    val expression: String = "..Book.Title"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(Java, Scala, C++)", future.join().getValue.toString)
-//  } //No change is perform, because Book is a Array.
-//
-//  test("Ex ..key1[# to end].key2") {
-//    val expression: String = "..Book[0 to end].Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    assertEquals(Vector(
-//      15.5, 12.6
-//    ), future.join().getValue)
-//  } //$..Book[:].Price -> checked
-//
-//  test("Inj ..key1[# to end].key2") {
-//    val expression: String = "..Book[0 to end].Title"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(Java!!!, Scala!!!, C++!!!)", future.join().getValue.toString)
-//  } //Change is perform, because Book is a Array.
-//
-//  test("Ex ..key[@elem].key") {
-//    val expression: String = "..SpecialEditions[@Price].Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      "JavaMachine", "ScalaMachine", "C++Machine", "JavaMachine"
-//    ), future.join().getValue)
-//  } //$..SpecialEditions[?(@.Price)].Title -> checked
-//
-//  test("Inj ..key[@elem].key") {
-//    val expression: String = "..SpecialEditions[@Price].Title"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!, JavaMachine!!!)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex ..key[@elem]") {
-//    val expression: String = "..SpecialEditions[@Price]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$..SpecialEditions[?(@.Price)] -> checked
-//
-//  test("Inj ..key[@elem]") {
-//    val expression: String = "..SpecialEditions[@Price]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex ..key[#] V1") {
-//    println(bsonEvent)
-//    val expression: String = "..SpecialEditions[0]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    println(s"result: $result")
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$..SpecialEditions[0] -> checked
-//
-//  test("Inj ..key[#] V1") {
-//    val expression: String = "..SpecialEditions[0]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex ..key[#] V2") {
-//    val arr5: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 12))
-//    val arr4: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 18))
-//    val arr3: BsonArray = new BsonArray().add(new BsonObject().put("doorOpen", arr5))
-//    val arr2: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 15))
-//    val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", arr2)
-//    val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("thing", arr3)
-//    val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", arr4)
-//    val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
-//    val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
-//
-//    val expression: String = "..doorOpen[0]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(
-//        new BsonObject().put("fridgeTemp", 15).encodeToBarray(),
-//        new BsonObject().put("fridgeTemp", 12).encodeToBarray(),
-//        new BsonObject().put("fridgeTemp", 18).encodeToBarray()
-//      )
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Inj ..key[#] V2") {
-//    val arr5: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 12))
-//    val arr4: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 18))
-//    val arr3: BsonArray = new BsonArray().add(new BsonObject().put("doorOpen", arr5))
-//    val arr2: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 15))
-//    val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", arr2)
-//    val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("thing", arr3)
-//    val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", arr4)
-//    val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
-//    val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
-//
-//    val expression: String = "..doorOpen[0]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(bsonEvent.encodeToBarray())
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(new BsonObject().put("fridgeTemp", 15).put("Street?", "im Lost").encodeToBarray(), new BsonObject().put("fridgeTemp", 12).put("Street?", "im Lost").encodeToBarray(), new BsonObject().put("fridgeTemp", 18).put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex ..*y1[@elem1].key2[@elem2]") {
-//    val expression: String = "..*k[@Price].SpecialEditions[@Price]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$..Book[?(@.Price)].SpecialEditions[?(@.Price)] && $..Hatk[?(@.Price)].SpecialEditions[?(@.Price)] -> checked
-//
-//  test("Inj ..*y1[@elem1].key2[@elem2]") {
-//    val expression: String = "..*k[@Price].SpecialEditions[@Price]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex ..*y1[@elem1].key2") {
-//    val expression: String = "..*k[@SpecialEditions].Pr*"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      15.5, 21.5, 12.6, 15.5
-//    ), future.join().getValue)
-//  } //$..Book[?(@.SpecialEditions)].Price && $..Hatk[?(@.SpecialEditions)].Price -> checked
-//
-//  //---------------------------------------------------------------------------------------------------//
-//
-//  test("Inj ..*y1[@elem1].key2") {
-//    val expression: String = "..*k[@SpecialEditions].Pr*"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(25.5, 31.5, 22.6, 25.5)", future.join().getValue.toString)
-//  }
-//
-//  test("Ex .key1..key2") {
-//    val expression: String = ".Store..Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39
-//    ), future.join().getValue)
-//  } //$.Store..Price -> checked
-//
-//  test("Inj .key1..key2") {
-//    //No Change is perform, because not all values are of the same type
-//    val expression: String = ".Store..Price"
-//
-//    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    assertEquals("Vector(15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39)", future.join().getValue.toString)
-//  } //No Change is perform, because not all values are of the same type
-//
-//  test("Ex .key1..key2[@elem]") {
-//    val expression: String = ".Store..SpecialEditions[@Price]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$.Store..SpecialEditions[?(@.Price)] -> checked
-//
-//  test("Inj .key1..key2[@elem]") {
-//    //No Change is perform, because not all values are of the same type
-//    val expression: String = ".Store..SpecialEditions[@Price]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex .key1..key2[#]") {
-//    val expression: String = ".Store..SpecialEditions[0]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//
-//    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$.Store..SpecialEditions[0] -> checked
-//
-//  test("Inj .key1..key2[#]") {
-//    //No Change is perform, because not all values are of the same type
-//    val expression: String = ".Store..SpecialEditions[0]"
-//    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
-//      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
-//      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
-//      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
-//      val res: ByteBuf = Mapper.encode(newM)
-//      if (res.hasArray)
-//        res.array()
-//      else {
-//        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
-//        val array: Array[Byte] = buf.array()
-//        buf.release()
-//        array
-//      }
-//    })
-//    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    val injResult = Await.result(injFuture, Duration.Inf)
-//    boson.go(injResult)
-//
-//    val expected: Vector[Array[Byte]] =
-//      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
-//    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
-//
-//  test("Ex .key1..key2[#]..key3") {
-//    val expression: String = ".Store..Book[0 until end]..Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      "Java",
-//      "JavaMachine",
-//      "Scala",
-//      "ScalaMachine"
-//    ), future.join().getValue)
-//  } //$.Store..Book[0:2]..Title -> checked
-//
+/*
+  test("Ex .key1.key2[@elem1].key3[@elem2]") {
+    val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Seq[Array[Byte]] = Seq(b10.encodeToBarray(), b11.encodeToBarray())
+    val result: Seq[Array[Byte]] = future.join()
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
+*/
+/*
+  test("Inj .key1.key2[@elem1].key3[@elem2]") {
+    val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] = Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+
+  test("Ex .key1.key2[#]") {
+    val expression: String = ".Store.Book[1]"
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Array[Byte] = b4.encodeToBarray
+    val result: Array[Byte] = future.join()
+    assertTrue(expected.sameElements(result))
+  } //$.Store.Book[1] -> checked
+/*
+  test("Inj .key1.key2[#]") {
+    val expression: String = ".Store.Book[1]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] = Vector(_b4.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+  test("Ex .key1.key2[# to end].key3") {
+    val expression: String = ".Store.Book[0 to end].Price"
+    val future: CompletableFuture[Seq[Double]] = new CompletableFuture[Seq[Double]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(Seq(
+      15.5, 12.6
+    ), future.join())
+  } //$.Store.Book[:].Price -> checked
+/*
+  test("Inj .key1.key2[# to end].key3") {
+    val expression: String = ".Store.Book[0 to end].Price"
+
+    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
+  }
+*/
+/*
+  test("Ex .key1.key2[@elem].key3") {
+    val expression: String = ".Store.Book[@Price].Title"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(Vector(
+      "Java", "C++"
+    ), future.join().getValue)
+  } //$.Store.Book[?(@.Price)].Title -> checked
+*/
+/*
+  test("Inj .key1.key2[@elem].key3") {
+    val expression: String = ".Store.Book[@Price].Title"
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(Java!!!, C++!!!)", future.join().getValue.toString)
+  }
+*/
+/*
+  test("Ex .key1.key2[#].key3[@elem].k*y") {
+    val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Vector(
+      "JavaMachine", "ScalaMachine", "C++Machine"
+    ), future.join().getValue)
+  } //$.Store.Book[:].SpecialEditions[?(@.Price)].Title -> checked
+*/
+/*
+  test("Inj .key1.key2[#].key3[@elem].k*y") {
+    val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!)", future.join().getValue.toString)
+  }
+*/
+
+  //-----------------------------------------------------------------------------------------------------//
+
+  test("Ex ..key V1") {
+    val expression: String = "..Title" // || "Title"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(Seq(
+      "Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "Java", "JavaMachine"
+    ), future.join())
+  } //$..Title -> checked
+/*
+  test("Inj ..key V1") {
+    val expression: String = "..Title"
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(Java!!!, JavaMachine!!!, Scala!!!, ScalaMachine!!!, C++!!!, C++Machine!!!, Java!!!, JavaMachine!!!)", future.join().getValue.toString)
+  }
+*/
+  test("Ex ..key V2") {
+    val expression: String = "..Price"
+    val future: CompletableFuture[Seq[Any]] = new CompletableFuture[Seq[Any]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(Seq(
+      15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39
+    ), future.join())
+  } //$..Price -> checked
+/*
+  test("Inj ..key V2") {
+    val expression: String = "..Book.*.Price"
+
+    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
+  }
+*/
+  test("Ex ..key1.key2") {
+    val expression: String = "..Book.Title" //  || "Book.Title"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(Seq(
+      "Java", "Scala", "C++"
+    ), future.join())
+  } //$..Book[:].Title -> checked
+/*
+  test("Inj ..key1.key2") {
+    val expression: String = "..Book.Title"
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(Java, Scala, C++)", future.join().getValue.toString)
+  } //No change is perform, because Book is a Array.
+*/
+  test("Ex ..key1[# to end].key2") {
+    val expression: String = "..Book[0 to end].Price"
+    val future: CompletableFuture[Seq[Double]] = new CompletableFuture[Seq[Double]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    assertEquals(Seq(
+      15.5, 12.6
+    ), future.join())
+  } //$..Book[:].Price -> checked
+/*
+  test("Inj ..key1[# to end].key2") {
+    val expression: String = "..Book[0 to end].Title"
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(Java!!!, Scala!!!, C++!!!)", future.join().getValue.toString)
+  } //Change is perform, because Book is a Array.
+*/
+/*
+  test("Ex ..key[@elem].key") {
+    val expression: String = "..SpecialEditions[@Price].Title"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Vector(
+      "JavaMachine", "ScalaMachine", "C++Machine", "JavaMachine"
+    ), future.join().getValue)
+  } //$..SpecialEditions[?(@.Price)].Title -> checked
+*/
+/*
+  test("Inj ..key[@elem].key") {
+    val expression: String = "..SpecialEditions[@Price].Title"
+
+    val bosonI: Boson = Boson.injector(expression, (x: String) => x.concat("!!!"))
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!, JavaMachine!!!)", future.join().getValue.toString)
+  }
+*/
+/*
+  test("Ex ..key[@elem]") {
+    val expression: String = "..SpecialEditions[@Price]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$..SpecialEditions[?(@.Price)] -> checked
+*/
+/*
+  test("Inj ..key[@elem]") {
+    val expression: String = "..SpecialEditions[@Price]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] =
+      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+  test("Ex ..key[#] V1") {
+    println(bsonEvent)
+    val expression: String = "..SpecialEditions[0]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Seq[Array[Byte]] = Seq(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Seq[Array[Byte]] = future.join()
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$..SpecialEditions[0] -> checked
+/*
+  test("Inj ..key[#] V1") {
+    val expression: String = "..SpecialEditions[0]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] =
+      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+  test("Ex ..key[#] V2") {
+    val arr5: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 12))
+    val arr4: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 18))
+    val arr3: BsonArray = new BsonArray().add(new BsonObject().put("doorOpen", arr5))
+    val arr2: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 15))
+    val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", arr2)
+    val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("thing", arr3)
+    val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", arr4)
+    val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
+    val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
+
+    val expression: String = "..doorOpen[0]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] =
+      Seq(
+        new BsonObject().put("fridgeTemp", 15).encodeToBarray(),
+        new BsonObject().put("fridgeTemp", 12).encodeToBarray(),
+        new BsonObject().put("fridgeTemp", 18).encodeToBarray()
+      )
+    val result: Seq[Array[Byte]] = future.join()
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+/*
+  test("Inj ..key[#] V2") {
+    val arr5: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 12))
+    val arr4: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 18))
+    val arr3: BsonArray = new BsonArray().add(new BsonObject().put("doorOpen", arr5))
+    val arr2: BsonArray = new BsonArray().add(new BsonObject().put("fridgeTemp", 15))
+    val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", arr2)
+    val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("thing", arr3)
+    val obj3: BsonObject = new BsonObject().put("fridgeTemp", 3.854f).put("fanVelocity", 20.5).put("doorOpen", arr4)
+    val arr: BsonArray = new BsonArray().add(obj1).add(obj2).add(obj3)
+    val bsonEvent: BsonObject = new BsonObject().put("fridgeReadings", arr)
+
+    val expression: String = "..doorOpen[0]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(bsonEvent.encodeToBarray())
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] =
+      Vector(new BsonObject().put("fridgeTemp", 15).put("Street?", "im Lost").encodeToBarray(), new BsonObject().put("fridgeTemp", 12).put("Street?", "im Lost").encodeToBarray(), new BsonObject().put("fridgeTemp", 18).put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+/*
+  test("Ex ..*y1[@elem1].key2[@elem2]") {
+    val expression: String = "..*k[@Price].SpecialEditions[@Price]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$..Book[?(@.Price)].SpecialEditions[?(@.Price)] && $..Hatk[?(@.Price)].SpecialEditions[?(@.Price)] -> checked
+*/
+/*
+  test("Inj ..*y1[@elem1].key2[@elem2]") {
+    val expression: String = "..*k[@Price].SpecialEditions[@Price]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] =
+      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+/*
+  test("Ex ..*y1[@elem1].key2") {
+    val expression: String = "..*k[@SpecialEditions].Pr*"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Vector(
+      15.5, 21.5, 12.6, 15.5
+    ), future.join().getValue)
+  } //$..Book[?(@.SpecialEditions)].Price && $..Hatk[?(@.SpecialEditions)].Price -> checked
+*/
+  //---------------------------------------------------------------------------------------------------//
+/*
+  test("Inj ..*y1[@elem1].key2") {
+    val expression: String = "..*k[@SpecialEditions].Pr*"
+
+    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(25.5, 31.5, 22.6, 25.5)", future.join().getValue.toString)
+  }
+*/
+  test("Ex .key1..key2") {
+    val expression: String = ".Store..Price"
+    val future: CompletableFuture[Seq[Any]] = new CompletableFuture[Seq[Any]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Seq(
+      15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39
+    ), future.join())
+  } //$.Store..Price -> checked
+/*
+  test("Inj .key1..key2") {
+    //No Change is perform, because not all values are of the same type
+    val expression: String = ".Store..Price"
+
+    val bosonI: Boson = Boson.injector(expression, (x: Double) => x + 10)
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    assertEquals("Vector(15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39)", future.join().getValue.toString)
+  } //No Change is perform, because not all values are of the same type
+*/
+/*
+  test("Ex .key1..key2[@elem]") {
+    val expression: String = ".Store..SpecialEditions[@Price]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$.Store..SpecialEditions[?(@.Price)] -> checked
+*/
+/*
+  test("Inj .key1..key2[@elem]") {
+    //No Change is perform, because not all values are of the same type
+    val expression: String = ".Store..SpecialEditions[@Price]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] =
+      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+  test("Ex .key1..key2[#]") {
+    val expression: String = ".Store..SpecialEditions[0]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(validatedByteArr)
+
+    val expected: Seq[Array[Byte]] = Seq(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Seq[Array[Byte]] = future.join()
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$.Store..SpecialEditions[0] -> checked
+/*
+  test("Inj .key1..key2[#]") {
+    //No Change is perform, because not all values are of the same type
+    val expression: String = ".Store..SpecialEditions[0]"
+    val bosonI: Boson = Boson.injector(expression, (x: Array[Byte]) => {
+      val b: BosonImpl = new BosonImpl(byteArray = Option(x))
+      val m: Map[String, Any] = Mapper.decodeBsonObject(b.getByteBuf)
+      val newM: Map[String, Any] = m.+(("Street?", "im Lost"))
+      val res: ByteBuf = Mapper.encode(newM)
+      if (res.hasArray)
+        res.array()
+      else {
+        val buf: ByteBuf = Unpooled.buffer(res.capacity()).writeBytes(res)
+        val array: Array[Byte] = buf.array()
+        buf.release()
+        array
+      }
+    })
+    val injFuture: Future[Array[Byte]] = bosonI.go(validatedByteArr)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val injResult = Await.result(injFuture, Duration.Inf)
+    boson.go(injResult)
+
+    val expected: Vector[Array[Byte]] =
+      Vector(_b10.put("Street?", "im Lost").encodeToBarray(), _b9.put("Street?", "im Lost").encodeToBarray(), _b11.put("Street?", "im Lost").encodeToBarray(), _b10.put("Street?", "im Lost").encodeToBarray())
+    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  }
+*/
+  test("Ex .key1..key2[#]..key3") {
+    val expression: String = ".Store..Book[0 until end]..Title"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Seq(
+      "Java",
+      "JavaMachine",
+      "Scala",
+      "ScalaMachine"
+    ), future.join())
+  } //$.Store..Book[0:2]..Title -> checked
+
 //  test("Inj .key1..key2[#]..key3") {
 //    val expression: String = ".Store..Book[0 until end]..Title"
 //
@@ -827,14 +842,14 @@ class jpPlusPlusTests extends FunSuite {
 //    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
 //  }
 //
-//  test("Ex .*y1..*y2[#]..*y3..key4") {
-//    val expression: String = ".*ore..*k[1 until end]..*Editions..Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector("ScalaMachine"), future.join().getValue)
-//  } //$.Store..Book[1:2]..SpecialEditions..Title -> checked
-//
+  test("Ex .*y1..*y2[#]..*y3..key4") {
+    val expression: String = ".*ore..*k[1 until end]..*Editions..Title"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Vector("ScalaMachine"), future.join())
+  } //$.Store..Book[1:2]..SpecialEditions..Title -> checked
+
 //  test("Inj .*y1..*y2[#]..*y3..key4") {
 //    val expression: String = ".*ore..*k[1 until end]..*Editions..Title"
 //
@@ -893,16 +908,16 @@ class jpPlusPlusTests extends FunSuite {
 //    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
 //  }
 //
-//  test("Ex ..key1[#]..key2") {
-//    val expression: String = "..Book[0 to end]..Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      15.5, 39, 40, 12.6, 38
-//    ), future.join().getValue)
-//  } //$..Book[:]..Price -> checked
-//
+  test("Ex ..key1[#]..key2") {
+    val expression: String = "..Book[0 to end]..Price"
+    val future: CompletableFuture[Seq[Any]] = new CompletableFuture[Seq[Any]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Seq(
+      15.5, 39, 40, 12.6, 38
+    ), future.join())
+  } //$..Book[:]..Price -> checked
+
 //  test("Inj ..key1[#]..key2") {
 //    val expression: String = "..Book[0 to end]..Price"
 //
@@ -918,16 +933,16 @@ class jpPlusPlusTests extends FunSuite {
 //    assertEquals("Vector(15.5, 39, 40, 12.6, 38)", future.join().getValue.toString)
 //  } //No Change is perform, because not all values are of the same type
 //
-//  test("Ex ..key1..key2") {
-//    val expression: String = "Store..Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39
-//    ), future.join().getValue)
-//  } //$..Store..Price -> checked
-//
+  test("Ex ..key1..key2") {
+    val expression: String = "Store..Price"
+    val future: CompletableFuture[Seq[Any]] = new CompletableFuture[Seq[Any]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Vector(
+      15.5, 39, 40, 12.6, 38, 48, 35, 38, 15.5, 39
+    ), future.join())
+  } //$..Store..Price -> checked
+
 //  test("Inj ..key1..key2") {
 //    val expression: String = "Store..Price"
 //
@@ -967,17 +982,17 @@ class jpPlusPlusTests extends FunSuite {
 //    assertEquals("Vector(Java!!!, JavaMachine!!!, C++!!!, C++Machine!!!)", future.join().getValue.toString)
 //  }
 //
-//  test("Ex ..key1..*ey2..*ey3") {
-//    val expression: String = "Store..*k..*itions"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    val expected: Vector[Array[Byte]] = Vector(br4.encodeToBarray(), br3.encodeToBarray(), br5.encodeToBarray(), br4.encodeToBarray())
-//    val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
-//    assert(expected.size === result.size)
-//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  } //$..Store..Book..SpecialEditions && $..Store..Hatk..SpecialEditions -> checked
-//
+  test("Ex ..key1..*ey2..*ey3") {
+    val expression: String = "Store..*k..*itions"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(validatedByteArr)
+    val expected: Seq[Array[Byte]] = Vector(br4.encodeToBarray(), br3.encodeToBarray(), br5.encodeToBarray(), br4.encodeToBarray())
+    val result: Seq[Array[Byte]] = future.join()
+    assert(expected.size === result.size)
+    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+  } //$..Store..Book..SpecialEditions && $..Store..Hatk..SpecialEditions -> checked
+
 //  test("Inj ..key1..*ey2..*ey3") {
 //    val expression: String = "Store..*k..*itions"
 //
@@ -1012,16 +1027,16 @@ class jpPlusPlusTests extends FunSuite {
 //    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
 //  }
 //
-//  test("Ex ..key1.key2..key3") {
-//    val expression: String = "..Book.SpecialEditions..Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(validatedByteArr)
-//    assertEquals(Vector(
-//      39, 40, 38
-//    ), future.join().getValue)
-//  } //$..Book[:].SpecialEditions..Price -> checked
-//
+  test("Ex ..key1.key2..key3") {
+    val expression: String = "..Book.SpecialEditions..Price"
+    val future: CompletableFuture[Seq[Int]] = new CompletableFuture[Seq[Int]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Int]) => future.complete(out))
+    boson.go(validatedByteArr)
+    assertEquals(Seq(
+      39, 40, 38
+    ), future.join())
+  } //$..Book[:].SpecialEditions..Price -> checked
+
 //  //---------------------------------------------------------------------------------------------------//
 //
 //  test("Inj ..key1.key2..key3") {
@@ -2110,164 +2125,141 @@ class jpPlusPlusTests extends FunSuite {
 //    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
 //  }
 //
-//  test("Ex '.' BsonObject Root") {
-//    val expression: String = "."
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(bsonEvent.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex '.' BsonArray Root") {
-//    val expression: String = "."
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(br1.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(br1.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex .[first]") {
-//    val expression: String = ".[first]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(br1.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b3.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex key1.key2[all]") {
-//    val expression: String = "Store.Book[all]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b3.encodeToBarray(),b4.encodeToBarray(),b8.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex key[end] V1") {
-//    val expression: String = "Book[end]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b8.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex [end]") {
-//    val expression: String = "[end]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b8.encodeToBarray(), b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b3.encodeToBarray(), b10.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex [end]..[end]") {
-//    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
-//    val br5: BsonArray = new BsonArray().add(b11)
-//    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
-//    val br4: BsonArray = new BsonArray().add(b10)
-//    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
-//    val br3: BsonArray = new BsonArray().add(b9).add(b10)
-//    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
-//    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
-//    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
-//    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-//    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
-//    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
-//    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
-//    val expression: String = "[end]..[end]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b11.encodeToBarray(), b11.encodeToBarray(), b11.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray(), b11.encodeToBarray(), b11.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex [end]..Key1") {
-//    val expression: String = "[end]..Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector("C++",
-//      "C++Machine",
-//      "JavaMachine",
-//      "ScalaMachine",
-//      "C++Machine",
-//      "Java",
-//      "JavaMachine",
-//      "JavaMachine")
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex [end]..[end].Key") {
-//    val expression: String = "[end]..[end].Price"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(38,39)
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
+  test("Ex '.' BsonObject Root") {
+    val expression: String = "."
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Array[Byte] = bsonEvent.encodeToBarray()
+    val res = future.join()
+    assertTrue(expected.sameElements(res))
+    //  }
+  }
+
+  test("Ex '.' BsonArray Root") {
+    val expression: String = "."
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
+    boson.go(br1.encodeToBarray())
+
+    val expected: Array[Byte] = br1.encodeToBarray()
+    val res = future.join()
+    assertTrue(expected.sameElements(res))
+  }
+
+  test("Ex .[first]") {
+    val expression: String = ".[first]"
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
+    boson.go(br1.encodeToBarray())
+
+    val expected: Array[Byte] = b3.encodeToBarray()
+    val res = future.join()
+    assertTrue(expected.sameElements(res))
+  }
+
+  test("Ex key1.key2[all]") {
+    val expression: String = "Store.Book[all]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] = Vector(b3.encodeToBarray(),b4.encodeToBarray(),b8.encodeToBarray())
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+    })
+  }
+
+  test("Ex key[end] V1") {
+    val expression: String = "Book[end]"
+    val expected: Seq[Array[Byte]] = Seq(b8.encodeToBarray())
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
+      assertTrue(expected.zip(out).forall {
+        case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      })
+    })
+    val res = boson.go(bsonEvent.encodeToBarray())
+    Await.result(res, Duration.Inf)
+
+  }
+
+  test("Ex [end]") {
+    val expression: String = "[end]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] = Seq(b10.encodeToBarray(), b9.encodeToBarray(), b8.encodeToBarray(), b11.encodeToBarray(), b3.encodeToBarray(), b10.encodeToBarray())
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => println(e.sameElements(r));e.sameElements(r)
+    })
+  }
+
+  test("Ex [end]..[end]") {
+    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val br5: BsonArray = new BsonArray().add(b11)
+    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
+    val br4: BsonArray = new BsonArray().add(b10)
+    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
+    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+    println(bsonEvent)
+    val expression: String = "[end]..[end]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] = Seq(b11.encodeToBarray(), b11.encodeToBarray(), b11.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray(), b11.encodeToBarray(), b11.encodeToBarray())
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex [end]..Key1") {
+    val expression: String = "[end]..Title"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[String] = Seq("JavaMachine","ScalaMachine","C++","C++Machine","C++Machine","Java","JavaMachine","JavaMachine")
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex [end]..[end].Key") {
+    val expression: String = "[end]..[end].Price"
+    val future: CompletableFuture[Seq[Int]] = new CompletableFuture[Seq[Int]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Int]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Int] = Seq(38,39)
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e, r) => e.equals(r)
+    })
+  }
+
 //  test("Ex [#to end]..[end]..*[@elem]") {
 //    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
 //    val br5: BsonArray = new BsonArray().add(b11)
@@ -2361,79 +2353,78 @@ class jpPlusPlusTests extends FunSuite {
 //    })
 //  }
 //
-//  test("Ex [# to end]..Key1") {
-//    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
-//    val br5: BsonArray = new BsonArray().add(b11)
-//    val b10: BsonObject = new BsonObject().put("SpecialEditions", br5).put("Title", "JavaMachine").put("Price", 39)
-//    val br4: BsonArray = new BsonArray().add(b10)
-//    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
-//    val br3: BsonArray = new BsonArray().add(b9).add(b10)
-//    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
-//    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
-//    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
-//    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-//    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
-//    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
-//    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
-//    val expression: String = "[1 to end]..SpecialEditions[@Price]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(
-//      b11.encodeToBarray(),
-//      b10.encodeToBarray(),
-//      b9.encodeToBarray(),
-//      b11.encodeToBarray(),
-//      b10.encodeToBarray(),
-//      b11.encodeToBarray(),
-//      b11.encodeToBarray(),
-//      b11.encodeToBarray(),
-//      b10.encodeToBarray()
-//    )
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) =>
-//        e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex key1[end]..key2 END has Obj") {
-//    val expression: String = "Book[end]..Title"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector("C++","C++Machine")
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex [end]..key2 END has Arr") {
-//    val arr: BsonArray = new BsonArray().add(b3).add(b4).add(new BsonArray().add(new BsonObject().put("field", "value")))
-//    val expression: String = "[end]..field"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(arr.encodeToBarray)
-//
-//    val expected: Vector[Any] = Vector("value","value")
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
+/*
+  test("Ex [# to end]..Key1[@elem]") {
+    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val br5: BsonArray = new BsonArray().add(b11)
+    val b10: BsonObject = new BsonObject().put("SpecialEditions", br5).put("Title", "JavaMachine").put("Price", 39)
+    val br4: BsonArray = new BsonArray().add(b10)
+    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
+    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+    val expression: String = "[1 to end]..SpecialEditions[@Price]"
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Vector[Any] = Vector(
+      b11.encodeToBarray(),
+      b10.encodeToBarray(),
+      b9.encodeToBarray(),
+      b11.encodeToBarray(),
+      b10.encodeToBarray(),
+      b11.encodeToBarray(),
+      b11.encodeToBarray(),
+      b11.encodeToBarray(),
+      b10.encodeToBarray()
+    )
+    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) =>
+        e.sameElements(r)
+      case (e, r) => e.equals(r)
+    })
+  }
+*/
+  test("Ex key1[end]..key2 END has Obj") {
+    val expression: String = "Book[end]..Title"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[String] = Vector("C++","C++Machine")
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e, r) => e.equals(r)
+    })
+  }
+
+  test("Ex [end]..key2 END has Arr") {
+    val arr: BsonArray = new BsonArray().add(b3).add(b4).add(new BsonArray().add(new BsonObject().put("field", "value")))
+    val expression: String = "[end]..field"
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
+    boson.go(arr.encodeToBarray)
+
+    val expected: Seq[String] = Seq("value","value")
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e, r) => e.equals(r)
+    })
+  }
+
 //  test("Ex Coverage all types inside Array") {
 //    val arr: BsonArray = new BsonArray().add(true).add(1.1).add("match").add(new BsonArray().add(new BsonObject().put("field", "value"))).add(new BsonObject().put("field", "value")).addNull().add(2).add(1500L)
 //    val obj: BsonObject = new BsonObject().put("field", arr)
@@ -2530,99 +2521,97 @@ class jpPlusPlusTests extends FunSuite {
 //    })
 //  }
 //
-//  test("Ex..key1[#]..key2[#]") {
-//    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
-//    val br5: BsonArray = new BsonArray().add(b11)
-//    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
-//    val br4: BsonArray = new BsonArray().add(b10)
-//    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
-//    val br3: BsonArray = new BsonArray().add(b9).add(b10)
-//    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
-//    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
-//    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
-//    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-//    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
-//    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
-//    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
-//    val expression: String = "Book[0]..SpecialEditions[0]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b10.encodeToBarray(), b11.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex..key1[end]..key2[#]") {
-//    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
-//    val br5: BsonArray = new BsonArray().add(b11)
-//    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
-//    val br4: BsonArray = new BsonArray().add(b10)
-//    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
-//    val br3: BsonArray = new BsonArray().add(b9).add(b10)
-//    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
-//    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
-//    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
-//    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-//    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
-//    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
-//    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
-//    val expression: String = "Book[end]..SpecialEditions[0]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b11.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
-//  test("Ex..key1[#]..key2[end]") {
-//    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
-//    val br5: BsonArray = new BsonArray().add(b11)
-//    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
-//    val br4: BsonArray = new BsonArray().add(b10)
-//    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
-//    val br3: BsonArray = new BsonArray().add(b9).add(b10)
-//    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
-//    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
-//    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
-//    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
-//    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
-//    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
-//    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-//    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
-//    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
-//    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
-//    val expression: String = "Book[1]..SpecialEditions[end]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(bsonEvent.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(b10.encodeToBarray(),b10.encodeToBarray(),b11.encodeToBarray(),b11.encodeToBarray())
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
+  test("Ex..key1[#]..key2[#]") {
+    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val br5: BsonArray = new BsonArray().add(b11)
+    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
+    val br4: BsonArray = new BsonArray().add(b10)
+    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
+    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+    val expression: String = "Book[0]..SpecialEditions[0]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray())
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+    })
+  }
+
+  test("Ex..key1[end]..key2[#]") {
+    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val br5: BsonArray = new BsonArray().add(b11)
+    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
+    val br4: BsonArray = new BsonArray().add(b10)
+    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
+    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+    val expression: String = "Book[end]..SpecialEditions[0]"
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] = Vector(b11.encodeToBarray())
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+    })
+  }
+
+  test("Ex..key1[#]..key2[end]") {
+    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
+    val br5: BsonArray = new BsonArray().add(b11)
+    val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39).put("SpecialEditions", br5)
+    val br4: BsonArray = new BsonArray().add(b10)
+    val b9: BsonObject = new BsonObject().put("SpecialEditions", br4).put("Title", "ScalaMachine").put("Price", 40)
+    val br3: BsonArray = new BsonArray().add(b9).add(b10)
+    val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
+    val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
+    val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
+    val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+    val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+    val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
+    val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
+    val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7).add(b3)
+    val b2: BsonObject = new BsonObject().put("Book", br1).put("Hatk", br2)
+    val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
+    val expression: String = "Book[1]..SpecialEditions[end]"
+    println(bsonEvent)
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    boson.go(bsonEvent.encodeToBarray())
+
+    val expected: Seq[Array[Byte]] = Vector(b10.encodeToBarray(),b11.encodeToBarray(),b10.encodeToBarray(),b11.encodeToBarray())
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+    })
+  }
+
 //  test("Ex..key1[all]..key2[end]..key3[@elem]..key4") {
 //    val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
 //    val br5: BsonArray = new BsonArray().add(b11)
@@ -2654,23 +2643,22 @@ class jpPlusPlusTests extends FunSuite {
 //    })
 //  }
 //
-//  test("Ex Coverage of expression [#]..[#]") {
-//    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(false)).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
-//    val obj: BsonObject = new BsonObject().put("This", arr)
-//    val expression: String = "[1 to end]..[all]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(obj.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(2)
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
-//
+  test("Ex Coverage of expression [#]..[#]") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(false)).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "[1 to end]..[all]"
+    val future: CompletableFuture[Seq[Int]] = new CompletableFuture[Seq[Int]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Int]) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Seq[Int] = Seq(2)
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e, r) => e.equals(r)
+    })
+  }
+
 //  test("Ex Coverage of expression .* on Arrays case 1") {
 //    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
 //    val obj: BsonObject = new BsonObject().put("This", arr)
@@ -2891,23 +2879,23 @@ class jpPlusPlusTests extends FunSuite {
 //      case (e, r) => e.equals(r)
 //    })
 //  }
-//
-//  test("Ex Coverage of expression [end] on Arrays case 1") {
-//    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
-//    val obj: BsonObject = new BsonObject().put("This", arr)
-//    val expression: String = "[end].[0]"
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
-//    boson.go(obj.encodeToBarray())
-//
-//    val expected: Vector[Any] = Vector(1)
-//    val res = future.join().getValue.asInstanceOf[Vector[Any]]
-//    assert(expected.size === res.size)
-//    assertTrue(expected.zip(res).forall {
-//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-//      case (e, r) => e.equals(r)
-//    })
-//  }
+
+  test("Ex Coverage of expression [end] on Arrays case 1") {
+    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
+    val obj: BsonObject = new BsonObject().put("This", arr)
+    val expression: String = "[end].[0]"
+    println(obj)
+    val future: CompletableFuture[Seq[Int]] = new CompletableFuture[Seq[Int]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Int]) => future.complete(out))
+    boson.go(obj.encodeToBarray())
+
+    val expected: Seq[Int] = Seq(1)
+    val res = future.join()
+    assert(expected.size === res.size)
+    assertTrue(expected.zip(res).forall {
+      case (e, r) => e.equals(r)
+    })
+  }
 //
 //  test("Ex Coverage of expression [end] on Arrays case 2") {
 //    val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))

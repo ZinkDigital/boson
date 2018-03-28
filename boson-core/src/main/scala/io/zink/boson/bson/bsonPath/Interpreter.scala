@@ -182,6 +182,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     println(s"keylist: $keyList")
     println(s"limitlist: $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
+    //println(s"final result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -204,7 +205,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
   private def returnInsideSeq(limitList: List[(Option[Int], Option[Int], String)], dotsList: List[String]): Boolean =
     limitList.exists { elem =>
       elem._1.isDefined match {
-        case true if elem._2.isEmpty => true
+        case true if elem._2.isEmpty => if(elem._3.equals(C_END))false else true
         case true if elem._2.isDefined && elem._2.get != elem._1.get => true
         case true if elem._2.isDefined && elem._2.get == elem._1.get => false
         case false => false
@@ -224,12 +225,12 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
-          //println("case keylist.size = 1")
-          //println(s"keyList: $keyList")
+          println("case keylist.size = 1")
+          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case _ =>
-          //println("case keylist.size = _")
+          println("case keylist.size = _")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res.forall(e => e.isInstanceOf[Array[Byte]]) match {
             case true =>
@@ -242,7 +243,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
             case false => throw CustomException("The given path doesn't correspond with the event structure.")
           }
       }
-    //println(s"final value from runing extractors ----> $value")
+    println(s"final value from runing extractors ----> $value")
     value
   }
 
