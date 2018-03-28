@@ -375,7 +375,7 @@ object PerformanceTests extends App {
     .mappingProvider(new GsonMappingProvider())
     .jsonProvider(new GsonJsonProvider())
     .build
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
     val end = System.nanoTime()
@@ -390,7 +390,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = bosonClass.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -401,7 +401,7 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println()
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val obj: java.util.List[Tags] = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[*].Tags",classOf[java.util.List[Tags]])
     val end = System.nanoTime()
@@ -416,7 +416,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = bosonClass1.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -429,7 +429,7 @@ object PerformanceTests extends App {
   println()
 
 
-    for(_ <- 0 to 100000) yield {
+    for(_ <- 0 to 10000) yield {
       val start = System.nanoTime()
       val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
       JsonPath.read(doc, "$.Epoch")
@@ -445,7 +445,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = boson1.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -456,7 +456,7 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
     JsonPath.read(doc, "$.Participants[1].Tags.SSLNLastName")
@@ -472,7 +472,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = boson2.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -483,7 +483,7 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
     val obj: Any = JsonPath.read(doc, "$.Markets[*].Tags")
@@ -499,7 +499,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = boson3.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -510,7 +510,7 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
     JsonPath.read(doc, "$.Markets[3:5]")
@@ -526,7 +526,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = boson4.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -537,7 +537,7 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
     JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[10].selectiongroupid")
@@ -553,7 +553,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 100000) yield {
+  for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val fut = boson5.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)

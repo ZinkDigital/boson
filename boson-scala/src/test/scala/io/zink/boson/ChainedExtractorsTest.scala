@@ -31,8 +31,8 @@ class ChainedExtractorsTest extends FunSuite{
     val a = new BsonObject().put("Store", b)
 
     val expression: String = ".Store[@Title]"
-    val boson = Boson.extractor(expression, (in: Array[Byte]) => {
-      assertArrayEquals(c.encodeToBarray, in)
+    val boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertArrayEquals(c.encodeToBarray, in.head)
       println(s"in: $in")
       println("APPLIED")
     })

@@ -179,8 +179,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     */
   private def extract(encodedStructure: ByteBuf, firstStatement: Statement, statementList: List[Statement], dotsList: List[String]): Any = {
     val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(firstStatement,statementList,dotsList)
-    println(s"keylist: $keyList")
-    println(s"limitlist: $limitList")
+    //println(s"keylist: $keyList")
+    //println(s"limitlist: $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
     //println(s"final result -> $result")
     val typeClass: Option[String] =
@@ -192,7 +192,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           else Some(ANY)
       }
     //println(s"typeClass: $typeClass")
-    applyFunction(result,limitList,typeClass,dotsList)
+    applyFunction(result,keyList,limitList,typeClass,dotsList)
   }
 
   /**
@@ -202,7 +202,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     * @param limitList  List of Tuple3 with Ranges and Conditions
     * @return Boolean
     */
-  private def returnInsideSeq(limitList: List[(Option[Int], Option[Int], String)], dotsList: List[String]): Boolean =
+  private def returnInsideSeq(keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], dotsList: List[String]): Boolean =
     limitList.exists { elem =>
       elem._1.isDefined match {
         case true if elem._2.isEmpty => if(elem._3.equals(C_END))false else true
@@ -210,7 +210,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case true if elem._2.isDefined && elem._2.get == elem._1.get => false
         case false => false
       }
-    } || dotsList.exists( e => e.equals(C_DOUBLEDOT)) //TODO: missing implementation to verify "[@.elem]"
+    } || dotsList.exists( e => e.equals(C_DOUBLEDOT)) ||  keyList.exists( e => e._2.equals(C_FILTER))
 
   /**
     * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
@@ -225,16 +225,16 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
-          println("case keylist.size = 1")
-          println(s"keyList: $keyList")
+          //println("case keylist.size = 1")
+          //println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case 2 if keyList.drop(1).head._2.equals(C_FILTER)=>
-          println("case keylist.size = 2")
+          //println("case keylist.size = 2")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case _ =>
-          println("case keylist.size = _")
+          //println("case keylist.size = _")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res.forall(e => e.isInstanceOf[Array[Byte]]) match {
             case true =>
@@ -254,8 +254,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
   }
 
   //TODO: rethink a better strategy to veryfy if T and type of extracted are the same
-  private def applyFunction(result: Iterable[Any],limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: List[String]): Any = {
-    if (returnInsideSeq(limitList,dotsList)) {
+  private def applyFunction(result: Iterable[Any],keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: List[String]): Any = {
+    if (returnInsideSeq(keyList,limitList,dotsList)) {
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING if fExt.isDefined =>

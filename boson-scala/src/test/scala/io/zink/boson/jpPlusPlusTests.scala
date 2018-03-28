@@ -142,7 +142,7 @@ class jpPlusPlusTests extends FunSuite {
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 */
-/*
+
   test("Ex .key1.key2[@elem1].key3[@elem2]") {
     val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
     val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
@@ -154,7 +154,7 @@ class jpPlusPlusTests extends FunSuite {
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   } //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
-*/
+
 /*
   test("Inj .key1.key2[@elem1].key3[@elem2]") {
     val expression: String = ".Store.Book[@Price].SpecialEditions[@Title]"
@@ -252,18 +252,18 @@ class jpPlusPlusTests extends FunSuite {
     assertEquals("Vector(25.5, 22.6)", future.join().getValue.toString)
   }
 */
-/*
+
   test("Ex .key1.key2[@elem].key3") {
     val expression: String = ".Store.Book[@Price].Title"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
     boson.go(validatedByteArr)
 
     assertEquals(Vector(
       "Java", "C++"
-    ), future.join().getValue)
+    ), future.join())
   } //$.Store.Book[?(@.Price)].Title -> checked
-*/
+
 /*
   test("Inj .key1.key2[@elem].key3") {
     val expression: String = ".Store.Book[@Price].Title"
@@ -279,17 +279,17 @@ class jpPlusPlusTests extends FunSuite {
     assertEquals("Vector(Java!!!, C++!!!)", future.join().getValue.toString)
   }
 */
-/*
+
   test("Ex .key1.key2[#].key3[@elem].k*y") {
     val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
     boson.go(validatedByteArr)
     assertEquals(Vector(
       "JavaMachine", "ScalaMachine", "C++Machine"
-    ), future.join().getValue)
+    ), future.join())
   } //$.Store.Book[:].SpecialEditions[?(@.Price)].Title -> checked
-*/
+
 /*
   test("Inj .key1.key2[#].key3[@elem].k*y") {
     val expression: String = ".Store.Book[0 to end].SpecialEditions[@Price].T*le"
@@ -408,17 +408,17 @@ class jpPlusPlusTests extends FunSuite {
     assertEquals("Vector(Java!!!, Scala!!!, C++!!!)", future.join().getValue.toString)
   } //Change is perform, because Book is a Array.
 */
-/*
+
   test("Ex ..key[@elem].key") {
     val expression: String = "..SpecialEditions[@Price].Title"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => future.complete(out))
     boson.go(validatedByteArr)
     assertEquals(Vector(
       "JavaMachine", "ScalaMachine", "C++Machine", "JavaMachine"
-    ), future.join().getValue)
+    ), future.join())
   } //$..SpecialEditions[?(@.Price)].Title -> checked
-*/
+
 /*
   test("Inj ..key[@elem].key") {
     val expression: String = "..SpecialEditions[@Price].Title"
@@ -434,19 +434,19 @@ class jpPlusPlusTests extends FunSuite {
     assertEquals("Vector(JavaMachine!!!, ScalaMachine!!!, C++Machine!!!, JavaMachine!!!)", future.join().getValue.toString)
   }
 */
-/*
+
   test("Ex ..key[@elem]") {
     val expression: String = "..SpecialEditions[@Price]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
     boson.go(validatedByteArr)
 
-    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    val expected: Seq[Array[Byte]] = Vector(b10.encodeToBarray(), b9.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Seq[Array[Byte]] = future.join()
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   } //$..SpecialEditions[?(@.Price)] -> checked
-*/
+
 /*
   test("Inj ..key[@elem]") {
     val expression: String = "..SpecialEditions[@Price]"
@@ -588,19 +588,19 @@ class jpPlusPlusTests extends FunSuite {
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 */
-/*
+
   test("Ex ..*y1[@elem1].key2[@elem2]") {
     val expression: String = "..*k[@Price].SpecialEditions[@Price]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
     boson.go(validatedByteArr)
 
-    val expected: Vector[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
-    val result: Vector[Array[Any]] = future.join().getValue.asInstanceOf[Vector[Array[Any]]]
+    val expected: Seq[Array[Byte]] = Vector(b10.encodeToBarray(), b11.encodeToBarray(), b10.encodeToBarray())
+    val result: Seq[Array[Byte]] = future.join()
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   } //$..Book[?(@.Price)].SpecialEditions[?(@.Price)] && $..Hatk[?(@.Price)].SpecialEditions[?(@.Price)] -> checked
-*/
+
 /*
   test("Inj ..*y1[@elem1].key2[@elem2]") {
     val expression: String = "..*k[@Price].SpecialEditions[@Price]"
@@ -632,17 +632,17 @@ class jpPlusPlusTests extends FunSuite {
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 */
-/*
+
   test("Ex ..*y1[@elem1].key2") {
     val expression: String = "..*k[@SpecialEditions].Pr*"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (out: BsValue) => future.complete(out))
+    val future: CompletableFuture[Seq[Double]] = new CompletableFuture[Seq[Double]]()
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => future.complete(out))
     boson.go(validatedByteArr)
     assertEquals(Vector(
       15.5, 21.5, 12.6, 15.5
-    ), future.join().getValue)
+    ), future.join())
   } //$..Book[?(@.SpecialEditions)].Price && $..Hatk[?(@.SpecialEditions)].Price -> checked
-*/
+
   //---------------------------------------------------------------------------------------------------//
 /*
   test("Inj ..*y1[@elem1].key2") {
