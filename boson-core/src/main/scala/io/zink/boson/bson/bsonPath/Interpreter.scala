@@ -229,6 +229,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
+        case 2 if keyList.drop(1).head._2.equals(C_FILTER)=>
+          println("case keylist.size = 2")
+          val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
+          res
         case _ =>
           println("case keylist.size = _")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
@@ -237,13 +241,15 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               val result: Iterable[Iterable[Any]] =
                 res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
                   val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
-                  runExtractors(b, keyList.drop(1), limitList.drop(1))
+                  if(keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(b, keyList.drop(2), limitList.drop(2))
+                  else runExtractors(b, keyList.drop(1), limitList.drop(1))
+
                 }.seq
               if(result.nonEmpty)result.reduce(_ ++ _) else result
             case false => throw CustomException("The given path doesn't correspond with the event structure.")
           }
       }
-    println(s"final value from runing extractors ----> $value")
+    //println(s"final value from runing extractors ----> $value")
     value
   }
 

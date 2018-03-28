@@ -218,9 +218,6 @@ class BosonImpl(
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             val arr: Array[Byte] = new Array[Byte](valueLength)
             keyList.head._2 match {
-              //              case C_NEXT =>
-              //                netty.readerIndex(arrayFinishReaderIndex)
-              //                None
               case C_ALLNEXT =>
                 netty.getBytes(arrayStartReaderIndex, arr, 0, valueLength)
                 //println("matched with an ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11 going to look inside for another match!")
@@ -228,7 +225,7 @@ class BosonImpl(
                 //println(s"THIS IS  what i got for looking -> $res")
                 Some(resultComposer(Seq(Seq(arr), resultComposer(res.toSeq))))
               case C_LIMIT | C_LIMITLEVEL =>
-                //println(s"found arrand matched ${keyList.head._1}, going to traverse it according with limits")
+                println(s"found arrand matched ${keyList.head._1}, going to traverse it according with limits")
                 val midResult = traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 //println(s"extracted from arr -> $midResult")
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
@@ -538,14 +535,14 @@ class BosonImpl(
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
                 //Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
                 //None
-                Some(value)
+                Some(Seq(value))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
                     //Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
                     //None
-                    Some(value)
+                    Some(Seq(value))
                   case Some(_) => None
                   case None =>
                     println("case none none")
@@ -561,14 +558,14 @@ class BosonImpl(
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
                 //Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
                 //None
-                Some(newField)
+                Some(Seq(newField))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
                     //Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
                     //None
-                    Some(newField)
+                    Some(Seq(newField))
                   case Some(_) => None
                   case None =>
                     println("case none none")
@@ -619,11 +616,26 @@ class BosonImpl(
                     netty.readerIndex(bsonFinishReaderIndex)
                     None
                   case None =>
-                    println("case none none")
-                    //None
-                    netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
-                    netty.readerIndex(bsonFinishReaderIndex)
-                    Some(arr)
+                    keyList.head._2 match {
+                      case C_LIMITLEVEL if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER) =>
+                        println(s"Traversing array, found OBJ and condition of next key is C_FILTER")
+                        val copyNetty1: ByteBuf = netty.duplicate()
+                        val copyNetty2: ByteBuf = netty.duplicate()
+                        val midResult = findElements(copyNetty1,copyNetty2,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
+                        if (midResult.isEmpty) {
+                          netty.readerIndex(bsonFinishReaderIndex)
+                          None
+                        } else {
+                          netty.readerIndex(bsonFinishReaderIndex)
+                          Some(resultComposer(midResult.toSeq))
+                        }
+                      case _ =>
+                        println("case none none")
+                        //None
+                        netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
+                        netty.readerIndex(bsonFinishReaderIndex)
+                        Some(arr)
+                    }
                 }
             }
           case D_BSONARRAY =>
@@ -734,14 +746,14 @@ class BosonImpl(
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
                 //Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
                 //None
-                Some(value)
+                Some(Seq(value))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
                     //Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
                     //None
-                    Some(value)
+                    Some(Seq(value))
                   case Some(_) => None
                   case None => println("case none none")
                     None //Some(value)
@@ -1079,7 +1091,7 @@ class BosonImpl(
         //println(s"case not until____ seq: $seq")
         seq.collect { case value if !value.equals(WARNING_CHAR)=> value }
     }
-  }
+  }*/
 
   private def findElements(netty: ByteBuf, nettyUntouched: ByteBuf, keyList: List[(String,String)], limitList: List[(Option[Int], Option[Int], String)],start: Int, finish: Int): Iterable[Any] = {
     val seqType: Int = netty.readByte().toInt
@@ -1217,7 +1229,7 @@ class BosonImpl(
       case 0 if finalValue.isEmpty => None
     }
   }
-*/
+
   def duplicate: BosonImpl = new BosonImpl(byteArray = Option(this.nettyBuffer.duplicate().array()))
 
   def getByteBuf: ByteBuf = this.nettyBuffer
