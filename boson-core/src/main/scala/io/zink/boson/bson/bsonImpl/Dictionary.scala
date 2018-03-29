@@ -42,6 +42,7 @@ object Dictionary {
   val C_DOUBLEDOT: String = ".."
   val C_LAST: String = "last"  // "end" should be used to maintain consistency
   val C_RANDOM: String = "random"
+  val C_BUILD: String = "build"
 
   val V_NULL: String = "Null"
   val C_MATCH: String = "Matched"

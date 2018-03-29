@@ -14,9 +14,12 @@ import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
 
 
 case class Book(price: Double,title: String, edition: Int, forSale: Boolean, nPages: Long)
-
 case class Book1(title: String, price: Double)
 
+
+case class SpecialEditions(title: String, price: Int, availability: Boolean)
+case class _Book(title: String, price: Double, specialEditions: Seq[SpecialEditions])
+case class _Book1(title: String, price: Double, specialEditions: SpecialEditions)
 
 @RunWith(classOf[JUnitRunner])
 class ChainedExtractorsTest extends FunSuite{
@@ -24,21 +27,6 @@ class ChainedExtractorsTest extends FunSuite{
   private val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition",10).put("ForSale", true).put("nPages", 750L)
   private val _store = new BsonObject().put("Book", _book1)
   private val _bson = new BsonObject().put("Store", _store)
-
-  test("Extract key[@elem]") {
-    val c = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition",10).put("ForSale", true).put("nPages", 750L)
-    val b = new BsonArray().add(c)
-    val a = new BsonObject().put("Store", b)
-
-    val expression: String = ".Store[@Title]"
-    val boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertArrayEquals(c.encodeToBarray, in.head)
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(a.encode.getBytes)
-    Await.result(res, Duration.Inf)
-  }
 
   test("Extract Type class Book") {
     val expression: String = ".Store.Book"
@@ -96,6 +84,41 @@ class ChainedExtractorsTest extends FunSuite{
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Embedded a Case Class") {
+    val e= new BsonObject().put("Title","ScalaMachine").put("Price",40).put("Availability",true)
+    val c = new BsonObject().put("Title","Scala").put("Price",30.5).put("SpecialEditions",e)
+    val b = new BsonArray().add(c)
+    val a = new BsonObject().put("Book",b)
+    val bsonEvent = new BsonObject().put("Store",a)
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _Book1) => {
+      assertEquals(_Book1("Scala",30.5,SpecialEditions("ScalaMachine",40,true)), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bsonEvent.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract Embedded List of Case Classes") {
+    val e= new BsonObject().put("Title","ScalaMachine").put("Price",40).put("Availability",true)
+    val d = new BsonArray().add(e)
+    val c = new BsonObject().put("Title","Scala").put("Price",30.5).put("SpecialEditions",d)
+    val b = new BsonArray().add(c)
+    val a = new BsonObject().put("Book",b)
+    val bsonEvent = new BsonObject().put("Store",a)
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _Book) => {
+      assertEquals(_Book("Scala",30.5,Seq(SpecialEditions("ScalaMachine",40,true))), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bsonEvent.encode.getBytes)
     Await.result(res, Duration.Inf)
   }
 

@@ -1,9 +1,12 @@
 package io.zink.boson.bson.bsonPath
 
 import java.time.Instant
+
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl._
+import shapeless.TypeCase
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -57,23 +60,34 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
   private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
+    val seqTuples = TypeCase[Seq[List[Any]]]
+    val listTuples = TypeCase[List[Any]]
     /**
       *
       * @param list List with Keys and Values from extracted objects
       * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
       */
     def toTuples(list: Iterable[Any]): List[(String, Any)] = {
+      println()
+      println(list)
       list match {
         case x: List[Any] if x.isEmpty => List()
+        case x: List[Any] if x.lengthCompare(2) >= 0 && x.tail.head.isInstanceOf[Seq[Any]] =>
+          x.tail.head match {
+            case seqTuples(value) => List((x.head.asInstanceOf[String],value.map(toTuples(_))))
+            case listTuples(value) => List((x.head.asInstanceOf[String], toTuples(value)))
+          }
         case x: List[Any] if x.lengthCompare(2) >= 0 => List((x.head.asInstanceOf[String], x.tail.head)) ++ toTuples(x.drop(2))
       }
     }
 
+    val res: Seq[List[(String, Any)]] =
     encodedSeqByteArray.par.map { encodedByteArray =>
       val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList)
       val l: List[(String, Any)] = toTuples(res).map(elem => (elem._1.toLowerCase, elem._2))
       l
     }.seq
+    res
   }
 
   /**
@@ -256,6 +270,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
   //TODO: rethink a better strategy to veryfy if T and type of extracted are the same
   private def applyFunction(result: Iterable[Any],keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: List[String]): Any = {
     if (returnInsideSeq(keyList,limitList,dotsList)) {
+      println("return inside Seq")
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING if fExt.isDefined =>
@@ -306,7 +321,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               case Success(_) =>
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
             }
-          case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]], List(("*", "build")), List((None, None, "")))
+          case ARRAY_BYTE =>
+            println("applyFunction - case byte[] to case Class")
+            constructObj(result.asInstanceOf[Seq[Array[Byte]]], List(("*", "build")), List((None, None, "")))
           case ANY =>
             val res: Seq[Any] = result.toSeq
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit], res)) match {
@@ -316,6 +333,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     } else {
+      //println("return without Seq")
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING if fExt.isDefined =>
@@ -365,7 +383,9 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               case Success(_) =>
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
-          case ARRAY_BYTE => constructObj(result.asInstanceOf[Seq[Array[Byte]]], List(("*", "build")), List((None, None, "")))
+          case ARRAY_BYTE =>
+            //println("applyFunction - case byte[] to case Class")
+            constructObj(result.asInstanceOf[Seq[Array[Byte]]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     }
