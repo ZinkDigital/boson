@@ -330,7 +330,7 @@ class BosonImpl(
           if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
             keyList.head._2 match {
               case "build" => Some(Iterable(key, "Null"))
-              case _ => None
+              case _ => Some(V_NULL)
             }
             //TODO: take care of case Null
             //Some(V_NULL)
