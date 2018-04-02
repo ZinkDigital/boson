@@ -652,15 +652,16 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_LIMIT | C_LIMITLEVEL if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER) =>
-                        //println(s"Traversing array, found OBJ and condition of next key is C_FILTER")
+                        println(s"Traversing array, found OBJ and condition of next key is C_FILTER")
                         val copyNetty1: ByteBuf = netty.duplicate()
                         val copyNetty2: ByteBuf = netty.duplicate()
                         val midResult = findElements(copyNetty1,copyNetty2,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
                         if (midResult.isEmpty) {
+                          println("findElements didnt found nothing")
                           netty.readerIndex(bsonFinishReaderIndex)
                           None
                         } else {
-                          //println(s"res from findElements: ${resultComposer(midResult.toSeq)}")
+                          println(s"res from findElements: ${resultComposer(midResult.toSeq)}")
                           netty.readerIndex(bsonFinishReaderIndex)
                           Some(resultComposer(midResult.toSeq))
                         }
@@ -721,6 +722,9 @@ class BosonImpl(
                       case C_BUILD =>
                         val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))  //TODO:remains untested
                         Some(Seq(res))
+                      case C_LIMIT | C_LIMITLEVEL if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER) =>
+                        netty.readerIndex(finishReaderIndex)
+                        None
                       case _ =>
                         netty.getBytes(startReaderIndex, arr, 0, valueLength2)
                         netty.readerIndex(finishReaderIndex)
