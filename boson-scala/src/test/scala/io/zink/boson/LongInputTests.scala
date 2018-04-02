@@ -1,58 +1,54 @@
-//package io.zink.boson
-//
-//import bsonLib.BsonObject
-//import io.netty.util.ResourceLeakDetector
-//import io.vertx.core.json.JsonObject
-//import io.zink.boson.bson.bsonImpl.BosonImpl
-//import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-//import io.zink.boson.bson.bsonValue
-//import io.zink.boson.bson.bsonValue.{BsSeq, BsValue}
-//import org.junit.runner.RunWith
-//import org.scalatest.FunSuite
-//import org.scalatest.junit.JUnitRunner
-//
-//import scala.io.Source
-//
-///**
-//  * Created by Tiago Filipe on 20/11/2017.
-//  */
-//@RunWith(classOf[JUnitRunner])
-//class LongInputTests extends FunSuite {
-//  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
-//  def callParse(boson: BosonImpl, expression: String): BsValue = {
-//    val parser = new TinyLanguage
-//    try {
-//      parser.parseAll(parser.program, expression) match {
-//        case parser.Success(r, _) =>
-//          val interpreter = new Interpreter(boson, r.asInstanceOf[Program], fExt = Option((in: BsValue) => {}))
-//          interpreter.run()
-//        case parser.Error(_, _) => bsonValue.BsObject.toBson("Error parsing!")
-//        case parser.Failure(_, _) => bsonValue.BsObject.toBson("Failure parsing!")
-//      }
-//    } catch {
-//      case e: RuntimeException => bsonValue.BsObject.toBson(e.getMessage)
-//    }
-//  }
-//
-//  val bufferedSource: Source = Source.fromURL(getClass.getResource("/longJsonString.txt"))
-//  val finale: String = bufferedSource.getLines.toSeq.head
-//  bufferedSource.close
-//
-//  val json: JsonObject = new JsonObject(finale)
-//  val bson: BsonObject = new BsonObject(json)
-//
-//  val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
-//
-//  test("extract top field") {
-//    val result: BsValue = callParse(boson.duplicate, "Epoch")
-//    assert(bson.getInteger("Epoch") === result.asInstanceOf[BsSeq].value.head)
-//  }
-//
-//  test("extract bottom field") {
-//    val result: BsValue = callParse(boson.duplicate, "SSLNLastName")
-//    assert( "de Huanuco" === result.asInstanceOf[BsSeq].value.head)
-//  }
-//
+package io.zink.boson
+
+import bsonLib.BsonObject
+import io.netty.util.ResourceLeakDetector
+import io.vertx.core.json.JsonObject
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import org.junit.Assert.assertTrue
+import org.junit.runner.RunWith
+import org.scalatest.FunSuite
+import org.scalatest.junit.JUnitRunner
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.io.Source
+
+/**
+  * Created by Tiago Filipe on 20/11/2017.
+  */
+@RunWith(classOf[JUnitRunner])
+class LongInputTests extends FunSuite {
+  ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
+
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val finale: String = bufferedSource.getLines.toSeq.head
+  bufferedSource.close
+
+  val json: JsonObject = new JsonObject(finale)
+  val bson: BsonObject = new BsonObject(json)
+
+  val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
+
+  test("extract top field") {
+    val expression: String = ".Epoch"
+    val boson: Boson = Boson.extractor(expression, (out: Int) => {
+      assertTrue(3 == out)
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("extract bottom field") {
+    val expression: String = "SSLNLastName"
+    val expected: Seq[String] = Seq("de Huanuco")
+    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => {
+      assertTrue(expected.zip(out).forall(e => e._1.equals(e._2)))
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
 //  test("extract all occurrences of Key") {
 //    val result: BsValue = callParse(boson.duplicate, "Tags")
 //    println(result.asInstanceOf[BsSeq].value)
@@ -73,10 +69,14 @@
 //    val t: Boolean = true
 //    assert(t)
 //  }
-//
-//  test("size of all occurrences of Key") {
-//    val result: BsValue = callParse(boson.duplicate, "Price")
-//    assert(283 === result.asInstanceOf[BsSeq].value.size)
-//  }
-//
-//}
+
+  test("size of all occurrences of Key") {
+    val expression: String = "Price"
+    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => {
+      assertTrue(195 == out.size)
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+}
