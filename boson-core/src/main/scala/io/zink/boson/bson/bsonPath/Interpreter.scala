@@ -68,8 +68,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
       * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
       */
     def toTuples(list: Iterable[Any]): List[(String, Any)] = {
-      println()
-      println(list)
       list match {
         case x: List[Any] if x.isEmpty => List()
         case x: List[Any] if x.lengthCompare(2) >= 0 && x.tail.head.isInstanceOf[Seq[Any]] =>
@@ -100,7 +98,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
         case Key(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
-        case Key(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALL)), List((None, None, EMPTY_KEY)))
+        case Key(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
         case KeyWithArrExpr(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
         case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
         case ArrExpr(l, m, r) if dotsList.head.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
@@ -111,7 +109,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
             case false if statementList.nonEmpty && dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
             case false if statementList.nonEmpty => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
             case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
-            case false => (List((halfName, C_ALL)), List((None, None, EMPTY_KEY)))
+            case false => (List((halfName, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
           }
         case HasElem(key, elem) if dotsList.head.equals(C_DOT) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
         case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
@@ -193,10 +191,10 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     */
   private def extract(encodedStructure: ByteBuf, firstStatement: Statement, statementList: List[Statement], dotsList: List[String]): Any = {
     val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(firstStatement,statementList,dotsList)
-    //println(s"keylist: $keyList")
-    //println(s"limitlist: $limitList")
+    println(s"keylist: $keyList")
+    println(s"limitlist: $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
-    //println(s"final result -> $result")
+    println(s"final result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -205,7 +203,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    //println(s"typeClass: $typeClass")
+    println(s"typeClass: $typeClass")
     applyFunction(result,keyList,limitList,typeClass,dotsList)
   }
 
@@ -224,7 +222,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case true if elem._2.isDefined && elem._2.get == elem._1.get => false
         case false => false
       }
-    } || dotsList.exists( e => e.equals(C_DOUBLEDOT)) ||  keyList.exists( e => e._2.equals(C_FILTER))
+    } || dotsList.exists(e => e.equals(C_DOUBLEDOT)) ||  keyList.exists(e => e._2.equals(C_FILTER)) || keyList.exists(e => e._1.equals(STAR))
 
   /**
     * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
@@ -239,29 +237,37 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
-          //println("case keylist.size = 1")
-          //println(s"keyList: $keyList")
+          println("case keylist.size = 1")
+          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case 2 if keyList.drop(1).head._2.equals(C_FILTER)=>
-          //println("case keylist.size = 2")
+          println("case keylist.size = 2")
+          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case _ =>
-          //println("case keylist.size = _")
+          println("case keylist.size = _")
+          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
-          res.forall(e => e.isInstanceOf[Array[Byte]]) match {
-            case true =>
+          println(s"res: $res")
+          println(s"collect from res: ${res.collect{ case arr: Array[Byte] => arr}}")
+          res.collect{ case arr: Array[Byte] => arr}.size match {
+            case 0 => Seq() //throw CustomException("The given path doesn't correspond with the event structure.")
+            case _ =>
               val result: Iterable[Iterable[Any]] =
-                res.asInstanceOf[Iterable[Array[Byte]]].par.map { elem =>
+                res.collect{ case arr: Array[Byte] => arr}.par.map { elem =>
                   val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
                   if(keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(b, keyList.drop(2), limitList.drop(2))
                   else runExtractors(b, keyList.drop(1), limitList.drop(1))
-
                 }.seq
               if(result.nonEmpty)result.reduce(_ ++ _) else result
-            case false => throw CustomException("The given path doesn't correspond with the event structure.")
           }
+//          res.exists(e => e.isInstanceOf[Array[Byte]]) match {
+//            case true =>
+//
+//            case false =>
+//          }
       }
     //println(s"final value from runing extractors ----> $value")
     value

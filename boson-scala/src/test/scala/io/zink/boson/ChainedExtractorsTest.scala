@@ -286,6 +286,26 @@ class ChainedExtractorsTest extends FunSuite{
   private val store = new BsonObject().put("Book", books).put("Hatk", hats)
   private val bson = new BsonObject().put("Store", store)
 
+  test("Extract key.* V1") {
+    val expression: String = ".Store.Book[0].SpecialEditions[0].*"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
+      assertEquals(Seq("JavaMachine",39), in)
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("Extract key.* V2") {
+    val expression: String = ".Store.Book.*"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(Seq(title1.encodeToBarray,title2.encodeToBarray,title3.encodeToBarray).zip(in).forall(e=>e._1.sameElements(e._2)))
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
+
   test("Extract complex Seq[String]") {
     val expression: String = ".Store.Book[1 to end].Title"
     val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {

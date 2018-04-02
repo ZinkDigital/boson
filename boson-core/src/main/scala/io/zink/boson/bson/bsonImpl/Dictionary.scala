@@ -34,6 +34,7 @@ object Dictionary {
   val C_LIMIT: String = "limit"
   val C_FILTER: String = "filter"
   val C_ALL: String = "all"
+  val C_ALLDOTS: String = "allDots"
   val C_NEXT: String = "next"
   val C_ALLNEXT: String = "allNext"
   val C_FIRST: String = "first"
