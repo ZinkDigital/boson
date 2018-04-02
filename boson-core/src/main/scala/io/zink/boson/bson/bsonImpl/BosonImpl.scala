@@ -764,12 +764,11 @@ class BosonImpl(
           case D_NULL =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                None
-              //Some(V_NULL)
+              Some(V_NULL)
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get => None //Some(V_NULL)
+                  case Some(_) if iter >= limitList.head._1.get =>  Some(V_NULL)
                   case Some(_) => None
                   case None =>
                     keyList.head._2 match {
