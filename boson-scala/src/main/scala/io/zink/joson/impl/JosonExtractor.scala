@@ -37,7 +37,7 @@ class JosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
-          //new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
+          new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
         case parser.Error(msg, _) =>
           throw new Exception(msg)
           //BsObject.toBson(msg)
@@ -53,23 +53,23 @@ class JosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
   }
 
   override def go(jsonStr: String):Future[String] = {
-    val a: JsonObject = new JsonObject(jsonStr)
-
-    val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
-    val os = new ByteArrayOutputStream
-    val module = new SimpleModule
-    module.addSerializer(classOf[JsonObject],new JsonObjectSerializer)
-    module.addSerializer(classOf[JsonArray], new JsonArraySerializer)
-    mapper.registerModule(module)
-
-    mapper.writeValue(os, a)
-
-    val bsonByteEncoding: Array[Byte] = os.toByteArray
-    os.flush()
+//    val a: JsonObject = new JsonObject(jsonStr)
+//
+//    val mapper: ObjectMapper = new ObjectMapper(new BsonFactory())
+//    val os = new ByteArrayOutputStream
+//    val module = new SimpleModule
+//    module.addSerializer(classOf[JsonObject],new JsonObjectSerializer)
+//    module.addSerializer(classOf[JsonArray], new JsonArraySerializer)
+//    mapper.registerModule(module)
+//
+//    mapper.writeValue(os, a)
+//
+//    val bsonByteEncoding: Array[Byte] = os.toByteArray
+//    os.flush()
 
     val future: Future[String] =
       Future{
-        val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
+        val boson:BosonImpl = new BosonImpl( stringJson= Option(jsonStr))
           callParse(boson, expression)
           jsonStr
 //        match {
