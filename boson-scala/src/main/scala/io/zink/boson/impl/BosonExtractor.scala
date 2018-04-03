@@ -12,32 +12,32 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.runtime.universe._
 
+/**
+  * Boson instance which aims to handle extraction of primitive types or sequences of them.
+  * These types doesn't compile with an implicit LabelledGeneric and for that reason a different class
+  * is required.
+  *
+  * @param expression String given by the User designated as BsonPath.
+  * @param extractFunction  Extract function given by the User to be applied after extraction.
+  * @tparam T Type of Value to be extracted.
+  */
 class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends Boson {
-  //val genericObj = GenericObj[T]
-//  def mytype[U](implicit m: scala.reflect.Manifest[U]) = m
-//  def myTypeWithoutExtraParam = mytype[T]
-//  val newInstance: Any = myTypeWithoutExtraParam
-  //Generic[newInstance]
-  //val tag = typeTag[T].tpe
-  //Generic[tag]
-  //println(s"TupeTag -> $tag")
-  //FromList
-  //println(s"Type of T: $newInstance")
-  //FromList.to[newInstance].from(List(("","")))
 
-
-  private def callParse(boson: BosonImpl, expression: String): Any = {
+  /**
+    * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
+    * statements used to instantiate the Interpreter.
+    *
+    * @param boson Instance of BosonImpl.
+    * @param expression String parsed to build the extractors.
+    */
+  private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new TinyLanguage
     try {
       parser.parseAll(parser.program, expression) match {
         case parser.Success(r, _) =>
           new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
-        case parser.Error(msg, _) =>
-          throw new Exception(msg)
-          //BsObject.toBson(msg)
-        case parser.Failure(msg, _) =>
-          throw new Exception(msg)
-        //BsObject.toBson(msg)
+        case parser.Error(msg, _) => throw new Exception(msg)
+        case parser.Failure(msg, _) => throw new Exception(msg)
       }
     } catch {
       case e: RuntimeException => throw new Exception(e.getMessage)
@@ -70,17 +70,4 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
 
   override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 
-  //override def extractor[T](expression: String, extractFunction: Function[T, Unit]): Unit = ???
 }
-
-//val f: Future[Array[Byte]] = Future {
-//val boson: BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-//callParse(boson,expression) match {
-//case (res: BsValue) =>
-//extractFunction.accept(res.asInstanceOf[T])
-//case _ => throw new RuntimeException("BosonExtractor -> go() default case!!!")
-//}
-//bsonByteEncoding
-//}(ExecutionContext.global)
-////future
-//f
