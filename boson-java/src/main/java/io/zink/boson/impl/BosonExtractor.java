@@ -10,7 +10,11 @@ import io.zink.boson.bson.bsonPath.TinyLanguage;
 //import io.zink.boson.bson.bsonValue.BsValue;
 //import io.zink.boson.bson.bsonValue.Writes$;
 import io.zink.boson.Boson;
+
+import scala.Function1;
 import scala.Option;
+import scala.Unit;
+import scala.runtime.BoxedUnit;
 import scala.util.parsing.combinator.Parsers;
 
 import java.nio.ByteBuffer;
@@ -21,13 +25,21 @@ import java.util.function.Function;
 public class BosonExtractor<T> implements Boson {
 
     private String expression;
-    private Consumer<T> extractFunction;
+    private Function1<T,BoxedUnit> anon;
 
 
     public BosonExtractor(String expression, Consumer<T> extractFunction) {
         this.expression = expression;
-        this.extractFunction = extractFunction;
+        this.anon = new Function1<T, BoxedUnit>(){
+            @Override
+            public BoxedUnit apply(T v1) {
+                extractFunction.accept(v1);
+                return BoxedUnit.UNIT;
+            }
+        };
+
     }
+
 
     //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
@@ -36,15 +48,13 @@ public class BosonExtractor<T> implements Boson {
         try{
          Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
          if(pr.successful()){
-             Interpreter interpreter = new Interpreter(boson, (Program) pr.get(),Option.empty(), Option.apply(extractFunction));
+             Interpreter interpreter = new Interpreter<T>(boson, (Program) pr.get(),Option.empty(), Option.apply(anon));
              interpreter.run();
          }else{
              throw new RuntimeException("Failure/Error parsing!");
-             //return BsObject$.MODULE$.toBson("Failure/Error parsing!", Writes$.MODULE$.apply1(writer));
          }
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage());
-            //return BsObject$.MODULE$.toBson(e.getMessage(), Writes$.MODULE$.apply1(writer));
         }
     }
 
@@ -55,6 +65,7 @@ public class BosonExtractor<T> implements Boson {
             Option e = Option.empty();
             BosonImpl boson = new BosonImpl(opt, e,e);
             callParse(boson, expression);
+            System.out.println("blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             //extractFunction.accept((T)value);
             return bsonByteEncoding;
         });
