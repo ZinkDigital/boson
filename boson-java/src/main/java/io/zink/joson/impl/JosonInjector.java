@@ -68,7 +68,7 @@ public class JosonInjector<T> implements Joson {
             os.flush();
             Option opt = Option.apply(bsonByteEncoding);
             Option e = Option.empty();
-            BosonImpl boson = new BosonImpl(opt, e, e);
+            BosonImpl boson = new BosonImpl(opt, e);
             future =
                     CompletableFuture.supplyAsync(() -> {
                         byte[] res =  parseInj(boson, injectFunction, expression);

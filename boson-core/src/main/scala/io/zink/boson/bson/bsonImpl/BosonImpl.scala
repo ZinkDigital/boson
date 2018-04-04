@@ -23,8 +23,7 @@ case class CustomException(smth: String) extends Exception {
 
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
-                 javaByteBuf: Option[ByteBuffer] = None,
-                 scalaArrayBuf: Option[ArrayBuffer[Byte]] = None
+                 javaByteBuf: Option[ByteBuffer] = None
                ) {
 
   private val valueOfArgument: String =
@@ -32,8 +31,6 @@ class BosonImpl(
       javaByteBuf.get.getClass.getSimpleName
     } else if (byteArray.isDefined) {
       byteArray.get.getClass.getSimpleName
-    } else if (scalaArrayBuf.isDefined) {
-      scalaArrayBuf.get.getClass.getSimpleName
     } else EMPTY_CONSTRUCTOR
 
   private val nettyBuffer: ByteBuf = valueOfArgument match {
@@ -52,16 +49,19 @@ class BosonImpl(
         javaByteBuf.get.clear()
         b
       }
-    case SCALA_ARRAYBUF =>
-      val b: ByteBuf = Unpooled.copiedBuffer(scalaArrayBuf.get.toArray)
-      b
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
   }
 
-  private val comparingFunction = (netty: ByteBuf, key: String) => {
-    compareKeys(netty, key)
-  }
+  private val eObjPrimitiveConditions: List[(String, String)] => Boolean =
+    keyList => {
+      !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)
+    }
+
+  private val eObjConditions: List[(String, String)] => Boolean =
+    keyList => {
+      !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_LIMITLEVEL)
+    }
 
   def extract[T](netty1: ByteBuf, keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
@@ -78,7 +78,6 @@ class BosonImpl(
               case 48 =>
                 netty.readIntLE()
                 val arrayFinishReaderIndex: Int = startReaderIndex + size
-                //extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
                 keyList.head._1 match {
                   case C_DOT if keyList.lengthCompare(1) == 0 =>
                     val arr: Array[Byte] = new Array[Byte](size)
@@ -86,16 +85,12 @@ class BosonImpl(
                     netty.readerIndex(arrayFinishReaderIndex)
                     Some(arr)
                   case _ =>
-                    println("arr root")
                     val midResult = extractFromBsonArray(netty, size, arrayFinishReaderIndex, keyList, limitList)
-                    //println(s"final midResult -> $midResult")
-                    //println(s"final midResult with resultComposer -> ${resultComposer(midResult.toSeq)}")
                     if (midResult.isEmpty) None else resultComposer(midResult.toSeq)
                 }
               case _ =>
                 netty.readIntLE()
                 val bsonFinishReaderIndex: Int = startReaderIndex + size
-                //extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
                 keyList.head._1 match {
                   case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => None
                   case C_DOT if keyList.lengthCompare(1) == 0 =>
@@ -103,14 +98,9 @@ class BosonImpl(
                     netty.getBytes(startReaderIndex, arr, 0, size)
                     netty.readerIndex(bsonFinishReaderIndex)
                     Some(arr)
-                  case _ if keyList.head._2.equals(C_BUILD)=>
-                    val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList).asInstanceOf[List[List[(String,Any)]]].flatten
-                    //List(List(Title, Scala), List(Price, 30.5), List(List(Title, ScalaMachine, Price, 40, Availability, true)))
-                    //List(Title, Scala, Price, 30.5, List(Title, ScalaMachine, Price, 40, Availability, true)) with flatten
-                    //println(s"final midResult -> $midResult")
-                    //println(s"final midResult with resultComposer -> ${resultComposer(midResult.toSeq)}")
+                  case _ if keyList.head._2.equals(C_BUILD) =>
+                    val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList).asInstanceOf[List[List[(String, Any)]]].flatten
                     midResult
-                    //if (midResult.isEmpty) None else resultComposer(midResult.toSeq)
                   case _ =>
                     val midResult = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
                     if (midResult.isEmpty) None else resultComposer(midResult.toSeq)
@@ -118,7 +108,6 @@ class BosonImpl(
             }
         }
       case Failure(msg) =>
-        println("length is zero, throwing exception")
         throw new RuntimeException(msg)
     }
 
@@ -130,40 +119,34 @@ class BosonImpl(
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
-          val (condition: Boolean, key: String) = _compareKeys(netty, keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjPrimitiveConditions(keyList)) {
             val value: Double = netty.readDoubleLE()
-            //            Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
-            //            None
             keyList.head._2 match {
-              case "build" => Some(Iterable(key, value))
+              case C_BUILD => Some(Iterable(key, value))
               case _ => Some(value)
             }
           } else {
             netty.skipBytes(8)
-            //netty.readDoubleLE()
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          val (condition: Boolean, key: String) = _compareKeys(netty, keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjPrimitiveConditions(keyList)) {
             val valueLength: Int = netty.readIntLE()
             val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
             val newArr: Array[Byte] = arr.filter(b => b != 0)
-            //println(s"Matched ${keyList.head._1} with $key -> ${new String(newArr)}")
             keyList.head._2 match {
-              case "build" => Some(Iterable(key, new String(newArr)))
+              case C_BUILD => Some(Iterable(key, new String(newArr)))
               case _ => Some(new String(newArr))
             }
           } else {
             netty.skipBytes(netty.readIntLE())
-            //netty.readCharSequence(netty.readIntLE(), charset)
             None
           }
         case D_BSONOBJECT =>
-          val (condition: Boolean, key: String) = _compareKeys(netty,keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
-            //println(s"matched ${keyList.head._1} with an object")
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjConditions(keyList)) {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -173,199 +156,106 @@ class BosonImpl(
                 netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                 Some(resultComposer(Seq(Seq(arr), resultComposer(extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList).toSeq))))
               case C_BUILD =>
-                val res = extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList).asInstanceOf[List[List[(String,Any)]]].flatten
-                Some(Iterable(key,res))
+                val res = extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList).asInstanceOf[List[List[(String, Any)]]].flatten
+                Some(Iterable(key, res))
               case _ =>
-                //println("matched an object, returning it")
                 netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                 netty.readerIndex(bFnshRdrIndex)
                 Some(arr)
             }
-            //            keyList.head._2 match {
-            //              case C_NEXT =>
-            //                val arr: Array[Byte] = new Array[Byte](valueTotalLength)
-            //                netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
-            //                Some(arr)
-            ////                val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList.drop(1), bsonFinishReaderIndex, limitList.drop(1))
-            ////                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-            //              case C_ALL if !keyList.head._1.equals(STAR)=>
-            //                val arr: Array[Byte] = new Array[Byte](valueTotalLength)
-            //                netty.getBytes(bsonStartReaderIndex,arr,0,valueTotalLength)
-            //                val midResult: Iterable[Any] = extractFromBsonObj(netty.duplicate(), keyList, bsonFinishReaderIndex, limitList)
-            //                netty.readerIndex(bsonFinishReaderIndex)
-            //                if (midResult.isEmpty) Some(arr)
-            //                else Some(resultComposer(Vector(Vector(arr),resultComposer(midResult.toVector))))
-            //              case _ =>
-            //                val arr: Array[Byte] = new Array[Byte](valueTotalLength)
-            //                netty.getBytes(bsonStartReaderIndex,arr,0,valueTotalLength)
-            //                //netty.readerIndex(bsonFinishReaderIndex)
-            //                Some(arr)
-            //            }
           } else {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
-            //            netty.readerIndex(bFnshRdrIndex)
-            //            None
             keyList.head._2 match {
-              case C_LEVEL =>
-                netty.readerIndex(bFnshRdrIndex)
-                None
-              case C_LIMITLEVEL =>
-                netty.readerIndex(bFnshRdrIndex)
-                None
-              case C_NEXT =>
+              case C_LEVEL | C_LIMITLEVEL | C_NEXT =>
                 netty.readerIndex(bFnshRdrIndex)
                 None
               case _ =>
-                //println(s"found obj in the way, going deeper to find ${keyList.head._1}")
                 val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList)
-                //println(s"and the obj result was -> $midResult")
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             }
           }
         case D_BSONARRAY =>
-          val (condition: Boolean, key: String) = _compareKeys(netty,keyList.head._1)
-          if (condition) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched) {
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             val arr: Array[Byte] = new Array[Byte](valueLength)
             keyList.head._2 match {
               case C_BUILD =>
-                val res = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))
-                Some(Seq(key,res))
+                val res = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY, C_BUILD)), List((None, None, EMPTY_RANGE)))
+                Some(Seq(key, res))
               case C_ALLNEXT | C_ALLDOTS =>
                 netty.getBytes(arrayStartReaderIndex, arr, 0, valueLength)
-                //println("matched with an ARRAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11 going to look inside for another match!")
                 val res = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
-                //println(s"THIS IS  what i got for looking -> $res")
                 Some(resultComposer(Seq(Seq(arr), resultComposer(res.toSeq))))
               case C_LIMIT | C_LIMITLEVEL =>
-                println(s"found arr and matched ${keyList.head._1}, going to traverse it according with limits")
                 val midResult = traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
-                println(s"extracted from arr -> $midResult")
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
               case _ =>
                 netty.getBytes(arrayStartReaderIndex, arr, 0, valueLength)
                 netty.readerIndex(arrayFinishReaderIndex)
                 Some(arr)
             }
-            //            keyList.head._2 match {
-            //              case C_NEXT if keyList.head._1.equals(STAR) && keyList.drop(1).head._1.equals(EMPTY_KEY) =>  //case Book[#].*.[#]...
-            //                Some(extractFromBsonArray(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
-            //                  case Some(value) if value.isEmpty => None
-            //                  case Some(value) => Some(resultComposer(value.toVector))
-            //                }
-            //              case C_NEXT if keyList.head._1.equals(STAR) && !keyList.drop(1).head._1.equals(EMPTY_KEY) && !keyList.drop(1).head._1.equals(STAR) && !keyList.drop(1).head._2.equals(C_ALL) && !keyList.drop(1).head._2.equals(C_LIMIT) => //case Book[#].*.key
-            //                netty.readerIndex(arrayFinishReaderIndex)
-            //                None
-            //              case C_NEXT =>
-            //                val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList.drop(1), limitList.drop(1))
-            //                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-            //              case C_LEVEL | C_ALL =>
-            //                val arr: Array[Byte] = new Array[Byte](valueLength)
-            //                netty.getBytes(arrayStartReaderIndex,arr,0,valueLength)
-            //                netty.readerIndex(arrayFinishReaderIndex)
-            //                Some(arr)
-            //              case (C_LIMIT | C_LIMITLEVEL) if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER)=>
-            //                Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList,limitList)) match {
-            //                  case Some(value) if value.isEmpty => None
-            //                  case Some(value) =>
-            //                    Some(resultComposer(value.toVector))
-            //                }
-            //              case C_LIMIT =>
-            //                val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, List((C_MATCH,C_MATCH))++keyList, limitList)
-            //                if (midResult.isEmpty) None else Some(resultComposer(midResult.toVector))
-            //              case _ if keyList.size > 1 =>
-            //                Some(goThroughArrayWithLimit(netty,valueLength,arrayFinishReaderIndex,keyList.drop(1),limitList)) match {
-            //                  case Some(value) if value.isEmpty => None
-            //                  case Some(value) => Some(resultComposer(value.toVector))
-            //                }
-            //              case _ =>
-            //                Some(traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)) match {
-            //                  case Some(value) if value.isEmpty => None
-            //                  case Some(value) => Some(value.toVector)
-            //                }
-            //            }
           } else {
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
-            //            netty.readerIndex(arrayFinishReaderIndex)
-            //            None
             keyList.head._2 match {
-              case C_LEVEL =>
-                netty.readerIndex(arrayFinishReaderIndex)
-                None
-              case C_LIMITLEVEL =>
-                netty.readerIndex(arrayFinishReaderIndex)
-                None
-              case C_NEXT =>
+              case C_LEVEL | C_LIMITLEVEL | C_NEXT =>
                 netty.readerIndex(arrayFinishReaderIndex)
                 None
               case _ =>
-                //println(s"found arr in the way, going deeper to find ${keyList.head._1}")
                 val midResult: Iterable[Any] = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
-                //println(s"and the arr result was -> $midResult")
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             }
           }
         case D_BOOLEAN =>
-          val (condition: Boolean, key: String) = _compareKeys(netty, keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjPrimitiveConditions(keyList)) {
             val value: Int = netty.readByte()
-            //            Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
-            //            None
             keyList.head._2 match {
-              case "build" => Some(Iterable(key, value == 1))
+              case C_BUILD => Some(Iterable(key, value == 1))
               case _ => Some(value == 1)
             }
           } else {
             netty.skipBytes(1)
-            //netty.readByte()
             None
           }
         case D_NULL =>
-          val (condition: Boolean, key: String) = _compareKeys(netty, keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjPrimitiveConditions(keyList)) {
             keyList.head._2 match {
-              case "build" => Some(Iterable(key, "Null"))
+              case C_BUILD => Some(Iterable(key, V_NULL))
               case _ => Some(V_NULL)
             }
-            //TODO: take care of case Null
-            //Some(V_NULL)
           } else {
             None
           }
         case D_INT =>
-          val (condition: Boolean, key: String) = _compareKeys(netty, keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjPrimitiveConditions(keyList)) {
             val value: Int = netty.readIntLE()
-            //            Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
-            //            None
             keyList.head._2 match {
-              case "build" => Some(Iterable(key, value))
+              case C_BUILD => Some(Iterable(key, value))
               case _ => Some(value)
             }
           } else {
             netty.skipBytes(4)
-            //netty.readIntLE()
             None
           }
         case D_LONG =>
-          val (condition: Boolean, key: String) = _compareKeys(netty, keyList.head._1)
-          if (condition && !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)) {
+          val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
+          if (matched && eObjPrimitiveConditions(keyList)) {
             val value: Long = netty.readLongLE()
-            //            Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
-            //            None
             keyList.head._2 match {
-              case "build" => Some(Iterable(key, value))
+              case C_BUILD => Some(Iterable(key, value))
               case _ => Some(value)
             }
           } else {
             netty.skipBytes(8)
-            //netty.readLongLE()
             None
           }
         case D_ZERO_BYTE =>
@@ -375,25 +265,19 @@ class BosonImpl(
     finalValue match {
       case None =>
         actualPos match {
-          case x if x > 0 =>
-            extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-          case 0 =>
-            None
+          case x if x > 0 => extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
+          case 0 => None
         }
       case Some(_) if keyList.head._2.equals(C_BUILD) =>
         actualPos match {
           case x if x > 0 =>
-            //println("Continuing")
             finalValue ++ extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-          case 0 =>
-            //println("Finished")
-            finalValue
+          case 0 => finalValue
         }
       case Some(value) if keyList.head._2.equals(C_LEVEL) || keyList.head._2.equals(C_NEXT) || (keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.eq(STAR)) => //keyList.head._2.equals("first") ||
         netty.readerIndex(bsonFinishReaderIndex)
         Some(value)
       case Some(_) =>
-        println("was here")
         finalValue ++ extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
     }
   }
@@ -401,50 +285,12 @@ class BosonImpl(
   // Traverses the BsonArray looking for BsonObject or another BsonArray
   private def extractFromBsonArray[T](netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
     keyList.head._1 match {
-      //      case EMPTY_KEY if keyList.size < 2  && keyList.head._2.equals(C_LIMIT)=> // case expression = ..[#] only!!
-      //        val constructed: Iterable[Any] = traverseBsonArray(netty.duplicate(), length, arrayFRIdx, keyList, limitList)
-      //        Some(goThroughArrayWithLimit(netty,length,arrayFRIdx,keyList,List((Some(0),None,TO_RANGE))++limitList)) match {
-      //          case Some(x) if x.isEmpty => Some(resultComposer(constructed.toVector))
-      //          case Some(value) => Some(Vector(resultComposer(constructed.toVector),resultComposer(value.toVector)))
-      //        }
-      //      case EMPTY_KEY if keyList.head._2.equals(C_LIMIT) =>
-      //        val constructed: Iterable[Any] = goThroughArrayWithLimit(netty.duplicate(), length, arrayFRIdx, keyList.drop(1), limitList)
-      //        Some(goThroughArrayWithLimit(netty, length, arrayFRIdx, keyList, List((Some(0), None, TO_RANGE)) ++ limitList)) match {
-      //          case Some(x) if x.isEmpty => Some(resultComposer(constructed.toVector))
-      //          case Some(value) => Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
-      //        }
-      //      case _ if keyList.size < 3 && keyList.head._2.equals(C_MATCH) && keyList.drop(1).head._2.equals(C_LIMIT)=>  // case expression = ..key[#] and matched only!!
-      //        val constructed: Iterable[Any] = traverseBsonArray(netty.duplicate(), length, arrayFRIdx, keyList.drop(1), limitList)
-      //        Some(goThroughArrayWithLimit(netty, length, arrayFRIdx, keyList.drop(1), List((Some(0), None, TO_RANGE)) ++ limitList)) match {
-      //          case Some(x) if x.isEmpty => Some(resultComposer(constructed.toVector))
-      //          case Some(value) => Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
-      //        }
-      //      case _ if keyList.head._2.equals(C_MATCH) && keyList.drop(1).head._2.equals(C_LIMIT)=>
-      //        val constructed: Iterable[Any] = goThroughArrayWithLimit(netty.duplicate(), length, arrayFRIdx, keyList.drop(2), limitList)
-      //        Some(goThroughArrayWithLimit(netty, length, arrayFRIdx, keyList.drop(1), List((Some(0), None, TO_RANGE)) ++ limitList)) match {
-      //          case Some(x) if x.isEmpty => Some(resultComposer(constructed.toVector))
-      //          case Some(value) => Some(Vector(resultComposer(constructed.toVector), resultComposer(value.toVector)))
-      //        }
-      case EMPTY_KEY /*if keyList.size < 2*/ =>
-        //println("extractFromBsonArray, case empty_key, calling traverseBsonArray")
+      case EMPTY_KEY | STAR =>
         traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList)
-      /*case EMPTY_KEY =>
-        Some(goThroughArrayWithLimit(netty,length,arrayFRIdx,keyList.drop(1),limitList)) match {
-          case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-          case Some(x) => x
-        }*/
-      case STAR /*if keyList.size < 2 */=>
-        Some(traverseBsonArray(netty, length, arrayFRIdx, keyList, limitList))
-      //      case STAR =>
-      //        Some(goThroughArrayWithLimit(netty,length,arrayFRIdx,keyList.drop(1),limitList)) match {
-      //          case Some(x) if x.isEmpty => None // indexOutOfBounds treatment
-      //          case Some(x) => x
-      //        }
       case _ if keyList.head._2.equals(C_LEVEL) || keyList.head._2.equals(C_NEXT) => None
       case _ if keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.equals(EMPTY_KEY) => None
       case _ =>
         val seqType2: Int = netty.readByte().toInt
-        //println(s"SeqType2: $seqType2")
         if (seqType2 != 0) {
           readArrayPos(netty)
         }
@@ -461,9 +307,7 @@ class BosonImpl(
               val bsonStartReaderIndex: Int = netty.readerIndex()
               val valueTotalLength: Int = netty.readIntLE()
               val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-              //println(s"found obj traversing the array")
               val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-              println(s"extracted from obj -> $midResult")
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BSONARRAY =>
               val startReaderIndex: Int = netty.readerIndex()
@@ -477,7 +321,6 @@ class BosonImpl(
             case D_NULL =>
               None
             case D_INT =>
-              println("found Int, returning None.")
               netty.readIntLE()
               None
             case D_LONG =>
@@ -490,25 +333,20 @@ class BosonImpl(
         finalValue match {
           case None =>
             actualPos2 match {
-              case x if x > 0 =>
-                extractFromBsonArray(netty, length, arrayFRIdx, keyList, limitList)
-              case 0 =>
-                None
+              case x if x > 0 => extractFromBsonArray(netty, length, arrayFRIdx, keyList, limitList)
+              case 0 => None
             }
           case Some(_) =>
             actualPos2 match {
               case x if x > 0 =>
-                //println("going to another pos")
                 finalValue ++ extractFromBsonArray(netty, length, arrayFRIdx, keyList, limitList)
-              case 0 =>
-                //println("reached final pos")
-                finalValue
+              case 0 => finalValue
             }
         }
     }
   }
 
-  private def _compareKeys(netty: ByteBuf, key: String): (Boolean, String) = {
+  private def compareKeys(netty: ByteBuf, key: String): (Boolean, String) = {
     val arrKeyExtract: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = netty.readerIndex()
     while (netty.getByte(i) != 0) {
@@ -517,18 +355,6 @@ class BosonImpl(
     }
     netty.readByte() // consume the end String byte
     (key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep | isHalfword(key, new String(arrKeyExtract.toArray)), new String(arrKeyExtract.toArray))
-  }
-
-  private def compareKeys(netty: ByteBuf, key: String): Boolean = {
-    val arrKeyExtract: ListBuffer[Byte] = new ListBuffer[Byte]
-    var i: Int = netty.readerIndex()
-    while (netty.getByte(i) != 0) {
-      arrKeyExtract.append(netty.readByte())
-      i += 1
-    }
-    println(s"Key: ${new String(arrKeyExtract.toArray)}")
-    netty.readByte() // consume the end String byte
-    key.toCharArray.deep == new String(arrKeyExtract.toArray).toCharArray.deep | isHalfword(key, new String(arrKeyExtract.toArray))
   }
 
   private def resultComposer(list: Seq[Any]): Seq[Any] = {
@@ -544,7 +370,7 @@ class BosonImpl(
   // Constructs a new BsonArray with limits
   private def traverseBsonArray[T](netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
 
-    def constructWithLimits(iter: Int): (Iterable[Any], Int) = {
+    def constructWithLimits(iter: Int): Iterable[Any] = {
       val seqType2: Int = netty.readByte().toInt
       if (seqType2 != 0) {
         readArrayPos(netty)
@@ -555,28 +381,18 @@ class BosonImpl(
             val value: Double = netty.readDoubleLE()
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                //Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
-                //None
                 Some(Seq(value))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
-                    //Transform.toPrimitive(fExt.asInstanceOf[Double => Unit], value)
-                    //None
-                    Some(Seq(value))
+                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 => Some(Seq(value))
                   case Some(_) => None
                   case None =>
                     keyList.head._2 match {
-                    case C_BUILD =>
-                      Some(value)
-                    case _ if keyList.head._1.equals(STAR)=>  Some(value)
-                    case _ =>
-                      println("case none none")
-                      None
-                  }
-
-
+                      case C_BUILD => Some(value)
+                      case _ if keyList.head._1.equals(STAR) => Some(value)
+                      case _ => None
+                    }
                 }
             }
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -585,39 +401,27 @@ class BosonImpl(
             val newField: String = field.toString.filter(p => p != 0)
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                //Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
-                //None
                 Some(Seq(newField))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
-                    //Transform.toPrimitive(fExt.asInstanceOf[String => Unit], newField)
-                    //None
-                    Some(Seq(newField))
+                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 => Some(Seq(newField))
                   case Some(_) => None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD =>
-                        Some(newField)
-                      case _ if keyList.head._1.equals(STAR)=> Some(newField)
-                      case _ =>
-                        println("case none none")
-                        None
+                      case C_BUILD => Some(newField)
+                      case _ if keyList.head._1.equals(STAR) => Some(newField)
+                      case _ => None
                     }
-
-
                 }
             }
           case D_BSONOBJECT =>
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
-            val nextTypeIndex: Int = bsonFinishReaderIndex + 1
             val arr: Array[Byte] = new Array[Byte](valueTotalLength)
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.head._2.equals(C_LIMIT) =>
-                //println(s"inside traverseBsonArray, obj in this Pos: $iter, returning it as byte[]")
                 netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                 Some(resultComposer(Seq(Seq(arr), resultComposer(extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList).toSeq))))
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
@@ -633,28 +437,17 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) && limitList.head._3.equals(C_END) =>
-                    println(s"traversing BsonArray, found OBJ in pos: $iter, case END")
                     val res = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
-                    //println(netty.getByte(nextTypeIndex).toInt)
-//                    println(s"bsonFinishReaderIndex -> $bsonFinishReaderIndex, arrayFRIdx -> $arrayFRIdx")
-//                    println(netty.getByte(bsonFinishReaderIndex))
-//                    println(netty.getByte(nextTypeIndex))
                     netty.getByte(bsonFinishReaderIndex).toInt match {
                       case 0 =>
-                        println("nextType is ZERO")
                         netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                         Some(resultComposer(Seq(Seq(arr), resultComposer(res.toSeq))))
-                      case _ => println("nextType is NOT ZERO")
-                        Some(resultComposer(res.toSeq))
+                      case _ => Some(resultComposer(res.toSeq))
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
-                    //println(s"inside traverseBsonArray, obj in this Pos: $iter, returning it as byte[]")
                     netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                     val res = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList).toSeq
-                    //println(s"traverseBsonArray, extracted from obj in pos: $iter -> $arr and $res")
                     Some(resultComposer(Seq(Seq(arr), resultComposer(res))))
-                  //netty.readerIndex(bsonFinishReaderIndex)
-                  //Some(arr)
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
                     netty.getByte(bsonFinishReaderIndex).toInt match {
                       case 0 =>
@@ -666,12 +459,10 @@ class BosonImpl(
                         None
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
-                    println(s"inside traverseBsonArray, obj in this Pos: $iter, returning it as byte[]")
                     netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                     netty.readerIndex(bsonFinishReaderIndex)
                     Some(Seq(arr))
                   case Some(_) if keyList.head._2.equals(C_LIMIT) =>
-                    //println("inside traverseBsonArray, obj in this Pos: $iter, not inside initial range, going to search inside")
                     val res: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
                     if (res.isEmpty) None else Some(res)
                   case Some(_) =>
@@ -680,25 +471,19 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_LIMIT | C_LIMITLEVEL if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER) =>
-                        println(s"Traversing array, found OBJ and condition of next key is C_FILTER")
                         val copyNetty1: ByteBuf = netty.duplicate()
-                        val copyNetty2: ByteBuf = netty.duplicate()
-                        val midResult = findElements(copyNetty1,copyNetty2,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
+                        val midResult = findElements(copyNetty1, keyList, limitList, bsonStartReaderIndex, bsonFinishReaderIndex)
                         if (midResult.isEmpty) {
-                          println("findElements didnt found nothing")
                           netty.readerIndex(bsonFinishReaderIndex)
                           None
                         } else {
-                          println(s"res from findElements: ${resultComposer(midResult.toSeq)}")
                           netty.readerIndex(bsonFinishReaderIndex)
                           Some(resultComposer(midResult.toSeq))
                         }
                       case C_BUILD =>
-                        val res = extractFromBsonObj(netty, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE))).asInstanceOf[List[List[(String,Any)]]].flatten
+                        val res = extractFromBsonObj(netty, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE))).asInstanceOf[List[List[(String, Any)]]].flatten
                         Some(res)
                       case _ =>
-                        println("case none none")
-                        //None
                         netty.getBytes(bsonStartReaderIndex, arr, 0, valueTotalLength)
                         netty.readerIndex(bsonFinishReaderIndex)
                         Some(arr)
@@ -709,12 +494,9 @@ class BosonImpl(
             val startReaderIndex: Int = netty.readerIndex()
             val valueLength2: Int = netty.readIntLE()
             val finishReaderIndex: Int = startReaderIndex + valueLength2
-            val nextTypeIndex: Int = finishReaderIndex + 1
             val arr: Array[Byte] = new Array[Byte](valueLength2)
-            //println(s"traverseBsonArray, found ARR in pos: $iter")
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.head._2.equals(C_LIMIT) =>
-                //println(s"inside traverseBsonArray, arr in this Pos: $iter, returning it as byte[]")
                 netty.getBytes(startReaderIndex, arr, 0, valueLength2)
                 Some(resultComposer(Seq(Seq(arr), resultComposer(extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList).toSeq))))
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
@@ -730,23 +512,18 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) && limitList.head._3.equals(C_END) =>
-                    println(s"traversing BsonArray, found ARR in pos: $iter, case END, next byte is -> ${netty.getByte(finishReaderIndex).toInt}")
                     val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList)
                     netty.getByte(finishReaderIndex).toInt match {
                       case 0 =>
-                        println("nextType is ZERO")
                         netty.getBytes(startReaderIndex, arr, 0, valueLength2)
                         Some(resultComposer(Seq(Seq(arr), resultComposer(res.toSeq))))
-                      case _ => println("nextType is NOT ZERO")
-                        Some(resultComposer(res.toSeq))
+                      case _ => Some(resultComposer(res.toSeq))
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
-                    //println(s"inside traverseBsonArray, arr in this Pos: $iter, returning it as byte[]")
                     val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList)
                     netty.getBytes(startReaderIndex, arr, 0, valueLength2)
                     Some(resultComposer(Seq(Seq(arr), resultComposer(res.toSeq))))
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
-                    println(s"inside traverseBsonArray, arr in this Pos: $iter, returning it as byte[]")
                     netty.getByte(finishReaderIndex).toInt match {
                       case 0 =>
                         netty.getBytes(startReaderIndex, arr, 0, valueLength2)
@@ -757,7 +534,6 @@ class BosonImpl(
                         None
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
-                    println(s"inside traverseBsonArray, arr in this Pos: $iter, returning it as byte[]")
                     netty.getBytes(startReaderIndex, arr, 0, valueLength2)
                     netty.readerIndex(finishReaderIndex)
                     Some(Seq(arr))
@@ -770,7 +546,7 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))  //TODO:remains untested
+                        val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, List((EMPTY_KEY, C_BUILD)), List((None, None, EMPTY_RANGE)))
                         Some(Seq(res))
                       case C_LIMIT | C_LIMITLEVEL if keyList.size > 1 && keyList.drop(1).head._2.equals(C_FILTER) =>
                         netty.readerIndex(finishReaderIndex)
@@ -786,102 +562,71 @@ class BosonImpl(
             val value: Int = netty.readByte()
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                //Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
-                //None
                 Some(Seq(value == 1))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
-                    //println(s"inside traverseBsonArray, bool in this Pos: $iter, returning it")
-                    //Transform.toPrimitive(fExt.asInstanceOf[Boolean => Unit], value == 1)
-                    //None
-                    Some(Seq(value == 1))
-                  case Some(_) =>
-                    //println(s"inside traverseBsonArray, bool in this Pos: $iter, BUT keylist > 1")
-                    None
+                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 => Some(Seq(value == 1))
+                  case Some(_) => None
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD => Some(value == 1)
-                      case _ if keyList.head._1.equals(STAR)=> Some(value == 1)
-                      case _ =>
-                        println("case none none")
-                        None
+                      case _ if keyList.head._1.equals(STAR) => Some(value == 1)
+                      case _ => None
                     }
-
                 }
             }
           case D_NULL =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-              Some(Seq(V_NULL))
+                Some(Seq(V_NULL))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>  Some(Seq(V_NULL))
+                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 => Some(Seq(V_NULL))
                   case Some(_) => None
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD => Some(V_NULL)
-                      case _ if keyList.head._1.equals(STAR)=> println("inside arr, case STAR, case Null"); Some(V_NULL)
+                      case _ if keyList.head._1.equals(STAR) => Some(V_NULL)
                       case _ => None
                     }
-
                 }
             }
           case D_INT =>
             val value: Int = netty.readIntLE()
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                //Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
-                //None
                 Some(Seq(value))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
-                    //println(s"traversing BsonArray, in pos: $iter, found an Int -> $value")
-                    //Transform.toPrimitive(fExt.asInstanceOf[Int => Unit], value)
-                    //None
-                    Some(Seq(value))
-                  case Some(_) =>
-                    println(s"traversing BsonArray, in pos: $iter, found an Int -> $value, BUT keylist > 1 ")
-                    None
+                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 => Some(Seq(value))
+                  case Some(_) => None
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD => Some(value)
-                      case _ if keyList.head._1.equals(STAR)=>  Some(value)
-                      case _ =>
-                        println("case none none")
-                        None
+                      case _ if keyList.head._1.equals(STAR) => Some(value)
+                      case _ => None
                     }
-
                 }
             }
           case D_LONG =>
             val value: Long = netty.readLongLE()
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.size == 1 =>
-                //Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
-                //None
                 Some(Seq(value))
               case Some(_) => None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 =>
-                    //Transform.toPrimitive(fExt.asInstanceOf[Long => Unit], value)
-                    //None
-                    Some(Seq(value))
+                  case Some(_) if iter >= limitList.head._1.get && keyList.size == 1 => Some(Seq(value))
                   case Some(_) => None
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD => Some(value)
-                      case _ if keyList.head._1.equals(STAR)=>  Some(value)
-                      case _ =>
-                        println("case none none")
-                        None
+                      case _ if keyList.head._1.equals(STAR) => Some(value)
+                      case _ => None
                     }
-
                 }
             }
           case D_ZERO_BYTE =>
@@ -890,38 +635,17 @@ class BosonImpl(
       val actualPos2: Int = arrayFRIdx - netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
-          //println(s"current result: $newSeq")
-          val pair = constructWithLimits(iter + 1)
-          (newSeq ++ pair._1, pair._2)
+          newSeq ++ constructWithLimits(iter + 1)
         case 0 =>
-          (newSeq, iter)
+          newSeq
       }
     }
 
-    val (seq: Iterable[Any], iter: Int) = constructWithLimits(0)
-    val finalIteration = iter - 1
-    println(s"------------------------------------------------------------------------------------------------------------- FINALITERATION -> $finalIteration")
-    val finalSeq: Iterable[Any] =
-      limitList.head._3 match {
-        case UNTIL_RANGE => seq.take(seq.size - 1)
-        case C_END =>
-//          println(s"Coll before END evaluation -> ${seq.zipWithIndex}, type of Seq: ${seq.getClass.getSimpleName}")
-////          val help = seq.zipWithIndex.collect{
-////            case (elem: Seq[_], _: Int) if seq.size == 1 => elem
-////            case (elem: Seq[_], pos: Int) if pos == seq.size - 1 => elem
-////            case (elem: Seq[_], _: Int) => elem.drop(1)
-////          }
-//          val help = seq.zipWithIndex.collect {
-//            case (elem: Seq[_], pos: Int) if pos != finalIteration && seq.size == 1 => elem
-//            case (elem: Seq[_], pos: Int) if pos != finalIteration && pos == seq.size - 1 => elem
-//            case (elem: Seq[_], pos: Int) if pos == finalIteration => elem
-//            case (elem: Seq[_], pos: Int) if pos != finalIteration && elem.size >= 1=> elem.drop(1)
-//          }
-          //println("res from traversing an array with END-> " + seq + " to " + help)
-          seq
-        case _ => seq
-      }
-    finalSeq
+    val seq: Iterable[Any] = constructWithLimits(0)
+    limitList.head._3 match {
+      case UNTIL_RANGE => seq.take(seq.size - 1)
+      case _ => seq
+    }
   }
 
   /*private def  goThroughArrayWithLimit(netty: ByteBuf, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] =  {
@@ -1224,27 +948,32 @@ class BosonImpl(
     }
   }*/
 
-  private def findElements(netty: ByteBuf, nettyUntouched: ByteBuf, keyList: List[(String,String)], limitList: List[(Option[Int], Option[Int], String)],start: Int, finish: Int): Iterable[Any] = {
+  private def findElements(netty: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], start: Int, finish: Int): Iterable[Any] = {
     val seqType: Int = netty.readByte().toInt
     val finalValue: Option[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             netty.readDoubleLE()
             Some(C_MATCH)
           } else {
             netty.readDoubleLE()
-            None}
+            None
+          }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             val valueLength: Int = netty.readIntLE()
             netty.readCharSequence(valueLength, charset)
             Some(C_MATCH)
           } else {
-            netty.readCharSequence(netty.readIntLE(),charset)
-            None}
+            netty.readCharSequence(netty.readIntLE(), charset)
+            None
+          }
         case D_BSONOBJECT =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             val bsonStartReaderIndex: Int = netty.readerIndex()
             val valueTotalLength: Int = netty.readIntLE()
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
@@ -1253,12 +982,12 @@ class BosonImpl(
                 netty.readerIndex(bsonFinishReaderIndex)
                 Some(C_MATCH)
               case C_LIMIT =>
-                Some(extractFromBsonObj(netty.readerIndex(start+4),keyList,finish,limitList)) match {
+                Some(extractFromBsonObj(netty.readerIndex(start + 4), keyList, finish, limitList)) match {
                   case Some(value) if value.isEmpty => Some(C_MATCH)
                   case Some(value) =>
                     val arr: Array[Byte] = new Array[Byte](finish - start)
                     netty.getBytes(start, arr, 0, finish - start)
-                    Some(resultComposer(Seq(Seq(arr),resultComposer(value.toSeq))))
+                    Some(resultComposer(Seq(Seq(arr), resultComposer(value.toSeq))))
                 }
             }
           } else {
@@ -1267,15 +996,16 @@ class BosonImpl(
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case C_LIMITLEVEL =>
-              netty.readerIndex(bsonFinishReaderIndex)
-              None
+                netty.readerIndex(bsonFinishReaderIndex)
+                None
               case C_LIMIT =>
-                val midResult: Iterable[Any] = extractFromBsonObj(netty,keyList,bsonFinishReaderIndex,limitList)
+                val midResult: Iterable[Any] = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             }
           }
         case D_BSONARRAY =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             val arrayStartReaderIndex: Int = netty.readerIndex()
             val valueLength: Int = netty.readIntLE()
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
@@ -1284,13 +1014,13 @@ class BosonImpl(
                 netty.readerIndex(arrayFinishReaderIndex)
                 Some(C_MATCH)
               case C_LIMIT =>
-                Some(extractFromBsonObj(netty.readerIndex(start+4),keyList,finish,limitList)) match {
+                Some(extractFromBsonObj(netty.readerIndex(start + 4), keyList, finish, limitList)) match {
                   case Some(value) if value.isEmpty =>
                     Some(C_MATCH)
                   case Some(value) =>
                     val arr: Array[Byte] = new Array[Byte](finish - start)
                     netty.getBytes(start, arr, 0, finish - start)
-                    Some(resultComposer(Seq(Seq(arr),resultComposer(value.toSeq))))
+                    Some(resultComposer(Seq(Seq(arr), resultComposer(value.toSeq))))
                 }
             }
           } else {
@@ -1313,50 +1043,54 @@ class BosonImpl(
             }
           }
         case D_BOOLEAN =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             netty.readByte()
             Some(C_MATCH)
           } else {
             netty.readByte()
-            None}
+            None
+          }
         case D_NULL =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             Some(C_MATCH)
           } else None
         case D_INT =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             netty.readIntLE()
             Some(C_MATCH)
           } else {
             netty.readIntLE()
-            None}
+            None
+          }
         case D_LONG =>
-          if (comparingFunction(netty, keyList.drop(1).head._1)) {
+          val (matched: Boolean, _: String) = compareKeys(netty, keyList.drop(1).head._1)
+          if (matched) {
             netty.readLongLE()
             Some(C_MATCH)
           } else {
             netty.readLongLE()
-            None}
+            None
+          }
         case D_ZERO_BYTE => None
       }
     val actualPos2: Int = finish - netty.readerIndex()
     actualPos2 match {
-      case x if x > 0 && finalValue.isDefined && finalValue.get.equals(C_MATCH) /*&& keyList.size == 2*/=>
+      case x if x > 0 && finalValue.isDefined && finalValue.get.equals(C_MATCH) =>
         val arr: Array[Byte] = new Array[Byte](finish - start)
         netty.getBytes(start, arr, 0, finish - start)
-        Some(Seq(arr)) ++ findElements(netty,nettyUntouched,keyList,limitList,start,finish)
-//      case _ if finalValue.isDefined && finalValue.get.equals(C_MATCH) && keyList.size > 2 && !keyList.drop(2).head._1.equals(EMPTY_KEY) =>
-//        val midResult: Iterable[Any] = extractFromBsonObj(nettyUntouched,keyList.drop(2),finish,limitList.drop(2))
-//        if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
-      case 0 if finalValue.isDefined && finalValue.get.equals(C_MATCH) /*&& keyList.size == 2*/ =>
+        Some(Seq(arr)) ++ findElements(netty, keyList, limitList, start, finish)
+      case 0 if finalValue.isDefined && finalValue.get.equals(C_MATCH) =>
         val arr: Array[Byte] = new Array[Byte](finish - start)
         netty.getBytes(start, arr, 0, finish - start)
         Some(Seq(arr))
       case x if x > 0 && finalValue.isDefined && keyList.head._2.equals(C_LIMIT) =>
-        Some(finalValue.get) ++ findElements(netty,nettyUntouched,keyList,limitList,start,finish)
+        Some(finalValue.get) ++ findElements(netty, keyList, limitList, start, finish)
       case 0 if finalValue.isDefined && keyList.head._2.equals(C_LIMIT) => Some(finalValue.get)
       case _ if finalValue.isDefined => Some(finalValue.get)
-      case x if x > 0 && finalValue.isEmpty => findElements(netty,nettyUntouched,keyList,limitList,start,finish)
+      case x if x > 0 && finalValue.isEmpty => findElements(netty, keyList, limitList, start, finish)
       case 0 if finalValue.isEmpty => None
     }
   }

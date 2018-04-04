@@ -66,7 +66,7 @@ public class JosonValidate<T> implements Joson {
                     CompletableFuture.supplyAsync(() -> {
                         Option<byte[]> opt = Option.apply(bsonByteEncoding);
                         Option e = Option.empty();
-                        BosonImpl boson = new BosonImpl(opt, e,e);
+                        BosonImpl boson = new BosonImpl(opt, e);
                         callParse(boson, expression);
                         //validateFunction.accept((T)value);
                         return jsonStr;

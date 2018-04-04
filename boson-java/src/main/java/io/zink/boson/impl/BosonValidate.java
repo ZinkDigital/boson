@@ -47,7 +47,7 @@ public class BosonValidate<T> implements Boson {
                 CompletableFuture.supplyAsync(() -> {
                     Option<byte[]> opt = Option.apply(bsonByteEncoding);
                     Option e = Option.empty();
-                    BosonImpl boson = new BosonImpl(opt, e,e);
+                    BosonImpl boson = new BosonImpl(opt, e);
                     callParse(boson, expression);
                     //validateFunction.accept((T)value);
                     return bsonByteEncoding;
@@ -61,7 +61,7 @@ public class BosonValidate<T> implements Boson {
                 CompletableFuture.supplyAsync(() -> {
                     Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
                     Option e = Option.empty();
-                    BosonImpl boson = new BosonImpl(e,opt,e);
+                    BosonImpl boson = new BosonImpl(e,opt);
                     callParse(boson, expression);
                     //validateFunction.accept((T)value);
                     return bsonByteBufferEncoding;

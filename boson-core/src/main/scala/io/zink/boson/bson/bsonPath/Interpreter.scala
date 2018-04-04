@@ -191,10 +191,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     */
   private def extract(encodedStructure: ByteBuf, firstStatement: Statement, statementList: List[Statement], dotsList: List[String]): Any = {
     val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(firstStatement,statementList,dotsList)
-    println(s"keylist: $keyList")
-    println(s"limitlist: $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
-    println(s"final result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -203,7 +200,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
     applyFunction(result,keyList,limitList,typeClass,dotsList)
   }
 
@@ -237,21 +233,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
-          println("case keylist.size = 1")
-          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case 2 if keyList.drop(1).head._2.equals(C_FILTER)=>
-          println("case keylist.size = 2")
-          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case _ =>
-          println("case keylist.size = _")
-          println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
-          println(s"res: $res")
-          println(s"collect from res: ${res.collect{ case arr: Array[Byte] => arr}}")
           res.collect{ case arr: Array[Byte] => arr}.size match {
             case 0 => Seq() //throw CustomException("The given path doesn't correspond with the event structure.")
             case _ =>
@@ -276,7 +264,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
   //TODO: rethink a better strategy to veryfy if T and type of extracted are the same
   private def applyFunction(result: Iterable[Any],keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: List[String]): Any = {
     if (returnInsideSeq(keyList,limitList,dotsList)) {
-      println("return inside Seq")
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING if fExt.isDefined =>
@@ -328,7 +315,6 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
             }
           case ARRAY_BYTE =>
-            println("applyFunction - case byte[] to case Class")
             constructObj(result.asInstanceOf[Seq[Array[Byte]]], List(("*", "build")), List((None, None, "")))
           case ANY =>
             val res: Seq[Any] = result.toSeq
