@@ -65,7 +65,6 @@ public class BosonExtractor<T> implements Boson {
             Option e = Option.empty();
             BosonImpl boson = new BosonImpl(opt, e,e);
             callParse(boson, expression);
-            System.out.println("blaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             //extractFunction.accept((T)value);
             return bsonByteEncoding;
         });

@@ -1171,7 +1171,7 @@ class jpPlusPlusTests extends FunSuite {
     val future: CompletableFuture[Seq[Any]] = new CompletableFuture[Seq[Any]]()
     val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => future.complete(out))
     boson.go(validatedByteArr)
-    assertEquals(Vector(
+    assertEquals(Seq(
       "JavaMachine",
       39,
       "ScalaMachine",
@@ -2749,17 +2749,18 @@ class jpPlusPlusTests extends FunSuite {
   test("Ex Coverage of expression .* on Arrays case 7") {
     val arr: BsonArray = new BsonArray().add(new BsonArray().add(true).add(new BsonArray().add(1))).add(new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)))
     val obj: BsonObject = new BsonObject().put("This", arr)
-    val expression: String = ".This[end].*"
-    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => future.complete(out))
+    println(obj)
+    val expression: String = ".This[end]"
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => future.complete(out))
     boson.go(obj.encodeToBarray())
 
-    val expected: Seq[Array[Byte]] = Seq(new BsonObject().encodeToBarray() ,new BsonArray().add(2).encodeToBarray())
+    val expected: Array[Byte] = new BsonObject().put("some", new BsonObject()).put("field", new BsonArray().add(2)).encodeToBarray()
     val res = future.join()
-    assert(expected.size === res.size)
-    assertTrue(expected.zip(res).forall {
-      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-    })
+    assertArrayEquals(expected,res)
+//    assertTrue(expected.zip(res).forall {
+//      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+//    })
   } //  Checked -> $.This[-1:].*
 
   test("Ex Coverage of expression .* on Arrays case 8") {
