@@ -19,17 +19,20 @@ import scala.util.parsing.combinator.Parsers;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class BosonExtractor<T> implements Boson {
 
     private String expression;
+    private Consumer<T> extractFunction;
     private Function1<T,BoxedUnit> anon;
 
 
     public BosonExtractor(String expression, Consumer<T> extractFunction) {
         this.expression = expression;
+        this.extractFunction = extractFunction;
         this.anon = new Function1<T, BoxedUnit>(){
             @Override
             public BoxedUnit apply(T v1) {
@@ -64,9 +67,13 @@ public class BosonExtractor<T> implements Boson {
             Option<byte[]> opt = Option.apply(bsonByteEncoding);
             Option e = Option.empty();
             BosonImpl boson = new BosonImpl(opt, e,e);
-            callParse(boson, expression);
-            //extractFunction.accept((T)value);
-            return bsonByteEncoding;
+            try {
+                callParse(boson, expression);
+                return bsonByteEncoding;
+            } catch (Exception ex) {
+                extractFunction.accept(null);
+                return null;
+            }
         });
     }
 
@@ -76,9 +83,13 @@ public class BosonExtractor<T> implements Boson {
             Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
             Option e = Option.empty();
             BosonImpl boson = new BosonImpl(e,opt,e);
+            try {
             callParse(boson, expression);
-            //extractFunction.accept((T)value);
             return bsonByteBufferEncoding;
+            } catch (Exception ex) {
+                extractFunction.accept(null);
+                return null;
+            }
         });
     }
 

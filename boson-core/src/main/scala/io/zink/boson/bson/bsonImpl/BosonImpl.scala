@@ -118,6 +118,7 @@ class BosonImpl(
             }
         }
       case Failure(msg) =>
+        println("length is zero, throwing exception")
         throw new RuntimeException(msg)
     }
 
