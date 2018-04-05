@@ -58,7 +58,8 @@ val libraries = Seq(
   "io.netty" % "netty-all" % "4.1.22.Final",
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
-  "org.scala-lang" % "scala-compiler" % "2.11.12"
+  "org.scala-lang" % "scala-compiler" % "2.11.12",
+  "org.parboiled" %% "parboiled" % "2.1.4"
 )
 val testLibraries = Seq(
   "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
