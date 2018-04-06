@@ -1,6 +1,6 @@
 package io.zink.boson.bson.bsonImpl
 
-import shapeless.{::, HList, HNil, LabelledGeneric, Typeable, Witness}
+import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Typeable, Witness}
 import shapeless.labelled.{FieldType, field}
 
 sealed trait extractLabels[L <: HList] {
@@ -11,15 +11,15 @@ trait LowPriorityFromList0 {
   implicit def hconsFromList0[K <: Symbol, V, TAIL <: HList](implicit
                                                              witness: Witness.Aux[K],
                                                              typeable: Typeable[V],
-                                                             extractLabelsT: extractLabels[TAIL]
+                                                             extractLabelsT: Lazy[extractLabels[TAIL]]
                                                             ): extractLabels[FieldType[K, V] :: TAIL] =
     new extractLabels[FieldType[K, V] :: TAIL] {
       override def apply(m: List[(String,Any)]): Option[FieldType[K, V] :: TAIL] = {
         val res =
           for {
-            v <- m.find(elem => elem._1.equals(witness.value.name.toLowerCase)).map(v => v._2)
+            v <- m.find(elem => elem._1.toLowerCase.equals(witness.value.name.toLowerCase)).map(v => v._2)
             h <- typeable.cast(v)
-            t <- extractLabelsT(m)
+            t <- extractLabelsT.value(m)
           } yield {
             field[K](h) :: t
           }
@@ -33,14 +33,14 @@ trait LowPriorityFromList1 extends LowPriorityFromList0 {
                                                                      witness: Witness.Aux[K],
                                                                      gen: LabelledGeneric.Aux[V,R],
                                                                      extH: extractLabels[R],
-                                                                     extT: extractLabels[T]
+                                                                     extT: Lazy[extractLabels[T]]
                                                                     ): extractLabels[FieldType[K,V]::T] = new extractLabels[FieldType[K, V]:: T] {
     override def apply(m: List[(String, Any)]): Option[FieldType[K, V]:: T] =
       for {
-        v <- m.find(elem => elem._1.equals(witness.value.name.toLowerCase)).map(v => v._2)
+        v <- m.find(elem => elem._1.toLowerCase.equals(witness.value.name.toLowerCase)).map(v => v._2)
         r <- Typeable[List[(String,Any)]].cast(v)
         h <- extH(r)
-        t <- extT(m)
+        t <- extT.value(m)
       } yield field[K](gen.from(h)) :: t
   }
 }
@@ -55,17 +55,17 @@ object extractLabels extends LowPriorityFromList1 {
                                                                      witness: Witness.Aux[K],
                                                                      gen: LabelledGeneric.Aux[V,R],
                                                                      extH: extractLabels[R],
-                                                                     extT: extractLabels[T]
+                                                                     extT: Lazy[extractLabels[T]]
                                                                     ): extractLabels[FieldType[K,Seq[V]]::T] = new extractLabels[FieldType[K,Seq[V]]:: T] {
     override def apply(m: List[(String, Any)]): Option[FieldType[K, Seq[V]]:: T] =
       for {
-        v <- m.find(elem => elem._1.equals(witness.value.name.toLowerCase)).map(v => v._2)
+        v <- m.find(elem => elem._1.toLowerCase.equals(witness.value.name.toLowerCase)).map(v => v._2)
         r <- Typeable[Seq[List[(String,Any)]]].cast(v)
         h = {
           val z = r.map(x => extH(x))
           z.collect{case p if p.isDefined => p.get}
         }
-        t <- extT(m)
+        t <- extT.value(m)
       } yield field[K](h.map(p => gen.from(p))) :: t
   }
 

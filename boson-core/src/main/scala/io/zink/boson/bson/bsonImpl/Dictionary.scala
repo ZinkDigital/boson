@@ -34,13 +34,16 @@ object Dictionary {
   val C_LIMIT: String = "limit"
   val C_FILTER: String = "filter"
   val C_ALL: String = "all"
+  val C_ALLDOTS: String = "allDots"
   val C_NEXT: String = "next"
+  val C_ALLNEXT: String = "allNext"
   val C_FIRST: String = "first"
   val C_END: String = "end"
   val C_DOT: String = "."
   val C_DOUBLEDOT: String = ".."
   val C_LAST: String = "last"  // "end" should be used to maintain consistency
   val C_RANDOM: String = "random"
+  val C_BUILD: String = "build"
 
   val V_NULL: String = "Null"
   val C_MATCH: String = "Matched"
@@ -65,6 +68,7 @@ object Dictionary {
   val LONG: String = "Long"
   val BOOLEAN: String = "Boolean"
   val ARRBYTE: String = "byte[]"
+  val ANY: String = "Any"
 
 
 
