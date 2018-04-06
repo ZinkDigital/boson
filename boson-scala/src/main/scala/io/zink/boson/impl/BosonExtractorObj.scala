@@ -4,10 +4,12 @@ import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
+import io.zink.boson.bson.bsonPath.{DSLParser, Interpreter, Program, TinyLanguage}
 import shapeless.{HList, LabelledGeneric, TypeCase}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 /**
   * Whenever this class is instantiated the extraction value type is either a Case Class or a sequence of Case Classes.
@@ -33,20 +35,33 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     * @param expression String parsed to build the extractors.
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def callParse(boson: BosonImpl, expression: String): Any = {
-    val parser = new TinyLanguage
-    try {
-      parser.parseAll(parser.program, expression) match {
-        case parser.Success(r, _) =>
-          new Interpreter[T](boson, r.asInstanceOf[Program]).run()
-        case parser.Error(msg, _) => throw new Exception(msg)
-        case parser.Failure(msg, _) => throw new Exception(msg)
-      }
-    } catch {
-      case e: RuntimeException => throw new Exception(e.getMessage)
-    }
-  }
+//  private def callParse(boson: BosonImpl, expression: String): Any = {
+//    val parser = new TinyLanguage
+//    try {
+//      parser.parseAll(parser.program, expression) match {
+//        case parser.Success(r, _) =>
+//          new Interpreter[T](boson, r.asInstanceOf[Program]).run()
+//        case parser.Error(msg, _) => throw new Exception(msg)
+//        case parser.Failure(msg, _) => throw new Exception(msg)
+//      }
+//    } catch {
+//      case e: RuntimeException => throw new Exception(e.getMessage)
+//    }
+//  }
 
+private def callParse(boson: BosonImpl, expression: String): Unit = {
+  //val parser = new TinyLanguage
+  val parser = new DSLParser(expression)
+  try {
+    parser.Final.run() match {
+      case Success(result) =>
+        new Interpreter[T](boson, result, fExt = Option(extractFunction)).run()
+      case Failure(exc) => throw exc
+    }
+  } catch {
+    case e: RuntimeException => throw new Exception(e.getMessage)
+  }
+}
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor this will result in
