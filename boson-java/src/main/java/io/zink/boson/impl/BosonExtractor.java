@@ -43,14 +43,10 @@ public class BosonExtractor<T> implements Boson {
 
     }
 
-
-    //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
-
     private void callParse(BosonImpl boson, String expression){
         DSLParser parser = new DSLParser(expression);
         try{
-            Try<MoreKeys1> pr = parser.finalRun();
-         //Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
+            Try<ProgStatement> pr = parser.Parse();
          if(pr.isSuccess()){
              Interpreter interpreter = new Interpreter<>(boson, pr.get(), Option.empty(), Option.apply(anon));
              interpreter.run();

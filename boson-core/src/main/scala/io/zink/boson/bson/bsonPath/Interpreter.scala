@@ -1,13 +1,10 @@
 package io.zink.boson.bson.bsonPath
 
 import java.time.Instant
-
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
-
-import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -23,7 +20,7 @@ import scala.util.{Failure, Success, Try}
   * @param fExt Function used in Extraction process.
   * @tparam T Type specified by the User.
   */
-class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T => T] = None, fExt: Option[T => Unit] = None) {
+class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] = None, fExt: Option[T => Unit] = None) {
 
   /**
     * Run is the only public method of the object Interpreter and depending on which function it was instantiated with it chooses whether it starts
@@ -39,16 +36,14 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
   /**
     * Method that initiates the proccess of extraction based on a Statement list provided by the parser.
     *
-    * @param statement  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
+    * @param program List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def start(program: ProgStatement): Any = {
-    //if (statement.nonEmpty) {
+  private def start(program: Statement): Any = {
       program match {
-        case MoreKeys1(list, dots) => extract(boson.getByteBuf, list.head, list.tail, dots)
+        case ProgStatement(list, dots) => extract(boson.getByteBuf, list.head, list.tail, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
-    //} else throw new RuntimeException("List of statements is empty.")
   }
 
   /**
@@ -94,16 +89,16 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     * @param statementList  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
     * @return Tuple with (KeyList,LimitList)
     */
-  private def buildExtractors(firstStatement: ProgStatement, statementList: List[ProgStatement],dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+  private def buildExtractors(firstStatement: Statement, statementList: List[Statement],dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
-        case Key1(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
-        case Key1(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
-        case KeyWithArrExpr1(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-        case KeyWithArrExpr1(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-        case ArrExpr1(l, m, r) if dotsList.head.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-        case ArrExpr1(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
-        case HalfName1(halfName) =>
+        case Key(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
+        case Key(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
+        case KeyWithArrExpr(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case ArrExpr(l, m, r) if dotsList.head.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+        case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
+        case HalfName(halfName) =>
           halfName.equals(STAR) match {
             case true => (List((halfName, C_ALL)), List((None, None, STAR)))
             case false if statementList.nonEmpty && dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
@@ -111,74 +106,48 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
             case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
             case false => (List((halfName, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
           }
-        case HasElem1(key, elem) if dotsList.head.equals(C_DOT) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-        case HasElem1(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-        case ROOT1 => (List((C_DOT, C_DOT)), List((None, None, EMPTY_RANGE)))
+        case HasElem(key, elem) if dotsList.head.equals(C_DOT) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+        case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+        case ROOT => (List((C_DOT, C_DOT)), List((None, None, EMPTY_RANGE)))
       }
-    //println(s"firstList -> $firstList")
-    //println(s"limitList1 -> $limitList1")
+
     if(statementList.nonEmpty) {
       val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
         for {
           statement <- statementList.zip(dotsList.tail)
         } yield {
           statement._1 match {
-            case Key1(key) if statement._2.equals(C_DOT)=> (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) //TODO: Handle the case of ..key..key
-            case Key1(key) => (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
-            case KeyWithArrExpr1(key, arrEx) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-            case KeyWithArrExpr1(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-            case ArrExpr1(l, m, r) if statement._2.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-            case ArrExpr1(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
-            case HalfName1(halfName) =>
+            case Key(key) if statement._2.equals(C_DOT)=> (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case Key(key) => (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
+            case KeyWithArrExpr(key, arrEx) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case ArrExpr(l, m, r) if statement._2.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+            case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
+            case HalfName(halfName) =>
               halfName.equals(STAR) match {
                 case true => (List((halfName, C_ALL)), List((None, None, STAR)))
                 case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
                 case false  => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
-//                case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
-//                case false => (List((halfName, C_ALL)), List((None, None, EMPTY_KEY)))
               }
-            case HasElem1(key, elem) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-            case HasElem1(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+            case HasElem(key, elem) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+            case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
 
           }
         }
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(_._1)
       val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(_._2)
-      //println(s"secondList -> $secondList")
-      //println(s"limitList2 -> $limitList2")
 
       statementList.last match {
-        case HalfName1(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
-        case HalfName1(halfName) if !halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
-//        case HalfName(halfName) if halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
-        case Key1(k) if dotsList.last.equals(C_DOT)=> (secondList.take(secondList.size - 1) ++ List((k, C_LEVEL)), limitList2)
-        case Key1(k) => (secondList.take(secondList.size - 1) ++ List((k, C_ALL)), limitList2)
+        case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
+        case HalfName(halfName) if !halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
+        case Key(k) if dotsList.last.equals(C_DOT)=> (secondList.take(secondList.size - 1) ++ List((k, C_LEVEL)), limitList2)
+        case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, C_ALL)), limitList2)
         case _ => (secondList, limitList2)
       }
     } else {
       (firstList,limitList1)
     }
 
-
-//    val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
-//      for (statement <- statementList) yield {
-//        statement match {
-//          case Key(key) => (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
-//          case KeyWithArrExpr(key, arrEx) => (List((key, C_NEXT), (EMPTY_KEY, C_LIMITLEVEL)), List((None, None, EMPTY_KEY)) ++ defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-//          case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-//          case HalfName(halfName) => (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
-//          case HasElem(key, elem) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-//        }
-//      }
-//    val keyList: List[(String, String)] = forList.flatMap(elem => elem._1)
-//    val limitList: List[(Option[Int], Option[Int], String)] = forList.flatMap(elem => elem._2)
-//
-//    val finalKeyList: List[(String, String)] =
-//      keyList.last._2 match {
-//        case C_NEXT => keyList.take(keyList.size - 1) ++ List((keyList.last._1, C_LEVEL))
-//        case _ => keyList
-//      }
-//    (finalKeyList, limitList)
   }
 
   /**
@@ -189,10 +158,8 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     * @param statementList  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def extract(encodedStructure: ByteBuf, firstStatement: ProgStatement, statementList: List[ProgStatement], dotsList: List[String]): Any = {
+  private def extract(encodedStructure: ByteBuf, firstStatement: Statement, statementList: List[Statement], dotsList: List[String]): Any = {
     val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(firstStatement,statementList,dotsList)
-    //println(s"keyList -> $keyList")
-    //println(s"limitList -> $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
     val typeClass: Option[String] =
       result.size match {
@@ -263,7 +230,7 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     value
   }
 
-  //TODO: rethink a better strategy to veryfy if T and type of extracted are the same
+  //TODO: rethink a better strategy to verify if T and type of extracted are the same
   private def applyFunction(result: Iterable[Any],keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: Seq[String]): Any = {
     if (returnInsideSeq(keyList,limitList,dotsList)) {
       if (typeClass.isDefined) {
@@ -415,39 +382,20 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
       case false =>
         List((Some(left), Some(left), TO_RANGE))
     }
-    //    if(mid.isDefined && right.isDefined) {
-    //      (left, mid.get.toLowerCase, right.get) match {
-    //        case (a, UNTIL_RANGE, C_END) => List((Some(a),None,UNTIL_RANGE))
-    //        case (a, _, C_END) => List((Some(a),None,TO_RANGE))
-    //        case (a, expr, b) if b.isInstanceOf[Int] =>
-    //          expr.toLowerCase match {
-    //            case TO_RANGE => List((Some(a),Some(b.asInstanceOf[Int]),TO_RANGE))
-    //            case UNTIL_RANGE => List((Some(a),Some(b.asInstanceOf[Int]-1),TO_RANGE))
-    //          }
-    //      }
-    //    } else { //[#]
-    //      List((Some(left),Some(left),TO_RANGE))
-    //    }
   }
 
-  private def startInjector(statement: ProgStatement): Array[Byte] = {
-    val stat: MoreKeys1 = statement.asInstanceOf[MoreKeys1]
-    val united: List[ProgStatement] = stat.statementList.+:(stat.statementList.head)
-    val zipped: List[(ProgStatement, String)] =
+  private def startInjector(statement: Statement): Array[Byte] = {
+    val stat: ProgStatement = statement.asInstanceOf[ProgStatement]
+    val united: List[Statement] = stat.statementList.+:(stat.statementList.head)
+    val zipped: List[(Statement, String)] =
       stat.statementList.head match {
-        case ROOT1 => united.map(e => (e, C_DOT))
+        case ROOT => united.map(e => (e, C_DOT))
         case _ => united.zip(stat.dotsList)
       }
-//      if (stat.statementList.head.isInstanceOf[ROOT1]) {
-//        united.map(e => (e, C_DOT))
-//      } else {
-//        united.zip(stat.dotsList)
-//      }
-    println(zipped)
     executeMultipleKeysInjector(zipped)
   }
-  //  TODO: replace Statement -> ProgStatement, etc..
-  private def executeMultipleKeysInjector(statements: List[(ProgStatement, String)]): Array[Byte] = {
+  //  TODO: replace Statement -> Statement, etc..
+  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
     val result: Array[Byte] =
       Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
         case Success(v) =>
@@ -462,31 +410,4 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     boson.getByteBuf.release()
     result
   }
-}
-
-object Compose {
-  //import org.specs2.mutable.Specification
-
-  def composer(value: Array[Any]): Seq[Any] = {
-    val help: ListBuffer[Any] = new ListBuffer[Any]
-    for (elem <- value) {
-      elem match {
-        case e: Array[Any] =>
-          help.append(composer(e))
-        case e: List[Any] =>
-          for (elem <- e) {
-            elem match {
-              case v: Array[Any] =>
-                help.append(composer(v))
-              case v =>
-                help.append(v)
-            }
-          }
-        case e =>
-          help.append(e)
-      }
-    }
-    help.toList
-  }
-
 }

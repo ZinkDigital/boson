@@ -1,112 +1,107 @@
 package io.zink.boson.bson.bsonPath
 
-import org.parboiled2.CharPredicate.Digit
 import org.parboiled2.ParserInput.StringBasedParserInput
 import org.parboiled2._
-import shapeless.HNil
+import scala.util.Try
+import io.zink.boson.bson.bsonImpl.Dictionary._
 
-import scala.collection.immutable
-import scala.util.{Failure, Success, Try}
+sealed abstract class Statement
 
-sealed abstract class ProgStatement
+case class KeyWithArrExpr(key: String, arrEx: ArrExpr) extends Statement
+case class RangeCondition(value: String) extends Statement
+case class ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) extends Statement
+case class HalfName(half: String) extends Statement
+case class HasElem(key: String, elem: String) extends Statement
+case class Key(key: String) extends Statement
+object ROOT extends Statement
+case class ProgStatement(statementList: List[Statement], dotsList: List[String]) extends Statement
 
-case class KeyWithArrExpr1(key: String, arrEx: ArrExpr1) extends ProgStatement
-case class ArrExpr1(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) extends ProgStatement
-case class HalfName1(half: String) extends ProgStatement  { def getValue: String = half}
-case class HasElem1(key: String, elem: String) extends ProgStatement
-case class Key1(key: String) extends ProgStatement  { def getValue: String = key}
-object ROOT1 extends ProgStatement
-
-case class MoreKeys1(statementList: List[ProgStatement], dotsList: List[String]) extends ProgStatement
-
-case class RangeCondition(value: String) extends ProgStatement { def getValue: String = value}
 
 
 class DSLParser(_expression: String) extends Parser with StringBuilding {
 
   var expression: String = _expression
 
+  //  can't be on class constructor because of java api
   def input: ParserInput = new StringBasedParserInput(expression)
 
-  def finalRun(): Try[MoreKeys1] = Final.run()
+  //  the method to call to initiate the parser
+  def Parse(): Try[ProgStatement] = Final.run()
 
   //  the root rule
   def Final = rule {
-    (optional(capture(".." | ".")) ~ Exp ~ EOI ~> {
-      (dots, expr: ProgStatement) => {
-        //println(s"EXPR -> $expr")
+    (optional(capture(C_DOUBLEDOT | C_DOT)) ~ Exp ~ EOI ~> {
+      (dots, expr: Statement) => {
         expr match {
-          case MoreKeys1(listS, listD) if dots.isDefined => MoreKeys1(listS, listD.+:(dots.get))
-          case MoreKeys1(listS, listD) => MoreKeys1(listS, listD.+:(".."))
-          case x if dots.isDefined => MoreKeys1(List(x), List(dots.get))
-          case x => MoreKeys1(List(x), List(".."))
+          case ProgStatement(listS, listD) if dots.isDefined => ProgStatement(listS, listD.+:(dots.get))
+          case ProgStatement(listS, listD) => ProgStatement(listS, listD.+:(C_DOUBLEDOT))
+          case x if dots.isDefined => ProgStatement(List(x), List(dots.get))
+          case x => ProgStatement(List(x), List(C_DOUBLEDOT))
         }
       }
-    }) | _ROOT ~ EOI ~> ((statement: ProgStatement) => MoreKeys1(List(statement), List(".")))
+    }) | _ROOT ~ EOI ~> ((statement: Statement) => ProgStatement(List(statement), List(C_DOT)))
   }
 
-
-
-  def Exp: Rule1[ProgStatement] = rule {
+  def Exp: Rule1[Statement] = rule {
     Statements ~ zeroOrMore(
-      (capture(".." | ".") ~ Statements ~> ((first: ProgStatement, dots: String, second) => {
+      (capture(C_DOUBLEDOT | C_DOT) ~ Statements ~> ((first: Statement, dots: String, second) => {
         first match {
-          case MoreKeys1(listS,listD) => (listS.:+(second),listD.:+(dots))
+          case ProgStatement(listS,listD) => (listS.:+(second),listD.:+(dots))
           case _ => (List(first).:+(second),List(dots))
         }
-      })) ~> (lists =>MoreKeys1(lists._1,lists._2)))
+      })) ~> (lists =>ProgStatement(lists._1,lists._2)))
   }
 
-  def Statements: Rule1[ProgStatement] = rule { _KeyWithArrExpr1 | _ArrExpr | _HasElem | _HalfName | _Key }
+  def Statements: Rule1[Statement] = rule { _KeyWithArrExpr1 | _ArrExpr | _HasElem | _HalfName | _Key }
 
-  def _KeyWithArrExpr1: Rule1[KeyWithArrExpr1] = rule {
+  def _KeyWithArrExpr1: Rule1[KeyWithArrExpr] = rule {
     (_Key | _HalfName) ~ _ArrExpr ~> (
-      (key: ProgStatement, arr: ArrExpr1) => {
+      (key: Statement, arr: ArrExpr) => {
         key match {
-          case Key1(value) => KeyWithArrExpr1(value, arr)
-          case HalfName1(value) => KeyWithArrExpr1(value, arr)
+          case Key(value) => KeyWithArrExpr(value, arr)
+          case HalfName(value) => KeyWithArrExpr(value, arr)
         }
       })
   }
 
-  def _ArrExpr: Rule1[ArrExpr1] = rule { ws('[') ~ (_ArrExprWithConditions | _ArrExprWithRange)  ~ ws(']') }
+  def _ArrExpr: Rule1[ArrExpr] = rule { ws(P_OPEN_BRACKET) ~ (_ArrExprWithConditions | _ArrExprWithRange)  ~ ws(P_CLOSE_BRACKET) }
 
-  def _ArrExprWithRange: Rule1[ArrExpr1] = rule {
-    Numbers ~ WhiteSpace ~ optional(_RangeCondition) ~ WhiteSpace ~ optional(Numbers| capture("end")) ~> ((leftInt: Int,mid,right) => ArrExpr1(leftInt, mid,right))
+  def _ArrExprWithRange: Rule1[ArrExpr] = rule {
+    Numbers ~ WhiteSpace ~ optional(_RangeCondition) ~ WhiteSpace ~ optional(Numbers| capture(C_END)) ~> ((leftInt: Int,mid,right) => ArrExpr(leftInt, mid,right))
   }
 
-  def _ArrExprWithConditions: Rule1[ArrExpr1] = rule {
-    (capture("first") | capture("end") | capture("all")) ~> ((cond: String) => ArrExpr1(0,Some(RangeCondition(cond)),None))
+  def _ArrExprWithConditions: Rule1[ArrExpr] = rule {
+    (capture(C_FIRST) | capture(C_END) | capture(C_ALL)) ~> ((cond: String) => ArrExpr(0,Some(RangeCondition(cond)),None))
   }
 
-  def _HasElem: Rule1[HasElem1] = rule {
-    (HalfNameUnwrapped | Word) ~ ws('[') ~ ws('@') ~ (HalfNameUnwrapped | Word) ~ ws(']') ~> {
-      (first: String,second: String) => HasElem1(first,second)
+  def _HasElem: Rule1[HasElem] = rule {
+    (HalfNameUnwrapped | Word) ~ ws(P_OPEN_BRACKET) ~ ws(P_HASELEM_AT) ~ (HalfNameUnwrapped | Word) ~ ws(P_CLOSE_BRACKET) ~> {
+      (first: String,second: String) => HasElem(first,second)
     }
   }
 
-  def _Key: Rule1[Key1] = rule { Word ~> Key1 }
+  def _Key: Rule1[Key] = rule { Word ~> Key }
 
-  def _HalfName: Rule1[HalfName1] = rule { HalfNameUnwrapped ~> HalfName1 }
+  def _HalfName: Rule1[HalfName] = rule { HalfNameUnwrapped ~> HalfName }
 
   def HalfNameUnwrapped = rule {
-    (capture(ws('*')) ~ zeroOrMore(
-      Word ~ ws('*') ~> ((first: String,second) => first.concat(second).concat("*")) |
+    (capture(ws(P_STAR)) ~ zeroOrMore(
+      Word ~ ws(P_STAR) ~> ((first: String,second) => first.concat(second).concat(STAR)) |
         Word ~> ((first: String,second) => first.concat(second))
     )) |
       (Word ~ oneOrMore(
-        ws('*') ~ Word ~> ((first: String, second) => first.concat("*").concat(second)) |
-          ws('*') ~> ((first: String) => first.concat("*"))
+        ws(P_STAR) ~ Word ~> ((first: String, second) => first.concat(STAR).concat(second)) |
+          ws(P_STAR) ~> ((first: String) => first.concat(STAR))
       ))
   }
 
-  def _ROOT = rule { OneDot ~ push(ROOT1) }
+  def _ROOT = rule { OneDot ~ push(ROOT) }
 
-  def Word = rule{ capture(oneOrMore("a"-"z" | "A"-"Z" | """\u00C0""" - """\u017F""") ~ !anyOf(" ")) }
+  def Word = rule{ capture(oneOrMore("a"-"z" | "A"-"Z" | """\u00C0""" - """\u017F""")) }
 
-  def _RangeCondition: Rule[HNil, shapeless.::[RangeCondition, HNil]] = rule { RangeConditionUnwrapped ~> RangeCondition}
+  def _RangeCondition = rule { RangeConditionUnwrapped ~> RangeCondition}
 
-  def RangeConditionUnwrapped: Rule[HNil, shapeless.::[String, HNil]] = rule { clearSB() ~ ("to" ~ appendSB("to") | "until" ~ appendSB("until")) ~ push(sb.toString) }
+  def RangeConditionUnwrapped = rule { clearSB() ~ (TO_RANGE ~ appendSB(TO_RANGE) | UNTIL_RANGE ~ appendSB(UNTIL_RANGE)) ~ push(sb.toString) }
 
   def Numbers = rule { capture(Digits) ~> (_.toInt) }
 
@@ -116,47 +111,8 @@ class DSLParser(_expression: String) extends Parser with StringBuilding {
 
   def ws(c: Char) = rule { c }
 
-  //def Dots = rule { OneDot | TwoDots }
-
   val WhiteSpaceChar = CharPredicate(" \n\r\t\f")
 
-  val OneDot = CharPredicate(".")
-
-  //val TwoDots = CharPredicate("..")
-
-}
-
-object Main extends App {
-
-//  parse("Àñçónío")  //Key
-//  parse("Ze[0 until 9]")  //KeyWithArr
-//  parse("[3 to 11]")  //ArrExpr
-//  println()
-//  parse("lol*") //HalfName
-//  parse("lol*l")  //HalfName
-//  parse("lol*l*l*l*l*l*")  //HalfName
-//  parse("*werty") //HalfName
-//  parse("*wert*") //HalfName
-//  parse("*nf*nit*") //HalfName
-//  parse("*") //HalfName
-//
-//  parse(".")  //ROOT
-//
-//  parse("qwerty[@min]") //HasElem
-//  parse("qwe*rty[@m*n]") //HasElem
-//  parse("qwe*t*[@min]") //HasElem
-//  parse("qwerty[@*i*]") //HasElem
-
-  //parse(".Store.Book[0]..SpecialEditions[@Price].Title")
-  parse("..*k[all]..[0]")
-
-
-  def parse(expression: String)/*: ProgStatement*/ = {
-    val parser = new DSLParser(expression)
-    parser.Final.run() match {
-      case Success(result)  =>  println(result)//;result
-      case Failure(e)  => throw e
-    }
-  }
+  val OneDot = CharPredicate(C_DOT)
 
 }

@@ -19,7 +19,7 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
   private def parseInj(netty: BosonImpl): Unit = {
     val parser = new DSLParser(expression)
     try {
-      parser.finalRun() match {
+      parser.Parse() match {
         case Success(result) =>
           new Interpreter[T](netty, result, fInj = Option(anon)).run()
         case Failure(exc) => throw exc

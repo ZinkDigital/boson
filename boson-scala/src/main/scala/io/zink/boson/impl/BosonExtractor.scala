@@ -30,7 +30,7 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
 private def callParse(boson: BosonImpl, expression: String): Unit = {
   val parser = new DSLParser(expression)
   try {
-    parser.finalRun() match {
+    parser.Parse() match {
       case Success(result) =>
         new Interpreter[T](boson, result, fExt = Option(extractFunction)).run()
       case Failure(exc) => throw exc

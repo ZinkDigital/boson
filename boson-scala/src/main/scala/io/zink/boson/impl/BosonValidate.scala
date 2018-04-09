@@ -15,7 +15,7 @@ class BosonValidate[T](expression: String, validateFunction: T => Unit) extends 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
     val parser = new DSLParser(expression)
     try {
-      parser.finalRun() match {
+      parser.Parse() match {
         case Success(result) =>
           new Interpreter[T](boson, result, fExt = Option(validateFunction)).run()
         case Failure(exc) => throw exc

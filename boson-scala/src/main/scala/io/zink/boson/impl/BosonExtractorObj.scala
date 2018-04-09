@@ -1,12 +1,10 @@
 package io.zink.boson.impl
 
 import java.nio.ByteBuffer
-
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
-import io.zink.boson.bson.bsonPath.{DSLParser, Interpreter, Program, TinyLanguage}
+import io.zink.boson.bson.bsonPath.{DSLParser, Interpreter}
 import shapeless.{HList, LabelledGeneric, TypeCase}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -38,7 +36,7 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
 private def callParse(boson: BosonImpl, expression: String): Any = {
   val parser = new DSLParser(expression)
   try {
-    parser.finalRun() match {
+    parser.Parse() match {
       case Success(result) =>
         new Interpreter[T](boson, result).run()
       case Failure(exc) => throw exc
