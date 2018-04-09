@@ -6,7 +6,6 @@ import java.nio.charset.Charset
 object Dictionary {
   // BUFFERS CONSTANTS
   val EMPTY_CONSTRUCTOR: String = "EmptyConstructor"
-  val SCALA_ARRAYBUF: String = "ArrayBuffer"
   val JAVA_BYTEBUFFER: String = "HeapByteBuffer"
   val ARRAY_BYTE: String = "byte[]"
 
