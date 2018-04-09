@@ -2,19 +2,19 @@ package io.zink.boson.impl;
 
 
 import io.zink.boson.bson.bsonImpl.BosonImpl;
-import io.zink.boson.bson.bsonPath.Interpreter;
-import io.zink.boson.bson.bsonPath.Program;
-import io.zink.boson.bson.bsonPath.TinyLanguage;
+import io.zink.boson.bson.bsonPath.*;
 //import io.zink.boson.bson.bsonValue.BsException$;
 //import io.zink.boson.bson.bsonValue.BsObject$;
 //import io.zink.boson.bson.bsonValue.BsValue;
 //import io.zink.boson.bson.bsonValue.Writes$;
 import io.zink.boson.Boson;
 
+import org.parboiled2.ParserInput;
 import scala.Function1;
 import scala.Option;
 import scala.Unit;
 import scala.runtime.BoxedUnit;
+import scala.util.Try;
 import scala.util.parsing.combinator.Parsers;
 
 import java.nio.ByteBuffer;
@@ -47,11 +47,12 @@ public class BosonExtractor<T> implements Boson {
     //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
     private void callParse(BosonImpl boson, String expression){
-        TinyLanguage parser = new TinyLanguage();
+        DSLParser parser = new DSLParser(expression);
         try{
-         Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
-         if(pr.successful()){
-             Interpreter interpreter = new Interpreter<T>(boson, (Program) pr.get(),Option.empty(), Option.apply(anon));
+            Try<MoreKeys1> pr = parser.finalRun();
+         //Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
+         if(pr.isSuccess()){
+             Interpreter interpreter = new Interpreter<>(boson, pr.get(), Option.empty(), Option.apply(anon));
              interpreter.run();
          }else{
              throw new RuntimeException("Failure/Error parsing!");

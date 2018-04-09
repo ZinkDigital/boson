@@ -45,7 +45,7 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
   private def start(program: ProgStatement): Any = {
     //if (statement.nonEmpty) {
       program match {
-        case MoreKeys1(list, dots) => extract(boson.getByteBuf, list.head, list, dots)
+        case MoreKeys1(list, dots) => extract(boson.getByteBuf, list.head, list.tail, dots)
         case _ => throw new RuntimeException("Something went wrong!!!")
       }
     //} else throw new RuntimeException("List of statements is empty.")
@@ -94,7 +94,7 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     * @param statementList  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
     * @return Tuple with (KeyList,LimitList)
     */
-  private def buildExtractors(firstStatement: ProgStatement, statementList: Seq[ProgStatement],dotsList: Seq[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+  private def buildExtractors(firstStatement: ProgStatement, statementList: List[ProgStatement],dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
     val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
       firstStatement match {
         case Key1(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
@@ -189,8 +189,10 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     * @param statementList  List of statements used to create the pairs of (Key,Condition) and (Range,Condition)
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def extract(encodedStructure: ByteBuf, firstStatement: ProgStatement, statementList: Seq[ProgStatement], dotsList: Seq[String]): Any = {
+  private def extract(encodedStructure: ByteBuf, firstStatement: ProgStatement, statementList: List[ProgStatement], dotsList: List[String]): Any = {
     val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) = buildExtractors(firstStatement,statementList,dotsList)
+    //println(s"keyList -> $keyList")
+    //println(s"limitList -> $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
     val typeClass: Option[String] =
       result.size match {
@@ -392,16 +394,16 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
     * @param right  Integer representing the upper limit of a Range.
     * @return Returns a Tuple3 used to represent a range.
     */
-  private def defineLimits(left: Int, mid: Option[String], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
+  private def defineLimits(left: Int, mid: Option[RangeCondition], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
     mid.isDefined match {
       case true if right.isEmpty =>
-        mid.get match {
+        mid.get.value match {
           case C_FIRST => List((Some(0), Some(0), TO_RANGE))
           case C_ALL => List((Some(0), None, TO_RANGE))
           case C_END => List((Some(0), None, C_END))
         }
       case true if right.isDefined =>
-        (left, mid.get.toLowerCase, right.get) match {
+        (left, mid.get.value.toLowerCase, right.get) match {
           case (a, UNTIL_RANGE, C_END) => List((Some(a), None, UNTIL_RANGE))
           case (a, _, C_END) => List((Some(a), None, TO_RANGE))
           case (a, expr, b) if b.isInstanceOf[Int] =>
@@ -430,18 +432,22 @@ class Interpreter[T](boson: BosonImpl, program: ProgStatement, fInj: Option[T =>
 
   private def startInjector(statement: ProgStatement): Array[Byte] = {
     val stat: MoreKeys1 = statement.asInstanceOf[MoreKeys1]
-    val united: Seq[ProgStatement] = stat.statementList.+:(stat.statementList.head)
-    val zipped: Seq[(ProgStatement, String)] =
-      if (stat.statementList.head.isInstanceOf[ROOT1]) {
-        united.map(e => (e, C_DOT))
-      } else {
-        united.zip(stat.dotsList)
+    val united: List[ProgStatement] = stat.statementList.+:(stat.statementList.head)
+    val zipped: List[(ProgStatement, String)] =
+      stat.statementList.head match {
+        case ROOT1 => united.map(e => (e, C_DOT))
+        case _ => united.zip(stat.dotsList)
       }
+//      if (stat.statementList.head.isInstanceOf[ROOT1]) {
+//        united.map(e => (e, C_DOT))
+//      } else {
+//        united.zip(stat.dotsList)
+//      }
     println(zipped)
     executeMultipleKeysInjector(zipped)
   }
-
-  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
+  //  TODO: replace Statement -> ProgStatement, etc..
+  private def executeMultipleKeysInjector(statements: List[(ProgStatement, String)]): Array[Byte] = {
     val result: Array[Byte] =
       Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
         case Success(v) =>

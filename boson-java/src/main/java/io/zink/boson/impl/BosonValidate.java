@@ -1,11 +1,10 @@
 package io.zink.boson.impl;
 
 import io.zink.boson.bson.bsonImpl.BosonImpl;
-import io.zink.boson.bson.bsonPath.Interpreter;
-import io.zink.boson.bson.bsonPath.Program;
-import io.zink.boson.bson.bsonPath.TinyLanguage;
+import io.zink.boson.bson.bsonPath.*;
 import io.zink.boson.Boson;
 import scala.Option;
+import scala.util.Try;
 import scala.util.parsing.combinator.Parsers;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -25,11 +24,11 @@ public class BosonValidate<T> implements Boson {
     //private Function<String, BsValue> writer = (str) -> BsException$.MODULE$.apply(str);
 
     private void callParse(BosonImpl boson, String expression){
-        TinyLanguage parser = new TinyLanguage();
+        DSLParser parser = new DSLParser(expression);
         try{
-            Parsers.ParseResult pr = parser.parseAll(parser.program(), expression);
-            if(pr.successful()){
-                Interpreter interpreter = new Interpreter(boson, (Program) pr.get(), Option.empty(), Option.apply(validateFunction));
+            Try<MoreKeys1> pr = parser.finalRun();
+            if(pr.isSuccess()){
+                Interpreter interpreter = new Interpreter(boson, pr.get(), Option.empty(), Option.apply(validateFunction));
                 interpreter.run();
             }else{
                 throw new RuntimeException("Failure/Error parsing!");

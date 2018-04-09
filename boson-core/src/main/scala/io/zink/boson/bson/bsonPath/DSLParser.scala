@@ -1,11 +1,12 @@
 package io.zink.boson.bson.bsonPath
 
 import org.parboiled2.CharPredicate.Digit
+import org.parboiled2.ParserInput.StringBasedParserInput
 import org.parboiled2._
 import shapeless.HNil
 
 import scala.collection.immutable
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 sealed abstract class ProgStatement
 
@@ -16,50 +17,73 @@ case class HasElem1(key: String, elem: String) extends ProgStatement
 case class Key1(key: String) extends ProgStatement  { def getValue: String = key}
 object ROOT1 extends ProgStatement
 
-case class MoreKeys1(statementList: Seq[ProgStatement], dotsList: Seq[String]) extends ProgStatement
+case class MoreKeys1(statementList: List[ProgStatement], dotsList: List[String]) extends ProgStatement
 
 case class RangeCondition(value: String) extends ProgStatement { def getValue: String = value}
 
 
-class DSLParser(val input: ParserInput) extends Parser with StringBuilding {
+class DSLParser(_expression: String) extends Parser with StringBuilding {
+
+  var expression: String = _expression
+
+  def input: ParserInput = new StringBasedParserInput(expression)
+
+  def finalRun(): Try[MoreKeys1] = Final.run()
 
   //  the root rule
-
   def Final = rule {
-    optional(capture(".." | ".")) ~ Exp ~> {
-      (dots, expr: MoreKeys1) => {
-          if (dots.isDefined) MoreKeys1(expr.statementList, expr.dotsList.+:(dots.get))
-          else MoreKeys1(expr.statementList, expr.dotsList.+:(".."))
+    (optional(capture(".." | ".")) ~ Exp ~ EOI ~> {
+      (dots, expr: ProgStatement) => {
+        //println(s"EXPR -> $expr")
+        expr match {
+          case MoreKeys1(listS, listD) if dots.isDefined => MoreKeys1(listS, listD.+:(dots.get))
+          case MoreKeys1(listS, listD) => MoreKeys1(listS, listD.+:(".."))
+          case x if dots.isDefined => MoreKeys1(List(x), List(dots.get))
+          case x => MoreKeys1(List(x), List(".."))
         }
-    }
+      }
+    }) | _ROOT ~ EOI ~> ((statement: ProgStatement) => MoreKeys1(List(statement), List(".")))
   }
 
 
 
-  def Exp: Rule1[MoreKeys1] = rule {
-    Statements ~ oneOrMore(
+  def Exp: Rule1[ProgStatement] = rule {
+    Statements ~ zeroOrMore(
       (capture(".." | ".") ~ Statements ~> ((first: ProgStatement, dots: String, second) => {
         first match {
           case MoreKeys1(listS,listD) => (listS.:+(second),listD.:+(dots))
-          case _ => (Seq(first).:+(second),Seq(dots))
+          case _ => (List(first).:+(second),List(dots))
         }
       })) ~> (lists =>MoreKeys1(lists._1,lists._2)))
   }
 
-  def Statements: Rule1[ProgStatement] = rule { _HasElem | _HalfName | _KeyWithArrExpr1 | _ArrExpr | _Key/*| _ROOT*/}
+  def Statements: Rule1[ProgStatement] = rule { _KeyWithArrExpr1 | _ArrExpr | _HasElem | _HalfName | _Key }
 
-  def _KeyWithArrExpr1: Rule1[KeyWithArrExpr1] = rule { _Key ~ _ArrExpr ~> ((key: Key1,arr: ArrExpr1) => KeyWithArrExpr1(key.key,arr)) }
+  def _KeyWithArrExpr1: Rule1[KeyWithArrExpr1] = rule {
+    (_Key | _HalfName) ~ _ArrExpr ~> (
+      (key: ProgStatement, arr: ArrExpr1) => {
+        key match {
+          case Key1(value) => KeyWithArrExpr1(value, arr)
+          case HalfName1(value) => KeyWithArrExpr1(value, arr)
+        }
+      })
+  }
 
-  def _ArrExpr: Rule1[ArrExpr1] = rule { ws('[') ~ Numbers ~ WhiteSpace ~ optional(_RangeCondition) ~ WhiteSpace ~ optional(Numbers) ~ ws(']') ~>
-    ((leftInt: Int,mid,rightInt) => ArrExpr1(leftInt, mid,rightInt)) }
+  def _ArrExpr: Rule1[ArrExpr1] = rule { ws('[') ~ (_ArrExprWithConditions | _ArrExprWithRange)  ~ ws(']') }
+
+  def _ArrExprWithRange: Rule1[ArrExpr1] = rule {
+    Numbers ~ WhiteSpace ~ optional(_RangeCondition) ~ WhiteSpace ~ optional(Numbers| capture("end")) ~> ((leftInt: Int,mid,right) => ArrExpr1(leftInt, mid,right))
+  }
+
+  def _ArrExprWithConditions: Rule1[ArrExpr1] = rule {
+    (capture("first") | capture("end") | capture("all")) ~> ((cond: String) => ArrExpr1(0,Some(RangeCondition(cond)),None))
+  }
 
   def _HasElem: Rule1[HasElem1] = rule {
     (HalfNameUnwrapped | Word) ~ ws('[') ~ ws('@') ~ (HalfNameUnwrapped | Word) ~ ws(']') ~> {
       (first: String,second: String) => HasElem1(first,second)
     }
   }
-
-  //def Value = rule { (_Key | _HalfName) ~> (Program1(List(_)))}
 
   def _Key: Rule1[Key1] = rule { Word ~> Key1 }
 
@@ -78,7 +102,7 @@ class DSLParser(val input: ParserInput) extends Parser with StringBuilding {
 
   def _ROOT = rule { OneDot ~ push(ROOT1) }
 
-  def Word = rule{ capture(oneOrMore("a"-"z" | "A"-"Z" | """\u00C0""" - """\u017F""")) }
+  def Word = rule{ capture(oneOrMore("a"-"z" | "A"-"Z" | """\u00C0""" - """\u017F""") ~ !anyOf(" ")) }
 
   def _RangeCondition: Rule[HNil, shapeless.::[RangeCondition, HNil]] = rule { RangeConditionUnwrapped ~> RangeCondition}
 
@@ -123,7 +147,8 @@ object Main extends App {
 //  parse("qwe*t*[@min]") //HasElem
 //  parse("qwerty[@*i*]") //HasElem
 
-  parse(".Store.Book[0]..SpecialEditions[@Price].Title")
+  //parse(".Store.Book[0]..SpecialEditions[@Price].Title")
+  parse("..*k[all]..[0]")
 
 
   def parse(expression: String)/*: ProgStatement*/ = {

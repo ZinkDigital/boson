@@ -177,7 +177,7 @@ class HorribleTests extends FunSuite {
   }
 
   test("array prob 1") {
-    val expression: String = "   José[     0    to   end      ]"
+    val expression: String = "José[0    to   end]"
     val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
       val expected: Seq[Any] = Vector("Tarantula", "Aracnídius", br4.encodeToBarray(), "Spider", "Fly")
       assertTrue(expected.zip(out).forall {
@@ -190,7 +190,7 @@ class HorribleTests extends FunSuite {
   }
 
   test("array prob 2") {
-    val expression: String = "[     0    to   end      ]"
+    val expression: String = "[0    to   end]"
     val expected: Seq[Any] =
       Seq(
         arr11.getBsonObject(0).encodeToBarray(),
@@ -218,7 +218,7 @@ class HorribleTests extends FunSuite {
   test("array prob 5") {
     br3.add("Wrong")
     br2.add("some")
-    val expression: String = "José[0 until end]  "
+    val expression: String = "José[0 until end]"
     val expected: Seq[String] = Seq(
       "Tarantula",
       "Aracnídius",

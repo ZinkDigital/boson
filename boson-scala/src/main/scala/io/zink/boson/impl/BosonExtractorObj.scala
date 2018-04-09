@@ -35,27 +35,12 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     * @param expression String parsed to build the extractors.
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-//  private def callParse(boson: BosonImpl, expression: String): Any = {
-//    val parser = new TinyLanguage
-//    try {
-//      parser.parseAll(parser.program, expression) match {
-//        case parser.Success(r, _) =>
-//          new Interpreter[T](boson, r.asInstanceOf[Program]).run()
-//        case parser.Error(msg, _) => throw new Exception(msg)
-//        case parser.Failure(msg, _) => throw new Exception(msg)
-//      }
-//    } catch {
-//      case e: RuntimeException => throw new Exception(e.getMessage)
-//    }
-//  }
-
-private def callParse(boson: BosonImpl, expression: String): Unit = {
-  //val parser = new TinyLanguage
+private def callParse(boson: BosonImpl, expression: String): Any = {
   val parser = new DSLParser(expression)
   try {
-    parser.Final.run() match {
+    parser.finalRun() match {
       case Success(result) =>
-        new Interpreter[T](boson, result, fExt = Option(extractFunction)).run()
+        new Interpreter[T](boson, result).run()
       case Failure(exc) => throw exc
     }
   } catch {

@@ -3,12 +3,11 @@ package io.zink.boson.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.zink.boson.bson.bsonImpl.BosonImpl;
-import io.zink.boson.bson.bsonPath.Interpreter;
-import io.zink.boson.bson.bsonPath.Program;
-import io.zink.boson.bson.bsonPath.TinyLanguage;
+import io.zink.boson.bson.bsonPath.*;
 import io.zink.boson.Boson;
 import scala.Function1;
 import scala.Option;
+import scala.util.Try;
 import scala.util.parsing.json.Parser;
 
 import java.nio.ByteBuffer;
@@ -38,13 +37,11 @@ public class BosonInjector<T> implements Boson {
     //private Function<String,BsValue> writer = BsException$.MODULE$::apply;
 
     private byte[] parseInj(BosonImpl netty, Function1<T,T> injectFunc, String expression){
-        TinyLanguage parser = new TinyLanguage();
+        DSLParser parser = new DSLParser(expression);
         try{
-
-            Parser.ParseResult pr = parser.parseAll(parser.program(), expression);
-            if(pr.successful()){
-
-                Interpreter interpreter = new Interpreter(netty, (Program) pr.get(), apply(injectFunc),empty());
+            Try<MoreKeys1> pr = parser.finalRun();
+            if(pr.isSuccess()){
+                Interpreter interpreter = new Interpreter(netty, pr.get(), apply(injectFunc),empty());
                 return (byte[])interpreter.run();
             }else{
                 throw new RuntimeException("Error inside interpreter.run() ");
