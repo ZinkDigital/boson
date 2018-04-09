@@ -70,4 +70,17 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
 
   override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 
+  override def go(bsonByteEncoding: String): Future[String] = {
+    val future: Future[String] =
+      Future {
+        val boson: BosonImpl = new BosonImpl(stringJson = Option(bsonByteEncoding))
+        callParse(boson, expression)
+        //println("BosonExtractor GO")
+
+        //val gen0 = new LabelledGeneric.Aux[T, L]
+
+        bsonByteEncoding
+      }
+    future
+  }
 }

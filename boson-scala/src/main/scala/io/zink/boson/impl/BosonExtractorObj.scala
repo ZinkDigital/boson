@@ -75,6 +75,26 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     future
   }
 
+  override def go(bsonByteEncoding: String): Future[String] = {
+    val future: Future[String] =
+      Future {
+        val boson: BosonImpl = new BosonImpl(stringJson = Option(bsonByteEncoding))
+        val midRes: Any = callParse(boson, expression)
+        val seqTuples = TypeCase[Seq[List[(String,Any)]]]
+        val result: Seq[T] =
+          midRes match {
+            case seqTuples(vs) =>
+              vs.par.map{ elem =>
+                extractLabels.to[T].from[gen.Repr](elem)
+              }.seq.collect { case v if v.nonEmpty => v.get }
+            case _ => Seq.empty[T]
+          }
+        if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
+        bsonByteEncoding
+      }
+    future
+  }
+
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor tis will result in
