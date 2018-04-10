@@ -3,14 +3,11 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import shapeless.{Generic, HList, LabelledGeneric, Typeable}
-//import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
-
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonPath.{DSLParser, Interpreter}
+import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.reflect.runtime.universe._
 
 /**
   * Boson instance which aims to handle extraction of primitive types or sequences of them.
@@ -30,19 +27,18 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
     * @param boson Instance of BosonImpl.
     * @param expression String parsed to build the extractors.
     */
-  private def callParse(boson: BosonImpl, expression: String): Unit = {
-    val parser = new TinyLanguage
-    try {
-      parser.parseAll(parser.program, expression) match {
-        case parser.Success(r, _) =>
-          new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(extractFunction)).run()
-        case parser.Error(msg, _) => throw new Exception(msg)
-        case parser.Failure(msg, _) => throw new Exception(msg)
-      }
-    } catch {
-      case e: RuntimeException => throw new Exception(e.getMessage)
+private def callParse(boson: BosonImpl, expression: String): Unit = {
+  val parser = new DSLParser(expression)
+  try {
+    parser.Parse() match {
+      case Success(result) =>
+        new Interpreter[T](boson, result, fExt = Option(extractFunction)).run()
+      case Failure(exc) => throw exc
     }
+  } catch {
+    case e: RuntimeException => throw new Exception(e.getMessage)
   }
+}
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] =

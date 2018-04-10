@@ -4,12 +4,10 @@ import bsonLib.BsonObject
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
 import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
 import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.io.Source

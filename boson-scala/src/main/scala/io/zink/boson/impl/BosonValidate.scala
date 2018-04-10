@@ -3,11 +3,9 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
-import io.zink.boson.bson.bsonPath.{Interpreter, Program, TinyLanguage}
-import shapeless.{HList, LabelledGeneric, Typeable}
-//import io.zink.boson.bson.bsonValue.{BsObject, BsValue}
-
+import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonPath.{DSLParser, Interpreter}
+import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -15,22 +13,15 @@ import scala.concurrent.Future
 class BosonValidate[T](expression: String, validateFunction: T => Unit) extends Boson{
 
   private def callParse(boson: BosonImpl, expression: String): Unit = {
-    val parser = new TinyLanguage
+    val parser = new DSLParser(expression)
     try {
-      parser.parseAll(parser.program, expression) match {
-        case parser.Success(r, _) =>
-          new Interpreter[T](boson, r.asInstanceOf[Program], fExt = Option(validateFunction)).run()
-        case parser.Error(msg, _) =>
-          throw new Exception(msg)
-          //BsObject.toBson(msg)
-        case parser.Failure(msg, _) =>
-          throw new Exception(msg)
-          //BsObject.toBson(msg)
+      parser.Parse() match {
+        case Success(result) =>
+          new Interpreter[T](boson, result, fExt = Option(validateFunction)).run()
+        case Failure(exc) => throw exc
       }
     } catch {
-      case e: RuntimeException =>
-        throw new Exception(e.getMessage)
-      //BsObject.toBson(e.getMessage)
+      case e: RuntimeException => throw new Exception(e.getMessage)
     }
   }
 
@@ -39,12 +30,6 @@ class BosonValidate[T](expression: String, validateFunction: T => Unit) extends 
       val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
         callParse(boson,expression)
         bsonByteEncoding
-//      match {
-//        case (res: BsValue) =>
-//          validateFunction(res.getValue.asInstanceOf[T])
-//        case _ =>
-//          throw new RuntimeException("BosonExtractor -> go() default case!!!")
-//      }
     }
   }
 
@@ -53,12 +38,6 @@ class BosonValidate[T](expression: String, validateFunction: T => Unit) extends 
       val boson:BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
         callParse(boson,expression)
         bsonByteBufferEncoding
-//      match {
-//        case (res: BsValue) =>
-//          validateFunction(res.getValue.asInstanceOf[T])
-//        case _ =>
-//          throw new RuntimeException("BosonExtractor -> go() default case!!!")
-//      }
     }
   }
 

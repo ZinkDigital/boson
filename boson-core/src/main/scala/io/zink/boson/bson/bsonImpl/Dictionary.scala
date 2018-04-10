@@ -48,17 +48,14 @@ object Dictionary {
   val C_MATCH: String = "Matched"
 
   // PARSER CONSTANTS
-  val P_NUMBER: String = """\d+(\.\d*)?"""
-  val P_WORD: String =  """[/^[?a-zA-Z\u00C0-\u017F]+\d_-]+"""
-  val P_TO_RANGE: String = """\b(To|to)\b"""
-  val P_UNTIL_RANGE: String = """\b(Until|until)\b"""
-  val P_CLOSE_BRACKET: String = "]"
-  val P_OPEN_BRACKET: String = "["
-  val P_HAS_ELEM: String = "[@"
+  val P_CLOSE_BRACKET: Char = ']'
+  val P_OPEN_BRACKET: Char = '['
+  val P_HASELEM_AT: Char = '@'
+  val P_STAR: Char = '*'
 
   // ERROR MESSAGES
   val E_HALFNAME: String = "Error Parsing HalfName!"
-  val E_MOREKEYS: String = "Failure parsing!"
+  val E_ProgStatement: String = "Failure parsing!"
 
   // TYPES CONSTANTES
   val STRING: String = "String"

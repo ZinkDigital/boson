@@ -1,6 +1,4 @@
 package io.zink.boson.bson.bsonImpl
-import scala.collection.generic.CanBuildFrom
-
 
 sealed trait ExtractorFacade {
 

@@ -308,7 +308,7 @@ class injectorAPITests extends FunSuite {
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
-//  test("MoreKeys 5 bson11.array21[0 until 2].[0 until 2]"){
+//  test("ProgStatement 5 bson11.array21[0 until 2].[0 until 2]"){
 //    val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
 //    val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
 //    val bsonObjectLvl33: BsonObject = new BsonObject().put("int2", 2)
@@ -342,7 +342,7 @@ class injectorAPITests extends FunSuite {
 //  }
 
 
-//  test("MoreKeys 4 bson11.array21[0 until 2]"){
+//  test("ProgStatement 4 bson11.array21[0 until 2]"){
 //
 //    val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
 //    val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -377,7 +377,7 @@ class injectorAPITests extends FunSuite {
 //
 //  }
 
-//  test("MoreKeys 3 bson11.array21[@i*nt].int"){
+//  test("ProgStatement 3 bson11.array21[@i*nt].int"){
 //
 //    val bsonObjectLvl31: BsonObject = new BsonObject().put("int", 0)
 //    val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -407,7 +407,7 @@ class injectorAPITests extends FunSuite {
 //
 //  }
 
-//  test("MoreKeys 2 array[0].damnnn[1].google"){
+//  test("ProgStatement 2 array[0].damnnn[1].google"){
 //    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
 //    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
 //    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -437,7 +437,7 @@ class injectorAPITests extends FunSuite {
 //
 //  }
 
-//  test("MoreKeys 1 arr*ay[0 until 1].damn*n[0 until 1].google"){
+//  test("ProgStatement 1 arr*ay[0 until 1].damn*n[0 until 1].google"){
 //    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
 //    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
 //    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -468,7 +468,7 @@ class injectorAPITests extends FunSuite {
 //  }
 
 
-//  test("MoreKeys array[@damnnn].damnnn[@google].google"){
+//  test("ProgStatement array[@damnnn].damnnn[@google].google"){
 //    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
 //    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)
 //    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
