@@ -61,7 +61,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     * @param limitList  Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
-  private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
+  private def constructObj(encodedSeqByteArray: Seq[Either[Array[Byte], String]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
     val seqTuples = TypeCase[Seq[List[Any]]]
     val listTuples = TypeCase[List[Any]]
     /**
@@ -83,7 +83,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
 
     val res: Seq[List[(String, Any)]] =
     encodedSeqByteArray.par.map { encodedByteArray =>
-      val res: Iterable[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList)
+      val res: Iterable[Any] = runExtractors(encodedByteArray, keyList, limitList)
       val l: List[(String, Any)] = toTuples(res).map(elem => (elem._1.toLowerCase, elem._2))
       l
     }.seq
@@ -117,8 +117,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
         case ROOT() => (List((C_DOT, C_DOT)), List((None, None, EMPTY_RANGE)))
       }
-    //println(s"firstList -> $firstList")
-    //println(s"limitList1 -> $limitList1")
+    ////println(s"firstList -> $firstList")
+    ////println(s"limitList1 -> $limitList1")
     if(statementList.nonEmpty) {
       val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
         for {
@@ -146,8 +146,8 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         }
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(_._1)
       val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(_._2)
-      //println(s"secondList -> $secondList")
-      //println(s"limitList2 -> $limitList2")
+      ////println(s"secondList -> $secondList")
+      ////println(s"limitList2 -> $limitList2")
 
       statementList.last match {
         case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
@@ -196,7 +196,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     //println(s"keylist: $keyList")
     //println(s"limitlist: $limitList")
     val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
-    println(s"final result -> $result")
+    //println(s"final result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -206,7 +206,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
           else Some(ANY)
       }
     applyFunction(result, keyList, limitList, typeClass, dotsList)
-    println("gets here")
+    //println("gets here")
   }
 
   /**
@@ -235,26 +235,26 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
     * @param limitList  List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
     * @return Extracted result.
     */
-  private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
+  private def runExtractors(encodedStructure: Either[Array[Byte], String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
-          //println("case keylist.size = 1")
-          //println(s"keyList: $keyList")
+          ////println("case keylist.size = 1")
+          ////println(s"keyList: $keyList")
 
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
-          //println("case keylist.size = 2")
-          // println(s"keyList: $keyList")
+          ////println("case keylist.size = 2")
+          // //println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           res
         case _ =>
-          //println("case keylist.size = _")
-          //println(s"keyList: $keyList")
+          ////println("case keylist.size = _")
+          ////println(s"keyList: $keyList")
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
-          //println(s"res: $res")
-          //println(s"collect from res: ${res.collect{ case arr: Array[Byte] => arr}}")
+          ////println(s"res: $res")
+          ////println(s"collect from res: ${res.collect{ case arr: Array[Byte] => arr}}")
           res.collect {
             case arr: Array[Byte] => arr
             case str: String => str
@@ -265,7 +265,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
                 res.collect {
                   case arr: Array[Byte] => (arr, arr.length)
                   case str: String => (str, str.length)
-                }.par.map { elem =>
+                }.par.map { elem => //.par.map
                   //val b: ByteBuf = Unpooled.buffer(elem._2).writeBytes(elem._1)
                   val b: Either[Array[Byte], String] = elem._1 match {
                     case x: Array[Byte] => Left(x)
@@ -283,13 +283,13 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
 //            case false =>
 //          }
       }
-    //println(s"final value from runing extractors ----> $value")
+    ////println(s"final value from runing extractors ----> $value")
     value
   }
 
   //TODO: rethink a better strategy to veryfy if T and type of extracted are the same
   private def applyFunction(result: Iterable[Any], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: List[String]): Any = {
-    //println(result)
+    ////println(result)
 
     if (returnInsideSeq(keyList, limitList, dotsList)) {
       if (typeClass.isDefined) {
@@ -336,14 +336,14 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               }
             }
           case ARRAY_BYTE if fExt.isDefined =>
-            //println("Seq[byte[]], fExt.isDefined")
+            ////println("Seq[byte[]], fExt.isDefined")
             val res = result.asInstanceOf[Iterable[Array[Byte]]].toSeq
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], res)) match {
               case Success(_) =>
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
             }
           case ARRAY_BYTE =>
-            //println("applyFunction - case byte[] to case Class")
+            ////println("applyFunction - case byte[] to case Class")
             constructObj(result.asInstanceOf[Seq[Either[Array[Byte], String]]], List(("*", "build")), List((None, None, "")))
           case ANY =>
             val res: Seq[Any] = result.toSeq
@@ -354,7 +354,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     } else {
-      println("return without Seq")
+      //println("return without Seq")
       if (typeClass.isDefined) {
         typeClass.get match {
           case STRING if fExt.isDefined =>
@@ -399,19 +399,19 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
               }
             }
           case ARRAY_BYTE if fExt.isDefined =>
-            println("byte[] with fExt")
+            //println("byte[] with fExt")
             val res = result.asInstanceOf[Seq[Array[Byte]]].head
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], res)) match {
               case Success(_) =>
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
           case ARRAY_BYTE =>
-            println("byte[]")
-            //println("applyFunction - case byte[] to case Class")
+            //println("byte[]")
+            ////println("applyFunction - case byte[] to case Class")
             constructObj(result.asInstanceOf[Seq[Array[Byte]]].map(s => Left(s)), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           case STRING =>
-            println("String")
-            //println("applyFunction - case byte[] to case Class")
+            //println("String")
+            ////println("applyFunction - case byte[] to case Class")
             constructObj(result.asInstanceOf[Seq[String]].map(s => Right(s)), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
@@ -472,7 +472,7 @@ class Interpreter[T](boson: BosonImpl, program: Program, fInj: Option[T => T] = 
       } else {
         united.zip(stat.dotList)
       }
-    //println(zipped)
+    ////println(zipped)
     //executeMultipleKeysInjector(zipped)
     ???
   }
