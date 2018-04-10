@@ -8,6 +8,7 @@ object Dictionary {
   val EMPTY_CONSTRUCTOR: String = "EmptyConstructor"
   val JAVA_BYTEBUFFER: String = "HeapByteBuffer"
   val ARRAY_BYTE: String = "byte[]"
+  val COPY_BYTEBUF: String = "UnpooledHeapByteBuf"
 
   // ENCODING CONSTANTS
   val D_ZERO_BYTE: Int = 0

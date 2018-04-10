@@ -169,6 +169,7 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
+    //println(s"typeClass -> $typeClass")
     applyFunction(result,keyList,limitList,typeClass,dotsList)
   }
 
@@ -209,14 +210,15 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
           res
         case _ =>
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
-          res.collect{ case arr: Array[Byte] => arr}.size match {
+          val filtered = res.collect{ case buf: ByteBuf => buf}
+          filtered.size match {
             case 0 => Seq() //throw CustomException("The given path doesn't correspond with the event structure.")
             case _ =>
               val result: Iterable[Iterable[Any]] =
-                res.collect{ case arr: Array[Byte] => arr}.par.map { elem =>
-                  val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
-                  if(keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(b, keyList.drop(2), limitList.drop(2))
-                  else runExtractors(b, keyList.drop(1), limitList.drop(1))
+                filtered.par.map { elem =>
+                  //val b: ByteBuf = Unpooled.buffer(elem.length).writeBytes(elem)
+                  if(keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
+                  else runExtractors(elem, keyList.drop(1), limitList.drop(1))
                 }.seq
               if(result.nonEmpty)result.reduce(_ ++ _) else result
           }
@@ -276,17 +278,20 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
                 case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
               }
             }
-          case ARRAY_BYTE if fExt.isDefined =>
+          case COPY_BYTEBUF if fExt.isDefined =>
             //println("Seq[byte[]], fExt.isDefined")
-            val res = result.asInstanceOf[Iterable[Array[Byte]]].toSeq
+            val res = result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array)
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], res)) match {
               case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+              case Failure(_) =>  throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
             }
-          case ARRAY_BYTE =>
-            constructObj(result.asInstanceOf[Seq[Array[Byte]]], List(("*", "build")), List((None, None, "")))
+          case COPY_BYTEBUF =>
+            constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           case ANY =>
-            val res: Seq[Any] = result.toSeq
+            val res: Seq[Any] = result.toSeq.map {
+              case buf: ByteBuf => buf.array
+              case elem => elem
+            }
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit], res)) match {
               case Success(_) =>
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
@@ -338,15 +343,15 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
                 case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
               }
             }
-          case ARRAY_BYTE if fExt.isDefined =>
-            val res = result.asInstanceOf[Seq[Array[Byte]]].head
+          case COPY_BYTEBUF if fExt.isDefined =>
+            val res = result.asInstanceOf[Seq[ByteBuf]].head.array
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], res)) match {
               case Success(_) =>
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
-          case ARRAY_BYTE =>
+          case COPY_BYTEBUF =>
             //println("applyFunction - case byte[] to case Class")
-            constructObj(result.asInstanceOf[Seq[Array[Byte]]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            constructObj(result.asInstanceOf[Seq[ByteBuf]].map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
         }
       } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
     }
