@@ -226,13 +226,13 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
           }.size match {
             case 0 => Seq() //throw CustomException("The given path doesn't correspond with the event structure.")
             case _ =>
-              val result: Iterable[Iterable[Any]] =
+              lazy val result: Iterable[Iterable[Any]] =
                 res.collect {
-                  case arr: Array[Byte] => (arr, arr.length)
-                  case str: String => (str, str.length)
-                }.par.map { elem => //.par.map
+                  case arr: Array[Byte] => arr//(arr, arr.length)
+                  case str: String => str//(str, str.length)
+                }.map { elem => //.par.map
                   //val b: ByteBuf = Unpooled.buffer(elem._2).writeBytes(elem._1)
-                  val b: Either[Array[Byte], String] = elem._1 match {
+                  val b: Either[Array[Byte], String] = elem match {
                     case x: Array[Byte] => Left(x)
                     case x: String => Right(x)
 
@@ -240,6 +240,7 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
                   if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(b, keyList.drop(2), limitList.drop(2))
                   else runExtractors(b, keyList.drop(1), limitList.drop(1))
                 }.seq
+              result.view.par
               if(result.nonEmpty)result.reduce(_ ++ _) else result
           }
 //          res.exists(e => e.isInstanceOf[Array[Byte]]) match {
@@ -308,7 +309,8 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
               case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
             }
           case ARRAY_BYTE =>
-            constructObj(result.asInstanceOf[Seq[Array[Byte]]], List(("*", "build")), List((None, None, "")))
+            val b: Seq[Either[Array[Byte], String]] = result.map(b => Left(b.asInstanceOf[Array[Byte]])).toSeq
+            constructObj(b, List(("*", "build")), List((None, None, "")))
           case ANY =>
             val res: Seq[Any] = result.toSeq
             Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit], res)) match {
@@ -421,24 +423,26 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
         case ROOT => united.map(e => (e, C_DOT))
         case _ => united.zip(stat.dotsList)
       }
-    executeMultipleKeysInjector(zipped)
+    ???
+    //executeMultipleKeysInjector(zipped)
   }
   //  TODO: replace Statement -> Statement, etc..
-  //  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
-  //    val result: Array[Byte] =
-  //      Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
-  //        case Success(v) =>
-  //          //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
-  //          //v.release()
-  //          //bsResult
-  //          v.array
-  //        case Failure(e) =>
-  //          throw CustomException(e.getMessage)
-  //        //bsonValue.BsException(e.getMessage)
-  //      }
-  //    boson.getByteBuf.release()
-  //    result
-  //  }
-  //}
+//    private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
+//      val value = Left(boson.getByteBuf)
+//      val result: Array[Byte] =
+//        Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
+//          case Success(v) =>
+//            //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+//            //v.release()
+//            //bsResult
+//            v.array
+//          case Failure(e) =>
+//            throw CustomException(e.getMessage)
+//          //bsonValue.BsException(e.getMessage)
+//        }
+//      //boson.getByteBuf.release()
+//      result
+//    }
+//  }
 }
 
