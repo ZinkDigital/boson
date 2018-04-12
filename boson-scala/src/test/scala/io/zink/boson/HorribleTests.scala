@@ -56,11 +56,11 @@ class HorribleTests extends FunSuite {
 
   test("Bad parser expression V1") {
     val expression: String = "tempReadings.Something Wrong [2 to 3]"
+    intercept[Exception] {
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    intercept[Exception] {
       val res = boson.go(arr1.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -68,11 +68,12 @@ class HorribleTests extends FunSuite {
 
   test("Bad parser expression V2") {
     val expression: String = "[0 to 1] kunhnfvgklhu "
+    intercept[Exception] {
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    intercept[Exception] {
+
       val res = boson.go(arr.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -80,11 +81,12 @@ class HorribleTests extends FunSuite {
 
   test("Bad parser expression V3") {
     val expression: String = ""
+    intercept[Exception] {
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    intercept[Exception] {
+
       val res = boson.go(arr.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -92,11 +94,12 @@ class HorribleTests extends FunSuite {
 
   test("Bad parser expression V4") {
     val expression: String = "[1 xx 2]"
+    intercept[Exception] {
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    intercept[Exception] {
+
       val res = boson.go(arr.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -104,11 +107,12 @@ class HorribleTests extends FunSuite {
 
   test("Bad parser expression V5") {
     val expression: String = "first ?= 4.0 "
+    intercept[Exception] {
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    intercept[Exception] {
+
       val res = boson.go(arr.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -166,11 +170,12 @@ class HorribleTests extends FunSuite {
 
   test("Only WhiteSpaces in Expression") {
     val expression: String = "  "
+    intercept[Exception]{
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    intercept[Exception]{
+
       val res = boson.go(bsonEvent.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -322,13 +327,14 @@ class HorribleTests extends FunSuite {
   }
 
   test("try extract obj with certain elem, but elem emptyt") {
-    val expression: String = "one.[@]"
+    val expression: String = "one[@]"
     val expected = Seq()
+    intercept[Exception]{
     val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
       assert(expected.size === out.size)
       assertTrue(expected.zip(out).forall(b => b._1.equals(b._2)))
     })
-    intercept[Exception]{
+
       val res = boson.go(a1.encode.getBytes)
       Await.result(res, Duration.Inf)
     }
@@ -417,10 +423,11 @@ class HorribleTests extends FunSuite {
 
   test("Bad Expression using new API") {
     val expression = "...Store"
+    intercept[Exception]{
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
 
     })
-    intercept[Exception]{
+
       val res = boson.go(bsonEvent1.encode.getBytes)
       Await.result(res, Duration.Inf)
     }

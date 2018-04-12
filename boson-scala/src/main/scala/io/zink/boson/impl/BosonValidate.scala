@@ -12,31 +12,31 @@ import scala.concurrent.Future
 
 class BosonValidate[T](expression: String, validateFunction: T => Unit) extends Boson{
 
-  private def callParse(boson: BosonImpl, expression: String): Unit = {
-    val parser = new DSLParser(expression)
-    try {
-      parser.Parse() match {
-        case Success(result) =>
-          new Interpreter[T](boson, result, fExt = Option(validateFunction)).run()
-        case Failure(exc) => throw exc
-      }
-    } catch {
-      case e: RuntimeException => throw new Exception(e.getMessage)
-    }
-  }
+//  private def callParse(boson: BosonImpl, expression: String): Unit = {
+//    val parser = new DSLParser(expression)
+//    try {
+//      parser.Parse() match {
+//        case Success(result) =>
+//          new Interpreter[T](boson, result, fExt = Option(validateFunction)).run()
+//        case Failure(exc) => throw exc
+//      }
+//    } catch {
+//      case e: RuntimeException => throw new Exception(e.getMessage)
+//    }
+//  }
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     Future{
-      val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-        callParse(boson,expression)
+//      val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
+//        callParse(boson,expression)
         bsonByteEncoding
     }
   }
 
   override def go(bsonByteBufferEncoding: ByteBuffer):Future[ByteBuffer] = {
     Future{
-      val boson:BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-        callParse(boson,expression)
+//      val boson:BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
+//        callParse(boson,expression)
         bsonByteBufferEncoding
     }
   }

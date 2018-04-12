@@ -61,8 +61,98 @@ class BosonImpl(
       !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_LIMITLEVEL)
     }
 
+  lazy val buildExtractorsLists: (Statement,List[Statement],List[String]) => (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
+    (firstStatement,statementList,dotsList) => buildExtractors(firstStatement,statementList,dotsList)
+
+  private def buildExtractors(firstStatement: Statement, statementList: List[Statement],dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
+    val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
+      firstStatement match {
+        case Key(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
+        case Key(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
+        case KeyWithArrExpr(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+        case ArrExpr(l, m, r) if dotsList.head.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+        case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
+        case HalfName(halfName) =>
+          halfName.equals(STAR) match {
+            case true => (List((halfName, C_ALL)), List((None, None, STAR)))
+            case false if statementList.nonEmpty && dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case false if statementList.nonEmpty => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
+            case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
+            case false => (List((halfName, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
+          }
+        case HasElem(key, elem) if dotsList.head.equals(C_DOT) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+        case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+        case ROOT => (List((C_DOT, C_DOT)), List((None, None, EMPTY_RANGE)))
+      }
+
+    if(statementList.nonEmpty) {
+      val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
+        for {
+          statement <- statementList.zip(dotsList.tail)
+        } yield {
+          statement._1 match {
+            case Key(key) if statement._2.equals(C_DOT)=> (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
+            case Key(key) => (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
+            case KeyWithArrExpr(key, arrEx) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
+            case ArrExpr(l, m, r) if statement._2.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
+            case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
+            case HalfName(halfName) =>
+              halfName.equals(STAR) match {
+                case true => (List((halfName, C_ALL)), List((None, None, STAR)))
+                case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
+                case false  => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
+              }
+            case HasElem(key, elem) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+            case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
+
+          }
+        }
+      val secondList: List[(String, String)] = firstList ++ forList.flatMap(_._1)
+      val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(_._2)
+
+      statementList.last match {
+        case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
+        case HalfName(halfName) if !halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
+        case Key(k) if dotsList.last.equals(C_DOT)=> (secondList.take(secondList.size - 1) ++ List((k, C_LEVEL)), limitList2)
+        case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, C_ALL)), limitList2)
+        case _ => (secondList, limitList2)
+      }
+    } else {
+      (firstList,limitList1)
+    }
+
+  }
+
+  private def defineLimits(left: Int, mid: Option[RangeCondition], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
+    mid.isDefined match {
+      case true if right.isEmpty =>
+        mid.get.value match {
+          case C_FIRST => List((Some(0), Some(0), TO_RANGE))
+          case C_ALL => List((Some(0), None, TO_RANGE))
+          case C_END => List((Some(0), None, C_END))
+        }
+      case true if right.isDefined =>
+        (left, mid.get.value.toLowerCase, right.get) match {
+          case (a, UNTIL_RANGE, C_END) => List((Some(a), None, UNTIL_RANGE))
+          case (a, _, C_END) => List((Some(a), None, TO_RANGE))
+          case (a, expr, b) if b.isInstanceOf[Int] =>
+            expr.toLowerCase match {
+              case TO_RANGE => List((Some(a), Some(b.asInstanceOf[Int]), TO_RANGE))
+              case UNTIL_RANGE => List((Some(a), Some(b.asInstanceOf[Int] - 1), TO_RANGE))
+            }
+        }
+      case false =>
+        List((Some(left), Some(left), TO_RANGE))
+    }
+  }
+
   def extract[T](netty1: ByteBuf, keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
+    /*
+    CODEC here
+     */
     val netty: ByteBuf = netty1.duplicate()
     val startReaderIndex: Int = netty.readerIndex()
     Try(netty.getIntLE(startReaderIndex)) match {
