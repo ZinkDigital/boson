@@ -6,7 +6,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
 import scala.util.{Failure, Success, Try}
-import scala.collection.optimizer._
+
 
 /**
   * Created by Tiago Filipe on 02/11/2017.

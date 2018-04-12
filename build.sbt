@@ -60,7 +60,7 @@ val libraries = Seq(
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
   "org.scala-lang" % "scala-compiler" % "2.11.12",
   "org.parboiled" %% "parboiled" % "2.1.4",
-  "com.github.scala-blitz" % "scala-blitz_2.11" % "1.2"
+  "org.typelevel" %% "cats-core" % "1.0.1"
 )
 val testLibraries = Seq(
   "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),

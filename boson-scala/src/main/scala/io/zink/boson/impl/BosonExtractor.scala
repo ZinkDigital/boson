@@ -6,6 +6,8 @@ import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
+import io.zink.boson.bson.catsValidation.InterpreterValidator
+import cats.data.Validated.{Invalid, Valid}
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,10 +26,15 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends 
 
   val boson: BosonImpl = new BosonImpl()
 
-  val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
-    case Success(result) => result
-    case Failure(excp) => throw excp
+  val parsedStatements: ProgStatement =
+    InterpreterValidator.validateExpression(expression) match {
+      case Valid(result) => result
+      case Invalid(errorsNel) =>  throw errorsNel.toList.head.errorMessage
   }
+//    new DSLParser(expression).Parse() match {
+//    case Success(result) => result
+//    case Failure(excp) => throw excp
+//  }
 
   val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) =
     buildExtractors(parsedStatements.statementList.head, parsedStatements.statementList.tail, parsedStatements.dotsList)
