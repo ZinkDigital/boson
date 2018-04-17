@@ -53,6 +53,7 @@ object Boson {
                                           f: LabelledGeneric.Aux[A, L],
                                           ext: extractLabels[L]): extractor[A] =
       new extractor[A] {
+       // println("caseClass")
         def extract(expression: String, extractFunction: A => Unit): Boson =
           new BosonExtractorObj[A, L](expression, extractFunction = Option(extractFunction))
       }
@@ -85,6 +86,7 @@ object Boson {
       */
     implicit def seqLiterals[A, Coll[X]]: extractor[Coll[A]] =
       new extractor[Coll[A]] {
+      //  println("seqLiterals")
         def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
           new BosonExtractor[Coll[A]](expression, extractFunction)
       }
@@ -94,6 +96,7 @@ object Boson {
       */
     implicit val arrByte: extractor[Array[Byte]] =
       new extractor[Array[Byte]] {
+      //  println("arrayBytes")
         override def extract(expression: String, extractFunction: Array[Byte] => Unit): Boson =
           new BosonExtractor[Array[Byte]](expression,extractFunction)
       }

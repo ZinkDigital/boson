@@ -329,7 +329,15 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
+  override def getValueAt(i: Int): Int = {
+    val value = input.apply(i)
+    if(value.equals('}')|value.equals(']')){
+      0
+    }else{
+      value
+    }
 
+  }
   override def getDataType: Int = this.readDataType
 
   override  def readDataType: Int = {

@@ -40,7 +40,7 @@ class HorribleTests extends FunSuite {
       val expected: Seq[Array[Byte]] = Seq()
       expected.zip(out).forall(e => e._1.sameElements(e._2))
     })
-    val res = boson.go(obj1.encode.getBytes)
+    val res = boson.go(obj1.encodeToBarray())
     Await.result(res, Duration.Inf)
   }
 

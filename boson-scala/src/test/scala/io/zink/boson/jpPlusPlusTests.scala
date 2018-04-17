@@ -2173,9 +2173,11 @@ class jpPlusPlusTests extends FunSuite {
     val expression: String = "Book[end]"
     val expected: Seq[Array[Byte]] = Seq(b8.encodeToBarray())
     val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
-      assertTrue(expected.zip(out).forall {
-        case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-      })
+      expected.head.foreach(b => print(b + " "))
+      println()
+      out.head.foreach(b => print(b + " "))
+println(out.head.length)
+      assertArrayEquals(expected.head, out.head)
     })
     val res = boson.go(bsonEvent.encodeToBarray())
     Await.result(res, Duration.Inf)
@@ -2190,9 +2192,11 @@ class jpPlusPlusTests extends FunSuite {
 
     val expected: Seq[Array[Byte]] = Seq(b10.encodeToBarray(), b9.encodeToBarray(), b8.encodeToBarray(), b11.encodeToBarray(), b3.encodeToBarray(), b10.encodeToBarray())
     val res = future.join()
+    println(expected.size === res.size)
+    println()
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall {
-      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e: Array[Byte], r: Array[Byte]) => e.zip(r).forall(p => p._1 === p._2)
     })
   }
 

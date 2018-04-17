@@ -220,17 +220,18 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           ////println(s"res: $res")
           ////println(s"collect from res: ${res.collect{ case arr: Array[Byte] => arr}}")
-          res.collect {
-            case arr: Array[Byte] => arr
-            case str: String => str
-          }.size match {
+         val res1 =  res.collect {
+            case arr: Array[Byte] =>
+              arr
+            case str: String if isJson(str) =>
+              str
+          }
+         // println("RES1= "  + res1.size)
+          res1.size match {
             case 0 => Seq() //throw CustomException("The given path doesn't correspond with the event structure.")
             case _ =>
               lazy val result: Iterable[Iterable[Any]] =
-                res.collect {
-                  case arr: Array[Byte] => arr//(arr, arr.length)
-                  case str: String => str//(str, str.length)
-                }.map { elem => //.par.map
+                res1.map { elem => //.par.map
                   //val b: ByteBuf = Unpooled.buffer(elem._2).writeBytes(elem._1)
                   val b: Either[Array[Byte], String] = elem match {
                     case x: Array[Byte] => Left(x)
@@ -240,7 +241,7 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
                   if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(b, keyList.drop(2), limitList.drop(2))
                   else runExtractors(b, keyList.drop(1), limitList.drop(1))
                 }.seq
-              result.view.par
+              result.par
               if(result.nonEmpty)result.reduce(_ ++ _) else result
           }
 //          res.exists(e => e.isInstanceOf[Array[Byte]]) match {
@@ -253,6 +254,7 @@ class Interpreter[T](boson: BosonImpl, program: Statement, fInj: Option[T => T] 
     value
   }
 
+  def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
   //TODO: rethink a better strategy to verify if T and type of extracted are the same
   private def applyFunction(result: Iterable[Any], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], dotsList: Seq[String]): Any = {
     ////println(result)

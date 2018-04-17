@@ -31,7 +31,7 @@ class ExtractorTests extends FunSuite {
 
   test("Extract Int") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
-    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes))
+    val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encodeToBarray()))
     assert(1500 === bosonBson.extract(bosonBson.getByteBuf, List(("Américo","allDots")), List((None,None,""))).head)
   }
 

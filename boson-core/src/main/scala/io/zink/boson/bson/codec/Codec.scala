@@ -40,7 +40,7 @@ trait Codec {
 
 //  def getValue: SonNamedType
 //  def readValue: SonNamedType
-
+  def getValueAt(i: Int): Int
   def getDataType: Int
   def readDataType: Int
 

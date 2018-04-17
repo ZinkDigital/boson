@@ -156,6 +156,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       }
   }
 
+  override def getValueAt(i: Int): Int = buff.getByte(i)
   override def getDataType: Int = buff.getByte(buff.readerIndex())
   override def readDataType: Int = buff.readByte()
 
@@ -180,7 +181,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
 
   override def rootType: SonNamedType = {
     val buf = buff.duplicate()
-    if(buf.capacity()>0){
+    if(buf.capacity()>5){
     buf.readerIndex(5)
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
     while (buf.getByte(buf.readerIndex()) != 0 || key.length<1) {
@@ -230,7 +231,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     while (buff.getByte(buff.readerIndex()) != 0) {
       list.+=(buff.readByte())
     }
-    list.+=(buff.readByte()) //  consume the end Pos byte
+    if(list.nonEmpty)list.+=(buff.readByte()) //  consume the end Pos byte
 //    val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
 //    ////println(s"readArrayPos: ${stringList}")
 //    stringList.head
