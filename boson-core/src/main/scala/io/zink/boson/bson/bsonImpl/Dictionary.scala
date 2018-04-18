@@ -43,6 +43,7 @@ object Dictionary {
   val C_LAST: String = "last"  // "end" should be used to maintain consistency
   val C_RANDOM: String = "random"
   val C_BUILD: String = "build"
+  val C_ZERO: String = "0"
 
   val V_NULL: String = "Null"
   val C_MATCH: String = "Matched"
@@ -66,7 +67,30 @@ object Dictionary {
   val ARRBYTE: String = "byte[]"
   val ANY: String = "Any"
 
-
+  //CODECS CONSTANTS
+  val CS_OBJECT: String = "Object"
+  val CS_ARRAY: String = "Array"
+  val CS_NAME: String = "Name"
+  val CS_STRING: String = STRING
+  val CS_INTEGER: String = INTEGER
+  val CS_DOUBLE: String = DOUBLE
+  val CS_LONG: String = LONG
+  val CS_BOOLEAN: String = BOOLEAN
+  val CS_NULL: String = V_NULL
+  val CS_TRUE: String = "true"
+  val CS_FALSE: String = "false"
+  val CS_T: Char = 't'
+  val CS_F: Char = 'f'
+  val CS_N: Char = 'n'
+  val CS_QUOTES: Char = '\"'
+  val CS_COMMA: Char = ','
+  val CS_OPEN_BRACKET: Char = '{'
+  val CS_CLOSE_BRACKET: Char = '}'
+  val CS_OPEN_RECT_BRACKET: Char = '['
+  val CS_CLOSE_RECT_BRACKET: Char = ']'
+  val CS_DOT: Char = '.'
+  val CS_2DOT: Char = ':'
+  val CS_ZERO: Char = '0'
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

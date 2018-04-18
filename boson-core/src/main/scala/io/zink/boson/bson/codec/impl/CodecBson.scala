@@ -22,7 +22,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           val array: Array[Byte] = new Array[Byte](buff.capacity())
           buff.getBytes(0, array)
           SonArray(x, array)
-        case "array" =>
+        case CS_ARRAY =>
           val size = buff.getIntLE(buff.readerIndex()-4)
           val arr: Array[Byte] = new Array[Byte](size)
           buff.getBytes(buff.readerIndex()-4, arr)
@@ -34,7 +34,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           val array: Array[Byte] = new Array[Byte](buff.capacity())
           buff.getBytes(0, array)
           SonObject(x, array)
-        case "object" =>
+        case CS_OBJECT =>
           val size = buff.getIntLE(buff.readerIndex()-4)
           val arr: Array[Byte] = new Array[Byte](size)
           buff.getBytes(buff.readerIndex()-4, arr)
@@ -42,7 +42,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       }
     case SonString(x, y) =>
       x match {
-        case "name" =>
+        case CS_NAME =>
           val buf0 = buff.duplicate()
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
           while (buf0.getByte(buf0.readerIndex()) != 0 || key.length<1) {
@@ -50,7 +50,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
             key.append(b)
           }
           SonString(x,  new String(key.toArray))
-        case "string" =>
+        case CS_STRING =>
           val valueLength: Int = buff.getIntLE(buff.readerIndex())
           val arr: Array[Byte] = new Array[Byte](valueLength)
           buff.getBytes(buff.readerIndex()+4, arr)
@@ -58,20 +58,17 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       }
     case SonNumber(x, y) =>
       x match {
-        case "double" =>
+        case CS_DOUBLE =>
           SonNumber(x, buff.getDoubleLE(buff.readerIndex()))
-        case "int"=>
+        case CS_INTEGER=>
           SonNumber(x, buff.getIntLE(buff.readerIndex()))
-        case "long"=>
+        case CS_LONG=>
           SonNumber(x, buff.getLongLE(buff.readerIndex()))
-        case "arrayPosition"=>
-          val buf = buff.duplicate()
-          val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buf.getByte(buf.readerIndex()) != 0 || key.length<1) {
-            val b: Byte = buf.readByte()
-            key.append(b)
-          }
-          SonNumber(x, new String(key.toArray).toInt)
+      }
+    case SonNull(x, y)=>
+      x match {
+        case CS_NULL =>
+          SonNull(x, V_NULL)
       }
   }
 
@@ -84,7 +81,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           val array: Array[Byte] = new Array[Byte](buff.capacity())
           buff.readBytes(array)
           SonArray(x, array)
-        case "array" =>
+        case CS_ARRAY =>
           val size = buff.getIntLE(buff.readerIndex()-4)
           val arr: Array[Byte] = new Array[Byte](size)
           buff.readerIndex(buff.readerIndex()-4)
@@ -97,7 +94,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           val array: Array[Byte] = new Array[Byte](buff.capacity())
           buff.readBytes(array)
           SonObject(x, array)
-        case "object" =>
+        case CS_OBJECT =>
           val size = buff.getIntLE(buff.readerIndex()-4)
           val arr: Array[Byte] = new Array[Byte](size)
           buff.readerIndex(buff.readerIndex()-4)
@@ -106,15 +103,15 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       }
     case SonString(x, y) =>
       x match {
-        case "name" =>
+        case CS_NAME =>
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buff.getByte(buff.readerIndex()) != 0 || key.length<1) {
+          while (buff.getByte(buff.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
             val b: Byte = buff.readByte()
             key.append(b)
           }
           val b: Byte = buff.readByte()
           SonString(x, new String(key.toArray.filter(p => p!=0)))
-        case "string" =>
+        case CS_STRING =>
           val valueLength: Int = buff.readIntLE()
           val arr: Array[Byte] = new Array[Byte](valueLength)
           buff.readBytes(arr)
@@ -122,17 +119,17 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       }
     case SonNumber(x, y) =>
       x match {
-        case "double" =>
+        case CS_DOUBLE =>
           val d = buff.readDoubleLE()
           SonNumber(x, d)
-        case "int"=>
+        case CS_INTEGER=>
           SonNumber(x, buff.readIntLE())
-        case "long"=>
+        case CS_LONG=>
           SonNumber(x, buff.readLongLE())
       }
     case SonNull(x, y)=>
       x match {
-        case "null" =>
+        case CS_NULL =>
           SonNull(x, V_NULL)
       }
   }
