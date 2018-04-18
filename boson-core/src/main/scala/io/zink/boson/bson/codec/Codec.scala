@@ -46,7 +46,7 @@ trait Codec {
 
   def duplicate: Codec
 
-  def printCodec()
+  //def printCodec()
 
   def release()
 

@@ -24,10 +24,8 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           SonArray(x, array)
         case "array" =>
           val size = buff.getIntLE(buff.readerIndex()-4)
-          //println(size)
           val arr: Array[Byte] = new Array[Byte](size)
           buff.getBytes(buff.readerIndex()-4, arr)
-          //arr.foreach(f => print(f.toChar +" "))
           SonArray(x, arr)
       }
     case SonObject(x,y) =>
@@ -51,12 +49,9 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
             val b: Byte = buf0.readByte()
             key.append(b)
           }
-          //val b: Byte = buff.readByte()
           SonString(x,  new String(key.toArray))
         case "string" =>
-          ////println("String")
           val valueLength: Int = buff.getIntLE(buff.readerIndex())
-          // Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
           val arr: Array[Byte] = new Array[Byte](valueLength)
           buff.getBytes(buff.readerIndex()+4, arr)
           SonString(x, arr)
@@ -79,6 +74,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           SonNumber(x, new String(key.toArray).toInt)
       }
   }
+
   override def readToken(tkn: SonNamedType): SonNamedType = tkn match {
     case SonBoolean(x, y) =>
       SonBoolean(x, buff.readByte() )
@@ -89,7 +85,6 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           buff.readBytes(array)
           SonArray(x, array)
         case "array" =>
-          //buff.readerIndex(buff.readerIndex())
           val size = buff.getIntLE(buff.readerIndex()-4)
           val arr: Array[Byte] = new Array[Byte](size)
           buff.readerIndex(buff.readerIndex()-4)
@@ -118,36 +113,22 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
             key.append(b)
           }
           val b: Byte = buff.readByte()
-          ////println("name = " +new String(key.toArray))
           SonString(x, new String(key.toArray.filter(p => p!=0)))
         case "string" =>
-          ////println("String")
-          //TODO tenho que ler a possicao do array
           val valueLength: Int = buff.readIntLE()
-          // Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
           val arr: Array[Byte] = new Array[Byte](valueLength)
           buff.readBytes(arr)
-          ////println("Done")
           SonString(x, new String(arr.filter(b => b !=0)))
       }
     case SonNumber(x, y) =>
       x match {
         case "double" =>
           val d = buff.readDoubleLE()
-          ////println(d)
           SonNumber(x, d)
         case "int"=>
           SonNumber(x, buff.readIntLE())
         case "long"=>
           SonNumber(x, buff.readLongLE())
-        case "arrayPosition"=>
-          val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buff.getByte(buff.readerIndex()) != 0 || key.length<1) {
-            val b: Byte = buff.readByte()
-            key.append(b)
-          }
-          val b: Byte = buff.readByte()
-          SonNumber(x, new String(key.toArray).toInt)
       }
     case SonNull(x, y)=>
       x match {
@@ -157,22 +138,26 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
   }
 
   override def getValueAt(i: Int): Int = buff.getByte(i)
+
   override def getDataType: Int = buff.getByte(buff.readerIndex())
+
   override def readDataType: Int = buff.readByte()
 
   override def getReaderIndex: Int = buff.readerIndex()
+
   override def setReaderIndex(value: Int): Unit = if(value>=0)buff.readerIndex(value) else{ buff.readerIndex(buff.readerIndex()+value)}
+
   override def getWriterIndex: Int = buff.writerIndex()
+
   override def setWriterIndex(value: Int): Unit = buff.writerIndex(value)
 
   override def getSize: Int = buff.getIntLE(buff.readerIndex())
+
   override def readSize: Int = buff.readIntLE
 
   override def duplicate: Codec = {
     val newB = alloc.directBuffer(buff.capacity())
     buff.getBytes(0, newB)
-    //println(newB.capacity())
-    //println(buff.readerIndex())
     newB.readerIndex(buff.readerIndex())
     val c = new CodecBson(arg, Some(newB))
     c
@@ -184,12 +169,11 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     if(buf.capacity()>5){
     buf.readerIndex(5)
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
-    while (buf.getByte(buf.readerIndex()) != 0 || key.length<1) {
+    while (buf.getByte(buf.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
       val b: Byte = buf.readByte()
       key.append(b)
     }
-    val b: Byte = buf.readByte()
-    //buf.release()
+    val _: Byte = buf.readByte()
     if(key.forall(p => p.toChar.isDigit))
       SonArray(C_DOT)
     else
@@ -199,14 +183,11 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     }
   }
 
-  def printCodec() = {
-    val arrr = new Array[Byte](buff.capacity()-buff.readerIndex())
-    buff.getBytes(buff.readerIndex(), arrr)
-    arrr.foreach(b => print(b+" "))
-    //println()
-    ////println()
-
-  }
+//  def printCodec() = {
+//    val arrr = new Array[Byte](buff.capacity()-buff.readerIndex())
+//    buff.getBytes(buff.readerIndex(), arrr)
+//    arrr.foreach(b => print(b+" "))
+//  }
 
   override def release(): Unit = buff.release()
 
@@ -217,11 +198,6 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       list.+=(buff.getByte(buff.readerIndex()+i))
       i+=1
     }
-    //val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
-    ////println(s"readArrayPos: ${stringList}")
-    //stringList.head
-    //new String(list.toArray).toInt
-    //stringList.head
     new String(list.toArray.filter((b:Byte) => b != 0)).toInt
   }
 
@@ -231,10 +207,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     while (buff.getByte(buff.readerIndex()) != 0) {
       list.+=(buff.readByte())
     }
-    if(list.nonEmpty)list.+=(buff.readByte()) //  consume the end Pos byte
-//    val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
-//    ////println(s"readArrayPos: ${stringList}")
-//    stringList.head
+    if(list.nonEmpty)list.+=(buff.readByte())
     new String(list.toArray.filter((b:Byte) => b != 0)).toInt
   }
 

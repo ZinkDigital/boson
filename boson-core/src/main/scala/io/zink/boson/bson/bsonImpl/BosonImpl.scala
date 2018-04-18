@@ -1146,7 +1146,7 @@ class BosonImpl(
     }
     list.+=(netty.readByte()) //  consume the end Pos byte
     val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
-    //////println(s"readArrayPos: ${stringList}")
+
     stringList.head
   }
 
