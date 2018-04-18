@@ -1,6 +1,9 @@
 package io.zink.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
+import java.time.Instant
+
+import shapeless.TypeCase
 
 
 object Dictionary {
@@ -60,14 +63,33 @@ object Dictionary {
 
   // TYPES CONSTANTES
   val STRING: String = "String"
+  val INSTANT: String = "Instant"
   val DOUBLE: String = "Double"
+  val FLOAT: String = "Float"
   val INTEGER: String = "Integer"
   val LONG: String = "Long"
   val BOOLEAN: String = "Boolean"
   val ARRBYTE: String = "byte[]"
   val ANY: String = "Any"
 
+  // POSSIBLE TYPECASES
+  val oneInt: TypeCase[Int] = TypeCase[Int]
+  val oneLong: TypeCase[Long] = TypeCase[Long]
+  val oneDouble: TypeCase[Double] = TypeCase[Double]
+  val oneFloat: TypeCase[Float] = TypeCase[Float]
+  val oneString: TypeCase[String] = TypeCase[String]
+  val oneBoolean: TypeCase[Boolean] = TypeCase[Boolean]
+  val oneInstant: TypeCase[Instant] = TypeCase[Instant]
+  val oneAny: TypeCase[Any] = TypeCase[Any]
 
+  val seqInt: TypeCase[Seq[Int]] = TypeCase[Seq[Int]]
+  val seqLong: TypeCase[Seq[Long]] = TypeCase[Seq[Long]]
+  val seqDouble: TypeCase[Seq[Double]] = TypeCase[Seq[Double]]
+  val seqFloat: TypeCase[Seq[Float]] = TypeCase[Seq[Float]]
+  val seqString: TypeCase[Seq[String]] = TypeCase[Seq[String]]
+  val seqBoolean: TypeCase[Seq[Boolean]] = TypeCase[Seq[Boolean]]
+  val seqInstant: TypeCase[Seq[Instant]] = TypeCase[Seq[Instant]]
+  val seqAny: TypeCase[Seq[Any]] = TypeCase[Seq[Any]]
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

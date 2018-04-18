@@ -6,6 +6,7 @@ import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
+import shapeless.{TypeCase, Typeable}
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,7 +21,9 @@ import scala.concurrent.Future
   * @param extractFunction  Extract function given by the User to be applied after extraction.
   * @tparam T Type of Value to be extracted.
   */
-class BosonExtractor[T](expression: String, extractFunction: T => Unit) extends Boson {
+class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit tp: Option[TypeCase[T]]) extends Boson {
+
+  //val print = println("BosonExtractor instantiated")
 
   val boson: BosonImpl = new BosonImpl()
 

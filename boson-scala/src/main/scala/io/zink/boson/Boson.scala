@@ -2,9 +2,10 @@ package io.zink.boson
 
 import java.nio.ByteBuffer
 import java.time.Instant
+
 import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.impl.{BosonExtractor, BosonExtractorObj, BosonInjector, BosonValidate}
-import shapeless.{HList, LabelledGeneric}
+import shapeless.{HList, LabelledGeneric, TypeCase, Typeable}
 
 import scala.concurrent.Future
 
@@ -19,6 +20,7 @@ object Boson {
     * @tparam A Type of Value to be extracted.
     */
   trait extractor[A] {
+    //implicit val typeCase: Option[TypeCase[A]]
     def extract(expression: String, extractFunction: A => Unit): Boson
   }
 
@@ -38,6 +40,7 @@ object Boson {
       */
     def apply[A](expression: String, extractFunction: A => Unit)(implicit ext: extractor[A]): Boson = ext.extract(expression, extractFunction)
 
+
     /**
       * Method used when User wants an Object extraction and a case class is given as a type.
       * LabelledGeneric allows to keep track of case class arguments and their types.
@@ -51,10 +54,13 @@ object Boson {
       */
     implicit def caseClass[A, L <: HList](implicit
                                           f: LabelledGeneric.Aux[A, L],
-                                          ext: extractLabels[L]): extractor[A] =
+                                          ext: extractLabels[L],
+                                          tp: Typeable[A]): extractor[A] =
       new extractor[A] {
+        implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
+        //println("implicit caseClass")
         def extract(expression: String, extractFunction: A => Unit): Boson =
-          new BosonExtractorObj[A, L](expression, extractFunction = Option(extractFunction))
+          new BosonExtractorObj[A, L](expression, extractFunction = Option(extractFunction))(f,ext,typeCase)
       }
 
     /**
@@ -68,10 +74,13 @@ object Boson {
       */
     implicit def seqCaseClass[A, L <: HList](implicit
                                              f: LabelledGeneric.Aux[A, L],
-                                             ext: extractLabels[L]): extractor[Seq[A]] = {
+                                             ext: extractLabels[L],
+                                             tp: Typeable[A]): extractor[Seq[A]] = {
       new extractor[Seq[A]] {
+        implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
+        //println("implicit seqCaseClass")
         def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
-          new BosonExtractorObj[A, L](expression, extractSeqFunction = Option(extractFunction))(f, ext)
+          new BosonExtractorObj[A, L](expression, extractSeqFunction = Option(extractFunction))(f, ext,typeCase)
 
       }
     }
@@ -83,10 +92,20 @@ object Boson {
       * @tparam Coll  Collection.
       * @return Instance of a Boson
       */
-    implicit def seqLiterals[A, Coll[X]]: extractor[Coll[A]] =
+    implicit def seqLiterals[A, Coll[_]](implicit tp1: Typeable[Coll[A]]): extractor[Coll[A]] =
       new extractor[Coll[A]] {
+        implicit val typeCase: Option[TypeCase[Coll[A]]] = Some(TypeCase[Coll[A]])
+        //println("implicit seqLiterals")
         def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
-          new BosonExtractor[Coll[A]](expression, extractFunction)
+          new BosonExtractor[Coll[A]](expression, extractFunction)(typeCase)
+      }
+
+    implicit val seqArrByte: extractor[Seq[Array[Byte]]] =
+      new extractor[Seq[Array[Byte]]] {
+        implicit val typeCase: Option[TypeCase[Seq[Array[Byte]]]] = None
+        //println(s"implicit of seqArrByte")
+        override def extract(expression: String, extractFunction: Seq[Array[Byte]] => Unit): Boson =
+          new BosonExtractor[Seq[Array[Byte]]](expression,extractFunction)
       }
 
     /**
@@ -94,6 +113,8 @@ object Boson {
       */
     implicit val arrByte: extractor[Array[Byte]] =
       new extractor[Array[Byte]] {
+        //println("implicit arrByte")
+        implicit val typeCase: Option[TypeCase[Array[Byte]]] = None
         override def extract(expression: String, extractFunction: Array[Byte] => Unit): Boson =
           new BosonExtractor[Array[Byte]](expression,extractFunction)
       }
@@ -103,6 +124,8 @@ object Boson {
       */
     implicit val double: extractor[Double] =
       new extractor[Double] {
+        //println("implicit Double")
+        implicit val typeCase: Option[TypeCase[Double]] = Some(TypeCase[Double])
         override def extract(expression: String, extractFunction: Double => Unit): Boson =
           new BosonExtractor[Double](expression, extractFunction)
       }
@@ -112,6 +135,8 @@ object Boson {
       */
     implicit val float: extractor[Float] =
       new extractor[Float] {
+        //println("float")
+        implicit val typeCase: Option[TypeCase[Float]] = Some(TypeCase[Float])
         override def extract(expression: String, extractFunction: Float => Unit): Boson =
           new BosonExtractor[Float](expression, extractFunction)
       }
@@ -121,6 +146,8 @@ object Boson {
       */
     implicit val instant: extractor[Instant] =
       new extractor[Instant] {
+        //println("instant")
+        implicit val typeCase: Option[TypeCase[Instant]] = Some(TypeCase[Instant])
         override def extract(expression: String, extractFunction: Instant => Unit): Boson =
           new BosonExtractor[Instant](expression, extractFunction)
       }
@@ -130,6 +157,8 @@ object Boson {
       */
     implicit val long: extractor[Long] =
       new extractor[Long] {
+        //println("implicit Long")
+        implicit val typeCase: Option[TypeCase[Long]] = Some(TypeCase[Long])
         override def extract(expression: String, extractFunction: Long => Unit): Boson =
           new BosonExtractor[Long](expression, extractFunction)
       }
@@ -139,6 +168,8 @@ object Boson {
       */
     implicit val int: extractor[Int] =
       new extractor[Int] {
+        //println("int")
+        implicit val typeCase: Option[TypeCase[Int]] = Some(TypeCase[Int])
         override def extract(expression: String, extractFunction: Int => Unit): Boson =
           new BosonExtractor[Int](expression, extractFunction)
       }
@@ -148,6 +179,8 @@ object Boson {
       */
     implicit val string: extractor[String] =
       new extractor[String] {
+        //println("string")
+        implicit val typeCase: Option[TypeCase[String]] = Some(TypeCase[String])
         override def extract(expression: String, extractFunction: String => Unit): Boson =
           new BosonExtractor[String](expression, extractFunction)
       }
@@ -157,6 +190,8 @@ object Boson {
       */
     implicit val boolean: extractor[Boolean] =
       new extractor[Boolean] {
+        //println("boolean")
+        implicit val typeCase: Option[TypeCase[Boolean]] = Some(TypeCase[Boolean])
         override def extract(expression: String, extractFunction: Boolean => Unit): Boson =
           new BosonExtractor[Boolean](expression, extractFunction)
       }

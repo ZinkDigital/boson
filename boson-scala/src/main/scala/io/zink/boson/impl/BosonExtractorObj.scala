@@ -6,7 +6,7 @@ import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonImpl.{BosonImpl, extractLabels}
 import io.zink.boson.bson.bsonPath._
-import shapeless.{HList, LabelledGeneric, TypeCase}
+import shapeless.{HList, LabelledGeneric, TypeCase, Typeable}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -26,7 +26,9 @@ import scala.util.{Failure, Success}
   */
 class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Option[T => Unit] = None, extractSeqFunction: Option[Seq[T] => Unit] = None)(implicit
                                                                                                                                                          gen: LabelledGeneric.Aux[T, R],
-                                                                                                                                                         extract: extractLabels[R]) extends Boson {
+                                                                                                                                                         extract: extractLabels[R],
+                                                                                                                                                         tp: Option[TypeCase[T]]) extends Boson {
+  //val print = println("BosonExtractorObj instantiated")
   val boson: BosonImpl = new BosonImpl()
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {

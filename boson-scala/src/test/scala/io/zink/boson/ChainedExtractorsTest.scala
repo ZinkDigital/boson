@@ -41,7 +41,7 @@ class ChainedExtractorsTest extends FunSuite{
 
   test("Extract Type class Book as byte[]") {
     val expression: String = ".Store.Book"
-    val boson: Boson = Boson.extractor[Array[Byte]](expression, (in: Array[Byte]) => {
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(_book1.encodeToBarray(), in)
       println("APPLIED")
     })

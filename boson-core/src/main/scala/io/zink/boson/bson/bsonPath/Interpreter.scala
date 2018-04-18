@@ -1,12 +1,13 @@
 package io.zink.boson.bson.bsonPath
 
 import java.time.Instant
+
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
-import shapeless.TypeCase
+import shapeless.{TypeCase, Typeable}
+
 import scala.util.{Failure, Success, Try}
-import scala.collection.optimizer._
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -26,7 +27,7 @@ class Interpreter[T](boson: BosonImpl,
                      limitList: List[(Option[Int], Option[Int], String)],
                      returnInsideSeqFlag: Boolean,
                      fInj: Option[T => T] = None,
-                     fExt: Option[T => Unit] = None) {
+                     fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]]) {
 
   /**
     * Run is the only public method of the object Interpreter and depending on which function it was instantiated with it chooses whether it starts
@@ -66,6 +67,7 @@ class Interpreter[T](boson: BosonImpl,
   private def constructObj(encodedSeqByteArray: Seq[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
     val seqTuples = TypeCase[Seq[List[Any]]]
     val listTuples = TypeCase[List[Any]]
+
     /**
       *
       * @param list List with Keys and Values from extracted objects
@@ -176,6 +178,7 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
+    //println(s"typeClass: $typeClass")
     applyFunction(result,keyList,limitList,typeClass,returnInsideSeqFlag)
   }
 
@@ -235,132 +238,357 @@ class Interpreter[T](boson: BosonImpl,
     value
   }
 
-//  def thing(list: Iterable[Iterable[Any]]): Iterable[Any] = optimize {
-//    list.reduce(_ ++ _)
+//  typeClass.get match {
+//    case STRING  =>
+//      val str: String = result.head.asInstanceOf[String]
+//      val inst: Option[Instant] = Try(Instant.parse(str)).toOption
+//      val arrB: Option[Array[Byte]] = Try(java.util.Base64.getDecoder.decode(str)).toOption
+//      val res =
+//        tCase.get.unapply(str).getOrElse {
+//          if (inst.isDefined) {
+//            tCase.get.unapply(inst.get)
+//          } else {
+//            tCase.get.unapply(arrB.get)
+//          }
+//        }
+//  }
+
+
+//  typeClass.get match {
+//    case STRING =>
+//      val res = tCase.get.unapply(result.head)
+//        .getOrElse(tCase.get.unapply(Instant.parse(result.head.asInstanceOf[String]))
+//          .getOrElse(tCase.get.unapply(java.util.Base64.getDecoder.decode(result.head.asInstanceOf[String]))))
+//      Transform.toPrimitive()
+//  }
+
+//  result.head match {
+//    case oneString(value) if typeClass.get.equals(STRING) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], value)
+//    case oneInstant(value) if typeClass.get.equals(INSTANT) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Instant => Unit], Instant.parse(value))
+//    case oneDouble(value) if typeClass.get.equals(DOUBLE) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], value)
+//    case oneFloat(value) if typeClass.get.equals(FLOAT) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Float => Unit], result.head.asInstanceOf[Double].toFloat)
+//    case oneInt(value) if typeClass.get.equals(INTEGER) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Int => Unit], result.head.asInstanceOf[Int])
+//    case oneLong(value) if typeClass.get.equals(LONG) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], result.head.asInstanceOf[Long])
+//    case oneBoolean(value) if typeClass.get.equals(BOOLEAN) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], result.head.asInstanceOf[Boolean])
+//    case oneAny(value) if typeClass.get.equals(ANY) =>
+//      Transform.toPrimitive(fExt.get.asInstanceOf[Any => Unit], result.head)
 //  }
 
   //TODO: rethink a better strategy to verify if T and type of extracted are the same
   private def applyFunction(result: Iterable[Any],keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
-    if (returnInsideSeqFlag) {
-      if (typeClass.isDefined) {
+    //println(s"TypeCase --> ${tCase}")
+    returnInsideSeqFlag match {
+      case false if typeClass.isDefined && tCase.isDefined => // all single values, results exists and its types ain't byte[]
         typeClass.get match {
-          case STRING if fExt.isDefined =>
-            val res: Seq[String] = result.asInstanceOf[Iterable[String]].toSeq
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Instant] => Unit], res.map(elem => Instant.parse(elem)))) match {
-                case Success(_) =>
-                case Failure(_) =>
-                  val extracted: Seq[Array[Byte]] = res.map(elem =>java.util.Base64.getDecoder.decode(elem))
-                  Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], extracted)) match {
-                    case Success(_) =>
-                    case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
-                  }
+          case STRING =>
+            val str: String = result.head.asInstanceOf[String]
+            tCase.get.unapply(str) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit],str)
+              case None =>
+                val defInst: Instant = Instant.now()
+                tCase.get.unapply(defInst) match {
+                case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Instant => Unit],Instant.parse(str))
+                case None =>  // TODO: rework, never gets in here
+                  val arrB: Array[Byte] = java.util.Base64.getDecoder.decode(str)
+                  Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit],arrB)
               }
             }
-          case INTEGER if fExt.isDefined =>
-            val res: Seq[Int] = result.asInstanceOf[Iterable[Int]].toSeq
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+          case INTEGER =>
+            tCase.get.unapply(result.head) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Int => Unit],result.head.asInstanceOf[Int])
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
-          case LONG if fExt.isDefined =>
-            val res: Seq[Long] = result.asInstanceOf[Iterable[Long]].toSeq
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
-            }
-          case BOOLEAN if fExt.isDefined =>
-            val res: Seq[Boolean] = result.asInstanceOf[Iterable[Boolean]].toSeq
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
-            }
-          case DOUBLE if fExt.isDefined =>
-            val res: Seq[Double] = result.asInstanceOf[Iterable[Double]].toSeq
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Float] => Unit], res.map(_.toFloat))) match {
-                case Success(_) =>
-                case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+          case DOUBLE =>
+            tCase.get.unapply(result.head) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit],result.head.asInstanceOf[Double])
+              case None => tCase.get.unapply(result.head.asInstanceOf[Double].toFloat) match {
+                case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Float => Unit],result.head.asInstanceOf[Double].toFloat)
+                case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
               }
             }
-          case COPY_BYTEBUF if fExt.isDefined =>
-            //println("Seq[byte[]], fExt.isDefined")
-            val res = result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array)
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) =>  throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+          case LONG =>
+            tCase.get.unapply(result.head) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit],result.head.asInstanceOf[Long])
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
-          case COPY_BYTEBUF =>
-            constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+          case BOOLEAN =>
+            tCase.get.unapply(result.head) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit],result.head.asInstanceOf[Boolean])
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+            }
           case ANY =>
-            val res: Seq[Any] = result.toSeq.map {
+            val res = result.toSeq.map {
               case buf: ByteBuf => buf.array
               case elem => elem
             }
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+            tCase.get.unapply(res.head) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Any => Unit],result.head)
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
+          case COPY_BYTEBUF => constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
         }
-      } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
-    } else {
-      //println("return without Seq")
-      if (typeClass.isDefined) {
+      case false if typeClass.isDefined => // all single values and results exists, case of byte[]
         typeClass.get match {
-          case STRING if fExt.isDefined =>
-            val res: String = result.head.asInstanceOf[String]
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Instant => Unit], Instant.parse(res))) match {
-                case Success(_) =>
-                case Failure(_) =>
-                  val extracted: Array[Byte] = java.util.Base64.getDecoder.decode(res)
-                  Try(Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], extracted)) match {
-                    case Success(_) =>
-                    case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
-                  }
-              }
-            }
-          case INTEGER if fExt.isDefined =>
-            val res: Int = result.head.asInstanceOf[Int]
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Int => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
-            }
-          case LONG if fExt.isDefined =>
-            val res: Long = result.head.asInstanceOf[Long]
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
-            }
-          case BOOLEAN if fExt.isDefined =>
-            val res: Boolean = result.head.asInstanceOf[Boolean]
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
-            }
-          case DOUBLE if fExt.isDefined =>
-            val res: Double = result.head.asInstanceOf[Double]
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Float => Unit], res.toFloat)) match {
-                case Success(_) =>
-                case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
-              }
-            }
           case COPY_BYTEBUF if fExt.isDefined =>
-            val res = result.asInstanceOf[Seq[ByteBuf]].head.array
-            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], res)) match {
-              case Success(_) =>
-              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
-            }
-          case COPY_BYTEBUF =>
-            constructObj(result.asInstanceOf[Seq[ByteBuf]].map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[ByteBuf]].head.array)
+          case STRING =>
+            val arrB: Array[Byte] = java.util.Base64.getDecoder.decode(result.head.asInstanceOf[String])
+            Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit],arrB)
         }
-      } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
+      case true if typeClass.isDefined && tCase.isDefined => // all Seq(values), results exists and its types ain't Seq(byte[])
+        typeClass.get match {
+          case STRING =>
+            val str: Seq[String] = result.asInstanceOf[Iterable[String]].toSeq
+            tCase.get.unapply(str) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit],str)
+              case None =>
+                val defInst: Seq[Instant] = Seq(Instant.now())
+                tCase.get.unapply(defInst) match {
+                  case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Instant] => Unit],str.map(Instant.parse(_)))
+                  case None =>  // TODO: rework, never gets in here
+                    val arrB: Seq[Array[Byte]] =str.map(java.util.Base64.getDecoder.decode(_))
+                    Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit],arrB)
+                }
+            }
+          case INTEGER =>
+            tCase.get.unapply(result.asInstanceOf[Iterable[Int]].toSeq) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit],result.asInstanceOf[Iterable[Int]].toSeq)
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+            }
+          case DOUBLE =>
+            tCase.get.unapply(result.asInstanceOf[Iterable[Double]].toSeq) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit],result.asInstanceOf[Iterable[Double]].toSeq)
+              case None => tCase.get.unapply(result.head.asInstanceOf[Iterable[Double]].map(_.toFloat)) match {
+                case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Float] => Unit],result.head.asInstanceOf[Iterable[Double]].map(_.toFloat).toSeq)
+                case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+              }
+            }
+          case LONG =>
+            tCase.get.unapply(result.asInstanceOf[Iterable[Long]].toSeq) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Iterable[Long]].toSeq)
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+            }
+          case BOOLEAN =>
+            tCase.get.unapply(result.asInstanceOf[Iterable[Boolean]].toSeq) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit],result.asInstanceOf[Iterable[Boolean]].toSeq)
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+            }
+          case ANY =>
+            val res = result.toSeq.map {
+              case buf: ByteBuf => buf.array
+              case elem => elem
+            }
+            tCase.get.unapply(res) match {
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit],result.toSeq)
+              case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+            }
+          case COPY_BYTEBUF => constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+        }
+      case true if typeClass.isDefined => // all Seq(values), results exists and type is Seq(byte[])
+        typeClass.get match {
+          case COPY_BYTEBUF if fExt.isDefined =>
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array))
+          case STRING =>
+            val arrB: Seq[Array[Byte]] =result.asInstanceOf[Iterable[String]].toSeq.map(java.util.Base64.getDecoder.decode(_))
+            Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit],arrB)
+        }
+      case _ =>
+        fExt.get.apply(result.asInstanceOf[T])
     }
+
+//    if(tCase.isDefined) {
+//      println("tCase is defined")
+//      tCase.get match {
+//        //  Single Result
+//        case oneString(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(STRING) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], result.head.asInstanceOf[String])
+//        case oneInstant(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(INSTANT) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Instant => Unit], Instant.parse(result.head.asInstanceOf[String]))
+//        case oneDouble(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(DOUBLE) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], result.head.asInstanceOf[Double])
+//        case oneFloat(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(FLOAT) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Float => Unit], result.head.asInstanceOf[Double].toFloat)
+//        case oneInt(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(INTEGER) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Int => Unit], result.head.asInstanceOf[Int])
+//        case oneLong(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(LONG) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], result.head.asInstanceOf[Long])
+//        case oneBoolean(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(BOOLEAN) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], result.head.asInstanceOf[Boolean])
+//        case oneAny(_) if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(ANY) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Any => Unit], result.head)
+//        case _ if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(COPY_BYTEBUF) =>  //  CaseClass => Unit
+//          constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+//        // Inside Seq
+//        case seqString(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(STRING) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], result.asInstanceOf[Iterable[String]].toSeq)
+//        case seqInstant(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(INSTANT) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Instant] => Unit], result.asInstanceOf[Iterable[String]].toSeq.map(elem => Instant.parse(elem)))
+//        case seqDouble(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(DOUBLE) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], result.asInstanceOf[Iterable[Double]].toSeq)
+//        case seqFloat(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(FLOAT) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Float] => Unit], result.asInstanceOf[Iterable[Double]].map(_.toFloat).toSeq)
+//        case seqInt(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(INTEGER) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], result.asInstanceOf[Iterable[Int]].toSeq)
+//        case seqLong(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(LONG) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], result.asInstanceOf[Iterable[Long]].toSeq)
+//        case seqBoolean(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(BOOLEAN) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], result.asInstanceOf[Iterable[Boolean]].toSeq)
+//        case seqAny(_) if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(ANY) =>
+//          val res = result.toSeq.map {
+//            case buf: ByteBuf => buf.array
+//            case elem => elem
+//          }
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit], res)
+//        case _ if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(COPY_BYTEBUF) =>  //  CaseClass => Unit
+//          constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+//        case _ => throw new Exception("No results extracted.")
+//      }
+//    } else {  // case:  byte[] or Seq[byte[]]
+//      tCase match {
+//        case _ if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(COPY_BYTEBUF) && fExt.isDefined => //  Array[Byte] => Unit
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], result.asInstanceOf[Seq[ByteBuf]].head.array)
+//        case _ if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(COPY_BYTEBUF) && fExt.isDefined => //  Seq[Array[Byte]] => Unit
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array))
+//        case _ if !returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(STRING) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], java.util.Base64.getDecoder.decode(result.head.asInstanceOf[String]))
+//        case _ if returnInsideSeqFlag && typeClass.isDefined && typeClass.get.equals(STRING) =>
+//          Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], result.asInstanceOf[Iterable[String]].toSeq.map(elem =>java.util.Base64.getDecoder.decode(elem)))
+//        case _ => throw new Exception("No results extracted.")
+//      }
+//    }
+
+//    if (returnInsideSeqFlag) {
+//      if (typeClass.isDefined) {
+//        typeClass.get match {
+//          case STRING if fExt.isDefined =>
+//            val res: Seq[String] = result.asInstanceOf[Iterable[String]].toSeq
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[String] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Instant] => Unit], res.map(elem => Instant.parse(elem)))) match {
+//                case Success(_) =>
+//                case Failure(_) =>
+//                  val extracted: Seq[Array[Byte]] = res.map(elem =>java.util.Base64.getDecoder.decode(elem))
+//                  Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], extracted)) match {
+//                    case Success(_) =>
+//                    case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//                  }
+//              }
+//            }
+//          case INTEGER if fExt.isDefined =>
+//            val res: Seq[Int] = result.asInstanceOf[Iterable[Int]].toSeq
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Int] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//            }
+//          case LONG if fExt.isDefined =>
+//            val res: Seq[Long] = result.asInstanceOf[Iterable[Long]].toSeq
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Long] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//            }
+//          case BOOLEAN if fExt.isDefined =>
+//            val res: Seq[Boolean] = result.asInstanceOf[Iterable[Boolean]].toSeq
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Boolean] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//            }
+//          case DOUBLE if fExt.isDefined =>
+//            val res: Seq[Double] = result.asInstanceOf[Iterable[Double]].toSeq
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Float] => Unit], res.map(_.toFloat))) match {
+//                case Success(_) =>
+//                case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//              }
+//            }
+//          case COPY_BYTEBUF if fExt.isDefined =>
+//            //println("Seq[byte[]], fExt.isDefined")
+//            val res = result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array)
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Array[Byte]] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) =>  throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//            }
+//          case COPY_BYTEBUF =>
+//            constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+//          case ANY =>
+//            val res: Seq[Any] = result.toSeq.map {
+//              case buf: ByteBuf => buf.array
+//              case elem => elem
+//            }
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: Seq[${typeClass.get}]")
+//            }
+//        }
+//      } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
+//    } else {
+//      //println("return without Seq")
+//      if (typeClass.isDefined) {
+//        typeClass.get match {
+//          case STRING if fExt.isDefined =>
+////            println("before")
+//            val res: String = result.head.asInstanceOf[String]
+////            Transform.toPrimitive[String](fExt.get,res)
+////            println("after")
+//
+//
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[String => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Instant => Unit], Instant.parse(res))) match {
+//                case Success(_) =>
+//                case Failure(_) =>
+//                  val extracted: Array[Byte] = java.util.Base64.getDecoder.decode(res)
+//                  Try(Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], extracted)) match {
+//                    case Success(_) =>
+//                    case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+//                  }
+//              }
+//            }
+//          case INTEGER if fExt.isDefined =>
+//            val res: Int = result.head.asInstanceOf[Int]
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Int => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+//            }
+//          case LONG if fExt.isDefined =>
+//            val res: Long = result.head.asInstanceOf[Long]
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Long => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+//            }
+//          case BOOLEAN if fExt.isDefined =>
+//            val res: Boolean = result.head.asInstanceOf[Boolean]
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Boolean => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+//            }
+//          case DOUBLE if fExt.isDefined =>
+//            val res: Double = result.head.asInstanceOf[Double]
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Double => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => Try(Transform.toPrimitive(fExt.get.asInstanceOf[Float => Unit], res.toFloat)) match {
+//                case Success(_) =>
+//                case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+//              }
+//            }
+//          case COPY_BYTEBUF if fExt.isDefined =>
+//            val res = result.asInstanceOf[Seq[ByteBuf]].head.array
+//            Try(Transform.toPrimitive(fExt.get.asInstanceOf[Array[Byte] => Unit], res)) match {
+//              case Success(_) =>
+//              case Failure(_) => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
+//            }
+//          case COPY_BYTEBUF =>
+//            constructObj(result.asInstanceOf[Seq[ByteBuf]].map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+//        }
+//      } else fExt.get.apply(result.asInstanceOf[T]) //TODO: implement this case, when there aren't results
+//    }
   }
 
 //  /**
