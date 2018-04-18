@@ -2,6 +2,7 @@ package io.zink.boson.impl
 
 import java.nio.ByteBuffer
 
+import io.netty.buffer.ByteBuf
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
 import io.zink.boson.bson.bsonImpl.Dictionary._
@@ -36,6 +37,10 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     buildExtractors(parsedStatements.statementList.head, parsedStatements.statementList.tail, parsedStatements.dotsList)
 
   val returnInsideSeqFlag: Boolean = returnInsideSeq(keyList,limitList,parsedStatements.dotsList)
+
+  val interpreter: Interpreter[T] = new Interpreter[T](boson, keyList,limitList,returnInsideSeqFlag, fExt = Option(extractFunction))
+
+  val interpreter2 = new Interpreter[T](boson, keyList,limitList,returnInsideSeqFlag, fExt = Option(extractFunction))
 
   /**
     * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
@@ -159,7 +164,16 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     */
   // byteArr as argument to go to interpreter, Either[byte[],String]
   private def runInterpreter(bsonEncoded: Either[Array[Byte],String]): Unit = {
-    new Interpreter[T](boson, bsonEncoded, keyList,limitList,returnInsideSeqFlag, fExt = Option(extractFunction)).run()
+    interpreter.run(bsonEncoded)
+  }
+
+  private def runInterpreter2(bsonEncoded: Either[Seq[ByteBuf],String]): Any = {
+
+    val results =
+    bsonEncoded.left.get.par.map{ elem =>
+      interpreter2.runExtractors(elem, keyList,limitList)
+    }.seq.reduce(_++_).map{ case e: ByteBuf => e.array()}
+    extractFunction(results.toSeq.asInstanceOf[T])
   }
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
@@ -167,6 +181,16 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
       Future {
         runInterpreter(Left(bsonByteEncoding))
         bsonByteEncoding
+      }
+    future
+  }
+
+
+  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
+    val future: Future[Seq[ByteBuf]] =
+      Future {
+        runInterpreter2(Left(encodedStructures))
+        encodedStructures
       }
     future
   }

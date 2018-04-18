@@ -93,12 +93,3 @@ object Dictionary {
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }
-//
-//JsonPath2 time -> 0.662579 ms, Expression: .Participants[1].Tags.SSLNLastName
-//
-//Boson2 time -> 0.174345 ms, Expression: .Participants[1].Tags.SSLNLastName
-//
-//JsonPath2 time -> 1.010131 ms, Expression: ..SSLNLastName
-//
-//Boson2 time -> 8.131283 ms, Expression: ..SSLNLastName
-//------------------------------------------------------------------------------------------

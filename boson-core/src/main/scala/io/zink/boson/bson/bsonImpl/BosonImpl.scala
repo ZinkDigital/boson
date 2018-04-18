@@ -288,7 +288,6 @@ class BosonImpl(
                 val midResult = traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
               case _ =>
-                //netty.getBytes(arrayStartReaderIndex, arr, 0, valueLength)
                 val buf = netty.copy(arrayStartReaderIndex,valueLength)
                 netty.readerIndex(arrayFinishReaderIndex)
                 Some(buf)

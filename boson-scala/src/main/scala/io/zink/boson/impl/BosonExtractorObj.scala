@@ -41,6 +41,8 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
 
   val returnInsideSeqFlag: Boolean = returnInsideSeq(keyList,limitList,parsedStatements.dotsList)
 
+  val interpreter: Interpreter[T] = new Interpreter[T](boson, keyList,limitList,returnInsideSeqFlag)
+
   /**
     * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
     *
@@ -164,7 +166,7 @@ class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Opti
     */
   // byteArr as argument to go to interpreter, Either[byte[],String]
   private def runInterpreter(bsonEncoded: Either[Array[Byte],String]): Any = {
-    new Interpreter[T](boson, bsonEncoded, keyList,limitList,returnInsideSeqFlag).run()
+    interpreter.run(bsonEncoded)
   }
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete

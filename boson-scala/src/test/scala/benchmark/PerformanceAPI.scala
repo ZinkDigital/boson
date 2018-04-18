@@ -8,13 +8,16 @@ import bsonLib.{BsonArray, BsonObject}
 import com.jayway.jsonpath.spi.json.GsonJsonProvider
 import com.jayway.jsonpath.spi.mapper.GsonMappingProvider
 import com.jayway.jsonpath.{Configuration, JsonPath, Option}
+import io.netty.buffer.Unpooled
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
 import io.zink.boson.Boson
+import io.zink.boson.impl.BosonExtractor
 import org.bson.{BSONDecoder, BSONObject, BasicBSONDecoder}
 
 import scala.collection.mutable.ListBuffer
 import org.scalameter._
+import shapeless.TypeCase
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -362,6 +365,15 @@ case class Tags(Type: String,line: String, traded_pre_match: String, traded_in_p
 
 
 object PerformanceTests extends App {
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val jsonStr: String = bufferedSource.getLines.toSeq.head
+  bufferedSource.close
+  val jsonObj: JsonObject = new JsonObject(jsonStr)
+  val bson: BsonObject = new BsonObject(jsonObj)
+  val validatedByteArray: Array[Byte] = bson.encodeToBarray()
+
+  val firstResultBuffer: ListBuffer[Array[Byte]] = new ListBuffer[Array[Byte]]
+  var rangeResults: Seq[Array[Byte]] = _
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val timesBuffer: ListBuffer[Long] = new ListBuffer[Long]
   val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
@@ -551,8 +563,25 @@ object PerformanceTests extends App {
 //  timesBuffer.clear()
 //  println()
 
-  val boson3: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Array[Byte]]) => {
+  val boson3: Boson = Boson.extractor(".Markets[all]", (out: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+
+  for(_ <- 0 to 10000) yield {
+    val start = System.nanoTime()
+    val fut = boson3.go(validatedByteArray)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  }
+  println(s"Boson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all]  -> as[Seq[Array[Byte]]]")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
+/*
+  val boson3: Boson = Boson.extractor(".Markets", (out: Array[Byte]) => {
+    val end = System.nanoTime()
+    firstResultBuffer.append(out)
     endTimeBuffer.append(end)
   })
 
@@ -562,11 +591,57 @@ object PerformanceTests extends App {
     Await.result(fut, Duration.Inf)
     timesBuffer.append(start)
   }
-  println(s"Boson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all].Tags  -> as[Seq[Array[Byte]]]")
+  println(s"Boson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets  -> as[Array[Byte]]")
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
 
+  Thread.sleep(5000)
+
+  val boson33: Boson = Boson.extractor(".[all]", (out: Seq[Array[Byte]]) => {
+    val end = System.nanoTime()
+    rangeResults = out
+    endTimeBuffer.append(end)
+  })
+
+  for(_ <- 0 to 10000) yield {
+    val start = System.nanoTime()
+    val fut = boson33.go(firstResultBuffer.head)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  }
+  println(s"Boson33 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .[all]  -> as[Seq[Array[Byte]]]")
+  firstResultBuffer.clear()
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
+
+  Thread.sleep(5000)
+
+  implicit val typeCase: scala.Option[TypeCase[Seq[Array[Byte]]]] = None
+  val boson333 = new BosonExtractor[Seq[Array[Byte]]](".Tags", (out: Seq[Array[Byte]]) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+
+  val rangeByteBufs = rangeResults.map{ elem =>
+    Unpooled.copiedBuffer(elem)
+  }
+  rangeResults = Seq()
+//  println(s"range of Results -> ${rangeByteBufs.size}")
+  for(_ <- 0 to 10000) yield {
+    val start = System.nanoTime()
+    val fut = boson333.go2(rangeByteBufs)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  }
+  println(s"Boson333 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Tags  -> as[Seq[Array[Byte]]]")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
+
+
+*/
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
 //    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)

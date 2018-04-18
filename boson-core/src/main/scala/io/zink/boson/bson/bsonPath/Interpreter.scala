@@ -22,7 +22,6 @@ import scala.util.{Failure, Success, Try}
   * @tparam T Type specified by the User.
   */
 class Interpreter[T](boson: BosonImpl,
-                     bsonEncoded: Either[Array[Byte],String],
                      keyList: List[(String, String)],
                      limitList: List[(Option[Int], Option[Int], String)],
                      returnInsideSeqFlag: Boolean,
@@ -35,10 +34,10 @@ class Interpreter[T](boson: BosonImpl,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(): Any = {
+  def run(bsonEncoded: Either[Array[Byte],String]): Any = {
     //if (fInj.isDefined) startInjector(program)
     //else
-    start()
+    start(bsonEncoded)
   }
 
   /**
@@ -46,7 +45,7 @@ class Interpreter[T](boson: BosonImpl,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def start(): Any = {
+  private def start(bsonEncoded: Either[Array[Byte],String]): Any = {
     //instead boson.get.. as argument replace with Either[..]
     bsonEncoded match {
       case Left(byteArr) =>
@@ -208,7 +207,7 @@ class Interpreter[T](boson: BosonImpl,
     * @param limitList  List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
     * @return Extracted result.
     */
-  private def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
+  def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
     val value: Iterable[Any] =
       keyList.size match {
         case 1 =>
@@ -225,16 +224,10 @@ class Interpreter[T](boson: BosonImpl,
                 filtered.par.map { elem =>
                   if(keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
                   else runExtractors(elem, keyList.drop(1), limitList.drop(1))
-                }.seq//.view
+                }.seq
                   result.reduce(_++_)
-//              if(result.nonEmpty){
-//                //println(resultComposer(result))
-//                //resultComposer(result)
-//                result.reduce(_++_)
-//              } else result
           }
       }
-    //println(s"final value from runing extractors ----> $value")
     value
   }
 
