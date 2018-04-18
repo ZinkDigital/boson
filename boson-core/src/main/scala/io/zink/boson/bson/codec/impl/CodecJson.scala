@@ -42,7 +42,7 @@ class CodecJson(str: String) extends Codec {
         case "object" =>
           //println(new String(input.slice(readerIndex, input.length)))
           val size = findObjectSize(input.slice(readerIndex, input.length),'{','}')
-          val subStr1 = input.slice(readerIndex, readerIndex+size-1)
+          val subStr1 = input.slice(readerIndex, readerIndex+size)
           //println(new String(subStr1))
           SonObject(request, new String(subStr1))
 
@@ -54,7 +54,7 @@ class CodecJson(str: String) extends Codec {
         case "array" =>
           //println(new String(input.slice(readerIndex, input.length)))
           val size = findObjectSize(input.slice(readerIndex, input.length),'[',']')
-          val subStr1 = input.slice(readerIndex, readerIndex+size-1)
+          val subStr1 = input.slice(readerIndex, readerIndex+size)
           //println(new String(subStr1))
           SonArray(request, new String(subStr1))
 
@@ -128,7 +128,7 @@ class CodecJson(str: String) extends Codec {
           //println("object")
           //println(new String(input.slice(readerIndex, input.length)))
           val size = findObjectSize(input.slice(readerIndex, input.length),'{','}')
-          val subStr1 = input.slice(readerIndex, readerIndex+size-1)
+          val subStr1 = input.slice(readerIndex, readerIndex+size)
           readerIndex+=size
           //println(new String(subStr1))
           SonObject(request, new String(subStr1))
@@ -141,7 +141,7 @@ class CodecJson(str: String) extends Codec {
         case "array" =>
           //println(new String(input.slice(readerIndex, input.length)))
           val size = findObjectSize(input.slice(readerIndex, input.length),'[',']')
-          val subStr1 = input.slice(readerIndex, readerIndex+size-1)
+          val subStr1 = input.slice(readerIndex, readerIndex+size)
           readerIndex+=size
           //println(new String(subStr1))
           SonArray(request, new String(subStr1))
@@ -232,13 +232,16 @@ class CodecJson(str: String) extends Codec {
 
   def readNextNumber : Array[Char] = {
     //println("readNextNumber")
-    input.slice(readerIndex, input.length).dropWhile(p => if(!p.isDigit){
-      readerIndex+=1
-      true
-    }else false)
+    //val input0 = input.slice(readerIndex, input.length)
+      //var i =0
+      while(!input.apply(readerIndex).isDigit){
+        println("passa aqui")
+        readerIndex+=1
+      }
+
     val indexMin = List(input.slice(readerIndex, input.length).indexOf(','),input.slice(readerIndex, input.length).indexOf('}'),input.slice(readerIndex, input.length).indexOf(']')).filter(n => n>=0).min
     val subStr = input.slice(readerIndex, readerIndex+indexMin)
-    //println(subStr)
+    println(new String(subStr))
     readerIndex+=indexMin
     val subStr1 = subStr.dropWhile(p => !p.isDigit)
     ////println("Int="+ new String(subStr1).toInt)
@@ -274,20 +277,28 @@ class CodecJson(str: String) extends Codec {
         case '{' =>
           //TODO Find the closing bracket and return size
           val inputAux: Array[Char] = input.slice(readerIndex, input.length)
-          findObjectSize(inputAux, '{', '}')
+          val size = findObjectSize(inputAux, '{', '}')
+          println(new String(input.slice(readerIndex, readerIndex+size)), size)
+          size
 
         case '[' =>
           //TODO Find the closing bracket and return size
           val inputAux: Array[Char] = input.slice(readerIndex, input.length)
-          findObjectSize(inputAux, '[', ']')
-
+          val size = findObjectSize(inputAux, '[', ']')
+          println(new String(input.slice(readerIndex, readerIndex+size)), size)
+          size
         case '\"' =>
           //TODO Find the closing Quotes and return size
           val inputAux: Array[Char] = input.slice(readerIndex, input.length)
-          findStringSize(inputAux, '\"')
+          val size = findStringSize(inputAux, '\"')
+          println(new String(input.slice(readerIndex, readerIndex+size)), size)
+          size
         case _ =>
           readerIndex+=1
-          readSize
+          val s = readSize
+          //readerIndex-=1
+          s+1
+
       }
   }
 
@@ -295,7 +306,7 @@ class CodecJson(str: String) extends Codec {
     var counter: Int = 1
     var i = 1
     while(counter!=0){
-      //print(input.apply(i) + " ")
+      print(input.apply(i) + " ")
       val aux = input.apply(i) match {
         case x if x.equals(chO) => 1
         case x if x.equals(chC) => -1
@@ -305,7 +316,7 @@ class CodecJson(str: String) extends Codec {
       i+=1
     }
     //println()
-    i+1
+    i
   }
   def findStringSize(input: Array[Char], ch: Char): Int = {
     var counter: Int = 1
@@ -354,6 +365,7 @@ class CodecJson(str: String) extends Codec {
         ////println(input.apply(rIndexAux+finalIndex+1))
         input.apply(rIndexAux+finalIndex+1) match {
           case ':'=>
+            //readerIndex+=1
             val a = input.slice(rIndexAux+finalIndex+2, input.length)
             ////println(a.apply(0))
             a.apply(0) match{
@@ -452,7 +464,11 @@ class CodecJson(str: String) extends Codec {
     res
   }
 
-  override def downOneLevel: Unit = readerIndex+=1
+  override def downOneLevel: Unit = {
+    if(input.apply(readerIndex).equals(':'))readerIndex+=1
+
+    readerIndex+=1
+  }
 }
 
 

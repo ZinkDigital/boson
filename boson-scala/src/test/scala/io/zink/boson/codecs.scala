@@ -2351,5 +2351,61 @@ class codecs extends FunSuite{
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
   }
+
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val jsonStr: String = bufferedSource.getLines.toSeq.head
+  bufferedSource.close
+  val jsonObj: JsonObject = new JsonObject(jsonStr)
+  val json: String = jsonObj.encode()
+  val bson: BsonObject = new BsonObject(jsonObj)
+  val validatedByteArray: Array[Byte] = bson.encodeToBarray()
+
+
+  test("jsonOutPut Epoch BSON") {
+    val expression: String = ".Epoch"
+    val joson = Boson.extractor(expression, (in: Int) => {
+      println(s"in: $in")
+      assertEquals(3, in)
+      println("APPLIED")
+    })
+    val res = joson.go(validatedByteArray)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("jsonOutPut Epoch JSON") {
+    val expression: String = ".Epoch"
+    val joson = Boson.extractor(expression, (in: Int) => {
+      println(s"in: $in")
+      assertEquals(3, in)
+      println("APPLIED")
+    })
+    val res = joson.go(json)
+    Await.result(res, Duration.Inf)
+  }
+
+
+  test("jsonOutPut SSLNLastName BSON") {
+    val expression: String = "..SSLNLastName"
+    val joson = Boson.extractor(expression, (in: Seq[String]) => {
+      println(s"in: $in")
+      assertEquals("de Huanuco", in.head)
+      println("APPLIED")
+    })
+    val res = joson.go(validatedByteArray)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("jsonOutPut SSLNLastName JSON") {
+    val expression: String = "..SSLNLastName"
+    val joson = Boson.extractor(expression, (in: Seq[String]) => {
+      println(s"in: $in")
+      assertEquals("de Huanuco", in.head)
+      println("APPLIED")
+    })
+    val res = joson.go(json)
+    Await.result(res, Duration.Inf)
+  }
+
+
 }
 
