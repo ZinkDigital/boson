@@ -36,12 +36,11 @@ class BosonImpl(
     }else if (stringJson.isDefined) {
       stringJson.get.getClass.getSimpleName
   } else EMPTY_CONSTRUCTOR
-  ////////println("ValueOfArgument " + valueOfArgument)
+
 
   private val (nettyBuffer): (Either[Array[Byte], String]) = valueOfArgument match {
     case ARRAY_BYTE =>
-      val b: Array[Byte] = byteArray.get//: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
-      //val codec = CodecObject.toCodec(byteArray.get)
+      val b: Array[Byte] = byteArray.get
       Left(b)
     case JAVA_BYTEBUFFER =>
       val buff: ByteBuffer = javaByteBuf.get
@@ -64,8 +63,6 @@ class BosonImpl(
       Left(Unpooled.buffer().array())
 }
 
-
-
   private val eObjPrimitiveConditions: List[(String, String)] => Boolean =
     keyList => {
       !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)
@@ -79,33 +76,22 @@ class BosonImpl(
   def extract[T](netty1: Either[Array[Byte], String], keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
 
-println("extract")
     val nettyC: Codec = netty1 match {
       case Right(x) => CodecObject.toCodec(x)
       case Left(x) => CodecObject.toCodec(x)
     }
 
-    //Get the reader index
     val startReaderIndexCodec:Int = nettyC.getReaderIndex
-    // Reads the size, the codec needs to consume the values, not only get them,
-   // val sizeCodec =
-    ////////println(s"Size: (B: $size, C: $sizeCodec)")
-    //println(sizeCodec)
     Try(nettyC.readSize) match {
       case Success(value) =>
         val size: Int = value
-        // Read Data Tyupe
         val seqTypeCodec: SonNamedType = nettyC.rootType
-        //println(s"Root Type: $seqTypeCodec")
         seqTypeCodec match {
           case SonZero => None
           case SonArray(_,_) =>
             val arrayFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
               case C_DOT if keyList.lengthCompare(1) == 0 =>
-                //val res = nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].result
-                //nettyC.release()
-                //Some(res)
                 Try(nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].result) match{
                   case Success(value)=>
                     nettyC.release()
@@ -115,7 +101,6 @@ println("extract")
                     Seq()
                 }
               case _ =>
-                //////println("In array")
                 Try(extractFromBsonArray(nettyC, size, arrayFinishReaderIndex, keyList, limitList))match{
                   case Success(value) =>
                     nettyC.release()
@@ -124,20 +109,13 @@ println("extract")
                     nettyC.release()
                     Seq()
                 }
-                ////////println("midResult= " + midResult)
-
-
-
             }
           case SonObject(_,_) =>
             val bsonFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
               case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => None
               case C_DOT if keyList.lengthCompare(1) == 0 =>
-                //val res = nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].result
-                //nettyC.release()
-                //Some(res)
-                Try( nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].result) match{
+                Try(nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].result) match{
                   case Success(value)=>
                     nettyC.release()
                     Some(value)
@@ -145,7 +123,6 @@ println("extract")
                     nettyC.release()
                     Seq()
                 }
-
               case _ if keyList.head._2.equals(C_BUILD)=>
                 Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList).asInstanceOf[List[List[(String,Any)]]].flatten)match{
                   case Success(value)=>
@@ -155,12 +132,6 @@ println("extract")
                     nettyC.release()
                     Seq()
                 }
-                //List(List(Title, Scala), List(Price, 30.5), List(List(Title, ScalaMachine, Price, 40, Availability, true)))
-                //List(Title, Scala, Price, 30.5, List(Title, ScalaMachine, Price, 40, Availability, true)) with flatten
-                ////////println(s"final midResult -> $midResult")
-                ////////println(s"final midResult with resultComposer -> ${resultComposer(midResult.toSeq)}")
-
-              //if (midResult.isEmpty) None else resultComposer(midResult.toSeq)
               case _ =>
                 Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
                   case Success(value)=>
@@ -171,15 +142,10 @@ println("extract")
                     Seq()
                 }
             }
-
         }
-
-
       case Failure(msg) =>
         throw new RuntimeException(msg)
-
     }
-
   }
 
   // Extracts the value of a key inside a BsonObject
