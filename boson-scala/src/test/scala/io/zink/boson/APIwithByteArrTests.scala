@@ -120,7 +120,7 @@ class APIwithByteArrTests extends FunSuite {
     val future: CompletableFuture[Seq[Float]] = new CompletableFuture[Seq[Float]]()
     val boson: Boson = Boson.extractor(expression, (in: Seq[Float]) => future.complete(in))
     boson.go(validatedByteArray)
-
+    println(s"result -> ${future.join()}")
     assertEquals(Seq(
       3.854f
     ), future.join())

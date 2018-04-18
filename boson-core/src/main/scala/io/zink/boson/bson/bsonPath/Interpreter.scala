@@ -168,7 +168,7 @@ class Interpreter[T](boson: BosonImpl,
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
   private def extract(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
-    val result: Iterable[Any] = runExtractors(encodedStructure, keyList, limitList)
+    val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -207,8 +207,8 @@ class Interpreter[T](boson: BosonImpl,
     * @param limitList  List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
     * @return Extracted result.
     */
-  def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Iterable[Any] = {
-    val value: Iterable[Any] =
+  def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
+    val value: List[Any] =
       keyList.size match {
         case 1 =>
           boson.extract(encodedStructure, keyList, limitList)
@@ -218,13 +218,13 @@ class Interpreter[T](boson: BosonImpl,
           val res: Iterable[Any] = boson.extract(encodedStructure, keyList, limitList)
           val filtered = res.collect{ case buf: ByteBuf => buf}
           filtered.size match {
-            case 0 => Seq() //throw CustomException("The given path doesn't correspond with the event structure.")
+            case 0 => List() //throw CustomException("The given path doesn't correspond with the event structure.")
             case _ =>
-              val result: Iterable[Iterable[Any]] =
+              val result: List[List[Any]] =
                 filtered.par.map { elem =>
                   if(keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
                   else runExtractors(elem, keyList.drop(1), limitList.drop(1))
-                }.seq
+                }.seq.toList
                   result.reduce(_++_)
           }
       }
@@ -358,8 +358,8 @@ class Interpreter[T](boson: BosonImpl,
           case DOUBLE =>
             tCase.get.unapply(result.asInstanceOf[Iterable[Double]].toSeq) match {
               case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Double] => Unit],result.asInstanceOf[Iterable[Double]].toSeq)
-              case None => tCase.get.unapply(result.head.asInstanceOf[Iterable[Double]].map(_.toFloat)) match {
-                case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Float] => Unit],result.head.asInstanceOf[Iterable[Double]].map(_.toFloat).toSeq)
+              case None => tCase.get.unapply(result.asInstanceOf[Iterable[Double]].map(_.toFloat)) match {
+                case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Float] => Unit],result.asInstanceOf[Iterable[Double]].map(_.toFloat).toSeq)
                 case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
               }
             }
@@ -379,7 +379,7 @@ class Interpreter[T](boson: BosonImpl,
               case elem => elem
             }
             tCase.get.unapply(res) match {
-              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit],result.toSeq)
+              case Some(_) => Transform.toPrimitive(fExt.get.asInstanceOf[Seq[Any] => Unit],res)
               case None => throw CustomException(s"Type designated doens't correspond with extracted type: ${typeClass.get}")
             }
           case COPY_BYTEBUF => constructObj(result.asInstanceOf[Iterable[ByteBuf]].toSeq.map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))

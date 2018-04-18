@@ -184,7 +184,8 @@ class HorribleTests extends FunSuite {
   test("array prob 1") {
     val expression: String = "José[0    to   end]"
     val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
-      val expected: Seq[Any] = Vector("Tarantula", "Aracnídius", br4.encodeToBarray(), "Spider", "Fly")
+      println(s"out -> $out")
+      val expected: Seq[Any] = Seq("Tarantula", "Aracnídius", br4.encodeToBarray(), "Spider", "Fly")
       assertTrue(expected.zip(out).forall {
         case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
         case (e, r) => e.equals(r)
