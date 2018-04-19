@@ -26,6 +26,7 @@ Streaming Data Access for BSON and JSON encoded documents
 	* [BsonPath](#bsonpath)
 		* [Operators](#operators)
 		* [Comparison with JsonPath](#comparison-with-jsonpath)
+	* [Java Profiler](#java-profiler)
 
 
 <div id='id-quickStartGuideScala'/>
@@ -486,3 +487,9 @@ BsonPath | JsonPath
 `*ok[@Pri*]..SpecialEd*.Price` | `Non existent.`
 
 **Note: JsonPath doesn't support the *halfkey* (`B*ok`) as well as the range *until end* (`1 until end`).**
+
+## Java Profiler
+
+Boson is a library that relies on high performance BSON data manipulation, and so performance monitoring is of paramount importance. The chosen java profiler is [YourKit](https://www.yourkit.com/) for being a supporter of open source projects and one of the most innovative and intelligent tools for profiling [Java](https://www.yourkit.com/java/profiler/) & [.NET](https://www.yourkit.com/.net/profiler/) applications as well .
+
+![](https://www.yourkit.com/images/yklogo.png)
