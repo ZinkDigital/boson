@@ -376,6 +376,7 @@ object PerformanceTests extends App {
     .mappingProvider(new GsonMappingProvider())
     .jsonProvider(new GsonJsonProvider())
     .build
+
   for(_ <- 0 to 10000) yield {
     val start = System.nanoTime()
     val res: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])

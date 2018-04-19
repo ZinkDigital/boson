@@ -154,24 +154,28 @@ class BosonImpl(
       seqTypeCodec match {
         case D_FLOAT_DOUBLE =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-           val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+
           if (matched && eObjPrimitiveConditions(keyList)) {
+            val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
               case C_BUILD => Some(Iterable(key, value0))
               case _ => Some(value0)
             }
           } else {
+            codec.consumeValue(seqTypeCodec)
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-           val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result.asInstanceOf[String]
+
           if (matched && eObjPrimitiveConditions(keyList)) {
+            val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result.asInstanceOf[String]
             keyList.head._2 match {
               case C_BUILD => Some(Iterable(key, value0))
               case _ => Some(value0)
             }
           } else {
+            codec.consumeValue(seqTypeCodec)
             None
           }
         case D_BSONOBJECT =>
@@ -248,47 +252,54 @@ class BosonImpl(
           }
         case D_BOOLEAN =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-           val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+
           if (matched && eObjPrimitiveConditions(keyList)) {
+            val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
             keyList.head._2 match {
               case C_BUILD => Some(Iterable(key, value0 == 1))
               case _ => Some(value0 == 1)
             }
           } else {
+            codec.consumeValue(seqTypeCodec)
             None
           }
         case D_NULL =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-          val value0 = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result.asInstanceOf[String]
+
           if (matched && eObjPrimitiveConditions(keyList)) {
+            val value0 = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result.asInstanceOf[String]
             keyList.head._2 match {
               case C_BUILD => Some(Iterable(key, value0))
               case _ => Some(value0)
             }
           } else {
+            codec.consumeValue(seqTypeCodec)
             None
           }
         case D_INT =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-           val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+
           if (matched && eObjPrimitiveConditions(keyList)){
+            val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
               case C_BUILD => Some(Iterable(key, value0))
               case _ => Some(value0)
             }
           } else {
+            codec.consumeValue(seqTypeCodec)
             None
           }
         case D_LONG =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-           val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
-          if (matched && eObjPrimitiveConditions(keyList)) {
 
+          if (matched && eObjPrimitiveConditions(keyList)) {
+            val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
               case C_BUILD => Some(Iterable(key, value0))
               case _ => Some(value0)
             }
           } else {
+            codec.consumeValue(seqTypeCodec)
             None
           }
         case D_ZERO_BYTE =>
@@ -330,10 +341,12 @@ class BosonImpl(
         val finalValue: Option[Any] =
           seqType2 match {
             case D_FLOAT_DOUBLE =>
-              val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+             // val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+              codec.consumeValue(seqType2)
               None
             case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-              val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+             // val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+              codec.consumeValue(seqType2)
               None
             case D_BSONOBJECT =>
               val bsonStartReaderIndex: Int = codec.getReaderIndex
@@ -350,16 +363,20 @@ class BosonImpl(
               val midResult: Iterable[Any] = extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
               if (midResult.isEmpty) None else Some(resultComposer(midResult.toSeq))
             case D_BOOLEAN =>
-              val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+              //val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+              codec.consumeValue(seqType2)
               None
             case D_NULL =>
-              val value0 =  codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+              //val value0 =  codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+              codec.consumeValue(seqType2)
               None
             case D_INT =>
-              val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+              //val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+              codec.consumeValue(seqType2)
               None
             case D_LONG =>
-             val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+             //val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+              codec.consumeValue(seqType2)
               None
             case D_ZERO_BYTE =>
               None
@@ -404,44 +421,67 @@ class BosonImpl(
 
       val seqTypeCodec: Int = codec.readDataType
       if (seqTypeCodec != 0) {
-        val pos = codec.readArrayPosition
+        codec.readArrayPosition
       }
       val newSeq: Option[Any] =
         seqTypeCodec match {
           case D_FLOAT_DOUBLE =>
-             val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+            // val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
+                val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
                 Some(Seq(value))
-              case Some(_) => None
+              case Some(_) =>
+                codec.consumeValue(seqTypeCodec)
+                None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 => Some(Seq(value))
-                  case Some(_) => None
+                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
+                    val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                    Some(Seq(value))
+                  case Some(_) =>
+                    codec.consumeValue(seqTypeCodec)
+                    None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD => Some(value)
-                      case _ if keyList.head._1.equals(STAR) => Some(value)
-                      case _ => None
+                      case C_BUILD =>
+                        val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                        Some(value)
+                      case _ if keyList.head._1.equals(STAR) =>
+                        val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                        Some(value)
+                      case _ =>
+                        codec.consumeValue(seqTypeCodec)
+                        None
                     }
                 }
             }
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-             val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
+                val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
                 Some(Seq(value0))
               case Some(_) =>
+                codec.consumeValue(seqTypeCodec)
                 None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 => Some(Seq(value0))
+                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
+                    val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                    Some(Seq(value0))
                   case Some(_) => None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD => Some(value0)
-                      case _ if keyList.head._1.equals(STAR) => Some(value0)
-                      case _ => None
+                      case C_BUILD =>
+                        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                        Some(value0)
+                      case _ if keyList.head._1.equals(STAR) =>
+                        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                        Some(value0)
+                      case _ =>
+                        codec.consumeValue(seqTypeCodec)
+                        None
                     }
                 }
             }
@@ -479,11 +519,21 @@ class BosonImpl(
                     val res = extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList).toSeq
                     Some(resultComposer(Seq(Seq(arr), res)))
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
-                    val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                    /*
+                    codec.setReader(bsonFinish)
+                    codec.getDataType
+                      case codec.setReader(bsonStart)
+
+
+                     */
+                  codec.setReaderIndex(bsonFinishReaderIndex)
                     codec.getDataType match {
                       case 0 =>
+                        codec.setReaderIndex(bsonStartReaderIndex)
+                        val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                         Some(Seq(arr))
                       case _ =>
+                        codec.setReaderIndex(bsonFinishReaderIndex)
                         None
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
@@ -551,9 +601,12 @@ class BosonImpl(
                     val res = extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
                     Some(resultComposer(Seq(Seq(arr), res.toSeq)))
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
-                    val res = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                   codec.setReaderIndex(finishReaderIndex)
                     codec.getDataType match {
                       case 0 =>
+                        codec.setReaderIndex(startReaderIndex)
+                        codec.readSize
+                        val res = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
                         Some(Seq(res))
                       case _ =>
                         None
@@ -586,74 +639,126 @@ class BosonImpl(
                 }
             }
           case D_BOOLEAN =>
-             val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
+                val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
                 Some(Seq(value == 1))
-              case Some(_) => None
+              case Some(_) =>
+                codec.consumeValue(seqTypeCodec)
+                None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 => Some(Seq(value == 1))
-                  case Some(_) => None
+                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
+                    val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                    Some(Seq(value == 1))
+                  case Some(_) =>
+                    codec.consumeValue(seqTypeCodec)
+                    None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD => Some(value == 1)
-                      case _ if keyList.head._1.equals(STAR) => Some(value == 1)
-                      case _ => None
+                      case C_BUILD =>
+                        val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                        Some(value == 1)
+                      case _ if keyList.head._1.equals(STAR) =>
+                        val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                        Some(value == 1)
+                      case _ =>
+                        codec.consumeValue(seqTypeCodec)
+                        None
                     }
                 }
             }
           case D_NULL =>
-             val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
+                val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
               Some(value)
-              case Some(_) => None
+              case Some(_) =>
+                codec.consumeValue(seqTypeCodec)
+                None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get =>  Some(value)
-                  case Some(_) => None
+                  case Some(_) if iter >= limitList.head._1.get =>
+                    val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                    Some(value)
+                  case Some(_) =>
+                    codec.consumeValue(seqTypeCodec)
+                    None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD => Some(value)
-                      case _ if keyList.head._1.equals(STAR) => Some(value)
-                      case _ => None
+                      case C_BUILD =>
+                        val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                        Some(value)
+                      case _ if keyList.head._1.equals(STAR) =>
+                        val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                        Some(value)
+                      case _ =>
+                        codec.consumeValue(seqTypeCodec)
+                        None
                     }
                 }
             }
           case D_INT =>
-            val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
+                val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
                 Some(Seq(value0))
-              case Some(_) => None
+              case Some(_) =>
+                codec.consumeValue(seqTypeCodec)
+                None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 => Some(Seq(value0))
-                  case Some(_) => None
+                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
+                    val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                    Some(Seq(value0))
+                  case Some(_) =>
+                    codec.consumeValue(seqTypeCodec)
+                    None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD => Some(value0)
-                      case _ if keyList.head._1.equals(STAR) => Some(value0)
-                      case _ => None
+                      case C_BUILD =>
+                        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                        Some(value0)
+                      case _ if keyList.head._1.equals(STAR) =>
+                        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                        Some(value0)
+                      case _ =>
+                        codec.consumeValue(seqTypeCodec)
+                        None
                     }
                 }
             }
           case D_LONG =>
-             val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
+                val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
                 Some(Seq(value))
-              case Some(_) => None
+              case Some(_) =>
+                codec.consumeValue(seqTypeCodec)
+                None
               case None =>
                 limitList.head._1 match {
-                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 => Some(Seq(value))
-                  case Some(_) => None
+                  case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
+                    val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                    Some(Seq(value))
+                  case Some(_) =>
+                    codec.consumeValue(seqTypeCodec)
+                    None
                   case None =>
                     keyList.head._2 match {
-                      case C_BUILD => Some(value)
-                      case _ if keyList.head._1.equals(STAR) => Some(value)
-                      case _ => None
+                      case C_BUILD =>
+                        val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                        Some(value)
+                      case _ if keyList.head._1.equals(STAR) =>
+                        val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                        Some(value)
+                      case _ =>
+                        codec.consumeValue(seqTypeCodec)
+                        None
                     }
                 }
             }
@@ -686,18 +791,18 @@ class BosonImpl(
             val value0 = codec.readToken(SonNumber(CS_DOUBLE))
             Some(C_MATCH)
           } else {
-            val value0 = codec.readToken(SonNumber(CS_DOUBLE))
+            //val value0 = codec.readToken(SonNumber(CS_DOUBLE))
+            codec.consumeValue(seqType)
             None
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.drop(1).head._1)
           if (matched) {
-            //TODO change for a set of readerIndex
             val value0 = codec.readToken(SonString(CS_STRING))
             Some(C_MATCH)
           } else {
-            //TODO change for a set of readerIndex
-            val value0 =  codec.readToken(SonString(CS_STRING))
+           // val value0 =  codec.readToken(SonString(CS_STRING))
+            codec.consumeValue(seqType)
             None
           }
         case D_BSONOBJECT =>
@@ -785,7 +890,8 @@ class BosonImpl(
             val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
             Some(C_MATCH)
           } else {
-            val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
+           // val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
+            codec.consumeValue(seqType)
             None
           }
         case D_NULL =>
@@ -794,7 +900,8 @@ class BosonImpl(
             val value0 = codec.readToken(SonNull(CS_NULL))
             Some(C_MATCH)
           } else{
-            val value0 = codec.readToken(SonNull(CS_NULL))
+            //val value0 = codec.readToken(SonNull(CS_NULL))
+            codec.consumeValue(seqType)
             None
           }
         case D_INT =>
@@ -803,7 +910,8 @@ class BosonImpl(
             val value0 = codec.readToken(SonNumber(CS_INTEGER))
             Some(C_MATCH)
           } else {
-            val value0 = codec.readToken(SonNumber(CS_INTEGER))
+            //val value0 = codec.readToken(SonNumber(CS_INTEGER))
+            codec.consumeValue(seqType)
             None
           }
         case D_LONG =>
@@ -812,7 +920,8 @@ class BosonImpl(
             val value0 =  codec.readToken(SonNumber(CS_LONG))
             Some(C_MATCH)
           } else {
-            val value0 =  codec.readToken(SonNumber(CS_LONG))
+            //val value0 =  codec.readToken(SonNumber(CS_LONG))
+            codec.consumeValue(seqType)
             None
           }
         case D_ZERO_BYTE => None
@@ -853,7 +962,7 @@ class BosonImpl(
 
   def isHalfword(fieldID: String, extracted: String): Boolean = {
     if (fieldID.contains(STAR) & extracted.nonEmpty) {
-      val list: Array[String] = fieldID.split(STAR)
+      val list: Array[String] = fieldID.split(STAR_CHAR)
       (extracted, list.length) match {
         case (_, 0) =>
           true

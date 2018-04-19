@@ -28,6 +28,7 @@ object Dictionary {
   val TO_RANGE: String = "to"
   val WARNING_CHAR: Char = '!'
   val STAR: String = "*"
+  val STAR_CHAR: Char = '*'
   val C_LEVEL: String = "level"
   val C_LIMITLEVEL: String = "limitLevel"
   val C_LIMIT: String = "limit"
@@ -91,6 +92,7 @@ object Dictionary {
   val CS_DOT: Char = '.'
   val CS_2DOT: Char = ':'
   val CS_ZERO: Char = '0'
+
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

@@ -25,8 +25,10 @@ trait Codec {
   def getToken(tkn: SonNamedType): SonNamedType
   def readToken(tkn: SonNamedType): SonNamedType
 
-  def getArrayPosition: Int
-  def readArrayPosition: Int
+//  def getArrayPosition: Int
+//  def readArrayPosition: Int
+  def getArrayPosition: Unit
+  def readArrayPosition: Unit
   def getReaderIndex: Int
   def setReaderIndex(value: Int): Unit
   def getWriterIndex: Int
@@ -50,6 +52,7 @@ trait Codec {
 
   def release()
 
+  def consumeValue(seqType: Int): Unit
 
 }
 

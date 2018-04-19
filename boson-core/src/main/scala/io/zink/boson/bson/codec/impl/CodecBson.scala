@@ -188,25 +188,55 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
 
   override def release(): Unit = buff.release()
 
-  override def getArrayPosition: Int = {
+  override def downOneLevel: Unit = {}
+
+//  override def getArrayPosition: Int = {
+//    val list: ListBuffer[Byte] = new ListBuffer[Byte]
+//    var i = 0
+//    while (buff.getByte(buff.readerIndex()+i) != 0) {
+//      list.+=(buff.getByte(buff.readerIndex()+i))
+//      i+=1
+//    }
+//    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
+//  }
+//
+//  override def readArrayPosition: Int = {
+//    val list: ListBuffer[Byte] = new ListBuffer[Byte]
+//
+//    while (buff.getByte(buff.readerIndex()) != 0) {
+//      list.+=(buff.readByte())
+//    }
+//    if(list.nonEmpty)list.+=(buff.readByte())
+//    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
+//  }
+
+  override def getArrayPosition: Unit = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     var i = 0
     while (buff.getByte(buff.readerIndex()+i) != 0) {
       list.+=(buff.getByte(buff.readerIndex()+i))
       i+=1
     }
-    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
   }
 
-  override def readArrayPosition: Int = {
+  override def readArrayPosition: Unit = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
 
     while (buff.getByte(buff.readerIndex()) != 0) {
       list.+=(buff.readByte())
     }
     if(list.nonEmpty)list.+=(buff.readByte())
-    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
+  }
+  override def consumeValue(seqType: Int): Unit = seqType match{
+    case D_FLOAT_DOUBLE=> buff.skipBytes(8)
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ=>
+      buff.skipBytes(buff.readIntLE())
+//    case D_BSONOBJECT=>buff.skipBytes(buff.readIntLE())
+//    case D_BSONARRAY=>buff.skipBytes(buff.readIntLE())
+    case D_BOOLEAN=>buff.skipBytes(1)
+    case D_INT=>buff.skipBytes(4)
+    case D_LONG=>buff.skipBytes(8)
+    case _ =>
   }
 
-  override def downOneLevel: Unit = {}
 }
