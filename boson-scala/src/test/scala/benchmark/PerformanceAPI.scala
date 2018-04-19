@@ -472,21 +472,21 @@ object PerformanceTests extends App {
   endTimeBuffer.clear()
   println()
 
-//  val boson11: Boson = Boson.extractor("..Epoch", (_: Seq[Int]) => {
-//    val end = System.nanoTime()
-//    endTimeBuffer.append(end)
-//  })
-//
-//  for(_ <- 0 to 10000) yield {
-//    val start = System.nanoTime()
-//    val fut = boson11.go(Lib.validatedByteArray)
-//    Await.result(fut, Duration.Inf)
-//    timesBuffer.append(start)
-//  }
-//  println(s"Boson11 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: ..Epoch")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//  println()
+  val boson11: Boson = Boson.extractor("..Epoch", (_: Seq[Int]) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+
+  for(_ <- 0 to 10000) yield {
+    val start = System.nanoTime()
+    val fut = boson11.go(Lib.validatedByteArray)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  }
+  println(s"Boson11 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: ..Epoch")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
 
 
   val joson1: Boson = Boson.extractor(".Epoch", (_: Int) => {
@@ -508,20 +508,22 @@ object PerformanceTests extends App {
 
   println()
 
-
+//
 //  val joson11: Boson = Boson.extractor("..Epoch", (_: Seq[Int]) => {
 //    val end = System.nanoTime()
 //    endTimeBuffer.append(end)
-//    //println(end)
+//    //println(Lib.avgPerformance(ListBuffer((endTimeBuffer.last,timesBuffer.last)) map { case (e,s) => e-s}))
 //  })
 //
-//  for(_ <- 0 to 10000) yield {
+//  for(x <- 0 to 10000) yield {
+//    println(x)
 //    val start = System.nanoTime()
 //    val fut = joson11.go(Lib.json)
 //    Await.result(fut, Duration.Inf)
 //    timesBuffer.append(start)
-//    //println(Lib.avgPerformance(ListBuffer((endTimeBuffer.last,timesBuffer.last)) map { case (e,s) => e-s}))
 //  }
+//
+//
 //  println(s"Joson11 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: ..Epoch")
 //  timesBuffer.clear()
 //  endTimeBuffer.clear()
