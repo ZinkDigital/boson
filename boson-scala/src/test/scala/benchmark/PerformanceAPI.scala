@@ -388,6 +388,7 @@ object PerformanceTests extends App {
     .mappingProvider(new GsonMappingProvider())
     .jsonProvider(new GsonJsonProvider())
     .build
+  /*
 //
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
@@ -579,9 +580,9 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
+*/
 
 
-  /*
   val boson3: Boson = Boson.extractor(".Markets", (out: Array[Byte]) => {
     val end = System.nanoTime()
     firstResultBuffer.append(out)
@@ -638,7 +639,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-*/
+
 
 //
 //  for(_ <- 0 to 10000) yield {
@@ -678,7 +679,7 @@ object PerformanceTests extends App {
 //  println("JsonPath4 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[3:5]  -> as[Any]")
 //  timesBuffer.clear()
 //  println()
-
+/*
   val boson4: Boson = Boson.extractor(".Markets[3 to 5]", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
@@ -749,7 +750,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-
+*/
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
 //    val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
