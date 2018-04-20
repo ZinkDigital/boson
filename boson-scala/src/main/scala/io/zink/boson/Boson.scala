@@ -57,6 +57,7 @@ object Boson {
                                           ext: extractLabels[L],
                                           tp: Typeable[A]): extractor[A] =
       new extractor[A] {
+
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
         //println("implicit caseClass")
         def extract(expression: String, extractFunction: A => Unit): Boson =
@@ -94,6 +95,7 @@ object Boson {
       */
     implicit def seqLiterals[A, Coll[_]](implicit tp1: Typeable[Coll[A]]): extractor[Coll[A]] =
       new extractor[Coll[A]] {
+
         implicit val typeCase: Option[TypeCase[Coll[A]]] = Some(TypeCase[Coll[A]])
         //println("implicit seqLiterals")
         def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
@@ -224,7 +226,7 @@ trait Boson {
     * @return Future with original or a modified Array[Byte].
     */
   def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]]
-
+  def go(bsonByteEncoding: String): Future[String]
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor tis will result in

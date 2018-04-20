@@ -72,4 +72,6 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
   }
 
   override def fuse(boson: Boson): Boson = new BosonFuse(this,boson)
+
+  override def go(bsonByteEncoding: String): Future[String] = ???
 }

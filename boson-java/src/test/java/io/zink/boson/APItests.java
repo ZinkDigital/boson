@@ -97,7 +97,7 @@ public class APItests {
 
         assertEquals(
                 "List(21.5)",
-                result.toString());
+                result.toList().toString());
     }   //$.Store.Book[:].Price -> checked
 
     @Test
@@ -151,7 +151,7 @@ public class APItests {
 
         assertEquals(
                 "List(Java, Scala, C++)",
-                result.toString());
+                result.toList().toString());
     } //$.Store.Book[?(@.Price)].Title -> checked
 
     @Test
@@ -234,7 +234,7 @@ public class APItests {
 
         assertEquals(
                 "List(15.5, 39, 21.5, 40, 12.6, 38, 48, 35, 38)",
-                result.toString());
+                result.toList().toString());
     }   //$..Price -> checked
 
     @Test
@@ -248,7 +248,7 @@ public class APItests {
 
         assertEquals(
                 "List(15.5, 39, 21.5, 40, 12.6, 38)",
-                result.toString());
+                result.toList().toString());
     }   //$.Book..Price -> checked
 
     @Test
@@ -262,7 +262,7 @@ public class APItests {
 
         assertEquals(
                 "List()",
-                result.toString());
+                result.toList().toString());
     }   //$..Book.Title -> checked
 
     @Test
@@ -276,7 +276,7 @@ public class APItests {
 
         assertEquals(
                 "List(JavaMachine, ScalaMachine, C++Machine)",
-                result.toString());
+                result.toList().toString());
     }   //$..SpecialEditions[?(@.Price)].Title -> checked
 
     @Test
@@ -330,7 +330,7 @@ public class APItests {
 
         assertEquals(
                 "List(Java, JavaMachine, Scala, ScalaMachine, C++, C++Machine)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -362,7 +362,7 @@ public class APItests {
 
         assertEquals(
                 "List(15.5, 39, 21.5, 40, 12.6, 38, 48, 35, 38)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -396,7 +396,7 @@ public class APItests {
 
         assertEquals(
                 "List(JavaMachine, 39, ScalaMachine, 40, C++Machine, 38)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -644,7 +644,7 @@ public class APItests {
 
         assertEquals(
                 "List()",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -682,7 +682,7 @@ public class APItests {
 
         assertEquals(
                 "List()",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -695,7 +695,7 @@ public class APItests {
 
         assertEquals(
                 "List(100000)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -709,7 +709,7 @@ public class APItests {
 
         assertEquals(
                 "List(100000)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -747,6 +747,16 @@ public class APItests {
         CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(arr1.encodeToBarray());
+//        private BsonArray arr1 =
+//                new BsonArray()
+//                        .add("Hat")
+//                        .add(false)
+//                        .add(2.2)
+//                        .addNull()
+//                        .add(1000L)
+//                        .add(new BsonArray().addNull().add(new BsonArray().add(100000L)))
+//                        .add(2)
+//                        .add(new BsonObject().put("Quantity", 500L).put("SomeObj", new BsonObject().putNull("blah")).put("one", false).putNull("three"));
 
         Seq<Object> res =  future1.join();
         List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
@@ -758,6 +768,7 @@ public class APItests {
         expected.add(false);
         expected.add("Null");
 
+        System.out.println(result);
         assert (result.size() == expected.size());
         for (int i = 0; i < result.size(); i++) {
             if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])
@@ -805,7 +816,7 @@ public class APItests {
 
         assertEquals(
                 "List(100000, Null)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -818,7 +829,7 @@ public class APItests {
 
         assertEquals(
                 "List(Null)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -831,7 +842,7 @@ public class APItests {
 
         assertEquals(
                 "List(Null)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -844,7 +855,7 @@ public class APItests {
 
         assertEquals(
                 "List()",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -859,7 +870,7 @@ public class APItests {
 
         assertEquals(
                 "List(true)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -872,7 +883,7 @@ public class APItests {
 
         assertEquals(
                 "List(500)",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -946,7 +957,7 @@ public class APItests {
 
         assertEquals(
                 "List()",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -957,7 +968,7 @@ public class APItests {
         boson.go(bE.encodeToBarray());
         Seq<Boolean> result = future1.join();
 
-        assertEquals("List(false)", result.toString());
+        assertEquals("List(false)", result.toList().toString());
     }
 
     @Test
@@ -968,7 +979,7 @@ public class APItests {
         boson.go(bE.encodeToBarray());
         Seq<Object> result = future1.join();
 
-        assertEquals("List(Null)", result.toString());
+        assertEquals("List(Null)", result.toList().toString());
     }
 
     @Test
@@ -1380,7 +1391,7 @@ public class APItests {
     }
 
 
-    //---------------------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------------------
     //HorribleTests
     private ByteBuffer buffer = ByteBuffer.allocate(0);
     private byte[] byteArr = new byte[10];
@@ -1432,7 +1443,7 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(buf);
         Seq<Object> result = future1.join();
-        assertEquals("List()", result.toString());
+        assertEquals("List()", result.toList().toString());
     }
 
     @Test
@@ -1442,7 +1453,7 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(byteArr);
         Seq<Object> result = future1.join();
-        assertEquals("List()", result.toString());
+        assertEquals("List()", result.toList().toString());
     }
 
     @Test
@@ -1452,7 +1463,7 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(bson.encodeToBarray());
         Seq<byte[]> result = future1.join();
-        assertEquals("List()", result.toString());
+        assertEquals("List()", result.toList().toString());
     }
 
     @Test
@@ -1462,7 +1473,7 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(bson.encodeToBarray());
         Seq<byte[]> result = future1.join();
-        assertEquals("List()", result.toString());
+        assertEquals("List()", result.toList().toString());
     }
 
     @Test
@@ -1490,7 +1501,7 @@ public class APItests {
                 assertTrue(result.get(i).equals(expected.get(i)));
             }
         }
-        //assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
+//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
 
     @Test
@@ -1500,7 +1511,7 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(bson.encodeToBarray());
         Seq<Object> result = future1.join();
-        assertEquals("List()", result.toString());
+        assertEquals("List()", result.toList().toString());
     }
 
     @Test
@@ -1513,7 +1524,7 @@ public class APItests {
 
         assertEquals(
                 "List()",
-                result.toString());
+                result.toList().toString());
     }
 
     @Test
@@ -1538,7 +1549,7 @@ public class APItests {
         for (int i = 0; i < result.size(); i++) {
                 assertTrue(Arrays.equals( result.get(i),  expected.get(i)));
         }
-        //assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
+       // assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
 
     @Test
@@ -1560,7 +1571,7 @@ public class APItests {
         for (int i = 0; i < result.size(); i++) {
                 assertTrue(Arrays.equals( result.get(i),  expected.get(i)));
         }
-        //assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
+//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
 
     @Test
@@ -1580,7 +1591,7 @@ public class APItests {
         for (int i = 0; i < result.size(); i++) {
                 assertTrue(Arrays.equals( result.get(i),  expected.get(i)));
         }
-        //assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
+//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
 
     @Test
@@ -1603,7 +1614,7 @@ public class APItests {
         for (int i = 0; i < result.size(); i++) {
                 assertTrue(Arrays.equals( result.get(i),  expected.get(i)));
         }
-        //assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
+//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
 
     @Test
@@ -1626,7 +1637,7 @@ public class APItests {
         for (int i = 0; i < result.size(); i++) {
                 assertTrue(Arrays.equals( result.get(i),  expected.get(i)));
         }
-        //assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
+//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
 
 //    //Injectors Tests
@@ -3292,3 +3303,4 @@ public class APItests {
 //        assertArrayEquals(rootx.encodeToBarray(), result);
 //    }
 }
+

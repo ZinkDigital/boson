@@ -43,4 +43,5 @@ class BosonValidate[T](expression: String, validateFunction: T => Unit) extends 
 
   override def fuse(boson: Boson) = ???
   //new BosonFuse(this,boson)
+  override def go(bsonByteEncoding: String): Future[String] = ???
 }
