@@ -6,10 +6,6 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 
 import scala.collection.mutable.ListBuffer
 /**
-  * Class that represents the Codec to deal with Json Values
-  * @param str is the Json received by the user
-  */
-/**
   * Class that represents the Codec to deal with Bson Values
   * @param arg Value of type Array[Byte] representing the Bson after being encodec
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
