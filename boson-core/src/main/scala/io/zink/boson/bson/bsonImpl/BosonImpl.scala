@@ -215,11 +215,10 @@ class BosonImpl(
           val (matched: Boolean, key: String) = compareKeys(netty, keyList.head._1)
           if (matched && eObjPrimitiveConditions(keyList)) {
             val valueLength: Int = netty.readIntLE()
-            val arr: Array[Byte] = Unpooled.copiedBuffer(netty.readCharSequence(valueLength, charset), charset).array()
-            val newArr: Array[Byte] = arr.filter(b => b != 0)
+            val value: String = netty.readCharSequence(valueLength, charset).toString.filter(p => p != 0)
             keyList.head._2 match {
-              case C_BUILD => List(key, new String(newArr))
-              case _ => List(new String(newArr))
+              case C_BUILD => List(key, value)
+              case _ => List(value)
             }
           } else {
             netty.skipBytes(netty.readIntLE())

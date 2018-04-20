@@ -182,12 +182,12 @@ class Interpreter[T](boson: BosonImpl,
   /**
     * This method does the final extraction of an Object.
     *
-    * @param encodedSeqByteArray Sequence of BsonObjects encoded.
+    * @param encodedSeqByteBuf Sequence of BsonObjects encoded.
     * @param keyList             Pairs of Keys and Conditions used to decode the encodedSeqByteArray
     * @param limitList           Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
-  private def constructObj(encodedSeqByteArray: List[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
+  private def constructObj(encodedSeqByteBuf: List[ByteBuf], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
 
 
     /**
@@ -208,8 +208,8 @@ class Interpreter[T](boson: BosonImpl,
     }
 
     val res: Seq[List[(String, Any)]] =
-      encodedSeqByteArray.par.map { encodedByteArray =>
-        val res: List[Any] = runExtractors(Unpooled.copiedBuffer(encodedByteArray), keyList, limitList)
+      encodedSeqByteBuf.par.map { encoded =>
+        val res: List[Any] = runExtractors(encoded, keyList, limitList)
         val l: List[(String, Any)] = toTuples(res).map(elem => (elem._1.toLowerCase, elem._2))
         l
       }.seq
@@ -349,7 +349,7 @@ class Interpreter[T](boson: BosonImpl,
                   if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
                   else runExtractors(elem, keyList.drop(1), limitList.drop(1))
                 }.seq.toList
-              result.reduce(_ ++ _)
+              result.flatten//.reduce(_ ++ _)
           }
       }
     value
@@ -397,7 +397,7 @@ class Interpreter[T](boson: BosonImpl,
                 case elem => elem
               }
               if(returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-            case COPY_BYTEBUF => constructObj(result.asInstanceOf[List[ByteBuf]].map(_.array), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            case COPY_BYTEBUF => constructObj(result.asInstanceOf[List[ByteBuf]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           }
         case false if typeClass.isDefined =>
           typeClass.get match {

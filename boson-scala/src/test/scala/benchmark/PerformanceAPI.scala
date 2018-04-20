@@ -365,30 +365,30 @@ case class Tags(Type: String,line: String, traded_pre_match: String, traded_in_p
 
 
 object PerformanceTests extends App {
-  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
-  val jsonStr: String = bufferedSource.getLines.toSeq.head
-  bufferedSource.close
-  val jsonObj: JsonObject = new JsonObject(jsonStr)
-  val bson: BsonObject = new BsonObject(jsonObj)
-  val validatedByteArray: Array[Byte] = bson.encodeToBarray()
-
+//  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+//  val jsonStr: String = bufferedSource.getLines.toSeq.head
+//  bufferedSource.close
+//  val jsonObj: JsonObject = new JsonObject(jsonStr)
+//  val bson: BsonObject = new BsonObject(jsonObj)
+//  val validatedByteArray: Array[Byte] = bson.encodeToBarray()
+//
   val firstResultBuffer: ListBuffer[Array[Byte]] = new ListBuffer[Array[Byte]]
   var rangeResults: Seq[Array[Byte]] = _
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val timesBuffer: ListBuffer[Long] = new ListBuffer[Long]
   val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
   val bArr: Array[Byte] = Lib.validatedByteArray
-  import com.jayway.jsonpath.spi.cache.CacheProvider
-  import com.jayway.jsonpath.spi.cache.NOOPCache
-  val cache: NOOPCache = new NOOPCache
-  CacheProvider.setCache(cache)
+//  import com.jayway.jsonpath.spi.cache.CacheProvider
+//  import com.jayway.jsonpath.spi.cache.NOOPCache
+//  val cache: NOOPCache = new NOOPCache
+//  CacheProvider.setCache(cache)
+//
+//  val conf2: Configuration = Configuration
+//    .builder()
+//    .mappingProvider(new GsonMappingProvider())
+//    .jsonProvider(new GsonJsonProvider())
+//    .build
 
-  val conf2: Configuration = Configuration
-    .builder()
-    .mappingProvider(new GsonMappingProvider())
-    .jsonProvider(new GsonJsonProvider())
-    .build
-  /*
 //
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
@@ -400,12 +400,13 @@ object PerformanceTests extends App {
 //  timesBuffer.clear()
 //  println()
 //
+  /*
   val bosonClass: Boson = Boson.extractor(".Markets[1].Tags", (_: Tags) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
     val fut = bosonClass.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -431,9 +432,9 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
-    val fut = bosonClass1.go(Lib.validatedByteArray)
+    val fut = bosonClass1.go(bArr)
     Await.result(fut, Duration.Inf)
     timesBuffer.append(start)
   }
@@ -461,7 +462,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson1.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -510,13 +511,13 @@ object PerformanceTests extends App {
 //  println("JsonPath2 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Participants[1].Tags.SSLNLastName")
 //  timesBuffer.clear()
 //  println()
-//
+
   val boson2: Boson = Boson.extractor(".Participants[1].Tags.SSLNLastName", (_: String) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson2.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -526,7 +527,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-//
+
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
 //    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
@@ -570,9 +571,9 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
-    val fut = boson3.go(validatedByteArray)
+    val fut = boson3.go(bArr)
     Await.result(fut, Duration.Inf)
     timesBuffer.append(start)
   }
@@ -584,16 +585,16 @@ object PerformanceTests extends App {
 
 
   val boson3: Boson = Boson.extractor(".Markets", (out: Array[Byte]) => {
-    val end = System.nanoTime()
+    //val end = System.nanoTime()
     firstResultBuffer.append(out)
-    endTimeBuffer.append(end)
+    //endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
-    val start = System.nanoTime()
+  (0 to 50000).foreach {_ =>
+    //val start = System.nanoTime()
     val fut = boson3.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
-    timesBuffer.append(start)
+    //timesBuffer.append(start)
   }
   println(s"Boson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets  -> as[Array[Byte]]")
   timesBuffer.clear()
@@ -606,7 +607,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach {_ =>
     val start = System.nanoTime()
     val fut = boson33.go(firstResultBuffer.head)
     Await.result(fut, Duration.Inf)
@@ -629,7 +630,7 @@ object PerformanceTests extends App {
   }
   rangeResults = Seq()
 //  println(s"range of Results -> ${rangeByteBufs.size}")
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach {_ =>
     val start = System.nanoTime()
     val fut = boson333.go2(rangeByteBufs)
     Await.result(fut, Duration.Inf)
@@ -685,7 +686,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson4.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -740,7 +741,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  for(_ <- 0 to 10000) yield {
+  (0 to 50000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson5.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
