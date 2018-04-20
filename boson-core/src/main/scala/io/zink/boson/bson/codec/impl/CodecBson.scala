@@ -113,9 +113,8 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           SonString(x, new String(key.toArray.filter(p => p!=0)))
         case CS_STRING =>
           val valueLength: Int = buff.readIntLE()
-          val arr: Array[Byte] = new Array[Byte](valueLength)
-          buff.readBytes(arr)
-          SonString(x, new String(arr.filter(b => b !=0)))
+
+          SonString(x, buff.readCharSequence(valueLength, charset).toString.filter(b => b !=0))
       }
     case SonNumber(x, y) =>
       x match {

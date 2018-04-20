@@ -532,10 +532,11 @@ class BosonImpl(
                     codec.getDataType match {
                       case 0 =>
                         codec.setReaderIndex(bsonStartReaderIndex)
+                        codec.readSize
                         val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                         Some(Seq(arr))
                       case _ =>
-                        codec.setReaderIndex(bsonFinishReaderIndex)
+                        //codec.setReaderIndex(bsonFinishReaderIndex)
                         None
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
