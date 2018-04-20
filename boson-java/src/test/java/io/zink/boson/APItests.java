@@ -747,6 +747,16 @@ public class APItests {
         CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(arr1.encodeToBarray());
+//        private BsonArray arr1 =
+//                new BsonArray()
+//                        .add("Hat")
+//                        .add(false)
+//                        .add(2.2)
+//                        .addNull()
+//                        .add(1000L)
+//                        .add(new BsonArray().addNull().add(new BsonArray().add(100000L)))
+//                        .add(2)
+//                        .add(new BsonObject().put("Quantity", 500L).put("SomeObj", new BsonObject().putNull("blah")).put("one", false).putNull("three"));
 
         Seq<Object> res =  future1.join();
         List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
@@ -758,6 +768,7 @@ public class APItests {
         expected.add(false);
         expected.add("Null");
 
+        System.out.println(result);
         assert (result.size() == expected.size());
         for (int i = 0; i < result.size(); i++) {
             if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])

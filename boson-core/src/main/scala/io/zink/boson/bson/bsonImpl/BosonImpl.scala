@@ -336,7 +336,7 @@ class BosonImpl(
       case _ =>
         val seqType2: Int = codec.readDataType
         if (seqType2 != 0) {
-         val pos =  codec.readArrayPosition
+         codec.readArrayPosition
         }
         val finalValue: Option[Any] =
           seqType2 match {
@@ -470,7 +470,9 @@ class BosonImpl(
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
                     val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
                     Some(Seq(value0))
-                  case Some(_) => None
+                  case Some(_) =>
+                    codec.consumeValue(seqTypeCodec)
+                    None
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
