@@ -5,14 +5,49 @@ import io.zink.boson.bson.codec._
 import io.zink.boson.bson.bsonImpl.Dictionary._
 
 import scala.collection.mutable.ListBuffer
-
+/**
+  * Class that represents the Codec to deal with Json Values
+  * @param str is the Json received by the user
+  */
+/**
+  * Class that represents the Codec to deal with Bson Values
+  * @param arg Value of type Array[Byte] representing the Bson after being encodec
+  * @param opt Value of type Option[ByteBuf] used when creating a duplicate
+  */
 class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
   val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
+  /**
+    * buff is a value of type ByteBuf to process the value received by the user
+    */
   val buff: ByteBuf =opt match {
     case None => alloc.directBuffer(arg.length).writeBytes(arg)
     case Some(x) => x
   }
-
+  /**
+    * getReaderIndex is used to get the actual reader index position in the stream
+    * @return an Int representing the position on the stream
+    */
+  override def getReaderIndex: Int = buff.readerIndex()
+  /**
+    * setReaderIndex is used to set the reader index position in the stream
+    * @param value is the new value of the reader index
+    */
+  override def setReaderIndex(value: Int): Unit = if(value>=0)buff.readerIndex(value) else{ buff.readerIndex(buff.readerIndex()+value)}
+  /**
+    * getWriterIndex is used to get the actual writer index position in the stream
+    * @return An Int representing the position on the stream
+    */
+  override def getWriterIndex: Int = buff.writerIndex()
+  /**
+    * setWriterIndex is used to set the writer index position in the stream
+    * @param value is the new value of the writer index
+    */
+  override def setWriterIndex(value: Int): Unit = buff.writerIndex(value)
+  /**
+    * getToken is used to obtain a value correponding to the SonNamedType request, without consuming the value from the stream
+    * @param tkn is a value from out DSL trait representing the requested type
+    * @return returns the same SonNamedType request with the value obtained.
+    */
   override def getToken(tkn: SonNamedType): SonNamedType = tkn match {
     case SonBoolean(x, y) =>
       SonBoolean(x, buff.getByte(buff.readerIndex())==1)
@@ -71,7 +106,12 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           SonNull(x, V_NULL)
       }
   }
-
+  /**
+    * getArrayPosition is used to get the actual array position, without consuming the value from stream
+    * @return this method doesn't return anything because this data is not usefull for extraction
+    *         however, in the future when dealing with injection, we may have the need to work with this value
+    *         (this is why there is a commented function with the same but returning a Int)
+    */
   override def readToken(tkn: SonNamedType): SonNamedType = tkn match {
     case SonBoolean(x, y) =>
       SonBoolean(x, buff.readByte() )
@@ -132,25 +172,76 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           SonNull(x, V_NULL)
       }
   }
-
-  override def getValueAt(i: Int): Int = buff.getByte(i)
-
+  /**
+    * getSize is used to obtain the size of the next tokens, without consuming
+    * @return this function return the size of the next token, if the next token is an Object, Array or String
+    *         which are the case that make sense to obtain a size
+    */
+  override def getSize: Int = buff.getIntLE(buff.readerIndex())
+  /**
+    * readSize is used to obtain the size of the next tokens, consuming the values from the stream
+    * @return this function return the size of the next token, if the next token is an Object, Array or String
+    *         which are the case that make sense to obtain a size
+    */
+  override def readSize: Int = buff.readIntLE
+  /**
+    * rootType is used at the beginning of the first executed function (extract) to know if the input is a BsonObject/JsonObject
+    * or BsonArray/JsonArray
+    * @return either a SonArray or SonObject representing a BsonArray/JsonArray root or BsonObject/JsonObject root
+    */
+  override def rootType: SonNamedType = {
+    val buf = buff.duplicate()
+    if(buf.capacity()>5){
+      buf.readerIndex(5)
+      val key: ListBuffer[Byte] = new ListBuffer[Byte]
+      while (buf.getByte(buf.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
+        val b: Byte = buf.readByte()
+        key.append(b)
+      }
+      val _: Byte = buf.readByte()
+      if(key.forall(p => p.toChar.isDigit))
+        SonArray(C_DOT)
+      else
+        SonObject(C_DOT)
+    }else{
+      SonZero
+    }
+  }
+  /**
+    * getDataType is used to obtain the type of the next value in stream, without consuming the value from the stream
+    * @return an Int representing a type in stream
+    *         0: represents end of String, BsonObject/JsonObject, BsonArray/JsonArray
+    *         1: represents float and doubles
+    *         2: represents String, Array[Byte], Instants, CharSequences, Enumerates
+    *         3: represents BsonObject/JsonObject
+    *         4: represents BsonArray/JsonArray
+    *         8: represents a Boolean
+    *         10: represents a Null
+    *         16: represents a Int
+    *         18: represents a Long
+    */
   override def getDataType: Int = buff.getByte(buff.readerIndex())
-
+  /**
+    * readDataType is used to obtain the type of the next value in stream, consuming the value from the stream
+    * @return an Int representing a type in stream
+    *         0: represents end of String, BsonObject/JsonObject, BsonArray/JsonArray
+    *         1: represents float and doubles
+    *         2: represents String, Array[Byte], Instants, CharSequences, Enumerates
+    *         3: represents BsonObject/JsonObject
+    *         4: represents BsonArray/JsonArray
+    *         8: represents a Boolean
+    *         10: represents a Null
+    *         16: represents a Int
+    *         18: represents a Long
+    */
   override def readDataType: Int = buff.readByte()
 
-  override def getReaderIndex: Int = buff.readerIndex()
 
-  override def setReaderIndex(value: Int): Unit = if(value>=0)buff.readerIndex(value) else{ buff.readerIndex(buff.readerIndex()+value)}
-
-  override def getWriterIndex: Int = buff.writerIndex()
-
-  override def setWriterIndex(value: Int): Unit = buff.writerIndex(value)
-
-  override def getSize: Int = buff.getIntLE(buff.readerIndex())
-
-  override def readSize: Int = buff.readIntLE
-
+  /**
+    * duplicate is used to create a duplicate of the codec, all information is duplicated so that operations
+    * over duplicates don't affect the original codec
+    * @return a new duplicated Codec
+    */
   override def duplicate: Codec = {
     val newB = alloc.directBuffer(buff.capacity())
     buff.getBytes(0, newB)
@@ -160,55 +251,30 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
 
   }
 
-  override def rootType: SonNamedType = {
-    val buf = buff.duplicate()
-    if(buf.capacity()>5){
-    buf.readerIndex(5)
-    val key: ListBuffer[Byte] = new ListBuffer[Byte]
-    while (buf.getByte(buf.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-      val b: Byte = buf.readByte()
-      key.append(b)
-    }
-    val _: Byte = buf.readByte()
-    if(key.forall(p => p.toChar.isDigit))
-      SonArray(C_DOT)
-    else
-      SonObject(C_DOT)
-  }else{
-    SonZero
-    }
-  }
-
-//  def printCodec() = {
-//    val arrr = new Array[Byte](buff.capacity()-buff.readerIndex())
-//    buff.getBytes(buff.readerIndex(), arrr)
-//    arrr.foreach(b => print(b+" "))
-//  }
-
+  /**
+    * release is used to free the resources that are no longer used
+    */
   override def release(): Unit = buff.release()
-
+  /**
+    * downOneLevel is only used when dealing with JSON. When dealing with BSON the function doesn't perform any work
+    */
   override def downOneLevel: Unit = {}
 
-//  override def getArrayPosition: Int = {
-//    val list: ListBuffer[Byte] = new ListBuffer[Byte]
-//    var i = 0
-//    while (buff.getByte(buff.readerIndex()+i) != 0) {
-//      list.+=(buff.getByte(buff.readerIndex()+i))
-//      i+=1
-//    }
-//    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
-//  }
-//
-//  override def readArrayPosition: Int = {
-//    val list: ListBuffer[Byte] = new ListBuffer[Byte]
-//
-//    while (buff.getByte(buff.readerIndex()) != 0) {
-//      list.+=(buff.readByte())
-//    }
-//    if(list.nonEmpty)list.+=(buff.readByte())
-//    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
-//  }
-
+  /**
+    * getArrayPosition is used to get the actual buffer position, without consuming the value from stream
+    * @return this method doesn't return anything because this data is not usefull for extraction
+    *         however, in the future when dealing with injection, we may have the need to work with this value
+    *         (this is why there is a commented function with the same but returning a Int)
+    */
+ /* override def getArrayPosition: Int = {
+    val list: ListBuffer[Byte] = new ListBuffer[Byte]
+    var i = 0
+    while (buff.getByte(buff.readerIndex()+i) != 0) {
+      list.+=(buff.getByte(buff.readerIndex()+i))
+      i+=1
+    }
+    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
+  }*/
   override def getArrayPosition: Unit = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
     var i = 0
@@ -217,7 +283,21 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
       i+=1
     }
   }
+  /**
+    * readArrayPosition is used to get the actual buffer position, consuming the value from stream
+    * @return this method doesn't return anything because this data is not usefull for extraction
+    *         however, in the future when dealing with injection, we may have the need to work with this value
+    *         (this is why there is a commented function with the same but returning a Int)
+    */
+  /*override def readArrayPosition: Int = {
+    val list: ListBuffer[Byte] = new ListBuffer[Byte]
 
+    while (buff.getByte(buff.readerIndex()) != 0) {
+      list.+=(buff.readByte())
+    }
+    if(list.nonEmpty)list.+=(buff.readByte())
+    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
+  }*/
   override def readArrayPosition: Unit = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
 
@@ -226,6 +306,10 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     }
     if(list.nonEmpty)list.+=(buff.readByte())
   }
+  /**
+    * consumeValue is used to consume some data from the stream that is unnecessary, this method gives better performance
+    * since we want to ignore a value
+    */
   override def consumeValue(seqType: Int): Unit = seqType match{
     case D_FLOAT_DOUBLE=> buff.skipBytes(8)
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ=>

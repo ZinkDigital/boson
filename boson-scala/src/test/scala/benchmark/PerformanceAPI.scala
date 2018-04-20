@@ -402,11 +402,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = bosonClass.go(Lib.validatedByteArray)
@@ -418,10 +413,6 @@ val CYCLES = 10000
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
 
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
@@ -438,10 +429,6 @@ val CYCLES = 10000
     endTimeBuffer.append(end)
   })
 
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = bosonClass1.go(Lib.validatedByteArray)
@@ -454,12 +441,6 @@ val CYCLES = 10000
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
   println()
-
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
@@ -490,9 +471,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = boson1.go(Lib.validatedByteArray)
@@ -509,9 +487,6 @@ val CYCLES = 10000
     endTimeBuffer.append(end)
   })
 
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = boson11.go(Lib.validatedByteArray)
@@ -528,13 +503,8 @@ val CYCLES = 10000
   val joson1: Boson = Boson.extractor(".Epoch", (_: Int) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
-    //println(end)
   })
 
-//  for(_ <- 0 to 10000) yield {
-//
-//    //println(Lib.avgPerformance(ListBuffer((endTimeBuffer.last,timesBuffer.last)) map { case (e,s) => e-s}))
-//  }
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = joson1.go(Lib.json)
@@ -568,13 +538,6 @@ val CYCLES = 10000
 //  timesBuffer.clear()
 //  endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
-
-
-
-//  for(_ <- 0 to 10000) yield {
-//
-//}
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
@@ -602,11 +565,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = boson2.go(Lib.validatedByteArray)
@@ -637,11 +595,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = joson2.go(Lib.json)
@@ -670,9 +623,6 @@ val CYCLES = 10000
 //  println()
   println("------------------------------------------------------------------------------------------")
   println()
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
@@ -700,10 +650,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = boson3.go(Lib.validatedByteArray)
@@ -736,11 +682,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = joson3.go(Lib.json)
@@ -770,10 +711,6 @@ val CYCLES = 10000
 //  println()
   println("------------------------------------------------------------------------------------------")
 
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
@@ -800,11 +737,6 @@ val CYCLES = 10000
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = boson4.go(Lib.validatedByteArray)
@@ -830,15 +762,11 @@ val CYCLES = 10000
 //  timesBuffer.clear()
 //  endTimeBuffer.clear()
 //  println()
+
   val joson4: Boson = Boson.extractor(".Markets[3 to 5]", (_: Seq[String]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = joson4.go(Lib.json)
@@ -849,6 +777,7 @@ val CYCLES = 10000
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
+
 //  val joson41: Boson = Boson.extractor("..Markets[3 to 5]", (_: Seq[String]) => {
 //    val end = System.nanoTime()
 //    endTimeBuffer.append(end)
@@ -865,9 +794,6 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
 
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
@@ -880,6 +806,7 @@ val CYCLES = 10000
   println("JsonPath5 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[10].selectiongroupid")
   timesBuffer.clear()
   println()
+
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
 //    val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
@@ -890,15 +817,11 @@ val CYCLES = 10000
 //  println("JsonPath51 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: ..Markets[10].selectiongroupid")
 //  timesBuffer.clear()
 //  println()
+
   val boson5: Boson = Boson.extractor(".Markets[10].selectiongroupid", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = boson5.go(Lib.validatedByteArray)
@@ -909,6 +832,7 @@ val CYCLES = 10000
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
+
 //  val boson51: Boson = Boson.extractor("..Markets[10].selectiongroupid", (_: Seq[Array[Byte]]) => {
 //    val end = System.nanoTime()
 //    endTimeBuffer.append(end)
@@ -924,15 +848,11 @@ val CYCLES = 10000
 //  timesBuffer.clear()
 //  endTimeBuffer.clear()
 //  println()
+
   val joson5: Boson = Boson.extractor(".Markets[10].selectiongroupid", (_: Seq[String]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
-
-//  for(_ <- 0 to 10000) yield {
-//
-//  }
-
   (0 to CYCLES).foreach(n =>{
     val start = System.nanoTime()
     val fut = joson5.go(Lib.json)

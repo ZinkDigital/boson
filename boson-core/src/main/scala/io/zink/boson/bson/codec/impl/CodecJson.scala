@@ -10,28 +10,57 @@ import scala.util.{Failure, Success, Try}
 import collection.JavaConverters._
 
 
-
+/**
+  * Class that represents the Codec to deal with Json Values
+  * @param str is the Json received by the user
+  */
 class CodecJson(str: String) extends Codec {
-  //val input: Array[Char] = str.toCharArray
+  /**
+    * input is a value of type StringBuilder to process the value received by the user
+    */
   val input: StringBuilder = StringBuilder.newBuilder
   input.append(str)
+  /**
+    * inputSize is a constant with the size of the input
+    * this constant is used several times along the code
+    */
   val inputSize: Int = input.length
-  
+
+  /**
+    * readerIndex and writerIndex are two var's used to maintain the actual reading and writing position, trying to mimic the functionality
+    * of the ByteBuf's from Netty
+    */
   var readerIndex: Int = 0
   var writerIndex: Int = str.length - 1
 
-
+  /**
+    * getReaderIndex is used to get the actual reader index position in the stream
+    * @return an Int representing the position on the stream
+    */
   override def getReaderIndex: Int = readerIndex
-
+  /**
+    * setReaderIndex is used to set the reader index position in the stream
+    * @param value is the new value of the reader index
+    */
   override def setReaderIndex(value: Int): Unit = if(value>=0){readerIndex = value
   }else{
     readerIndex+=value
   }
-  
+  /**
+    * getWriterIndex is used to get the actual writer index position in the stream
+    * @return An Int representing the position on the stream
+    */
   override def getWriterIndex: Int = writerIndex
-
+  /**
+    * setWriterIndex is used to set the writer index position in the stream
+    * @param value is the new value of the writer index
+    */
   override def setWriterIndex(value: Int): Unit = if(value>=0)writerIndex = value
-
+  /**
+    * getToken is used to obtain a value correponding to the SonNamedType request, without consuming the value from the stream
+    * @param tkn is a value from out DSL trait representing the requested type
+    * @return returns the same SonNamedType request with the value obtained.
+    */
   override def getToken(tkn: SonNamedType): SonNamedType = tkn match{
     case SonObject(request,_)=>
       request match {
@@ -92,7 +121,12 @@ class CodecJson(str: String) extends Codec {
       val subStr1 = if(getNextBoolean.equals(CS_TRUE)) 1 else 0
       SonBoolean(request, subStr1)
   }
-
+  /**
+    * getArrayPosition is used to get the actual array position, without consuming the value from stream
+    * @return this method doesn't return anything because this data is not usefull for extraction
+    *         however, in the future when dealing with injection, we may have the need to work with this value
+    *         (this is why there is a commented function with the same but returning a Int)
+    */
   override def readToken(tkn: SonNamedType): SonNamedType = tkn match{
     case SonObject(request,_)=>
       request match {
@@ -157,6 +191,10 @@ class CodecJson(str: String) extends Codec {
       SonBoolean(request, subStr1)
   }
 
+  /**
+    * readNextBoolean is used to consume the next boolean in the stream
+    * @return returns a String representing the boolean read (true/false)
+    */
   def readNextBoolean : String = {
     lazy val strSliced = input.substring(readerIndex, inputSize)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA),strSliced.view.indexOf(CS_CLOSE_BRACKET),strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n>=0).min
@@ -165,7 +203,10 @@ class CodecJson(str: String) extends Codec {
     val subStr1 = subStr dropWhile (p => !p.equals(CS_T) && !p.equals(CS_F))
     subStr1
   }
-
+  /**
+    * readNextNull is used to consume the next null value from the stream
+    * @return returns a String representing the null value ('Null')
+    */
   def readNextNull : String = {
     lazy val strSliced = input.substring(readerIndex, inputSize)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA),strSliced.view.indexOf(CS_CLOSE_BRACKET),strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n>=0).min
@@ -174,7 +215,10 @@ class CodecJson(str: String) extends Codec {
     val subStr1 = subStr dropWhile (p => !p.isDigit)
     subStr1
   }
-
+  /**
+    * readNextNumber is used to consume the next number in the stream
+    * @return returns a String representing the number read (Int/Long/Double/Float)
+    */
   def readNextNumber : String = {
     while(!input(readerIndex).isDigit){readerIndex+=1}
     lazy val strSliced = input.substring(readerIndex, inputSize)
@@ -184,7 +228,10 @@ class CodecJson(str: String) extends Codec {
     val subStr1 = subStr.dropWhile(p => !p.isDigit)
     subStr1
   }
-
+  /**
+    * readNextBoolean is used to obtain without consuming the next boolean in the stream
+    * @return returns a String representing the boolean read (true/false)
+    */
   def getNextBoolean : String = {
     lazy val strSliced = input.substring(readerIndex, inputSize)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA),strSliced.view.indexOf(CS_CLOSE_BRACKET),strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n>=0).min
@@ -192,7 +239,10 @@ class CodecJson(str: String) extends Codec {
     val subStr1 = subStr.dropWhile(p => !p.equals(CS_T) && !p.equals(CS_F))
     subStr1
   }
-
+  /**
+    * readNextNull is used to obtain without consuming the next null value from the stream
+    * @return returns a String representing the null value ('Null')
+    */
   def getNextNull : String = {
     lazy val strSliced = input.substring(readerIndex, inputSize)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA),strSliced.view.indexOf(CS_CLOSE_BRACKET),strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n>=0).min
@@ -200,7 +250,10 @@ class CodecJson(str: String) extends Codec {
     val subStr1 = subStr dropWhile (p => !p.isDigit)
     subStr1
   }
-
+  /**
+    * readNextNumber is used to obtain without consuming the next number in the stream
+    * @return returns a String representing the number read (Int/Long/Double/Float)
+    */
   def getNextNumber : String = {
     lazy val strSliced = input.substring(readerIndex, inputSize)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA),strSliced.view.indexOf(CS_CLOSE_BRACKET),strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n>=0).min
@@ -208,9 +261,17 @@ class CodecJson(str: String) extends Codec {
     val subStr1 = subStr dropWhile (p => !p.isDigit)
     subStr1
   }
-
+  /**
+    * getSize is used to obtain the size of the next tokens, with consuming nothing
+    * @return this function return the size of the next token, if the next token is an Object, Array or String
+    *         which are the case that make sense to obtain a size
+    */
   override def getSize: Int = this.readSize
-
+  /**
+    * readSize is used to obtain the size of the next tokens, consuming the values from the stream
+    * @return this function return the size of the next token, if the next token is an Object, Array or String
+    *         which are the case that make sense to obtain a size
+    */
   override def readSize: Int = {
       input(readerIndex) match {
         case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex==0 => inputSize
@@ -224,7 +285,7 @@ class CodecJson(str: String) extends Codec {
           size
         case CS_QUOTES =>
           val inputAux: Seq[Char] = input.substring(readerIndex, inputSize)
-          val size = findStringSize(inputAux, CS_QUOTES)
+          val size = findStringSize(inputAux)
           size
         case _ =>
           readerIndex+=1
@@ -232,7 +293,13 @@ class CodecJson(str: String) extends Codec {
           s+1
       }
   }
-
+  /**
+    * findObjectSize is used to compute the size of the next JsonObject/jsonArray in stream, without consuming the value
+    * @param input stream where we have the JsonObject/jsonArray we wish to know the size
+    * @param chO Character which defines the start symbol of our type, either '{' or '['
+    * @param chC Character which defines the end symbol of our type, either '}' or ']'
+    * @return the size of the next JsonObject/jsonArray in stream
+    */
   def findObjectSize(input: Seq[Char], chO: Char, chC: Char): Int = {
     var counter: Int = 1
     var i = 1
@@ -247,13 +314,17 @@ class CodecJson(str: String) extends Codec {
     }
     i
   }
-
-  def findStringSize(input: Seq[Char], ch: Char): Int = {
+  /**
+    * findStringSize is used to compute the size of the next String in stream, without consuming the value
+    * @param input stream where we have the string we wish to know the size
+    * @return the size of the next string in stream
+    */
+  def findStringSize(input: Seq[Char]): Int = {
     var counter: Int = 1
     var i = 1
     while(counter!=0){
       val aux = input(i) match {
-        case x if x.equals(ch) => -1
+        case x if x.equals(CS_QUOTES) => -1
         case _ => 0
       }
       counter+=aux
@@ -261,7 +332,11 @@ class CodecJson(str: String) extends Codec {
     }
     i
   }
-
+  /**
+    * rootType is used at the beginning of the first executed function (extract) to know if the input is a BsonObject/JsonObject
+    * or BsonArray/JsonArray
+    * @return either a SonArray or SonObject representing a BsonArray/JsonArray root or BsonObject/JsonObject root
+    */
   override def rootType: SonNamedType = {
     input.head match {
       case CS_OPEN_BRACKET=> SonObject(C_DOT)
@@ -269,18 +344,33 @@ class CodecJson(str: String) extends Codec {
       case _ => SonZero
     }
   }
-
-  override def getValueAt(i: Int): Int = {
-    val value = input(i)
-    if(value.equals(CS_CLOSE_BRACKET)||value.equals(CS_CLOSE_RECT_BRACKET)){
-      0
-    }else{
-      value
-    }
-  }
-
+  /**
+    * getDataType is used to obtain the type of the next value in stream, without consuming the value from the stream
+    * @return an Int representing a type in stream
+    *         0: represents end of String, BsonObject/JsonObject, BsonArray/JsonArray
+    *         1: represents float and doubles
+    *         2: represents String, Array[Byte], Instants, CharSequences, Enumerates
+    *         3: represents BsonObject/JsonObject
+    *         4: represents BsonArray/JsonArray
+    *         8: represents a Boolean
+    *         10: represents a Null
+    *         16: represents a Int
+    *         18: represents a Long
+    */
   override def getDataType: Int = this.readDataType
-
+  /**
+    * readDataType is used to obtain the type of the next value in stream, consuming the value from the stream
+    * @return an Int representing a type in stream
+    *         0: represents end of String, BsonObject/JsonObject, BsonArray/JsonArray
+    *         1: represents float and doubles
+    *         2: represents String, Array[Byte], Instants, CharSequences, Enumerates
+    *         3: represents BsonObject/JsonObject
+    *         4: represents BsonArray/JsonArray
+    *         8: represents a Boolean
+    *         10: represents a Null
+    *         16: represents a Int
+    *         18: represents a Long
+    */
   override  def readDataType: Int = {
     if(readerIndex==0)readerIndex+=1
     if(input(readerIndex).equals(CS_COMMA)) readerIndex+=1
@@ -333,57 +423,75 @@ class CodecJson(str: String) extends Codec {
         }else D_FLOAT_DOUBLE
     }
   }
-
+  /**
+    * duplicate is used to create a duplicate of the codec, all information is duplicate so that operations
+    * over duplicates dont affect the original codec
+    * @return a new duplicate Codec
+    */
   override def duplicate: Codec = {
     val newCodec = new CodecJson(str)
     newCodec.setReaderIndex(readerIndex)
     newCodec.setWriterIndex(writerIndex)
     newCodec
   }
-
-  //override def printCodec(): Unit = println(str.substring(readerIndex, str.length))
-
+  /**
+    * release is used to free the resources that are no longer used
+    */
   override def release(): Unit = {}
-
+  /**
+    * downOneLevel is only used when dealing with JSON, it is used to consume the first Character of a BsonArray('[') or BsonObject('{')
+    * when we want to process information inside this BsonArray or BsonObject
+    */
   override def downOneLevel: Unit = {
     if(input(readerIndex).equals(CS_2DOT))readerIndex+=1
     readerIndex+=1
   }
-
-//  override def getArrayPosition: Int = {
-//    lazy val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
-//    val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
-//    substr.substring(0, index).count(p => p.equals(CS_COMMA))
-//  }
-//
-//  override def readArrayPosition: Int ={
-//    val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
-//    val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
-//    val str = substr.substring(0, index).view
-//    val list = StringBuilder.newBuilder
-//    var a = 0
-//    var i = 0
-//    while(i!=str.length){
-//      str(i)match{
-//        case x if x.equals(CS_OPEN_BRACKET)||x.equals(CS_OPEN_RECT_BRACKET) =>
-//          list.append(x)
-//          a+=1
-//        case  x if x.equals(CS_CLOSE_BRACKET)||x.equals(CS_CLOSE_RECT_BRACKET) =>
-//          list.append(x)
-//          a-=1
-//        case x =>
-//          if(a==0) list.append(x) else list.append(CS_ZERO)
-//      }
-//      i+=1
-//    }
-//    val res = list.count(p => p.equals(CS_COMMA))
-//    res
-//  }
-
+  /**
+    * getArrayPosition is used to get the actual array position, without consuming the value from stream
+    * @return this method doesn't return anything because this data is not usefull for extraction
+    *         however, in the future when dealing with injection, we may have the need to work with this value
+    *         (this is why there is a commented function with the same but returning a Int)
+    */
+  /*override def getArrayPosition: Int = {
+  lazy val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
+  val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
+  substr.substring(0, index).count(p => p.equals(CS_COMMA))
+}*/
   override def getArrayPosition: Unit = {}
-
+  /**
+    * readArrayPosition is used to get the actual array position, consuming the value from stream
+    * @return this method doesn't return anything because this data is not usefull for extraction
+    *         however, in the future when dealing with injection, we may have the need to work with this value
+    *         (this is why there is a commented function with the same but returning a Int)
+    */
+  /* override def readArrayPosition: Int ={
+   val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
+   val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
+   val str = substr.substring(0, index).view
+   val list = StringBuilder.newBuilder
+   var a = 0
+   var i = 0
+   while(i!=str.length){
+     str(i)match{
+       case x if x.equals(CS_OPEN_BRACKET)||x.equals(CS_OPEN_RECT_BRACKET) =>
+         list.append(x)
+         a+=1
+       case  x if x.equals(CS_CLOSE_BRACKET)||x.equals(CS_CLOSE_RECT_BRACKET) =>
+         list.append(x)
+         a-=1
+       case x =>
+         if(a==0) list.append(x) else list.append(CS_ZERO)
+     }
+     i+=1
+   }
+   val res = list.count(p => p.equals(CS_COMMA))
+   res
+ }*/
   override def readArrayPosition: Unit ={}
-
+  /**
+    * consumeValue is used to consume some data from the stream that is unnecessary, this method gives better performance
+    * since we want to ignore a value
+    */
   override def consumeValue(seqType: Int): Unit = seqType match{
     case D_FLOAT_DOUBLE=>
       //println(input(readerIndex))
