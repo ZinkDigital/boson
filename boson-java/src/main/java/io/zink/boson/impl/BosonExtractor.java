@@ -43,6 +43,8 @@ public class BosonExtractor<T> implements Boson {
 
     }
 
+
+
     private void callParse(BosonImpl boson, String expression){
         DSLParser parser = new DSLParser(expression);
         try{
@@ -63,7 +65,7 @@ public class BosonExtractor<T> implements Boson {
         return CompletableFuture.supplyAsync(() -> {
             Option<byte[]> opt = Option.apply(bsonByteEncoding);
             Option e = Option.empty();
-            BosonImpl boson = new BosonImpl(opt, e);
+            BosonImpl boson = new BosonImpl(opt, e,e);
             try {
                 callParse(boson, expression);
                 return bsonByteEncoding;
@@ -79,7 +81,7 @@ public class BosonExtractor<T> implements Boson {
         return CompletableFuture.supplyAsync(() -> {
             Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
             Option e = Option.empty();
-            BosonImpl boson = new BosonImpl(e,opt);
+            BosonImpl boson = new BosonImpl(e,opt,e);
             try {
             callParse(boson, expression);
             return bsonByteBufferEncoding;

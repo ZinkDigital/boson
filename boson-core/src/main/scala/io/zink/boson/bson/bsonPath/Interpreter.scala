@@ -31,10 +31,12 @@ class Interpreter[T](boson: BosonImpl,
     case Failure(excp) => throw excp
   }
 
+
   val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) =
     buildExtractors(parsedStatements.statementList.head, parsedStatements.statementList.tail, parsedStatements.dotsList)
 
   val returnInsideSeqFlag: Boolean = returnInsideSeq(keyList,limitList,parsedStatements.dotsList)
+
 
   /**
     * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
@@ -89,6 +91,8 @@ class Interpreter[T](boson: BosonImpl,
         }
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(_._1)
       val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(_._2)
+      //println(s"secondList -> $secondList")
+      //println(s"limitList2 -> $limitList2")
 
       statementList.last match {
         case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
@@ -112,6 +116,7 @@ class Interpreter[T](boson: BosonImpl,
     * @param right  Integer representing the upper limit of a Range.
     * @return Returns a Tuple3 used to represent a range.
     */
+
   private def defineLimits(left: Int, mid: Option[RangeCondition], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
     mid.isDefined match {
       case true if right.isEmpty =>
@@ -332,6 +337,7 @@ class Interpreter[T](boson: BosonImpl,
     * @param limitList        List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
     * @return Extracted result.
     */
+
   def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val value: List[Any] =
       keyList.size match {
@@ -357,6 +363,7 @@ class Interpreter[T](boson: BosonImpl,
     value
   }
 
+
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
     typesNvalues.head._2 match {
       case oneString(value) =>
@@ -379,7 +386,9 @@ class Interpreter[T](boson: BosonImpl,
         }
     }
   }
-
+            
+ def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
+            
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
       tCase.isDefined match {
         case true if typeClass.isDefined =>
@@ -704,23 +713,27 @@ class Interpreter[T](boson: BosonImpl,
         case ROOT => united.map(e => (e, C_DOT))
         case _ => united.zip(stat.dotsList)
       }
-    executeMultipleKeysInjector(zipped)
+    ???
+    //executeMultipleKeysInjector(zipped)
   }
 
   //  TODO: replace Statement -> Statement, etc..
-  private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
-    val result: Array[Byte] =
-      Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
-        case Success(v) =>
-          //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
-          //v.release()
-          //bsResult
-          v.array
-        case Failure(e) =>
-          throw CustomException(e.getMessage)
-        //bsonValue.BsException(e.getMessage)
-      }
-    boson.getByteBuf.release()
-    result
-  }
+//    private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
+//      val value = Left(boson.getByteBuf)
+//      val result: Array[Byte] =
+//        Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
+//          case Success(v) =>
+//            //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+//            //v.release()
+//            //bsResult
+//            v.array
+//          case Failure(e) =>
+//            throw CustomException(e.getMessage)
+//          //bsonValue.BsException(e.getMessage)
+//        }
+//      //boson.getByteBuf.release()
+//      result
+//    }
+//  }
 }
+
