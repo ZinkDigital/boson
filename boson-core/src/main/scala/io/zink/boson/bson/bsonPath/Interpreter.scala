@@ -178,9 +178,9 @@ class Interpreter[T](boson: BosonImpl,
     //instead boson.get.. as argument replace with Either[..]
     bsonEncoded match {
       case Left(byteArr) =>
-        val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
-        extract(buf, keyList, limitList)
-      case Right(jsonString) => ???
+        //val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
+        extract(Left(byteArr), keyList, limitList)
+      case Right(jsonString) => extract(Right(jsonString), keyList, limitList)
     }
   }
 
@@ -192,7 +192,7 @@ class Interpreter[T](boson: BosonImpl,
     * @param limitList           Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
-  private def constructObj(encodedSeqByteBuf: List[ByteBuf], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
+  private def constructObj(encodedSeqByteBuf: List[Array[Byte]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
 
 
     /**
@@ -214,7 +214,7 @@ class Interpreter[T](boson: BosonImpl,
 
     val res: Seq[List[(String, Any)]] =
       encodedSeqByteBuf.par.map { encoded =>
-        val res: List[Any] = runExtractors(encoded, keyList, limitList)
+        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
         val l: List[(String, Any)] = toTuples(res).map(elem => (elem._1.toLowerCase, elem._2))
         l
       }.seq
@@ -296,7 +296,7 @@ class Interpreter[T](boson: BosonImpl,
     * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def extract(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
+  private def extract(encodedStructure: Either[Array[Byte], String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
     //println(s"result -> $result")
     val typeClass: Option[String] =
@@ -338,7 +338,7 @@ class Interpreter[T](boson: BosonImpl,
     * @return Extracted result.
     */
 
-  def runExtractors(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
+  def runExtractors(encodedStructure: Either[Array[Byte], String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val value: List[Any] =
       keyList.size match {
         case 1 =>
@@ -347,7 +347,11 @@ class Interpreter[T](boson: BosonImpl,
           boson.extract(encodedStructure, keyList, limitList)
         case _ =>
           val res: List[Any] = boson.extract(encodedStructure, keyList, limitList)
-          val filtered = res.collect { case buf: ByteBuf => buf }
+          val filtered = res.collect {
+            //case buf: ByteBuf => buf
+            case buf: Array[Byte] => Left(buf)
+            case str: String if isJson(str) => Right(str)
+             }
           //println(s"filtered -> $filtered")
           filtered.size match {
             case 0 => Nil //throw CustomException("The given path doesn't correspond with the event structure.")
@@ -374,7 +378,7 @@ class Interpreter[T](boson: BosonImpl,
         }
       case seqString(seq) =>
         tCase.get.unapply(seq).map(v => fExt.get(v)).orElse {
-          val defInst: Instant = Instant.now()
+          val defInst: Seq[Instant] = List(Instant.now())
           tCase.get.unapply(defInst).map(_ => fExt.get(seq.map(Instant.parse(_)).asInstanceOf[T]))
             .orElse(throw CustomException(s"Type designated doesn't correspond with extracted type: ${typesNvalues.head._1}"))
         }
@@ -408,12 +412,12 @@ class Interpreter[T](boson: BosonImpl,
                 case elem => elem
               }
               if(returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-            case COPY_BYTEBUF => constructObj(result.asInstanceOf[List[ByteBuf]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            case ARRAY_BYTE  => constructObj(result.asInstanceOf[List[Array[Byte]]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           }
         case false if typeClass.isDefined =>
           typeClass.get match {
-            case COPY_BYTEBUF if fExt.isDefined =>
-              val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
+            case ARRAY_BYTE  if fExt.isDefined =>
+              val res = result.asInstanceOf[List[Array[Byte]]]//.map(_.array)
               if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
             case STRING =>
               val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))

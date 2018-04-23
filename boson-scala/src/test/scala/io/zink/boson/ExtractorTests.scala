@@ -82,7 +82,7 @@ class ExtractorTests extends FunSuite {
   test("Extract BsonObject") {
     val bsonEvent: BsonObject = new BsonObject().put("First", obj1).put("Second", obj2).put("Third", obj3)
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
-    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Second","allDots")), List((None,None,""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Second","allDots")), List((None,None,""))).asInstanceOf[Seq[Array[Byte]]]//.map(_.array)
     val expected: Seq[Array[Byte]] = Seq(obj2.encodeToBarray())
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
@@ -90,7 +90,7 @@ class ExtractorTests extends FunSuite {
 
   test("Extract BsonArray") {
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(globalObj.encode().getBytes()))
-    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Colleagues","allDots")), List((None,None,""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("Colleagues","allDots")), List((None,None,""))).asInstanceOf[Seq[Array[Byte]]]//.map(_.array)
 
     val expected: Seq[Array[Byte]] = Seq(arr.encodeToBarray())
     assert(expected.size === result.size)
@@ -102,7 +102,7 @@ class ExtractorTests extends FunSuite {
     val arr2: BsonArray = new BsonArray().add("Day3").add("Day20").add("Day31")
     obj2.put("JoséMonthLeave", arr2)
     val bosonBson: BosonImpl = new BosonImpl(byteArray = Option(bsonEvent.encode().getBytes()))
-    val result = bosonBson.extract(bosonBson.getByteBuf, List(("JoséMonthLeave","allDots")), List((None,None,""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
+    val result = bosonBson.extract(bosonBson.getByteBuf, List(("JoséMonthLeave","allDots")), List((None,None,""))).asInstanceOf[Seq[Array[Byte]]]//.map(_.array)
     val expected: Seq[Array[Byte]] = Seq(arr2.encodeToBarray())
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))

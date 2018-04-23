@@ -39,14 +39,14 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     interpreter.run(bsonEncoded)
   }
 
-  private def runInterpreter2(bsonEncoded: Either[Seq[ByteBuf],String]): Any = {
-
-    val results =
-    bsonEncoded.left.get.par.map{ elem =>
-      interpreter2.runExtractors(elem, interpreter2.keyList,interpreter2.limitList)
-    }.seq.reduce(_++_).map{ case e: ByteBuf => e.array()}
-    extractFunction(results.asInstanceOf[T])
-  }
+//  private def runInterpreter2(bsonEncoded: Either[Seq[ByteBuf],String]): Any = {
+//
+//    val results =
+//    bsonEncoded.left.get.par.map{ elem =>
+//      interpreter2.runExtractors(elem, interpreter2.keyList,interpreter2.limitList)
+//    }.seq.reduce(_++_).map{ case e: ByteBuf => e.array()}
+//    extractFunction(results.asInstanceOf[T])
+//  }
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] =
@@ -58,15 +58,15 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
   }
 
 
-  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
-    val future: Future[Seq[ByteBuf]] =
-      Future {
-        runInterpreter2(Left(encodedStructures))
-        encodedStructures
-
-      }
-    future
-  }
+//  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
+//    val future: Future[Seq[ByteBuf]] =
+//      Future {
+//        runInterpreter2(Left(encodedStructures))
+//        encodedStructures
+//
+//      }
+//    future
+//  }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
     val future: Future[ByteBuffer] =
@@ -82,8 +82,8 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
   override def go(bsonByteEncoding: String): Future[String] = {
     val future: Future[String] =
       Future {
-        val boson: BosonImpl = new BosonImpl(stringJson = Option(bsonByteEncoding))
-        callParse(boson, expression)
+        //val boson: BosonImpl = new BosonImpl(stringJson = Option(bsonByteEncoding))
+        runInterpreter(Right(bsonByteEncoding))
         //println("BosonExtractor GO")
 
         //val gen0 = new LabelledGeneric.Aux[T, L]

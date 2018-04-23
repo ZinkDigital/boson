@@ -223,7 +223,7 @@ class BosonImpl(
                     Nil
                 }
               case _ if keyList.head._2.equals(C_BUILD)=>
-                Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList).asInstanceOf[List[List[(String,Any)]]].flatten)match{
+                Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
                   case Success(v)=>
                     nettyC.release()
                     v
@@ -292,7 +292,7 @@ class BosonImpl(
                 List(List(value0), extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)).flatten
               case C_BUILD =>
                 codec.downOneLevel
-                 val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList).asInstanceOf[List[List[(String,Any)]]].flatten
+                 val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
                 List(key,res)
               case _ =>
                  val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
@@ -651,8 +651,8 @@ class BosonImpl(
                           midResult
                         }
                       case C_BUILD =>
-                        val res = extractFromBsonObj(codec, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE))).asInstanceOf[List[List[(String,Any)]]].flatten
-                        res
+                        val res = extractFromBsonObj(codec, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE)))
+                        List(res)
                       case _ =>
                         val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                         List(arr)
