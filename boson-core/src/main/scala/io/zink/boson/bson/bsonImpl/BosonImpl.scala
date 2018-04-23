@@ -2,9 +2,11 @@ package io.zink.boson.bson.bsonImpl
 
 import java.nio.{ByteBuffer, ReadOnlyBufferException}
 import java.time.Instant
-import io.netty.buffer.{ByteBuf, Unpooled}
+
+import io.netty.buffer.{ByteBuf, Unpooled, UnpooledHeapByteBuf}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -18,6 +20,18 @@ import scala.util.{Failure, Success, Try}
 case class CustomException(smth: String) extends Exception {
   override def getMessage: String = smth
 }
+
+//abstract class experience extends ByteBuf {
+//  override def copy(index: Int, length: Int): ByteBuf
+//}
+//object experience {
+//  def copy(source: ByteBuf,index: Int, length: Int): ByteBuf = {
+//    val b = Unpooled.buffer()
+//
+//    System.arraycopy(source, index, b.array(), 0, length)
+//    b
+//  }
+//}
 
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
@@ -167,6 +181,7 @@ class BosonImpl(
                 val arrayFinishReaderIndex: Int = startReaderIndex + size
                 keyList.head._1 match {
                   case C_DOT if keyList.lengthCompare(1) == 0 =>
+                    //val buf = experience.copy(netty,startReaderIndex,size)
                     val buf = netty.copy(startReaderIndex,size)
                     netty.readerIndex(arrayFinishReaderIndex)
                     List(buf)
@@ -178,6 +193,7 @@ class BosonImpl(
                 keyList.head._1 match {
                   case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => Nil
                   case C_DOT if keyList.lengthCompare(1) == 0 =>
+                    //val buf = experience.copy(netty,startReaderIndex,size)
                     val buf = netty.copy(startReaderIndex,size)
                     netty.readerIndex(bsonFinishReaderIndex)
                     List(buf)
@@ -232,12 +248,14 @@ class BosonImpl(
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case C_ALLNEXT | C_ALLDOTS =>
+                //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                 val buf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                 List(List(buf), extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList)).flatten
               case C_BUILD =>
                 val res = extractFromBsonObj(netty, keyList, bFnshRdrIndex, limitList)
                 List(key, res)
               case _ =>
+                //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                 val buf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                 netty.readerIndex(bFnshRdrIndex)
                 List(buf)
@@ -264,12 +282,14 @@ class BosonImpl(
                 val res = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY, C_BUILD)), List((None, None, EMPTY_RANGE)))
                 List(key, res)
               case C_ALLNEXT | C_ALLDOTS =>
+                //val buf = experience.copy(netty,arrayStartReaderIndex,valueLength)
                 val buf = netty.copy(arrayStartReaderIndex,valueLength)
                 val res = extractFromBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 List(List(buf), res).flatten
               case C_LIMIT | C_LIMITLEVEL =>
                 traverseBsonArray(netty, valueLength, arrayFinishReaderIndex, keyList, limitList)
               case _ =>
+                //val buf = experience.copy(netty,arrayStartReaderIndex,valueLength)
                 val buf = netty.copy(arrayStartReaderIndex,valueLength)
                 netty.readerIndex(arrayFinishReaderIndex)
                 List(buf)
@@ -481,9 +501,11 @@ class BosonImpl(
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.head._2.equals(C_LIMIT) =>
+                //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                 val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                 List(List(buf), extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)).flatten
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
+                //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                 val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                 netty.readerIndex(bsonFinishReaderIndex)
                 List(buf)
@@ -499,17 +521,20 @@ class BosonImpl(
                     val res = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
                     netty.getByte(bsonFinishReaderIndex).toInt match {
                       case 0 =>
+                        //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                         val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                         List(List(buf), res).flatten
                       case _ => res
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
+                    //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                     val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                     val res = extractFromBsonObj(netty, keyList, bsonFinishReaderIndex, limitList)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
                     netty.getByte(bsonFinishReaderIndex).toInt match {
                       case 0 =>
+                        //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                         val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                         netty.readerIndex(bsonFinishReaderIndex)
                         List(buf)
@@ -518,6 +543,7 @@ class BosonImpl(
                         Nil
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
+                    //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                     val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                     netty.readerIndex(bsonFinishReaderIndex)
                     List(buf)
@@ -543,6 +569,7 @@ class BosonImpl(
                         val res = extractFromBsonObj(netty, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE)))
                         res
                       case _ =>
+                        //val buf = experience.copy(netty,bsonStartReaderIndex,valueTotalLength)
                         val buf: ByteBuf = netty.copy(bsonStartReaderIndex,valueTotalLength)
                         netty.readerIndex(bsonFinishReaderIndex)
                         List(buf)
@@ -555,9 +582,11 @@ class BosonImpl(
             val finishReaderIndex: Int = startReaderIndex + valueLength2
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.head._2.equals(C_LIMIT) =>
+                //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                 val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                 List(List(buf), extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList)).flatten
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
+                //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                 val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                 netty.readerIndex(finishReaderIndex)
                 List(buf)
@@ -573,17 +602,20 @@ class BosonImpl(
                     val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList)
                     netty.getByte(finishReaderIndex).toInt match {
                       case 0 =>
+                        //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                         val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                         List(List(buf), res).flatten
                       case _ => res
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
                     val res = extractFromBsonArray(netty, valueLength2, finishReaderIndex, keyList, limitList)
+                    //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                     val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
                     netty.getByte(finishReaderIndex).toInt match {
                       case 0 =>
+                        //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                         val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                         netty.readerIndex(finishReaderIndex)
                         List(buf)
@@ -592,6 +624,7 @@ class BosonImpl(
                         Nil
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
+                    //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                     val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                     netty.readerIndex(finishReaderIndex)
                     List(buf)
@@ -610,6 +643,7 @@ class BosonImpl(
                         netty.readerIndex(finishReaderIndex)
                         Nil
                       case _ =>
+                        //val buf = experience.copy(netty,startReaderIndex,valueLength2)
                         val buf: ByteBuf = netty.copy(startReaderIndex,valueLength2)
                         netty.readerIndex(finishReaderIndex)
                         List(buf)
@@ -743,6 +777,7 @@ class BosonImpl(
                 extractFromBsonObj(netty.readerIndex(start + 4), keyList, finish, limitList) match {
                   case l if l.isEmpty => List(C_MATCH)
                   case l =>
+                    //val buf = experience.copy(netty,start,finish-start)
                     val buf = netty.copy(start,finish-start)
                     List(List(buf), l).flatten
                 }
@@ -774,6 +809,7 @@ class BosonImpl(
                   case l if l.isEmpty =>
                     List(C_MATCH)
                   case l =>
+                    //val buf = experience.copy(netty,start,finish-start)
                     val buf = netty.copy(start,finish - start)
                     List(List(buf), l).flatten
                 }
@@ -834,9 +870,11 @@ class BosonImpl(
     val actualPos2: Int = finish - netty.readerIndex()
     actualPos2 match {
       case x if x > 0 && finalValue.nonEmpty && finalValue.head.equals(C_MATCH) =>
+        //val buf = experience.copy(netty,start,finish-start)
         val buf = netty.copy(start,finish-start)
         List(buf) ++ findElements(netty, keyList, limitList, start, finish)
       case 0 if finalValue.nonEmpty && finalValue.head.equals(C_MATCH) =>
+        //val buf = experience.copy(netty,start,finish-start)
         val buf = netty.copy(start,finish-start)
         List(buf)
       case x if x > 0 && finalValue.nonEmpty && keyList.head._2.equals(C_LIMIT) =>

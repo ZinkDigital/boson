@@ -293,6 +293,7 @@ class Interpreter[T](boson: BosonImpl,
     */
   private def extract(encodedStructure: ByteBuf, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
+    //println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -341,6 +342,7 @@ class Interpreter[T](boson: BosonImpl,
         case _ =>
           val res: List[Any] = boson.extract(encodedStructure, keyList, limitList)
           val filtered = res.collect { case buf: ByteBuf => buf }
+          //println(s"filtered -> $filtered")
           filtered.size match {
             case 0 => Nil //throw CustomException("The given path doesn't correspond with the event structure.")
             case _ =>

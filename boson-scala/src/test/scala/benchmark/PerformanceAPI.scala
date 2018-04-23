@@ -373,7 +373,7 @@ object PerformanceTests extends App {
 //  val validatedByteArray: Array[Byte] = bson.encodeToBarray()
 //
   val firstResultBuffer: ListBuffer[Array[Byte]] = new ListBuffer[Array[Byte]]
-  var rangeResults: Seq[Array[Byte]] = _
+  var rangeResults: List[Array[Byte]] = _
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val timesBuffer: ListBuffer[Long] = new ListBuffer[Long]
   val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
@@ -400,13 +400,13 @@ object PerformanceTests extends App {
 //  timesBuffer.clear()
 //  println()
 //
-  /*
+
   val bosonClass: Boson = Boson.extractor(".Markets[1].Tags", (_: Tags) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = bosonClass.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -432,7 +432,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = bosonClass1.go(bArr)
     Await.result(fut, Duration.Inf)
@@ -462,7 +462,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson1.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -517,7 +517,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson2.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -571,7 +571,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson3.go(bArr)
     Await.result(fut, Duration.Inf)
@@ -581,33 +581,38 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-*/
 
-
+/*
+  var c: Int = -1
   val boson3: Boson = Boson.extractor(".Markets", (out: Array[Byte]) => {
-    //val end = System.nanoTime()
+    val end = System.nanoTime()
+    c+=1
+    if(c == 10000)
     firstResultBuffer.append(out)
-    //endTimeBuffer.append(end)
+    endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach {_ =>
-    //val start = System.nanoTime()
+  (0 to 10000).foreach {_ =>
+    val start = System.nanoTime()
     val fut = boson3.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
-    //timesBuffer.append(start)
+    timesBuffer.append(start)
   }
   println(s"Boson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets  -> as[Array[Byte]]")
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
 
+  c = -1
   val boson33: Boson = Boson.extractor(".[all]", (out: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
-    rangeResults = out
+    c+=1
+    if(c == 10000)
+    rangeResults = out.toList
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach {_ =>
+  (0 to 10000).foreach {_ =>
     val start = System.nanoTime()
     val fut = boson33.go(firstResultBuffer.head)
     Await.result(fut, Duration.Inf)
@@ -628,9 +633,9 @@ object PerformanceTests extends App {
   val rangeByteBufs = rangeResults.map{ elem =>
     Unpooled.copiedBuffer(elem)
   }
-  rangeResults = Seq()
+  rangeResults = Nil
 //  println(s"range of Results -> ${rangeByteBufs.size}")
-  (0 to 50000).foreach {_ =>
+  (0 to 10000).foreach {_ =>
     val start = System.nanoTime()
     val fut = boson333.go2(rangeByteBufs)
     Await.result(fut, Duration.Inf)
@@ -640,7 +645,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-
+*/
 
 //
 //  for(_ <- 0 to 10000) yield {
@@ -680,13 +685,13 @@ object PerformanceTests extends App {
 //  println("JsonPath4 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[3:5]  -> as[Any]")
 //  timesBuffer.clear()
 //  println()
-/*
+
   val boson4: Boson = Boson.extractor(".Markets[3 to 5]", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson4.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -741,7 +746,7 @@ object PerformanceTests extends App {
     endTimeBuffer.append(end)
   })
 
-  (0 to 50000).foreach { _=>
+  (0 to 10000).foreach { _=>
     val start = System.nanoTime()
     val fut = boson5.go(Lib.validatedByteArray)
     Await.result(fut, Duration.Inf)
@@ -751,7 +756,7 @@ object PerformanceTests extends App {
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-*/
+
 //  for(_ <- 0 to 10000) yield {
 //    val start = System.nanoTime()
 //    val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
