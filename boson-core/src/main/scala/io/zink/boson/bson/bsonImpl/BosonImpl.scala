@@ -629,7 +629,7 @@ class BosonImpl(
                     keyList.head._2 match {
                       case C_LIMIT | C_LIMITLEVEL if keyList.lengthCompare(1) > 0 && keyList.drop(1).head._2.equals(C_FILTER) =>
                         val copyCodec1: Codec = codec.duplicate
-                        val midResult = findElements( copyCodec1,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
+                        val midResult = findElements(copyCodec1,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
                         copyCodec1.release()
                         if (midResult.isEmpty) {
                           codec.setReaderIndex(bsonFinishReaderIndex)

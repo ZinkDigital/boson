@@ -112,37 +112,38 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled does it fit?
+  override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
     case SonBoolean(x, _) =>
       SonBoolean(x, buff.readByte)
     case SonArray(x,_) =>
       x match {
         case C_DOT =>
-          //val array: Array[Byte] = new Array[Byte](buff.capacity())
-          val b: ByteBuf = Unpooled.buffer(buff.capacity)
-          buff.readBytes(b)
+          val b: ByteBuf = buff.copy(0,buff.capacity)
+          buff.readerIndex(buff.capacity) //TODO: probably isn't needed
           SonArray(x, b)
         case CS_ARRAY =>
-          val size = buff.getIntLE(buff.readerIndex()-4)
-          //val arr: Array[Byte] = new Array[Byte](size)
-          buff.readerIndex(buff.readerIndex-4)
-          val b: ByteBuf = Unpooled.buffer(size)
-          buff.readBytes(b)
-         SonArray(x, b)
+          val size = buff.getIntLE(buff.readerIndex-4)
+          val endIndex = buff.readerIndex-4 + size
+          val b = buff.copy(buff.readerIndex-4,size)
+          buff.readerIndex(endIndex)
+          SonArray(x,b)
       }
     case SonObject(x,_) =>
       x match {
         case C_DOT =>
-          //val array: Array[Byte] = new Array[Byte](buff.capacity())
-          val b: ByteBuf = Unpooled.buffer(buff.capacity)
-          buff.readBytes(b)
+          val b: ByteBuf = buff.copy(0,buff.capacity)
+          buff.readerIndex(buff.capacity)
           SonObject(x, b)
         case CS_OBJECT =>
-          val size = buff.getIntLE(buff.readerIndex()-4)
-          //val arr: Array[Byte] = new Array[Byte](size)
-          buff.readerIndex(buff.readerIndex-4) //TODO: rethink this situation, going back and forth
-          val b: ByteBuf = Unpooled.buffer(size)
-          buff.readBytes(b)
+//          val size = buff.getIntLE(buff.readerIndex-4)
+//          buff.readerIndex(buff.readerIndex-4) //TODO: rethink this situation, going back and forth
+//          val b: ByteBuf = Unpooled.buffer(size)
+//          buff.readBytes(b)
+//          SonObject(x, b)
+          val size = buff.getIntLE(buff.readerIndex-4)
+          val endIndex = buff.readerIndex-4 + size
+          val b = buff.copy(buff.readerIndex-4,size)
+          buff.readerIndex(endIndex)
           SonObject(x, b)
       }
     case SonString(x, _) =>
@@ -246,9 +247,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
     * @return a new duplicated Codec
     */
   override def duplicate: Codec = {
-    val newB = alloc.directBuffer(buff.capacity())
-    buff.getBytes(0, newB)
-    newB.readerIndex(buff.readerIndex())
+    val newB = buff.copy(0,buff.capacity) //TODO:this is too heavy, find another way
+    newB.readerIndex(buff.readerIndex)
     val c = new CodecBson(arg, Some(newB))
     c
 

@@ -307,8 +307,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
-    println(s"tCase: $tCase")
+//    println(s"typeClass: $typeClass")
+//    println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -414,11 +414,11 @@ class Interpreter[T](boson: BosonImpl,
                 case elem => elem
               }
               if(returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-            case COPY_BYTEBUF | COPY_BYTEBUF1 => constructObj(result.asInstanceOf[List[ByteBuf]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            case COPY_BYTEBUF => constructObj(result.asInstanceOf[List[ByteBuf]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           }
         case false if typeClass.isDefined =>
           typeClass.get match {
-            case COPY_BYTEBUF | COPY_BYTEBUF1  if fExt.isDefined =>
+            case COPY_BYTEBUF if fExt.isDefined =>
               val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
               if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
             case STRING =>
