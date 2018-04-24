@@ -1,6 +1,6 @@
 package io.zink.boson.bson.codec.impl
 
-import io.netty.buffer.{ByteBuf, PooledByteBufAllocator}
+import io.netty.buffer.{ByteBuf, PooledByteBufAllocator, Unpooled}
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.bsonImpl.Dictionary._
 
@@ -10,13 +10,13 @@ import scala.collection.mutable.ListBuffer
   * @param arg Value of type Array[Byte] representing the Bson after being encodec
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
   */
-class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
+class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
   val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
   /**
     * buff is a value of type ByteBuf to process the value received by the user
     */
   val buff: ByteBuf =opt match {
-    case None => alloc.directBuffer(arg.length).writeBytes(arg)
+    case None => arg //alloc.directBuffer(arg.length).writeBytes(arg)
     case Some(x) => x
   }
   /**
@@ -45,33 +45,37 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     * @return returns the same SonNamedType request with the value obtained.
     */
   override def getToken(tkn: SonNamedType): SonNamedType = tkn match {
-    case SonBoolean(x, y) =>
-      SonBoolean(x, buff.getByte(buff.readerIndex())==1)
-    case SonArray(x,y) =>
+    case SonBoolean(x, _) =>
+      SonBoolean(x, buff.getByte(buff.readerIndex)==1)
+    case SonArray(x,_) =>
       x match {
         case C_DOT =>
-          val array: Array[Byte] = new Array[Byte](buff.capacity())
-          buff.getBytes(0, array)
-          SonArray(x, array)
+          //val array: Array[Byte] = new Array[Byte](buff.capacity())
+          val b: ByteBuf = buff.copy(0,buff.capacity)
+          //buff.getBytes(0, array)
+          SonArray(x, b)
         case CS_ARRAY =>
-          val size = buff.getIntLE(buff.readerIndex()-4)
-          val arr: Array[Byte] = new Array[Byte](size)
-          buff.getBytes(buff.readerIndex()-4, arr)
-          SonArray(x, arr)
+          val size = buff.getIntLE(buff.readerIndex-4)
+          //val arr: Array[Byte] = new Array[Byte](size)
+          val b: ByteBuf = buff.copy(buff.readerIndex-4,size)
+          //buff.getBytes(buff.readerIndex()-4, arr)
+          SonArray(x, b)
       }
-    case SonObject(x,y) =>
+    case SonObject(x,_) =>
       x match {
         case C_DOT =>
-          val array: Array[Byte] = new Array[Byte](buff.capacity())
-          buff.getBytes(0, array)
-          SonObject(x, array)
+          //val array: Array[Byte] = new Array[Byte](buff.capacity())
+          val b: ByteBuf = buff.copy(0,buff.capacity)
+          //buff.getBytes(0, array)
+          SonObject(x, b)
         case CS_OBJECT =>
-          val size = buff.getIntLE(buff.readerIndex()-4)
-          val arr: Array[Byte] = new Array[Byte](size)
-          buff.getBytes(buff.readerIndex()-4, arr)
-          SonObject(x, arr)
+          val size = buff.getIntLE(buff.readerIndex-4)
+          //val arr: Array[Byte] = new Array[Byte](size)
+          val b: ByteBuf = buff.copy(buff.readerIndex-4,size)
+          //buff.getBytes(buff.readerIndex()-4, arr)
+          SonObject(x, b)
       }
-    case SonString(x, y) =>
+    case SonString(x, _) =>
       x match {
         case CS_NAME =>
           val buf0 = buff.duplicate()
@@ -108,36 +112,40 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readToken(tkn: SonNamedType): SonNamedType = tkn match {
-    case SonBoolean(x, y) =>
-      SonBoolean(x, buff.readByte() )
-    case SonArray(x,y) =>
+  override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled does it fit?
+    case SonBoolean(x, _) =>
+      SonBoolean(x, buff.readByte)
+    case SonArray(x,_) =>
       x match {
         case C_DOT =>
-          val array: Array[Byte] = new Array[Byte](buff.capacity())
-          buff.readBytes(array)
-          SonArray(x, array)
+          //val array: Array[Byte] = new Array[Byte](buff.capacity())
+          val b: ByteBuf = Unpooled.buffer(buff.capacity)
+          buff.readBytes(b)
+          SonArray(x, b)
         case CS_ARRAY =>
           val size = buff.getIntLE(buff.readerIndex()-4)
-          val arr: Array[Byte] = new Array[Byte](size)
-          buff.readerIndex(buff.readerIndex()-4)
-          buff.readBytes(arr)
-         SonArray(x, arr)
+          //val arr: Array[Byte] = new Array[Byte](size)
+          buff.readerIndex(buff.readerIndex-4)
+          val b: ByteBuf = Unpooled.buffer(size)
+          buff.readBytes(b)
+         SonArray(x, b)
       }
-    case SonObject(x,y) =>
+    case SonObject(x,_) =>
       x match {
         case C_DOT =>
-          val array: Array[Byte] = new Array[Byte](buff.capacity())
-          buff.readBytes(array)
-          SonObject(x, array)
+          //val array: Array[Byte] = new Array[Byte](buff.capacity())
+          val b: ByteBuf = Unpooled.buffer(buff.capacity)
+          buff.readBytes(b)
+          SonObject(x, b)
         case CS_OBJECT =>
           val size = buff.getIntLE(buff.readerIndex()-4)
-          val arr: Array[Byte] = new Array[Byte](size)
-          buff.readerIndex(buff.readerIndex()-4)
-          buff.readBytes(arr)
-          SonObject(x, arr)
+          //val arr: Array[Byte] = new Array[Byte](size)
+          buff.readerIndex(buff.readerIndex-4) //TODO: rethink this situation, going back and forth
+          val b: ByteBuf = Unpooled.buffer(size)
+          buff.readBytes(b)
+          SonObject(x, b)
       }
-    case SonString(x, y) =>
+    case SonString(x, _) =>
       x match {
         case CS_NAME =>
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
@@ -149,10 +157,9 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
           SonString(x, new String(key.toArray.filter(p => p!=0)))
         case CS_STRING =>
           val valueLength: Int = buff.readIntLE()
-
           SonString(x, buff.readCharSequence(valueLength, charset).toString.filter(b => b !=0))
       }
-    case SonNumber(x, y) =>
+    case SonNumber(x, _) =>
       x match {
         case CS_DOUBLE =>
           val d = buff.readDoubleLE()
@@ -162,7 +169,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
         case CS_LONG=>
           SonNumber(x, buff.readLongLE())
       }
-    case SonNull(x, y)=>
+    case SonNull(x, _)=>
       x match {
         case CS_NULL =>
           SonNull(x, V_NULL)
@@ -187,7 +194,7 @@ class CodecBson(arg: Array[Byte], opt: Option[ByteBuf] = None) extends Codec{
     */
   override def rootType: SonNamedType = {
     val buf = buff.duplicate()
-    if(buf.capacity()>5){
+    if(buf.capacity>5){
       buf.readerIndex(5)
       val key: ListBuffer[Byte] = new ListBuffer[Byte]
       while (buf.getByte(buf.readerIndex()) != 0 || key.lengthCompare(1) < 0) {

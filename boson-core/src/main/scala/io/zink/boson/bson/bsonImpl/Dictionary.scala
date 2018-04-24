@@ -11,7 +11,8 @@ object Dictionary {
   val EMPTY_CONSTRUCTOR: String = "EmptyConstructor"
   val JAVA_BYTEBUFFER: String = "HeapByteBuffer"
   val ARRAY_BYTE: String = "byte[]"
-  val COPY_BYTEBUF: String = "UnpooledHeapByteBuf"
+  val COPY_BYTEBUF: String = "InstrumentedUnpooledUnsafeHeapByteBuf"  //TODO: rethink this situaton of 2 names for ByteBuf
+  val COPY_BYTEBUF1: String = "UnpooledHeapByteBuf"
 
   // ENCODING CONSTANTS
   val D_ZERO_BYTE: Int = 0

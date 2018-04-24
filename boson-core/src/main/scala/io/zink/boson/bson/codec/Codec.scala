@@ -160,11 +160,18 @@ sealed trait Codecs[T]{
 object Codecs extends DefaultCodecs{
   def apply[T](f: T => Codec, a: T): Codec = f(a)
 }
+
 sealed trait DefaultCodecs {
+
   implicit object StringCodec extends Codecs[String] {
-    override def applyFunc(arg: String): CodecJson  = new CodecJson(arg)
+    override def applyFunc(arg: String): CodecJson = new CodecJson(arg)
   }
-  implicit object ArrayCodec extends Codecs[Array[Byte]] {
-    override def applyFunc(arg:Array[Byte]): CodecBson = new CodecBson(arg) //call the array bytes codec
+
+  //  implicit object ArrayCodec extends Codecs[Array[Byte]] {
+  //    override def applyFunc(arg:Array[Byte]): CodecBson = new CodecBson(arg) //call the array bytes codec
+  //  }
+  implicit object ByteBufCodec extends Codecs[ByteBuf] {
+    override def applyFunc(arg: ByteBuf): CodecBson = new CodecBson(arg) //call the array bytes codec
   }
+
 }
