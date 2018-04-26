@@ -258,7 +258,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
-              case C_BUILD => List(key, value0)
+              case C_BUILD => List((key, value0))
               case _ => List(value0)
             }
           } else {
@@ -270,7 +270,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result.asInstanceOf[String]
             keyList.head._2 match {
-              case C_BUILD => List(key, value0)
+              case C_BUILD => List((key, value0))
               case _ => List(value0)
             }
           } else {
@@ -291,7 +291,7 @@ class BosonImpl(
               case C_BUILD =>
                 codec.downOneLevel
                  val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
-                List(key,res)
+                List((key,res))
               case _ =>
                  val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                 List(value0)
@@ -321,7 +321,7 @@ class BosonImpl(
               case C_BUILD =>
                 codec.downOneLevel
                 val res = extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))
-                List(key,res)
+                List((key,res))
               case C_ALLNEXT | C_ALLDOTS =>
                 val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
                 codec.downOneLevel
@@ -353,7 +353,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
             keyList.head._2 match {
-              case C_BUILD => List(key, value0 == 1)
+              case C_BUILD => List((key, value0 == 1))
               case _ => List(value0 == 1)
             }
           } else {
@@ -365,7 +365,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result.asInstanceOf[String]
             keyList.head._2 match {
-              case C_BUILD => List(key, value0)
+              case C_BUILD => List((key, value0))
               case _ => List(value0)
             }
           } else {
@@ -377,7 +377,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)){
             val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
-              case C_BUILD => List(key, value0)
+              case C_BUILD => List((key, value0))
               case _ => List(value0)
             }
           } else {
@@ -389,7 +389,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
-              case C_BUILD => List(key, value0)
+              case C_BUILD => List((key, value0))
               case _ => List(value0)
             }
           } else {

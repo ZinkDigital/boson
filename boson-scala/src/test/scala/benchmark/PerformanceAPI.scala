@@ -12,12 +12,13 @@ import io.netty.buffer.Unpooled
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
 import io.zink.boson.Boson
-import io.zink.boson.impl.BosonExtractor
+import io.zink.boson.bson.bsonImpl.extractLabels
+import io.zink.boson.impl.{BosonExtractor, BosonExtractorObj}
 import org.bson.{BSONDecoder, BSONObject, BasicBSONDecoder}
 
 import scala.collection.mutable.ListBuffer
 import org.scalameter._
-import shapeless.TypeCase
+import shapeless.{LabelledGeneric, TypeCase, Typeable, the}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -428,6 +429,7 @@ val CYCLES = 10000
 //  println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
 //  timesBuffer.clear()
 //  println()
+  /*
   var c = -1
   val bclass1 = Boson.extractor(".Markets[all]", (out: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
@@ -448,31 +450,41 @@ val CYCLES = 10000
   endTimeBuffer.clear()
   println()
 
-  val bclass11 = Boson.extractor(".Tags", (out: Seq[Tags]) => {
+  var rangeByteBufs = rangeResults.map{ elem =>
+    Unpooled.copiedBuffer(elem)
+  }
+  val typeable = Typeable[Tags]
+  implicit val typeCase: scala.Option[TypeCase[Tags]] = Some(TypeCase[Tags])
+  implicit val gen = LabelledGeneric[Tags]
+  implicit val t = the[extractLabels[Tags]]
+  val bclass11 = new BosonExtractorObj(".Tags", Some((_: Seq[Tags]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
-  })
+  }))
 
   (0 to CYCLES).foreach(_ =>{
     val start = System.nanoTime()
-    val fut = bclass11.go(bArr)
+    val fut = bclass11.go2(rangeByteBufs)
     Await.result(fut, Duration.Inf)
     timesBuffer.append(start)
+    rangeByteBufs = rangeResults.map{ elem =>
+      Unpooled.copiedBuffer(elem)
+    }
   })
   println(s"bclass11 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Tags -> as Case Class")
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
+*/
 
 
-/*
   val bosonClass1: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Tags]) => {
     val end = System.nanoTime()
     endTimeBuffer.append(end)
   })
 
 
-  (0 to CYCLES).foreach(n =>{
+  (0 to CYCLES).foreach(_ =>{
 
     val start = System.nanoTime()
     val fut = bosonClass1.go(bArr)
@@ -485,7 +497,7 @@ val CYCLES = 10000
   endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
   println()
-*/
+
 /*
 //  (0 to CYCLES).foreach(n =>{
 //    val start = System.nanoTime()
@@ -673,7 +685,7 @@ val CYCLES = 10000
   timesBuffer.clear()
   endTimeBuffer.clear()
   println()
-
+*/
 /*
   var c: Int = -1
   val boson3: Boson = Boson.extractor(".Markets", (out: Array[Byte]) => {
@@ -742,7 +754,7 @@ val CYCLES = 10000
   println()
 */
 
-
+/*
 //  val boson33: Boson = Boson.extractor("..Markets[all].Tags", (_: Seq[Array[Byte]]) => {
 //    val end = System.nanoTime()
 //    endTimeBuffer.append(end)
