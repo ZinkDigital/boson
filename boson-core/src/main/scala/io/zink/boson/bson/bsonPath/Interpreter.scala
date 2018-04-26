@@ -25,10 +25,12 @@ class Interpreter[T](boson: BosonImpl,
                      expression: String,
                      fInj: Option[T => T] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]]) {
-
+  println(s"expression: $expression")
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
     case Success(result) => result
-    case Failure(excp) => throw excp
+    case Failure(excp) =>
+      println("been here!!!")
+      throw excp
   }
 
 
@@ -195,34 +197,34 @@ class Interpreter[T](boson: BosonImpl,
   private def constructObj(encodedSeqByteBuf: List[ByteBuf], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
 
 
-//    /**
-//      *
-//      * @param list List with Keys and Values from extracted objects
-//      * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
-//      */
-//    def toTuples(list: List[Any]): List[(String, Any)] = {
-//      list match {
-//        case x: List[Any] if x.isEmpty => Nil
-//        case x: List[Any] if x.lengthCompare(2) >= 0 && x.tail.head.isInstanceOf[List[Any]] =>
-//          x.tail.head match {
-//            case seqTuples(value) => List((x.head.asInstanceOf[String], value.map(toTuples)))
-//            case listTuples(value) => List((x.head.asInstanceOf[String], toTuples(value)))
-//          }
-//        case x: List[Any] if x.lengthCompare(2) >= 0 => List((x.head.asInstanceOf[String], x.tail.head)) ++ toTuples(x.drop(2))
-//      }
-//    }
+    //    /**
+    //      *
+    //      * @param list List with Keys and Values from extracted objects
+    //      * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
+    //      */
+    //    def toTuples(list: List[Any]): List[(String, Any)] = {
+    //      list match {
+    //        case x: List[Any] if x.isEmpty => Nil
+    //        case x: List[Any] if x.lengthCompare(2) >= 0 && x.tail.head.isInstanceOf[List[Any]] =>
+    //          x.tail.head match {
+    //            case seqTuples(value) => List((x.head.asInstanceOf[String], value.map(toTuples)))
+    //            case listTuples(value) => List((x.head.asInstanceOf[String], toTuples(value)))
+    //          }
+    //        case x: List[Any] if x.lengthCompare(2) >= 0 => List((x.head.asInstanceOf[String], x.tail.head)) ++ toTuples(x.drop(2))
+    //      }
+    //    }
 
     val res: Seq[List[(String, Any)]] =
       encodedSeqByteBuf.par.map { encoded =>
         val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
-        //println(s"res -> $res")
+        //println(s"before lowerCase -> $res")
         res match {
-          case tuples(list) => list.map(elem => (elem._1.toLowerCase, elem._2))
+          case tuples(list) => list
           case _ => //TODO: throw error perhaps
             throw CustomException("Error building tuples to fulfill case class.")
         }
-//        val l: List[(String, Any)] = /*toTuples(res)*/res.map(elem => (elem._1.toLowerCase, elem._2))
-//        l
+        //        val l: List[(String, Any)] = /*toTuples(res)*/res.map(elem => (elem._1.toLowerCase, elem._2))
+        //        l
       }.seq
     res
   }

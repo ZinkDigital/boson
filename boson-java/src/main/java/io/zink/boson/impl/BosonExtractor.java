@@ -14,8 +14,13 @@ import scala.Function1;
 import scala.Option;
 import scala.Unit;
 import scala.runtime.BoxedUnit;
+import scala.util.Left$;
 import scala.util.Try;
 import scala.util.parsing.combinator.Parsers;
+import shapeless.TypeCase;
+import shapeless.TypeCase$;
+import shapeless.Typeable;
+import shapeless.Typeable$;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +35,9 @@ public class BosonExtractor<T> implements Boson {
     private Function1<T,BoxedUnit> anon;
 
 
-    public BosonExtractor(String expression, Consumer<T> extractFunction) {
-        this.expression = expression;
-        this.extractFunction = extractFunction;
+    public BosonExtractor(String _expression, Consumer<T> _extractFunction) {
+        this.expression = _expression;
+        this.extractFunction = _extractFunction;
         this.anon = new Function1<T, BoxedUnit>(){
             @Override
             public BoxedUnit apply(T v1) {
@@ -40,34 +45,43 @@ public class BosonExtractor<T> implements Boson {
                 return BoxedUnit.UNIT;
             }
         };
+        System.out.println("BosonExtractor, expression: "+expression);
+    }
 
+    private Typeable<Object> tttt = Typeable$.MODULE$.doubleTypeable();
+    private BosonImpl boson = new BosonImpl(Option.empty(),Option.empty(),Option.empty());
+    //private Typeable<T> t;  //Typeable$.MODULE$.dfltTypeable()
+    //private Option<TypeCase<T>> typeCase = Option.apply(TypeCase$.MODULE$.apply(t));
+    private Interpreter<T> interpreter = new Interpreter<>(boson,expression,Option.empty(),Option.apply(anon),Option.empty());
+
+    private void runInterpreter(byte[] bsonEncoded) {
+        interpreter.run(Left$.MODULE$.apply(bsonEncoded));
     }
 
 
 
-    private void callParse(BosonImpl boson, String expression){
-        DSLParser parser = new DSLParser(expression);
-        try{
-            Try<ProgStatement> pr = parser.Parse();
-         if(pr.isSuccess()){
-             Interpreter interpreter = new Interpreter<>(boson, pr.get(), Option.empty(), Option.apply(anon));
-             interpreter.run();
-         }else{
-             throw new RuntimeException("Failure/Error parsing!");
-         }
-        }catch (RuntimeException e){
-            throw new RuntimeException(e.getMessage());
-        }
-    }
+//    private void callParse(BosonImpl boson, String expression){
+//        DSLParser parser = new DSLParser(expression);
+//        try{
+//            Try<ProgStatement> pr = parser.Parse();
+//         if(pr.isSuccess()){
+//             Interpreter interpreter = new Interpreter<>(boson, pr.get(), Option.empty(), Option.apply(anon));
+//             interpreter.run();
+//         }else{
+//             throw new RuntimeException("Failure/Error parsing!");
+//         }
+//        }catch (RuntimeException e){
+//            throw new RuntimeException(e.getMessage());
+//        }
+//    }
 
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
+        System.out.println("asdfghjklçdlkwcmfkwec çlekfm clçkwm fcçkldsm klçsma lckmsaçdlkcfm slkadmcs");
+        System.out.println("typeable -> " + tttt);
         return CompletableFuture.supplyAsync(() -> {
-            Option<byte[]> opt = Option.apply(bsonByteEncoding);
-            Option e = Option.empty();
-            BosonImpl boson = new BosonImpl(opt, e,e);
             try {
-                callParse(boson, expression);
+                runInterpreter(bsonByteEncoding);
                 return bsonByteEncoding;
             } catch (Exception ex) {
                 extractFunction.accept(null);
@@ -79,11 +93,8 @@ public class BosonExtractor<T> implements Boson {
     @Override
     public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
         return CompletableFuture.supplyAsync(() -> {
-            Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
-            Option e = Option.empty();
-            BosonImpl boson = new BosonImpl(e,opt,e);
             try {
-            callParse(boson, expression);
+            runInterpreter(bsonByteBufferEncoding.array());
             return bsonByteBufferEncoding;
             } catch (Exception ex) {
                 extractFunction.accept(null);

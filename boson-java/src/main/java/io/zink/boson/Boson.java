@@ -28,6 +28,7 @@ public interface Boson {
      * @return a BosonImpl that is a BosonExtractor
      */
     static <T> Boson extractor(String expression, Consumer<T> extractFunction) {
+        System.out.println("interface, expression: "+expression);
         return new BosonExtractor<>(expression,extractFunction);
     }
 

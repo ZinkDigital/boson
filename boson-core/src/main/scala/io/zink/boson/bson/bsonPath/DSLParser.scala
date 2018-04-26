@@ -18,12 +18,12 @@ case class ProgStatement(statementList: List[Statement], dotsList: List[String])
 
 
 
-class DSLParser(_expression: String) extends Parser with StringBuilding {
+class DSLParser(val input: ParserInput/*_expression: String*/) extends Parser with StringBuilding {
 
-  var expression: String = _expression
+  //var expression: String = _expression
 
   //  can't be on class constructor because of java api
-  def input: ParserInput = new StringBasedParserInput(expression)
+  //def input: ParserInput = new StringBasedParserInput(expression)
 
   //  the method to call to initiate the parser
   def Parse(): Try[ProgStatement] = Final.run()
