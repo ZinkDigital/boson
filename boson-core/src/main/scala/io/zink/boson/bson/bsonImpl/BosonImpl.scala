@@ -617,6 +617,7 @@ class BosonImpl(
                         Nil
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
+                    //println(s"found obj, in pos: $iter")
                     val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                     List(buf)
                   case Some(_) if keyList.head._2.equals(C_LIMIT) =>

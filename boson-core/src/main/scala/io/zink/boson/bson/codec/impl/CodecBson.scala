@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
   */
 class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
-  val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
+  //val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
   /**
     * buff is a value of type ByteBuf to process the value received by the user
     */
@@ -79,10 +79,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
       x match {
         case CS_NAME =>
           val buf0 = buff.duplicate()
+          var i: Int = buff.readerIndex()
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buf0.getByte(buf0.readerIndex()) != 0 || key.length<1) {
-            val b: Byte = buf0.readByte()
-            key.append(b)
+          while (buf0.getByte(i) != 0 ) {  //  || key.length<1 ??? TODO
+            key.append(buf0.readByte())
+            i += 1
           }
           SonString(x,  new String(key.toArray))
         case CS_STRING =>
@@ -150,12 +151,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
       x match {
         case CS_NAME =>
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buff.getByte(buff.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-            val b: Byte = buff.readByte()
-            key.append(b)
+          var i: Int = buff.readerIndex()
+          while (buff.getByte(i) != 0 ) {  // || key.lengthCompare(1) < 0 ??? TODO
+            key.append(buff.readByte())
+            i += 1
           }
-          val b: Byte = buff.readByte()
-          SonString(x, new String(key.toArray.filter(p => p!=0)))
+          buff.readByte()
+          SonString(x, new String(key.toArray).filter(p => p!=0))
         case CS_STRING =>
           val valueLength: Int = buff.readIntLE()
           SonString(x, buff.readCharSequence(valueLength, charset).toString.filter(b => b !=0))
