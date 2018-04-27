@@ -44,11 +44,6 @@ public class APItests {
     private BsonObject store = new BsonObject().put("Book", books).put("Hat", hats);
     private BsonObject bson = new BsonObject().put("Store", store);
 
-    @Test
-    public void test() throws IOException {
-
-    }
-
 
     @Test
     public void ExtractFromArrayPos() {
@@ -58,6 +53,7 @@ public class APItests {
         boson.go(bson.encodeToBarray());
 
         Seq<byte[]> res = future1.join();
+        System.out.println("future1.join() -> "+res);
         List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
         List<byte[]> expected = new ArrayList<>();
         expected.add(title2.encodeToBarray());

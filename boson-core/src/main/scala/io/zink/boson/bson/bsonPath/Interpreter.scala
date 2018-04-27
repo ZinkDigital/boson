@@ -25,12 +25,9 @@ class Interpreter[T](boson: BosonImpl,
                      expression: String,
                      fInj: Option[T => T] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]]) {
-  println(s"expression: $expression")
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
     case Success(result) => result
-    case Failure(excp) =>
-      println("been here!!!")
-      throw excp
+    case Failure(excp) => throw excp
   }
 
 
@@ -315,8 +312,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-//    println(s"typeClass: $typeClass")
-//    println(s"tCase: $tCase")
+    println(s"typeClass: $typeClass")
+    println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 

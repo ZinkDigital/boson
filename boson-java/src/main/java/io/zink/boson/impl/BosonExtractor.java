@@ -30,29 +30,26 @@ import java.util.function.Function;
 
 public class BosonExtractor<T> implements Boson {
 
-    private String expression;
     private Consumer<T> extractFunction;
-    private Function1<T,BoxedUnit> anon;
+    private Interpreter<T> interpreter;
 
 
-    public BosonExtractor(String _expression, Consumer<T> _extractFunction) {
-        this.expression = _expression;
+    public BosonExtractor(String expression, Consumer<T> _extractFunction) {
         this.extractFunction = _extractFunction;
-        this.anon = new Function1<T, BoxedUnit>(){
+        Function1<T,BoxedUnit> anon = new Function1<T, BoxedUnit>(){
             @Override
             public BoxedUnit apply(T v1) {
                 extractFunction.accept(v1);
                 return BoxedUnit.UNIT;
             }
         };
-        System.out.println("BosonExtractor, expression: "+expression);
+        Typeable<Object> typeable = Typeable$.MODULE$.doubleTypeable(); //Typeable$.MODULE$.dfltTypeable();
+        TypeCase<Object> typeCase = TypeCase$.MODULE$.apply(typeable);
+        BosonImpl boson = new BosonImpl(Option.empty(), Option.empty(), Option.empty());
+        interpreter = new Interpreter<T>(boson, expression, Option.empty(), Option.apply(anon), Option.empty());
+        //private Typeable<T> t;  //Typeable$.MODULE$.dfltTypeable()
+        //private Option<TypeCase<T>> typeCase = Option.apply(TypeCase$.MODULE$.apply(t));
     }
-
-    private Typeable<Object> tttt = Typeable$.MODULE$.doubleTypeable();
-    private BosonImpl boson = new BosonImpl(Option.empty(),Option.empty(),Option.empty());
-    //private Typeable<T> t;  //Typeable$.MODULE$.dfltTypeable()
-    //private Option<TypeCase<T>> typeCase = Option.apply(TypeCase$.MODULE$.apply(t));
-    private Interpreter<T> interpreter = new Interpreter<>(boson,expression,Option.empty(),Option.apply(anon),Option.empty());
 
     private void runInterpreter(byte[] bsonEncoded) {
         interpreter.run(Left$.MODULE$.apply(bsonEncoded));
@@ -77,8 +74,6 @@ public class BosonExtractor<T> implements Boson {
 
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
-        System.out.println("asdfghjklçdlkwcmfkwec çlekfm clçkwm fcçkldsm klçsma lckmsaçdlkcfm slkadmcs");
-        System.out.println("typeable -> " + tttt);
         return CompletableFuture.supplyAsync(() -> {
             try {
                 runInterpreter(bsonByteEncoding);
