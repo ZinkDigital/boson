@@ -191,9 +191,7 @@ class Interpreter[T](boson: BosonImpl,
     * @param limitList           Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
-  private def constructObj(encodedSeqByteBuf: List[ByteBuf], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
-
-
+  private def constructObj(encodedEither: Either[List[ByteBuf], List[String]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
     //    /**
     //      *
     //      * @param list List with Keys and Values from extracted objects
@@ -212,17 +210,36 @@ class Interpreter[T](boson: BosonImpl,
     //    }
 
     val res: Seq[List[(String, Any)]] =
-      encodedSeqByteBuf.par.map { encoded =>
-        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
-        //println(s"before lowerCase -> $res")
-        res match {
-          case tuples(list) => list
-          case _ => //TODO: throw error perhaps
-            throw CustomException("Error building tuples to fulfill case class.")
-        }
-        //        val l: List[(String, Any)] = /*toTuples(res)*/res.map(elem => (elem._1.toLowerCase, elem._2))
-        //        l
-      }.seq
+      encodedEither match {
+        case Left(bufList) => bufList.par.map { encoded =>
+          val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
+          res match {
+            case tuples(list) => list
+            case _ => //TODO: throw error perhaps
+              throw CustomException("Error building tuples to fulfill case class.")
+          }
+        }.seq
+        case Right(stringList) => stringList.par.map { encoded =>
+          val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
+          res match {
+            case tuples(list) => list
+            case _ => //TODO: throw error perhaps
+              throw CustomException("Error building tuples to fulfill case class.")
+          }
+        }.seq
+      }
+    println(s"res from constructObj -> $res")
+//      encodedSeqByteBuf.par.map { encoded =>
+//        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
+//        //println(s"before lowerCase -> $res")
+//        res match {
+//          case tuples(list) => list
+//          case _ => //TODO: throw error perhaps
+//            throw CustomException("Error building tuples to fulfill case class.")
+//        }
+//        //        val l: List[(String, Any)] = /*toTuples(res)*/res.map(elem => (elem._1.toLowerCase, elem._2))
+//        //        l
+//      }.seq
     res
   }
 
@@ -303,7 +320,7 @@ class Interpreter[T](boson: BosonImpl,
     */
   private def extract(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
-    //println(s"result -> $result")
+    println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -317,23 +334,6 @@ class Interpreter[T](boson: BosonImpl,
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
-  //  /**
-  //    * ReturnInsideSeq returns a Boolean which indicates whether the extracted result should be returned inside
-  //    * a sequence or not.
-  //    *
-  //    * @param limitList  List of Tuple3 with Ranges and Conditions
-  //    * @return Boolean
-  //    */
-  //  private def returnInsideSeq(keyList: List[(String, String)],limitList: List[(Option[Int], Option[Int], String)], dotsList: Seq[String]): Boolean =
-  //    limitList.exists { elem =>
-  //      elem._1.isDefined match {
-  //        case true if elem._2.isEmpty => if(elem._3.equals(C_END))false else true
-  //        case true if elem._2.isDefined && elem._2.get != elem._1.get => true
-  //        case true if elem._2.isDefined && elem._2.get == elem._1.get => false
-  //        case false => false
-  //      }
-  //    } || dotsList.exists(e => e.equals(C_DOUBLEDOT)) ||  keyList.exists(e => e._2.equals(C_FILTER) || e._1.equals(STAR))
-
   /**
     * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
     * between Interpreter with BosonImpl.
@@ -343,7 +343,6 @@ class Interpreter[T](boson: BosonImpl,
     * @param limitList        List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
     * @return Extracted result.
     */
-
   def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val value: List[Any] =
       keyList.size match {
@@ -373,7 +372,6 @@ class Interpreter[T](boson: BosonImpl,
       }
     value
   }
-
 
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
     typesNvalues.head._2 match {
@@ -406,7 +404,11 @@ class Interpreter[T](boson: BosonImpl,
           typeClass.get match {
             case STRING =>
               val str: List[String] = result.asInstanceOf[List[String]]
-              if(returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
+              if(str.nonEmpty && ((returnInsideSeqFlag && tCase.get.unapply(str).isEmpty) || (!returnInsideSeqFlag && tCase.get.unapply(str.head).isEmpty)) && (str.head.startsWith("{") || str.head.startsWith("["))) {
+                constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+              } else {
+                if(returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
+              }
             case INTEGER => if(returnInsideSeqFlag) applyFunction(List((INTEGER, result))) else applyFunction(List((INTEGER, result.head)))
             case DOUBLE =>
               val res = result.asInstanceOf[List[Double]]
@@ -419,7 +421,7 @@ class Interpreter[T](boson: BosonImpl,
                 case elem => elem
               }
               if(returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-            case COPY_BYTEBUF => constructObj(result.asInstanceOf[List[ByteBuf]], List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            case COPY_BYTEBUF => constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           }
         case false if typeClass.isDefined =>
           typeClass.get match {

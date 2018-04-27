@@ -1443,7 +1443,7 @@ class codecs extends FunSuite{
   }
 
   //Case class
-  test("BsonArray Extract Epoch Case class BSON") {
+  test("BsonObject Extract Epoch Case class BSON") {
     val jsonStr: String = """{"numbers":{"number0":0,"number1":1,"number2":2}}"""
     val jsonArr: JsonObject = new JsonObject(jsonStr)
     val bson: BsonObject = new BsonObject(jsonArr)
@@ -1459,20 +1459,20 @@ class codecs extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
-//  test("BsonArray Extract Epoch Case class JSON") {
-//    val jsonStr: String = """{"numbers":{"number0":0,"number1":1,"number2":2}}"""
-//    val jsonArr: JsonObject = new JsonObject(jsonStr)
-//    val json: String = jsonArr.encode()
-//
-//    val expression: String = ".numbers"
-//    val boson = Boson.extractor(expression, (in: Numbers) => {
-//      assertEquals(Numbers(0,1,2), in)
-//      println(s"in: $in")
-//      println("APPLIED")
-//    })
-//    val res = boson.go(json)
-//    Await.result(res, Duration.Inf)
-//  }
+  test("BsonObject Extract Epoch Case class JSON") {
+    val jsonStr: String = """{"numbers":{"number0":0,"number1":1,"number2":2}}"""
+    val jsonArr: JsonObject = new JsonObject(jsonStr)
+    val json: String = jsonArr.encode()
+
+    val expression: String = ".numbers"
+    val boson = Boson.extractor(expression, (in: Numbers) => {
+      assertEquals(Numbers(0,1,2), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(json)
+    Await.result(res, Duration.Inf)
+  }
 
   // 2 keys BsonObject
   test("BsonObject Extract 2keys Int BSON") {
