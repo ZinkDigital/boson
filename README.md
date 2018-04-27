@@ -45,7 +45,7 @@ For Maven users, please add the following dependency in your pom.xml:
 <div id='id-BosonScala'/>  
   
 ### Boson  
-A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded BSON in a Netty buffer and processes it according to a given expression, traversing the buffer only once.  
+A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
 <div id='id-bosonExtractionScala'/>  
   
 #### Extraction  
@@ -127,7 +127,7 @@ For Maven users, please add the following dependency in your pom.xml:
 <div id='id-BosonJava'/>  
   
 ### Boson  
-A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded BSON in a Netty buffer and processes it according to a given expression, traversing the buffer only once.  
+A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
 <div id='id-bosonExtractionJava'/>  
   
 #### Extraction  
@@ -197,7 +197,7 @@ final byte[] result = fused.go(validatedByteArray).join();
 # Documentation  
 ## BsonPath  
   
-BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).  
+BsonPath expressions targets a Bson structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
   
 BsonPath expressions use the dot-notation: `key1.key2[0].key3`.  
   
