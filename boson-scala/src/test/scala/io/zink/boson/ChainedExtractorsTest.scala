@@ -58,14 +58,14 @@ class ChainedExtractorsTest extends FunSuite{
     val store = new BsonObject().put("Book", books)
     val bson = new BsonObject().put("Store", store)
 
-      val expression: String = ".Store.Book[0 to 1]"
-      val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
-        assertEquals(Seq(Book1("Java",15.5),Book1("Scala",21.5)), in)
-        println("APPLIED")
-      })
-      val res = boson.go(bson.encode.getBytes)
-      Await.result(res, Duration.Inf)
-    }
+    val expression: String = ".Store.Book[0 to 1]"
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
+      assertEquals(Seq(Book1("Java", 15.5), Book1("Scala", 21.5)), in)
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+  }
 
   test("Extract Seq[Type class Book] as Seq[byte[]]") {
 

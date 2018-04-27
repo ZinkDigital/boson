@@ -1474,6 +1474,51 @@ class codecs extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
+  test("BsonObject Extract Seq[CaseClass]") {
+    val jsonStr: String = """{"Store":{"Book":[{"Title":"Java","Price":15.5},{"Title":"Scala","Price":21.5},{"Title":"C++","Price":12.6}]}}"""
+    val jsonObj: JsonObject = new JsonObject(jsonStr)
+    val json: String = jsonObj.encode()
+
+    val expression: String = ".Store.Book[0 to 1]"
+    val boson = Boson.extractor(expression, (in: Seq[Book1]) => {
+      assertEquals(Seq(Book1("Java", 15.5), Book1("Scala", 21.5)), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(json)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("BsonObject Extract Embedded Case Class") {
+    val jsonStr: String = """{"Store":{"Book":[{"Title":"Scala","Price":30.5,"SpecialEditions":{"Availability":true,"Title":"ScalaMachine","Price":40}}]}}"""
+    val jsonObj: JsonObject = new JsonObject(jsonStr)
+    val json: String = jsonObj.encode()
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _Book1) => {
+      assertEquals(_Book1("Scala",30.5,SpecialEditions("ScalaMachine",40,true)), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(json)
+    Await.result(res, Duration.Inf)
+  }
+
+  test("BsonObject Extract Embedded List of Case Classes") { //TODO: not working
+    val jsonStr: String = """{"Store":{"Book":[{"Title":"Scala","Price":30.5,"SpecialEditions":[{"Availability":true,"Title":"ScalaMachine","Price":40}]}]}}"""
+    val jsonObj: JsonObject = new JsonObject(jsonStr)
+    val json: String = jsonObj.encode()
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _Book) => {
+      assertEquals(_Book("Scala",30.5,Seq(SpecialEditions("ScalaMachine",40,true))), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(json)
+    Await.result(res, Duration.Inf)
+  }
+
   // 2 keys BsonObject
   test("BsonObject Extract 2keys Int BSON") {
     val jsonStr: String = """{"field":{"Epoch":3}}"""

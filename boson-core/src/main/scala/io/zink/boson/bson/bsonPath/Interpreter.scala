@@ -36,6 +36,10 @@ class Interpreter[T](boson: BosonImpl,
 
   val returnInsideSeqFlag: Boolean = returnInsideSeq(keyList,limitList,parsedStatements.dotsList)
 
+  private val isJsonObjOrArrExtraction = (strgs: List[String],returnInsideSeqFlag: Boolean, tCase: Option[TypeCase[T]]) => {
+    strgs.nonEmpty && ((returnInsideSeqFlag && tCase.get.unapply(strgs).isEmpty) || (!returnInsideSeqFlag && tCase.get.unapply(strgs.head).isEmpty)) && (strgs.head.startsWith("{") || strgs.head.startsWith("["))
+  }
+
 
   /**
     * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
@@ -320,7 +324,7 @@ class Interpreter[T](boson: BosonImpl,
     */
   private def extract(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
-    println(s"result -> $result")
+    //println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -329,8 +333,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
-    println(s"tCase: $tCase")
+    //println(s"typeClass: $typeClass")
+    //println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -397,14 +401,14 @@ class Interpreter[T](boson: BosonImpl,
   }
             
  def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
-            
+
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
       tCase.isDefined match {
         case true if typeClass.isDefined =>
           typeClass.get match {
             case STRING =>
               val str: List[String] = result.asInstanceOf[List[String]]
-              if(str.nonEmpty && ((returnInsideSeqFlag && tCase.get.unapply(str).isEmpty) || (!returnInsideSeqFlag && tCase.get.unapply(str.head).isEmpty)) && (str.head.startsWith("{") || str.head.startsWith("["))) {
+              if(isJsonObjOrArrExtraction(str,returnInsideSeqFlag,tCase)) {
                 constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
               } else {
                 if(returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
