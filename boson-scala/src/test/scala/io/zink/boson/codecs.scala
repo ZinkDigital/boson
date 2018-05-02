@@ -1474,7 +1474,7 @@ class codecs extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
-  test("BsonObject Extract Seq[CaseClass]") {
+  test("BsonObject Extract Seq[CaseClass] JSON") {
     val jsonStr: String = """{"Store":{"Book":[{"Title":"Java","Price":15.5},{"Title":"Scala","Price":21.5},{"Title":"C++","Price":12.6}]}}"""
     val jsonObj: JsonObject = new JsonObject(jsonStr)
     val json: String = jsonObj.encode()
@@ -1489,7 +1489,7 @@ class codecs extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
-  test("BsonObject Extract Embedded Case Class") {
+  test("BsonObject Extract Embedded Case Class JSON") {
     val jsonStr: String = """{"Store":{"Book":[{"Title":"Scala","Price":30.5,"SpecialEditions":{"Availability":true,"Title":"ScalaMachine","Price":40}}]}}"""
     val jsonObj: JsonObject = new JsonObject(jsonStr)
     val json: String = jsonObj.encode()
@@ -1504,7 +1504,7 @@ class codecs extends FunSuite{
     Await.result(res, Duration.Inf)
   }
 
-  test("BsonObject Extract Embedded List of Case Classes") { //TODO: not working
+  test("BsonObject Extract Embedded List of Case Classes JSON") { //TODO: not working
     val jsonStr: String = """{"Store":{"Book":[{"Title":"Scala","Price":30.5,"SpecialEditions":[{"Availability":true,"Title":"ScalaMachine","Price":40}]}]}}"""
     val jsonObj: JsonObject = new JsonObject(jsonStr)
     val json: String = jsonObj.encode()

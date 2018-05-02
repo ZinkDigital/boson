@@ -251,6 +251,7 @@ class BosonImpl(
 
   private def extractFromBsonObj[T](codec: Codec, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val seqTypeCodec: Int = codec.readDataType
+    println(s"extractFromBsonObj, seqTypeCodec: $seqTypeCodec")
     val finalValue: List[Any] =
       seqTypeCodec match {
         case D_FLOAT_DOUBLE =>
@@ -258,7 +259,9 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
-              case C_BUILD => List((key.toLowerCase, value0))
+              case C_BUILD =>
+                println(s"Build, key: ${key.toLowerCase}, value: $value0 ")
+                List((key.toLowerCase, value0))
               case _ => List(value0)
             }
           } else {
@@ -267,10 +270,13 @@ class BosonImpl(
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
+          println(s"case String, matched keys?: $matched, key extracted: $key")
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result.asInstanceOf[String]
             keyList.head._2 match {
-              case C_BUILD => List((key.toLowerCase, value0))
+              case C_BUILD =>
+                println(s"Build, key: ${key.toLowerCase}, value: $value0 ")
+                List((key.toLowerCase, value0))
               case _ => List(value0)
             }
           } else {
@@ -320,7 +326,9 @@ class BosonImpl(
             keyList.head._2 match {
               case C_BUILD =>
                 codec.downOneLevel
+                println(s"matched key with an array, key: $key")
                 val res = extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))
+                println(s"Build, key: ${key.toLowerCase}, value: $res ")
                 List((key.toLowerCase,res))
               case C_ALLNEXT | C_ALLDOTS =>
                 val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
@@ -350,10 +358,13 @@ class BosonImpl(
           }
         case D_BOOLEAN =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
+          println(s"case boolean, matched keys?: $matched, key extracted: $key")
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
             keyList.head._2 match {
-              case C_BUILD => List((key.toLowerCase, value0 == 1))
+              case C_BUILD =>
+                println(s"Build, key: ${key.toLowerCase}, value: $value0 ")
+                List((key.toLowerCase, value0 == 1))
               case _ => List(value0 == 1)
             }
           } else {
@@ -425,6 +436,7 @@ class BosonImpl(
   private def extractFromBsonArray[T](codec: Codec, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     keyList.head._1 match {
       case EMPTY_KEY | STAR =>
+        println("calling traverseBsoinArray")
         traverseBsonArray(codec, length, arrayFRIdx, keyList, limitList)
       case _ if keyList.head._2.equals(C_LEVEL) || keyList.head._2.equals(C_NEXT) => Nil
       case _ if keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.equals(EMPTY_KEY) => Nil
@@ -640,7 +652,10 @@ class BosonImpl(
                           midResult
                         }
                       case C_BUILD =>
+                        println(s"object inside array, case build, in pos: $iter")
+                        codec.downOneLevel
                         val res = extractFromBsonObj(codec, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE)))
+                        println(s"Build obj inside arr, value: $res ")
                         List(res)
                       case _ =>
                         val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
@@ -707,6 +722,7 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
+                        codec.downOneLevel
                         extractFromBsonArray(codec, valueLength2, finishReaderIndex, List((EMPTY_KEY, C_BUILD)), List((None, None, EMPTY_RANGE)))
                       case C_LIMIT | C_LIMITLEVEL if keyList.lengthCompare(1) > 0 && keyList.drop(1).head._2.equals(C_FILTER) =>
                         codec.setReaderIndex(finishReaderIndex)
