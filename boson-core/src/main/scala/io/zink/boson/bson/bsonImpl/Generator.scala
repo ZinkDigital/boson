@@ -3,6 +3,9 @@ package io.zink.boson.bson.bsonImpl
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Typeable, Witness}
 import shapeless.labelled.{FieldType, field}
 
+/**
+  * @tparam L HList of given Case Class
+  */
 sealed trait extractLabels[L <: HList] {
   def apply(m: List[(String,Any)]): Option[L]
 }
@@ -45,6 +48,10 @@ trait LowPriorityFromList1 extends LowPriorityFromList0 {
   }
 }
 
+/**
+  * Companion object of [[extractLabels]]
+  * Based on a List of Tuples(String, Any) and the HList of the Given Case Class, returns the case class with the extracted values.
+  */
 object extractLabels extends LowPriorityFromList1 {
 
   implicit val hconsNil: extractLabels[HNil] = new extractLabels[HNil] {
