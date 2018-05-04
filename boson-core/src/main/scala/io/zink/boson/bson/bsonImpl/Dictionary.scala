@@ -108,6 +108,11 @@ object Dictionary {
   val CS_ZERO: Char = '0'
 
 
+  //AkkaHttp
+  val EXTRACTION: String = "extraction"
+  val INJECTION: String = "injection"
+
+
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

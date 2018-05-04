@@ -28,7 +28,7 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
 
   private val interpreter: Interpreter[T] = new Interpreter[T](boson,expression, fExt = Option(extractFunction))
 
-  private val interpreter2 = new Interpreter[T](boson, expression, fExt = Option(extractFunction))
+  //private val interpreter2 = new Interpreter[T](boson, expression, fExt = Option(extractFunction))
 
   /**
     * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
@@ -39,13 +39,13 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     interpreter.run(bsonEncoded)
   }
 
-  private def runInterpreter2(bsonEncoded: Seq[ByteBuf]): Any = {
-    val results =
-    bsonEncoded.par.map{ elem =>
-      interpreter2.runExtractors(Left(elem), interpreter2.keyList,interpreter2.limitList)
-    }.seq.flatten.map{ case e: ByteBuf => e.array()}
-    extractFunction(results.asInstanceOf[T])
-  }
+//  private def runInterpreter2(bsonEncoded: Seq[ByteBuf]): Any = {
+//    val results =
+//    bsonEncoded.par.map{ elem =>
+//      interpreter2.runExtractors(Left(elem), interpreter2.keyList,interpreter2.limitList)
+//    }.seq.flatten.map{ case e: ByteBuf => e.array()}
+//    extractFunction(results.asInstanceOf[T])
+//  }
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] =
@@ -56,16 +56,16 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     future
   }
 
-
-  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
-    val future: Future[Seq[ByteBuf]] =
-      Future {
-        runInterpreter2(encodedStructures)
-        encodedStructures
-
-      }
-    future
-  }
+//
+//  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
+//    val future: Future[Seq[ByteBuf]] =
+//      Future {
+//        runInterpreter2(encodedStructures)
+//        encodedStructures
+//
+//      }
+//    future
+//  }
 
   override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
     val future: Future[ByteBuffer] =

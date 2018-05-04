@@ -15,10 +15,6 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Ricardo Martins on 18/09/2017.
   */
-/**
-  * This class encapsulates one Netty ByteBuf
-  *
-  */
 case class CustomException(smth: String) extends Exception {
   override def getMessage: String = smth
 }
@@ -34,13 +30,22 @@ case class CustomException(smth: String) extends Exception {
 //    b
 //  }
 //}
-
+/**
+  * Class with all operations to be applied on a Netty ByteBuffer or a Json encoded String
+  *
+  * @param byteArray  to be removed
+  * @param javaByteBuf  to be removed
+  * @param stringJson to be removed
+  */
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
                  javaByteBuf: Option[ByteBuffer] = None,
                  stringJson: Option[String] = None
                ) {
 
+  /**
+    * Deprecated, used on previous implementations of Boson to verify which input was given by the user.
+    */
   private val valueOfArgument: String =
     if (javaByteBuf.isDefined) {
       javaByteBuf.get.getClass.getSimpleName
@@ -50,7 +55,9 @@ class BosonImpl(
       stringJson.get.getClass.getSimpleName
   } else EMPTY_CONSTRUCTOR
 
-
+  /**
+    * Deprecated for the same reason as the previous one.
+    */
   private val nettyBuffer: (Either[ByteBuf, String]) = valueOfArgument match {
     case ARRAY_BYTE =>
       val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
@@ -75,103 +82,31 @@ class BosonImpl(
       Left(Unpooled.buffer())
 }
 
+  /**
+    * Set of conditions to extract primitive types while traversing an Object.
+    */
   private val eObjPrimitiveConditions: List[(String, String)] => Boolean =
     keyList => {
       !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)
     }
 
+  /**
+    * Set of conditions to extract an Object while traversing an Object.
+    */
   private val eObjConditions: List[(String, String)] => Boolean =
     keyList => {
       !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_LIMITLEVEL)
     }
 
-  lazy val buildExtractorsLists: (Statement,List[Statement],List[String]) => (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
-    (firstStatement,statementList,dotsList) => buildExtractors(firstStatement,statementList,dotsList)
-
-  private def buildExtractors(firstStatement: Statement, statementList: List[Statement],dotsList: List[String]): (List[(String, String)], List[(Option[Int], Option[Int], String)]) = {
-    val (firstList, limitList1): (List[(String, String)], List[(Option[Int], Option[Int], String)]) =
-      firstStatement match {
-        case Key(key) if dotsList.head.equals(C_DOT)=> if (statementList.nonEmpty) (List((key, C_NEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_LEVEL)), List((None, None, EMPTY_KEY)))
-        case Key(key) => if (statementList.nonEmpty) (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY))) else (List((key, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
-        case KeyWithArrExpr(key, arrEx) if dotsList.head.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-        case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-        case ArrExpr(l, m, r) if dotsList.head.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-        case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
-        case HalfName(halfName) =>
-          halfName.equals(STAR) match {
-            case true => (List((halfName, C_ALL)), List((None, None, STAR)))
-            case false if statementList.nonEmpty && dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
-            case false if statementList.nonEmpty => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
-            case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_LEVEL)), List((None, None, EMPTY_KEY)))
-            case false => (List((halfName, C_ALLDOTS)), List((None, None, EMPTY_KEY)))
-          }
-        case HasElem(key, elem) if dotsList.head.equals(C_DOT) => (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-        case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-        case ROOT => (List((C_DOT, C_DOT)), List((None, None, EMPTY_RANGE)))
-      }
-
-    if(statementList.nonEmpty) {
-      val forList: List[(List[(String, String)], List[(Option[Int], Option[Int], String)])] =
-        for {
-          statement <- statementList.zip(dotsList.tail)
-        } yield {
-          statement._1 match {
-            case Key(key) if statement._2.equals(C_DOT)=> (List((key, C_NEXT)), List((None, None, EMPTY_KEY)))
-            case Key(key) => (List((key, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
-            case KeyWithArrExpr(key, arrEx) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-            case KeyWithArrExpr(key, arrEx) => (List((key, C_LIMIT)), defineLimits(arrEx.leftArg, arrEx.midArg, arrEx.rightArg))
-            case ArrExpr(l, m, r) if statement._2.equals(C_DOT)=> (List((EMPTY_KEY, C_LIMITLEVEL)), defineLimits(l, m, r))
-            case ArrExpr(l, m, r) => (List((EMPTY_KEY, C_LIMIT)), defineLimits(l, m, r))
-            case HalfName(halfName) =>
-              halfName.equals(STAR) match {
-                case true => (List((halfName, C_ALL)), List((None, None, STAR)))
-                case false if dotsList.head.equals(C_DOT)=> (List((halfName, C_NEXT)), List((None, None, EMPTY_KEY)))
-                case false  => (List((halfName, C_ALLNEXT)), List((None, None, EMPTY_KEY)))
-              }
-            case HasElem(key, elem) if statement._2.equals(C_DOT)=> (List((key, C_LIMITLEVEL), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-            case HasElem(key, elem) => (List((key, C_LIMIT), (elem, C_FILTER)), List((None, None, EMPTY_KEY), (None, None, EMPTY_KEY)))
-
-          }
-        }
-      val secondList: List[(String, String)] = firstList ++ forList.flatMap(_._1)
-      val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(_._2)
-
-      statementList.last match {
-        case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
-        case HalfName(halfName) if !halfName.equals(STAR) => (secondList.take(secondList.size - 1) ++ List((halfName, C_ALL)), limitList2)
-        case Key(k) if dotsList.last.equals(C_DOT)=> (secondList.take(secondList.size - 1) ++ List((k, C_LEVEL)), limitList2)
-        case Key(k) => (secondList.take(secondList.size - 1) ++ List((k, C_ALL)), limitList2)
-        case _ => (secondList, limitList2)
-      }
-    } else {
-      (firstList,limitList1)
-    }
-
-  }
-
-  private def defineLimits(left: Int, mid: Option[RangeCondition], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
-    mid.isDefined match {
-      case true if right.isEmpty =>
-        mid.get.value match {
-          case C_FIRST => List((Some(0), Some(0), TO_RANGE))
-          case C_ALL => List((Some(0), None, TO_RANGE))
-          case C_END => List((Some(0), None, C_END))
-        }
-      case true if right.isDefined =>
-        (left, mid.get.value.toLowerCase, right.get) match {
-          case (a, UNTIL_RANGE, C_END) => List((Some(a), None, UNTIL_RANGE))
-          case (a, _, C_END) => List((Some(a), None, TO_RANGE))
-          case (a, expr, b) if b.isInstanceOf[Int] =>
-            expr.toLowerCase match {
-              case TO_RANGE => List((Some(a), Some(b.asInstanceOf[Int]), TO_RANGE))
-              case UNTIL_RANGE => List((Some(a), Some(b.asInstanceOf[Int] - 1), TO_RANGE))
-            }
-        }
-      case false =>
-        List((Some(left), Some(left), TO_RANGE))
-    }
-  }
-
+  /**
+    * Public method to trigger extraction.
+    *
+    * @param netty1 Encoded document.
+    * @param keyList  set of keys.
+    * @param limitList  limits of arrays.
+    * @tparam T type to be extracted.
+    * @return List with extraction result.
+    */
   def extract[T](netty1: Either[ByteBuf, String], keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
 
@@ -248,10 +183,25 @@ class BosonImpl(
     }
   }
 
-
+  /**
+    * Structure, types, and rules when traversing an Object.
+    * Structure:
+    *   Total Length -> 4 bytes
+    *   Type of next Item -> 1 byte
+    *   Key bytes -> unknown length, ends with 0.
+    *   Value -> Number of bytes depends on type.
+    * Types:
+    *   Consult Dictionary Object under ENCODING CONSTANTS.
+    *
+    * @param codec  Abstraction of Encoded Document.
+    * @param keyList  set of keys.
+    * @param bsonFinishReaderIndex  last index of Object.
+    * @param limitList  limits of arrays.
+    * @tparam T type to be extracted.
+    * @return List with extraction result.
+    */
   private def extractFromBsonObj[T](codec: Codec, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val seqTypeCodec: Int = codec.readDataType
-    println(s"extractFromBsonObj, seqTypeCodec: $seqTypeCodec")
     val finalValue: List[Any] =
       seqTypeCodec match {
         case D_FLOAT_DOUBLE =>
@@ -259,9 +209,7 @@ class BosonImpl(
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
-              case C_BUILD =>
-                println(s"Build, key: ${key.toLowerCase}, value: $value0 ")
-                List((key.toLowerCase, value0))
+              case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
             }
           } else {
@@ -270,13 +218,10 @@ class BosonImpl(
           }
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-          println(s"case String, matched keys?: $matched, key extracted: $key")
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result.asInstanceOf[String]
             keyList.head._2 match {
-              case C_BUILD =>
-                println(s"Build, key: ${key.toLowerCase}, value: $value0 ")
-                List((key.toLowerCase, value0))
+              case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
             }
           } else {
@@ -326,9 +271,7 @@ class BosonImpl(
             keyList.head._2 match {
               case C_BUILD =>
                 codec.downOneLevel
-                println(s"matched key with an array, key: $key")
                 val res = extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))
-                println(s"Build, key: ${key.toLowerCase}, value: $res ")
                 List((key.toLowerCase,res))
               case C_ALLNEXT | C_ALLDOTS =>
                 val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
@@ -358,13 +301,10 @@ class BosonImpl(
           }
         case D_BOOLEAN =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-          println(s"case boolean, matched keys?: $matched, key extracted: $key")
           if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
             keyList.head._2 match {
-              case C_BUILD =>
-                println(s"Build, key: ${key.toLowerCase}, value: $value0 ")
-                List((key.toLowerCase, value0 == 1))
+              case C_BUILD => List((key.toLowerCase, value0 == 1))
               case _ => List(value0 == 1)
             }
           } else {
@@ -433,10 +373,26 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Structure, types, and rules when traversing an Object.
+    * Structure:
+    *   Total Length -> 4 bytes
+    *   Type of next Item -> 1 byte
+    *   Position bytes -> unknown length, ends with 0.
+    *   Value -> Number of bytes depends on type.
+    * Types:
+    *   Consult Dictionary Object under ENCODING CONSTANTS.
+    * @param codec  Abstraction of Encoded Document.
+    * @param length Size of Array Object.
+    * @param arrayFRIdx last index of Array Object.
+    * @param keyList  set of keys.
+    * @param limitList  limits of arrays.
+    * @tparam T type to be extracted.
+    * @return List with extraction result.
+    */
   private def extractFromBsonArray[T](codec: Codec, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     keyList.head._1 match {
       case EMPTY_KEY | STAR =>
-        println("calling traverseBsoinArray")
         traverseBsonArray(codec, length, arrayFRIdx, keyList, limitList)
       case _ if keyList.head._2.equals(C_LEVEL) || keyList.head._2.equals(C_NEXT) => Nil
       case _ if keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.equals(EMPTY_KEY) => Nil
@@ -497,15 +453,42 @@ class BosonImpl(
     }
   }
 
+  /**
+    *
+    * @param codec  Abstraction of Encoded Document.
+    * @param key  given by user.
+    * @return Tuple of Boolean and String, Boolean representing if keys match, String is the key.
+    */
   private def compareKeys(codec: Codec, key: String): (Boolean, String) = {
     val key0 = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].result.asInstanceOf[String]
     (key.toCharArray.deep == key0.toCharArray.deep | isHalfword(key, key0),key0)
   }
 
 
-
+  /**
+    * Traverse an array taking account the limits given.
+    *
+    * @param codec  Abstraction of Encoded Document.
+    * @param length Size of Array Object.
+    * @param arrayFRIdx last index of Array Object.
+    * @param keyList  set of keys.
+    * @param limitList  limits of arrays.
+    * @tparam T type to be extracted.
+    * @return List with extraction result.
+    */
   private def traverseBsonArray[T](codec: Codec, length: Int, arrayFRIdx: Int, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
 
+    /**
+      * Same structure as extractFromBsonArray(), but handles limits.
+      * Limit list has 2 optionals and a String. The String could be either "end" or "until".
+      * The possible combination of optionals, with examples, are:
+      * Some-None -> Ex: [1 to end].
+      * None None -> Used to build the entire array.
+      * Some-Some -> Ex: [0 until 10]
+      *
+      * @param iter Int to keep track of current position.
+      * @return List with extraction result.
+      */
     def constructWithLimits(iter: Int): List[Any] = {
 
       val seqTypeCodec: Int = codec.readDataType
@@ -652,10 +635,8 @@ class BosonImpl(
                           midResult
                         }
                       case C_BUILD =>
-                        println(s"object inside array, case build, in pos: $iter")
                         codec.downOneLevel
                         val res = extractFromBsonObj(codec, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE)))
-                        println(s"Build obj inside arr, value: $res ")
                         List(res)
                       case _ =>
                         val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
@@ -878,7 +859,17 @@ class BosonImpl(
     }
   }
 
-
+  /**
+    * Used to traverse an Object when Condition HasElem is required.
+    * It searches for an element on a sub-copy of the encoded document, limited to the object to be traversed.
+    *
+    * @param codec  Abstraction of Encoded sub-copy Document.
+    * @param keyList  set of keys.
+    * @param limitList limits of arrays.
+    * @param start first index of Object.
+    * @param finish last index of Object.
+    * @return List with extraction result.
+    */
   private def findElements(codec: Codec, keyList: List[(String,String)], limitList: List[(Option[Int], Option[Int], String)],start: Int, finish: Int): List[Any] = {
     val seqType: Int = codec.readDataType
     val finalValue: List[Any] =
@@ -1057,8 +1048,18 @@ class BosonImpl(
     case Left(x) => new BosonImpl(byteArray = Option(x.array))
   }
 
+  /**
+    * Access to Encoded Document.
+    * @return Either[ByteBuf, String]
+    */
   def getByteBuf: Either[ByteBuf, String] = this.nettyBuffer
 
+  /**
+    * Verifies if Key given by user is HalfWord and if it matches with the one extracted.
+    * @param fieldID  Key given by User.
+    * @param extracted  Key extracted.
+    * @return
+    */
   def isHalfword(fieldID: String, extracted: String): Boolean = {
     if (fieldID.contains(STAR) & extracted.nonEmpty) {
       val list: Array[String] = fieldID.split(STAR_CHAR)
