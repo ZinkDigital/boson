@@ -541,8 +541,25 @@ public class APItests {
         assertEquals("List(15.5, 39, 21.5, 40, 12.6, 38, 48, 35, 38)", result.toString());
     }
 
-    private BsonArray arr1 = new BsonArray().add("Hat").add(false).add(2.2).addNull().add(1000L).add(new BsonArray().addNull().add(new BsonArray().add(100000L))).add(2)
-            .add(new BsonObject().put("Quantity", 500L).put("SomeObj", new BsonObject().putNull("blah")).put("one", false).putNull("three"));
+    private BsonArray arr1 =
+            new BsonArray()
+                    .add("Hat")
+                    .add(false)
+                    .add(2.2)
+                    .addNull()
+                    .add(1000L)
+                    .add(new BsonArray()
+                            .addNull()
+                            .add(new BsonArray()
+                                    .add(100000L)))
+                    .add(2)
+                    .add(new BsonObject()
+                            .put("Quantity", 500L)
+                            .put("SomeObj", new BsonObject()
+                                    .putNull("blah"))
+                            .put("one", false)
+                            .putNull("three"));
+
     private BsonObject bE = new BsonObject().put("Store", arr1);
 
     @Test
@@ -755,6 +772,7 @@ public class APItests {
 //                        .add(new BsonObject().put("Quantity", 500L).put("SomeObj", new BsonObject().putNull("blah")).put("one", false).putNull("three"));
 
         Seq<Object> res =  future1.join();
+        System.out.println("RES= " + res);
         List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
         List<Object> expected = new ArrayList<>();
         expected.add("Null");

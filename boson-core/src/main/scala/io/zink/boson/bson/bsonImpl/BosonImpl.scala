@@ -46,6 +46,7 @@ class BosonImpl(
   /**
     * Deprecated, used on previous implementations of Boson to verify which input was given by the user.
     */
+    @deprecated
   private val valueOfArgument: String =
     if (javaByteBuf.isDefined) {
       javaByteBuf.get.getClass.getSimpleName
@@ -58,6 +59,7 @@ class BosonImpl(
   /**
     * Deprecated for the same reason as the previous one.
     */
+    @deprecated
   private val nettyBuffer: (Either[ByteBuf, String]) = valueOfArgument match {
     case ARRAY_BYTE =>
       val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
@@ -1042,7 +1044,12 @@ class BosonImpl(
         Nil
     }
   }
-  //TODO: we shoudn't be instantiating a new BosonImpl, rethink this
+
+  /**
+    * Function used to create a duplicate BosonImpl
+    * @return A new Copy of BosonImpl
+    */
+  @deprecated
   def duplicate: BosonImpl = nettyBuffer match{
     case Right(x) => new BosonImpl(stringJson = Option(x))
     case Left(x) => new BosonImpl(byteArray = Option(x.array))
@@ -1052,6 +1059,7 @@ class BosonImpl(
     * Access to Encoded Document.
     * @return Either[ByteBuf, String]
     */
+  @deprecated
   def getByteBuf: Either[ByteBuf, String] = this.nettyBuffer
 
   /**

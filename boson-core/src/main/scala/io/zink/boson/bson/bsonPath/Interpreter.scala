@@ -190,7 +190,7 @@ class Interpreter[T](boson: BosonImpl,
   /**
     * This method does the final extraction of an Object.
     *
-    * @param encodedSeqByteBuf Sequence of BsonObjects encoded.
+    * @param encodedEither Sequence of BsonObjects encoded.
     * @param keyList             Pairs of Keys and Conditions used to decode the encodedSeqByteArray
     * @param limitList           Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
