@@ -105,6 +105,7 @@ object Dictionary {
   val CS_CLOSE_RECT_BRACKET: Char = ']'
   val CS_DOT: Char = '.'
   val CS_2DOT: Char = ':'
+  val CS_ARROW: String = "->"
   val CS_ZERO: Char = '0'
 
 

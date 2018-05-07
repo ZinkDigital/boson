@@ -436,9 +436,26 @@ class Interpreter[T](boson: BosonImpl,
               val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
               if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
             case STRING =>
+              println("BATE AQUI")
               val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
               if(returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
+            case ANY =>
+              val res = result.map(a => {
+                if(a.getClass.getSimpleName.equals(COPY_BYTEBUF))
+                  a.asInstanceOf[ByteBuf].array()
+                else
+                  a
+              })
+              if(returnInsideSeqFlag) fExt.get.apply(res.asInstanceOf[T]) else fExt.get.apply(res.head.asInstanceOf[T])
+            case DOUBLE =>
+              val res = result.asInstanceOf[List[Double]]
+              if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
+            case LONG =>
+              val res = result.asInstanceOf[List[Long]]
+              if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
           }
+
+
         case _ => fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
       }
   }

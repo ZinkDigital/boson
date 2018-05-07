@@ -840,7 +840,8 @@ public class APItests {
         Boson boson = Boson.extractor(expression, future1::complete);
         boson.go(arr1.encodeToBarray());
         Seq<Object> result = future1.join();
-
+        List<Object> l =  scala.collection.JavaConverters.seqAsJavaList(result);
+        System.out.println(new String((byte[])l.get(0)));
         assertEquals(
                 "List(Null)",
                 result.toList().toString());

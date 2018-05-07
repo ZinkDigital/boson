@@ -383,7 +383,7 @@ class CodecJson(str: String) extends Codec {
         val finalIndex: Int = input.substring(rIndexAux, inputSize).indexOf(CS_QUOTES)
         //val value0 = input.substring(readerIndex, finalIndex)
         input(rIndexAux+finalIndex+1) match {
-          case CS_2DOT=>
+          case CS_2DOT =>
             val a = input.substring(rIndexAux+finalIndex+2, inputSize)
             a(0) match{
               case CS_QUOTES => D_ARRAYB_INST_STR_ENUM_CHRSEQ
@@ -444,6 +444,7 @@ class CodecJson(str: String) extends Codec {
     */
   override def downOneLevel: Unit = {
     if(input(readerIndex).equals(CS_2DOT))readerIndex+=1
+    if(input(readerIndex).equals(CS_ARROW))readerIndex+=2
     readerIndex+=1
   }
   /**
