@@ -1092,11 +1092,59 @@ class BosonImpl(
       false
   }
 
+  /**
+    * Function used to apply the final function given bbyb the used
+    * @param f Fucntion to be applied when the final value is extracted or when the position to inject has been found
+    * @param value Value on which the function is applied to
+    * @tparam T Type of the value to be extracted of injected
+    * @return Returns the value resulting from applying the value to the function
+    */
+  private def applyFunction[T](f: T => T, value: Any): T = {
+    Try(f(value.asInstanceOf[T])) match {
+      case Success(v) =>
+        v.asInstanceOf[T]
+      case Failure(e) =>
+        value match {
+          case x: Double =>
+            Try(f(x.toFloat.asInstanceOf[T])) match {
+              case Success(v) =>
+                v.asInstanceOf[T]
+              case Failure(e1) =>
+                throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            }
+          case x: Array[Byte] =>
+            Try(f(new String(x).asInstanceOf[T])) match {
+              case Success(v) =>
+                v.asInstanceOf[T]
+              case Failure(e1) =>
+                Try(f(Instant.parse(new String(x)).asInstanceOf[T])) match {
+                  case Success(v) =>
+                    v.asInstanceOf[T]
+                  case Failure(e2) =>
+                    throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+                }
+            }
+          case _ =>
+            throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+        }
+    }
+  }
   // Injector Starts here
 
+  /**
+    * Function used to search for keys of interest recursively
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param buffer Structure that contains the user input
+    * @param fieldID Key of interest
+    * @param f Function used to inject a new value in the structure
+    * @param result Auxiliar structure used to update the resulting value
+    * @tparam T Type of value to be injected
+    * @return ByteBuf containing the new value injected
+    */
+  @deprecated
   def modifyAll[T](list: List[(Statement, String)], buffer: ByteBuf, fieldID: String, f: T => T, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
     /*
-    * Se fieldID for vazia devolve o Boson Origina
+    * If fieldID is empty, it returns the original ByteBuf
     * */
     val startReader: Int = buffer.readerIndex()
     val originalSize: Int = buffer.readIntLE()
@@ -1187,6 +1235,14 @@ class BosonImpl(
     finalResult
   }
 
+  /**
+    * Function used to copied the values inside arrays that aren´t of interest to the resulting structure
+    * @param dataType The type on the value we are reading and writting on the new structure
+    * @param buffer Structure from where we read the values
+    * @param result Structure to where we write the values
+    * @return Doesn't return anything because the changes are reflected in the result structure
+    */
+  @deprecated
   private def processTypesArray(dataType: Int, buffer: ByteBuf, result: ByteBuf) = {
     dataType match {
       case D_ZERO_BYTE =>
@@ -1217,6 +1273,15 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Function used to perform injection of the new values
+    * @param buffer Structure from which we are reading the old values
+    * @param seqType Type of the value found and processing
+    * @param f Function given by the user with the new value
+    * @param result Structure used to write the new values
+    * @tparam T Type of the value being injected
+    */
+  @deprecated
   private def modifierAll[T](buffer: ByteBuf, seqType: Int, f: T => T, result: ByteBuf): Unit = {
     seqType match {
       case D_FLOAT_DOUBLE =>
@@ -1283,37 +1348,17 @@ class BosonImpl(
     }
   }
 
-  private def applyFunction[T](f: T => T, value: Any): T = {
-    Try(f(value.asInstanceOf[T])) match {
-      case Success(v) =>
-        v.asInstanceOf[T]
-      case Failure(e) =>
-        value match {
-          case x: Double =>
-            Try(f(x.toFloat.asInstanceOf[T])) match {
-              case Success(v) =>
-                v.asInstanceOf[T]
-              case Failure(e1) =>
-                throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
-            }
-          case x: Array[Byte] =>
-            Try(f(new String(x).asInstanceOf[T])) match {
-              case Success(v) =>
-                v.asInstanceOf[T]
-              case Failure(e1) =>
-                Try(f(Instant.parse(new String(x)).asInstanceOf[T])) match {
-                  case Success(v) =>
-                    v.asInstanceOf[T]
-                  case Failure(e2) =>
-                    throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
-                }
-            }
-          case _ =>
-            throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
-        }
-    }
-  }
-
+  /**
+    * Function used to copy the values inside objects that aren't of interest to the resulting structure
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param seqType Type of the value found and processing
+    * @param buffer Structure from which we are reading the old values
+    * @param result Structure to where we write the values
+    * @param fieldID name of the field we are searching
+    * @param f Function given by the user with the new value
+    * @tparam T Type of the value being injected
+    */
+  @deprecated
   private def processTypesAll[T](list: List[(Statement, String)], seqType: Int, buffer: ByteBuf, result: ByteBuf, fieldID: String, f: T => T): Unit = {
     seqType match {
       case D_FLOAT_DOUBLE =>
@@ -1348,17 +1393,16 @@ class BosonImpl(
     }
   }
 
-  private def readArrayPos(netty: ByteBuf): Char = {
-    val list: ListBuffer[Byte] = new ListBuffer[Byte]
-    while (netty.getByte(netty.readerIndex()) != 0) {
-      list.+=(netty.readByte())
-    }
-    list.+=(netty.readByte()) //  consume the end Pos byte
-    val stringList: ListBuffer[Char] = list.map(b => b.toInt.toChar)
-
-    stringList.head
-  }
-
+  /**
+    * Function used to perform the injection on the last ocurrence of a field
+    * @param buffer Structure from which we are reading the old values
+    * @param seqType Type of the value found and processing
+    * @param f Function given by the user with the new value
+    * @param result Structure to where we write the values
+    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
+    * @tparam T Type of the value being injected
+    */
+  @deprecated
   private def modifierEnd[T](buffer: ByteBuf, seqType: Int, f: T => T, result: ByteBuf, resultCopy: ByteBuf): Unit = {
     seqType match {
       case D_FLOAT_DOUBLE =>
@@ -1431,9 +1475,23 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Function used to perform the search on the last element of an array
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param buffer Structure from which we are reading the old values
+    * @param f Function given by the user with the new value
+    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf Represent the inferior limit when a range is given
+    * @param limitSup Represent the superior limit when a range is given
+    * @param result Structure to where we write the values
+    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
+    * @tparam T  Type of the value being injected
+    * @return A new bosonImpl with the new values injected
+    */
+  @deprecated
   def modifyArrayEnd[T](list: List[(Statement, String)], buffer: ByteBuf, f: T => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf = Unpooled.buffer(), resultCopy: ByteBuf = Unpooled.buffer()): BosonImpl = {
     /*
-    * Se fieldID for vazia devolve o Boson Original
+    * If fieldID is empty returns the Original BosomImpl
     * */
     val startReaderIndex: Int = buffer.readerIndex()
     val originalSize: Int = buffer.readIntLE()
@@ -1855,7 +1913,22 @@ class BosonImpl(
     }
   }
 
-  private def processTypesArrayEnd[T](list: List[(Statement, String)], fieldID: String, dataType: Int, buf: ByteBuf, f: (T) => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf, resultCopy: ByteBuf) = {
+  /**
+    * Function used to copy the values of an array that aren't of interest while searching for the last element
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param fieldID Name of the field of interest
+    * @param dataType Type of the value found and processing
+    * @param buf Structure from which we are reading the old values
+    * @param f Function given by the user with the new value
+    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf Represent the inferior limit when a range is given
+    * @param limitSup Represent the superior limit when a range is given
+    * @param result Structure to where we write the values
+    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
+    * @tparam T Type of the value being injected
+    */
+  @deprecated
+  private def processTypesArrayEnd[T](list: List[(Statement, String)], fieldID: String, dataType: Int, buf: ByteBuf, f: (T) => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf, resultCopy: ByteBuf): Unit = {
     dataType match {
       case D_FLOAT_DOUBLE =>
         val value0: Double = buf.readDoubleLE()
@@ -1908,6 +1981,21 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Function used to search for the last element of an array that corresponds to field with name fieldID
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param buffer Structure from which we are reading the old values
+    * @param fieldID Name of the field of interest
+    * @param f Function given by the user with the new value
+    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf Represent the inferior limit when a range is given
+    * @param limitSup Represent the superior limit when a range is given
+    * @param result Structure to where we write the values
+    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
+    * @tparam T Type of the value being injected
+    * @return a new BosonImpl with the new value injected
+    */
+  @deprecated
   def modifyArrayEndWithKey[T](list: List[(Statement, String)], buffer: ByteBuf, fieldID: String, f: T => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf = Unpooled.buffer(), resultCopy: ByteBuf = Unpooled.buffer()): BosonImpl = {
     /*
     * Se fieldID for vazia, então deve ser chamada a funcao modifyArrayEnd to work on Root
@@ -2036,6 +2124,18 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Function used to search for a element within another element
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param buf Structure from which we are reading the old values
+    * @param key Name of the field of interest
+    * @param elem Name of elements to search inside the obejcts inside an Array
+    * @param f Function given by the user with the new value
+    * @param result Structure to where we write the values
+    * @tparam T Type of the value being injected
+    * @return A structure with the new element injected
+    */
+  @deprecated
   def modifyHasElem[T](list: List[(Statement, String)], buf: ByteBuf, key: String, elem: String, f: Function[T, T], result: ByteBuf = Unpooled.buffer()): ByteBuf = {
     val startReader: Int = buf.readerIndex()
     val size: Int = buf.readIntLE()
@@ -2080,7 +2180,19 @@ class BosonImpl(
     finalResult
   }
 
-  private def processTypesHasElem[T](list: List[(Statement, String)], dataType: Int, key: String, elem: String, buf: ByteBuf, f: (T) => T, result: ByteBuf) = {
+  /**
+    * Function used to copy values that aren't of interest while searching for a element inside a object inside a array
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param dataType Type of the value found and processing
+    * @param key Name of the field of interest
+    * @param elem Name of elements to search inside the objects inside an Array
+    * @param buf Structure from which we are reading the old values
+    * @param f Function given by the user with the new value
+    * @param result Structure to where we write the values
+    * @tparam T Type of the value being injected
+    */
+  @deprecated
+  private def processTypesHasElem[T](list: List[(Statement, String)], dataType: Int, key: String, elem: String, buf: ByteBuf, f: (T) => T, result: ByteBuf):Unit = {
     dataType match {
       case D_FLOAT_DOUBLE =>
         val value0: Double = buf.readDoubleLE()
@@ -2118,6 +2230,17 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Fucntion used to search for an element inside a object inside a array after finding the key of interest
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param buf Structure from which we are reading the old values
+    * @param elem Name of elements to search inside the objects inside an Array
+    * @param f Function given by the user with the new value
+    * @param result Structure to where we write the values
+    * @tparam T Type of the value being injected
+    * @return a new BosonImpl with the new value injected
+    */
+  @deprecated
   private def searchAndModify[T](list: List[(Statement, String)], buf: ByteBuf, elem: String, f: Function[T, T], result: ByteBuf = Unpooled.buffer()): BosonImpl = {
     val startReader: Int = buf.readerIndex()
     val size: Int = buf.readIntLE()
@@ -2204,6 +2327,13 @@ class BosonImpl(
     new BosonImpl(byteArray = Option(finalResult.array()))
   }
 
+  /**
+    * Function used to see if an object contains a certain elem inside
+    * @param buf Structure from which we are reading the old values
+    * @param elem Name of element to search inside the objects inside an Array
+    * @return A boolean meaning if the element has been found or not
+    */
+  @deprecated
   def hasElement(buf: ByteBuf, elem: String): Boolean = {
     val size: Int = buf.readIntLE()
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
@@ -2245,6 +2375,15 @@ class BosonImpl(
     new String(key.toArray).toCharArray.deep == elem.toCharArray.deep || isHalfword(elem, new String(key.toArray))
   }
 
+  /**
+    * Function used to perform the search process recursively, performing the search key by key, separeted by '.' or '..' and performing the injection when the final key is reached
+    * @param buf Structure from which we are reading the old values
+    * @param statements A list with pairs that contains the key of interest and the type of operation
+    * @param f Function given by the user with the new value
+    * @tparam T Type of the value being injected
+    * @return A new structure with the final value injected
+    */
+  @deprecated
   def execStatementPatternMatch[T](buf: ByteBuf, statements: List[(Statement, String)], f: Function[T, T]): ByteBuf = {
     val result: ByteBuf = Unpooled.buffer()
     val statement: Statement = statements.head._1
@@ -2315,6 +2454,20 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Function used with 'execStatementPatternMatch' to perform the process of recursive search while dealing with arrays
+    * @param list A list with pairs that contains the key of interest and the type of operation
+    * @param buf Structure from which we are reading the old values
+    * @param f Function given by the user with the new value
+    * @param key Name of value to be used in search (can be empty)
+    * @param left Left argument of the array conditions
+    * @param mid Middle argument of the array conditions
+    * @param right Right argument of array conditions
+    * @param result Structure to where we write the values
+    * @tparam T Type of the value being injected
+    * @return A new structure with the final value injected
+    **/
+  @deprecated
   def execArrayFunction[T](list: List[(Statement, String)], buf: ByteBuf, f: Function[T, T], key: String, left: Int, mid: String, right: Any, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
     (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, 0, C_END, None) =>
@@ -2390,7 +2543,7 @@ class BosonImpl(
           case TO_RANGE =>
             val size: Int = buf.getIntLE(buf.readerIndex())
             val buf1: ByteBuf = buf.readRetainedSlice(size)
-            val res: ByteBuf = ??? //vmodifyArrayEndWithKey(list, buf1, k, f, TO_RANGE, a.toString, b.toString).getByteBuf
+            val res: ByteBuf = ??? //modifyArrayEndWithKey(list, buf1, k, f, TO_RANGE, a.toString, b.toString).getByteBuf
             buf1.release()
             result.writeBytes(res)
             res.release()
@@ -2407,6 +2560,14 @@ class BosonImpl(
     }
   }
 
+  /**
+    * Function used when the injection is done at Root level
+    * @param buffer Structure from which we are reading the old values
+    * @param f Function given by the user with the new value
+    * @tparam T Type of the value being injected
+    * @return A new structure with the final value injected
+    */
+  @deprecated
   def execRootInjection[T](buffer: ByteBuf, f: Function[T, T]): ByteBuf = {
     val bsonBytes: Array[Byte] = buffer.array()
     val newBson: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
