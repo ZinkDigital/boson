@@ -1,9 +1,10 @@
 import Dependencies._
 
 val basicSettings = Seq(
-organization:="organization name",
-//name := "boson",
-version := "version",
+
+organization:="io.zink",
+
+version := "0.5.0",
 
 scalaVersion := "2.12.3",
 
@@ -26,13 +27,16 @@ assemblyMergeStrategy in assembly := {
 },
 
 libraryDependencies ++= libraries ++ testLibraries,
-homepage := Some(url(s"https://www.example.com")),
-description := "A Maven Central example",
+homepage := Some( url("https://github.com/ZinkDigital/boson")),
+description := "Boson - Streaming for JSON and BSON",
 licenses += "The Apache License, Version 2.0" ->
   url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
-// The developers of the project
+
 pomIncludeRepository := { _ => false },
 publishArtifact in Test := false,
+
+
+// The developers of the project
 developers := List(
   Developer(
     id="developerID",
@@ -44,13 +48,14 @@ developers := List(
 // Information about the source code repository of your code
 scmInfo := Some(
   ScmInfo(
-    url("https://github.com/<github username>/<project name>"),
-    "scm:git@github.com:<github username>/<project name>.git"
-  )
-),
-useGpg := true,
-publishMavenStyle := true
+    url("https://github.com/ZinkDigital/boson"),
+    "scm:git@github.com:ZinkDigital/boson.git"
+    )
+  ),
+  useGpg := true,
+  publishMavenStyle := true
 )
+
 val libraries = Seq(
   "javax.json" % "javax.json-api" % "1.1",
   "org.glassfish" % "javax.json" % "1.1",
@@ -60,6 +65,7 @@ val libraries = Seq(
   //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
 )
+
 val testLibraries = Seq(
   "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
   "junit"             %  "junit"       % "4.12"  % Test,
@@ -72,7 +78,7 @@ val testLibraries = Seq(
   "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
   "com.storm-enroute" %% "scalameter" % "0.8.2"
 )
-//publishTo := Some("Sonatype Snapshots Nexus" at "https://oss.sonatype.org/content/repositories/snapshots")
+
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
@@ -83,9 +89,9 @@ publishTo := {
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 
-lazy val boson = project.in(file("."))
-    .aggregate(bosonCore, bosonScala, bosonJava)
-  .settings(basicSettings: _*)
+//lazy val bosonProject = project.in(file("."))
+//    .aggregate(bosonCore, bosonScala, bosonJava)
+//  .settings(basicSettings: _*)
 
 lazy val bosonCore = project.in(file("boson-core"))
   .settings(basicSettings: _*)
