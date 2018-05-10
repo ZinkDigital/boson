@@ -67,6 +67,7 @@ val libraries = Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "io.netty" % "netty-all" % "4.1.22.Final",
   //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
+
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
 )
 
