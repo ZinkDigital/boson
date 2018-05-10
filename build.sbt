@@ -8,7 +8,7 @@ version := "0.5.0",
 
 scalaVersion := "2.12.3",
 
-javacOptions += "-g:none",
+javacOptions in (Compile) ++= Seq("-g:none"),
 
 scalacOptions in Test ++= Seq(
   "-encoding",
@@ -39,11 +39,15 @@ publishArtifact in Test := false,
 // The developers of the project
 developers := List(
   Developer(
-    id="developerID",
-    name="developerName",
-    email="developerEmail",
-    url=url("https://www.example.com/Ricardo/")
+    id="Zink Digital",
+    name= "Zink",
+    email="hello@zink.io",
+    url=url("http://www.zink.io")
   )
+
+  // then Growin' in here
+
+
 ),
 // Information about the source code repository of your code
 scmInfo := Some(
@@ -89,9 +93,13 @@ publishTo := {
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 
-//lazy val bosonProject = project.in(file("."))
-//    .aggregate(bosonCore, bosonScala, bosonJava)
-//  .settings(basicSettings: _*)
+lazy val root = project.in( file("."))
+    .aggregate(bosonScala, bosonJava)
+  .settings(basicSettings: _*)
+  .settings (
+    publishLocal := {},
+    publish := {}
+  )
 
 lazy val bosonCore = project.in(file("boson-core"))
   .settings(basicSettings: _*)
@@ -122,8 +130,3 @@ lazy val bosonJava = project.in(file("boson-java"))
     autoScalaLibrary := false
   )
 
-credentials += Credentials(
-  "Sonatype Nexus Repository Manager",
-  "oss.sonatype.org",
-  "jira account username",
-  "jira account password")
