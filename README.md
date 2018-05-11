@@ -45,7 +45,9 @@ For Maven users, please add the following dependency in your pom.xml:
 <div id='id-BosonScala'/>  
   
 ### Boson  
+
 A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+
 <div id='id-bosonExtractionScala'/>  
   
 #### Extraction  
@@ -127,7 +129,9 @@ For Maven users, please add the following dependency in your pom.xml:
 <div id='id-BosonJava'/>  
   
 ### Boson  
+
 A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+
 <div id='id-bosonExtractionJava'/>  
   
 #### Extraction  
@@ -197,7 +201,9 @@ final byte[] result = fused.go(validatedByteArray).join();
 # Documentation  
 ## BsonPath  
   
+
 BsonPath expressions targets a Bson structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
+
   
 BsonPath expressions use the dot-notation: `key1.key2[0].key3`.  
   
@@ -287,8 +293,10 @@ BsonPath | JsonPath
   
 **Note: JsonPath doesn't support the *halfkey* (`B*ok`) as well as the range *until end* (`1 until end`).**
 
+
 ## Java Profiler
 
 Boson is a library that relies on high performance BSON data manipulation, and so performance monitoring is of paramount importance. The chosen java profiler is [YourKit](https://www.yourkit.com/) for being a supporter of open source projects and one of the most innovative and intelligent tools for profiling [Java](https://www.yourkit.com/java/profiler/) & [.NET](https://www.yourkit.com/.net/profiler/) applications as well .
 
 ![](https://www.yourkit.com/images/yklogo.png)
+
