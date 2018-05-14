@@ -71,4 +71,5 @@ public interface Boson {
      */
     Boson fuse(final Boson boson);
 
+
 }
