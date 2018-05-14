@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Created by Ricardo Martins on 18/09/2017.
   */
-case class CustomException(smth: String) extends Exception {
+case class CustomException(smth: String) extends RuntimeException {
   override def getMessage: String = smth
 }
 
