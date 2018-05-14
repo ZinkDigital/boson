@@ -1,4 +1,5 @@
 import Dependencies._
+import sbt.Resolver
 
 val basicSettings = Seq(
 
@@ -8,8 +9,9 @@ version := "0.5.0",
 
 scalaVersion := "2.12.3",
 
-javacOptions in (Compile) ++= Seq("-g:none"),
+ javacOptions  ++= Seq("-Xdoclint:none","-Xlint:unchecked"),
 
+//javacOptions += "-g:none",
 scalacOptions in Test ++= Seq(
   "-encoding",
   "UTF-8"
@@ -57,8 +59,10 @@ scmInfo := Some(
     )
   ),
   useGpg := true,
-  publishMavenStyle := true
+  publishMavenStyle := true,
+  publishArtifact := true
 )
+
 
 val libraries = Seq(
   "org.glassfish" % "javax.json" % "1.1",
@@ -103,14 +107,17 @@ publishTo := {
   else
     Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
-
+val noPublishing = Seq(
+  publishArtifact := false,
+  publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
 lazy val root = project.in( file("."))
     .aggregate(bosonScala, bosonJava)
   .settings(basicSettings: _*)
-  .settings (
+  .settings(noPublishing: _*)
+  /*.settings (
     publishLocal := {},
     publish := {}
-  )
+  )*/
 
 lazy val bosonCore = project.in(file("boson-core"))
   .settings(basicSettings: _*)
@@ -119,7 +126,10 @@ lazy val bosonCore = project.in(file("boson-core"))
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false
-  )
+  ).settings (
+  publishLocal := {},
+  publish := {}
+)
 
 lazy val bosonScala = project.in(file("boson-scala"))
     .dependsOn(bosonCore)
@@ -129,7 +139,10 @@ lazy val bosonScala = project.in(file("boson-scala"))
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false
-  )
+  ).settings (
+  publishLocal := {},
+  publish := {}
+)
 
 lazy val bosonJava = project.in(file("boson-java"))
   .dependsOn(bosonCore)
@@ -139,5 +152,8 @@ lazy val bosonJava = project.in(file("boson-java"))
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false
-  )
+  ).settings (
+  publishLocal := {},
+  publish := {}
+)
 

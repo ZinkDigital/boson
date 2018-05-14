@@ -224,9 +224,9 @@ class Interpreter[T](boson: BosonImpl,
           }
         }.seq
         case Right(stringList) => stringList.par.map { encoded =>
-          println(s"Right(encoded) -> $encoded")
+          //println(s"Right(encoded) -> $encoded")
           val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
-          println(s"Right(encoded) Result -> $res")
+          //println(s"Right(encoded) Result -> $res")
           res match {
             case tuples(list) => list
             case _ => //TODO: throw error perhaps
@@ -234,7 +234,7 @@ class Interpreter[T](boson: BosonImpl,
           }
         }.seq
       }
-    println(s"res from constructObj -> $res")
+   // println(s"res from constructObj -> $res")
 //      encodedSeqByteBuf.par.map { encoded =>
 //        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
 //        //println(s"before lowerCase -> $res")
@@ -326,7 +326,7 @@ class Interpreter[T](boson: BosonImpl,
     */
   private def extract(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
-    println(s"result -> $result")
+    //println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -335,8 +335,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
-    println(s"tCase: $tCase")
+   // println(s"typeClass: $typeClass")
+  //  println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -411,7 +411,7 @@ class Interpreter[T](boson: BosonImpl,
             case STRING =>
               val str: List[String] = result.asInstanceOf[List[String]]
               if(isJsonObjOrArrExtraction(str,returnInsideSeqFlag,tCase)) {
-                println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
+                //println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
                 constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
               } else {
                 if(returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))

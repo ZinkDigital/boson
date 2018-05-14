@@ -390,16 +390,16 @@ object PerformanceTests extends App {
     .build
 val CYCLES = 10000
 
-//  (0 to CYCLES).foreach(_ =>{
-//    val start = System.nanoTime()
-//    val _: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//
-//  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[1].Tags")
-//  timesBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(_ =>{
+    val start = System.nanoTime()
+    val _: Tags =  JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags",classOf[Tags])
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+
+  println("JsonPath With Gson time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[1].Tags")
+  timesBuffer.clear()
+  println()
 
   val bosonClass: Boson = Boson.extractor(".Markets[1].Tags", (_: Tags) => {
     val end = System.nanoTime()
@@ -420,15 +420,15 @@ val CYCLES = 10000
   println()
 
 
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val _: java.util.List[Tags] = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[*].Tags",classOf[java.util.List[Tags]])
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//  println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
-//  timesBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val _: java.util.List[Tags] = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[*].Tags",classOf[java.util.List[Tags]])
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+  println("JsonPath With Seq[Gson] time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags")
+  timesBuffer.clear()
+  println()
   /*
   var c = -1
   val bclass1 = Boson.extractor(".Markets[all]", (out: Seq[Array[Byte]]) => {
@@ -499,17 +499,17 @@ val CYCLES = 10000
   println()
 
 
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
-//    JsonPath.read(doc, "$.Epoch")
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//  println("JsonPath1 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Epoch")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
+    JsonPath.read(doc, "$.Epoch")
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+  println("JsonPath1 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Epoch")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
 
 
   val boson1: Boson = Boson.extractor(".Epoch", (_: Int) => {
@@ -544,23 +544,23 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
 //  println()
 
-//  val joson1: Boson = Boson.extractor(".Epoch", (_: Int) => {
-//    val end = System.nanoTime()
-//    endTimeBuffer.append(end)
-//  })
-//
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val fut = joson1.go(Lib.json)
-//    Await.result(fut, Duration.Inf)
-//    timesBuffer.append(start)
-//  })
-//
-//  println(s"Joson1 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Epoch")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//
-//  println()
+  val joson1: Boson = Boson.extractor(".Epoch", (_: Int) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val fut = joson1.go(Lib.json)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  })
+
+  println(s"Joson1 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Epoch")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+
+  println()
 
 //
 //  val joson11: Boson = Boson.extractor("..Epoch", (_: Seq[Int]) => {
@@ -583,17 +583,17 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
   println("------------------------------------------------------------------------------------------")
 
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
-//    JsonPath.read(doc, "$.Participants[1].Tags.SSLNLastName")
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//
-//  println("JsonPath2 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Participants[1].Tags.SSLNLastName")
-//  timesBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
+    JsonPath.read(doc, "$.Participants[1].Tags.SSLNLastName")
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+
+  println("JsonPath2 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Participants[1].Tags.SSLNLastName")
+  timesBuffer.clear()
+  println()
 
   val boson2: Boson = Boson.extractor(".Participants[1].Tags.SSLNLastName", (_: String) => {
     val end = System.nanoTime()
@@ -628,20 +628,20 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
 //  println()
 
-//  val joson2: Boson = Boson.extractor(".Participants[1].Tags.SSLNLastName", (_: String) => {
-//    val end = System.nanoTime()
-//    endTimeBuffer.append(end)
-//  })
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val fut = joson2.go(Lib.json)
-//    Await.result(fut, Duration.Inf)
-//    timesBuffer.append(start)
-//  })
-//  println(s"Joson2 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Participants[1].Tags.SSLNLastName")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//  println()
+  val joson2: Boson = Boson.extractor(".Participants[1].Tags.SSLNLastName", (_: String) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val fut = joson2.go(Lib.json)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  })
+  println(s"Joson2 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Participants[1].Tags.SSLNLastName")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
 
 //  val joson21: Boson = Boson.extractor("..SSLNLastName", (_: Seq[String]) => {
 //    val end = System.nanoTime()
@@ -661,16 +661,16 @@ val CYCLES = 10000
   println("------------------------------------------------------------------------------------------")
   println()
 
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
-//    val obj: Any = JsonPath.read(doc, "$.Markets[*].Tags")
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//  println("JsonPath3 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags   -> as [Any]")
-//  timesBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
+    val obj: Any = JsonPath.read(doc, "$.Markets[*].Tags")
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+  println("JsonPath3 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[*].Tags   -> as [Any]")
+  timesBuffer.clear()
+  println()
 
   val boson3: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
@@ -772,34 +772,34 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
 //  println()
 
-//  val joson3: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[String]) => {
-//    val end = System.nanoTime()
-//    endTimeBuffer.append(end)
-//  })
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val fut = joson3.go(Lib.json)
-//    Await.result(fut, Duration.Inf)
-//    timesBuffer.append(start)
-//  })
-//
-//  println(s"Joson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all].Tags  -> as[Seq[String]]")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//  println()
+  val joson3: Boson = Boson.extractor(".Markets[all].Tags", (_: Seq[String]) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val fut = joson3.go(Lib.json)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  })
+
+  println(s"Joson3 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[all].Tags  -> as[Seq[String]]")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
 
   println("------------------------------------------------------------------------------------------")
 
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
-//    JsonPath.read(doc, "$.Markets[3:5]")
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//  println("JsonPath4 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[3:5]  -> as[Any]")
-//  timesBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val doc: Any = Configuration.defaultConfiguration().addOptions(Option.SUPPRESS_EXCEPTIONS).jsonProvider().parse(Lib.bson.asJson().toString)
+    JsonPath.read(doc, "$.Markets[3:5]")
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+  println("JsonPath4 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[3:5]  -> as[Any]")
+  timesBuffer.clear()
+  println()
 
   val boson4: Boson = Boson.extractor(".Markets[3 to 5]", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
@@ -831,20 +831,20 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
 //  println()
 
-//  val joson4: Boson = Boson.extractor(".Markets[3 to 5]", (_: Seq[String]) => {
-//    val end = System.nanoTime()
-//    endTimeBuffer.append(end)
-//  })
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val fut = joson4.go(Lib.json)
-//    Await.result(fut, Duration.Inf)
-//    timesBuffer.append(start)
-//  })
-//  println(s"Joson4 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[3 to 5]  -> as[Seq[String]]")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//  println()
+  val joson4: Boson = Boson.extractor(".Markets[3 to 5]", (_: Seq[String]) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val fut = joson4.go(Lib.json)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  })
+  println(s"Joson4 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[3 to 5]  -> as[Seq[String]]")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
 
 //  val joson41: Boson = Boson.extractor("..Markets[3 to 5]", (_: Seq[String]) => {
 
@@ -864,18 +864,18 @@ val CYCLES = 10000
 
   println("------------------------------------------------------------------------------------------")
 
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
-//    JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[10].selectiongroupid")
-//    val end = System.nanoTime()
-//    timesBuffer.append(end - start)
-//  })
-//
-//
-//  println("JsonPath5 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[10].selectiongroupid")
-//  timesBuffer.clear()
-//  println()
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val conf2: Configuration = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
+    JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[10].selectiongroupid")
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+
+
+  println("JsonPath5 time -> "+Lib.avgPerformance(timesBuffer)+" ms, Expression: .Markets[10].selectiongroupid")
+  timesBuffer.clear()
+  println()
 
   val boson5: Boson = Boson.extractor(".Markets[10].selectiongroupid", (_: Seq[Array[Byte]]) => {
     val end = System.nanoTime()
@@ -908,20 +908,20 @@ val CYCLES = 10000
 //  endTimeBuffer.clear()
 //  println()
 
-//  val joson5: Boson = Boson.extractor(".Markets[10].selectiongroupid", (_: Seq[String]) => {
-//    val end = System.nanoTime()
-//    endTimeBuffer.append(end)
-//  })
-//  (0 to CYCLES).foreach(n =>{
-//    val start = System.nanoTime()
-//    val fut = joson5.go(Lib.json)
-//    Await.result(fut, Duration.Inf)
-//    timesBuffer.append(start)
-//  })
-//  println(s"Joson5 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[10].selectiongroupid")
-//  timesBuffer.clear()
-//  endTimeBuffer.clear()
-//  println()
+  val joson5: Boson = Boson.extractor(".Markets[10].selectiongroupid", (_: Seq[String]) => {
+    val end = System.nanoTime()
+    endTimeBuffer.append(end)
+  })
+  (0 to CYCLES).foreach(n =>{
+    val start = System.nanoTime()
+    val fut = joson5.go(Lib.json)
+    Await.result(fut, Duration.Inf)
+    timesBuffer.append(start)
+  })
+  println(s"Joson5 time -> ${Lib.avgPerformance(endTimeBuffer.zip(timesBuffer) map { case (e,s) => e-s})} ms, Expression: .Markets[10].selectiongroupid")
+  timesBuffer.clear()
+  endTimeBuffer.clear()
+  println()
 //  val joson51: Boson = Boson.extractor("..Markets[10].selectiongroupid", (_: Seq[String]) => {
 
 //    val end = System.nanoTime()

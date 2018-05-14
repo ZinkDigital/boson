@@ -77,6 +77,7 @@ object Dictionary {
 
   // TYPECASES TO MATCH
   val oneString: TypeCase[String] = TypeCase[String]
+
   val seqString: TypeCase[Seq[String]] = TypeCase[Seq[String]]
   //val seqTuples = TypeCase[Seq[List[Any]]] -> used in toTuples
   val tuples = TypeCase[List[(String,Any)]]
