@@ -69,7 +69,8 @@ val libraries = Seq(
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
   "org.scala-lang" % "scala-compiler" % "2.11.12",
-  "org.parboiled" %% "parboiled" % "2.1.4"//,
+  "org.parboiled" %% "parboiled" % "2.1.4",//,
+  "net.jodah" % "typetools" % "0.5.0"
 //
 //  "com.typesafe.akka" %% "akka-http" % "10.0.5",
 // "com.typesafe.akka" %% "akka-actor" % "2.5.1",
