@@ -46,6 +46,7 @@ public class APItests {
     private BsonObject store = new BsonObject().put("Book", books).put("Hat", hats);
     private BsonObject bson = new BsonObject().put("Store", store);
 
+/*
 
     @Test
     public void ExtractFromArrayPos() {
@@ -72,12 +73,12 @@ public class APItests {
     @Test
     public void ExtractFromArrayPosWithEnd() {
         String expression = ".Store.Book[1 until end]";
-        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, (Seq<byte[]> out) -> future1.complete(out));
+        CompletableFuture<List<byte[]>> future1 = new CompletableFuture<>();
+        Boson boson = Boson.<byte[],List<byte[]>>extractor(expression, (List<byte[]> out) -> future1.complete(out));
         boson.go(bson.encodeToBarray());
 
-        Seq<byte[]> res = future1.join();
-        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
+        List<byte[]> result = future1.join();
+        //List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
         List<byte[]> expected = new ArrayList<>();
         expected.add(title2.encodeToBarray());
 
@@ -278,12 +279,13 @@ public class APItests {
                 "List(JavaMachine, ScalaMachine, C++Machine)",
                 result.toList().toString());
     }   //$..SpecialEditions[?(@.Price)].Title -> checked
+*/
 
     @Test
     public void ExtractEverywhereArrayWithElem() {
         String expression = "SpecialEditions[@Price]";
         CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
+        Boson boson = Boson.extractor(expression, (Seq<byte[]> list)-> {future1.complete(list);});
         boson.go(bson.encodeToBarray());
 
         Seq<byte[]> res = future1.join();
@@ -299,6 +301,28 @@ public class APItests {
         }
     }   //$..SpecialEditions[?(@.Price)] -> checked
 
+    @Test
+    public void Experiment() {
+        String expression = ".Book[0]..Price";
+        CompletableFuture<Seq<Double>> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Seq<Double> out) -> future1.complete(out));
+        boson.go(store.encodeToBarray());
+        Seq<Double> result = future1.join();
+        System.out.println("Result from test -> "+ result);
+        //assertArrayEquals(title1.encodeToBarray(), result);
+    }
+
+    @Test
+    public void ExperimentV2() {
+        String expression = ".Book[all].Price";
+        CompletableFuture<Seq<String>> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Seq<String> out) -> future1.complete(out));
+        boson.go(store.encodeToBarray());
+        Seq<String> result = future1.join();
+        System.out.println("Result from test -> "+ result);
+        //assertArrayEquals(title1.encodeToBarray(), result);
+    }
+/*
     @Test
     public void ExtractEverywhereArrayPos() {
         String expression = "SpecialEditions[0]";
@@ -1673,6 +1697,17 @@ public class APItests {
         assert (future1.join() instanceof String);
     }
 
+    @Test
+    public void Experiment() {
+        String expression = ".Book[0]..Price";
+        CompletableFuture<Seq<Double>> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Seq<Double> out) -> future1.complete(out));
+        boson.go(store.encodeToBarray());
+        Seq<Double> result = future1.join();
+        System.out.println("Result from test -> "+ result);
+        //assertArrayEquals(title1.encodeToBarray(), result);
+    }
+
 //    //Injectors Tests
 //    private BsonObject spirit = new BsonObject().put("name", "SpiritualDrink");
 //    private BsonObject wine = new BsonObject().put("name", "Wine");
@@ -1729,7 +1764,7 @@ public class APItests {
 //    private BsonObject library = new BsonObject().put("Books", books1).put("Articles", articles).put("Magazines", magazines);
 //    private BsonArray services = new BsonArray().add(library).add(gameRoom).add(coffee);
 //    private BsonObject root = new BsonObject().put("Store", services);
-//
+//*/
 //    /*
 //     * KEY
 //     */
@@ -3335,5 +3370,14 @@ public class APItests {
 //        byte[] result = midResult1.join();
 //        assertArrayEquals(rootx.encodeToBarray(), result);
 //    }
+}
+
+class Book {
+    private String title;
+    private Double price;
+    public Book(String _title, Double _price) {
+        this.title = _title;
+        this.price = _price;
+    }
 }
 

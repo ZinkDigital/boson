@@ -6,7 +6,6 @@ package io.zink.boson;
 import io.zink.boson.impl.BosonExtractor;
 import io.zink.boson.impl.BosonInjector;
 import io.zink.boson.impl.BosonValidate;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -19,14 +18,6 @@ public interface Boson {
         return new BosonValidate<>(expression,validateFunction);
     }
 
-    /**
-     * Make an Extractor that will call the extract function (Consumer) according to
-     * the given expression.
-     * @param expression
-     * @param extractFunction
-     * @param <T>
-     * @return a BosonImpl that is a BosonExtractor
-     */
     static <T> Boson extractor(String expression, Consumer<T> extractFunction) {
         return new BosonExtractor<>(expression,extractFunction);
     }

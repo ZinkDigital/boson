@@ -4,15 +4,13 @@ package io.zink.boson.impl;
 import io.zink.boson.bson.bsonImpl.BosonImpl;
 import io.zink.boson.bson.bsonImpl.CustomException;
 import io.zink.boson.bson.bsonPath.*;
-//import io.zink.boson.bson.bsonValue.BsException$;
-//import io.zink.boson.bson.bsonValue.BsObject$;
-//import io.zink.boson.bson.bsonValue.BsValue;
-//import io.zink.boson.bson.bsonValue.Writes$;
 import io.zink.boson.Boson;
 
+//import net.jodah.typetools.TypeResolver;
 import net.jodah.typetools.TypeResolver;
 import org.parboiled2.ParserInput;
 import scala.*;
+import scala.collection.immutable.Seq;
 import scala.runtime.BoxedUnit;
 import scala.util.Left$;
 import scala.util.Try;
@@ -22,7 +20,10 @@ import shapeless.TypeCase$;
 import shapeless.Typeable;
 import shapeless.Typeable$;
 
+import java.lang.reflect.*;
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
@@ -44,10 +45,9 @@ public class BosonExtractor<T> implements Boson {
             }
         };
         Class<T> inferedClass = inferConsumerType(_extractFunction);
-        Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(inferedClass);
-        TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
+
         BosonImpl boson = new BosonImpl(Option.empty(), Option.empty(), Option.empty());
-        interpreter = new Interpreter<T>(boson, expression, Option.empty(), Option.apply(anon), Option.apply(typeCase));
+        interpreter = new Interpreter<T>(boson, expression, Option.empty(), Option.apply(anon), Option.empty());
     }
 
     /**
@@ -73,21 +73,6 @@ public class BosonExtractor<T> implements Boson {
         interpreter.run(Left$.MODULE$.apply(bsonEncoded));
     }
 
-
-//    private void callParse(BosonImpl boson, String expression){
-//        DSLParser parser = new DSLParser(expression);
-//        try{
-//            Try<ProgStatement> pr = parser.Parse();
-//         if(pr.isSuccess()){
-//             Interpreter interpreter = new Interpreter<>(boson, pr.get(), Option.empty(), Option.apply(anon));
-//             interpreter.run();
-//         }else{
-//             throw new RuntimeException("Failure/Error parsing!");
-//         }
-//        }catch (RuntimeException e){
-//            throw new RuntimeException(e.getMessage());
-//        }
-//    }
 
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
