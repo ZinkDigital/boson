@@ -2,58 +2,58 @@ import Dependencies._
 
 val basicSettings = Seq(
 
-organization:="io.zink",
+  organization := "io.zink",
 
-version := "0.5.0",
+  version := "0.5.0",
 
-scalaVersion := "2.12.3",
+  scalaVersion := "2.12.3",
 
-javacOptions in (Compile) ++= Seq("-g:none"),
+  javacOptions in (Compile) ++= Seq("-g:none"),
 
-scalacOptions in Test ++= Seq(
-  "-encoding",
-  "UTF-8"
-),
+  scalacOptions in Test ++= Seq(
+    "-encoding",
+    "UTF-8"
+  ),
 
-testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
+  testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
 
-compileOrder := CompileOrder.Mixed,
-compileOrder in Test:= CompileOrder.Mixed,
+  compileOrder := CompileOrder.Mixed,
+  compileOrder in Test := CompileOrder.Mixed,
 
-//  Creates a jar with all libraries necessary
-assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x => MergeStrategy.first
-},
+  //  Creates a jar with all libraries necessary
+  assemblyMergeStrategy in assembly := {
+    case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case x => MergeStrategy.first
+  },
 
-libraryDependencies ++= libraries ++ testLibraries,
-homepage := Some( url("https://github.com/ZinkDigital/boson")),
-description := "Boson - Streaming for JSON and BSON",
-licenses += "The Apache License, Version 2.0" ->
-  url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
+  libraryDependencies ++= libraries ++ testLibraries,
+  homepage := Some(url("https://github.com/ZinkDigital/boson")),
+  description := "Boson - Streaming for JSON and BSON",
+  licenses += "The Apache License, Version 2.0" ->
+    url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
 
-pomIncludeRepository := { _ => false },
-publishArtifact in Test := false,
-
-
-// The developers of the project
-developers := List(
-  Developer(
-    id="Zink Digital",
-    name= "Zink",
-    email="hello@zink.io",
-    url=url("http://www.zink.io")
-  )
-
-  // then Growin' in here
+  pomIncludeRepository := { _ => false },
+  publishArtifact in Test := false,
 
 
-),
-// Information about the source code repository of your code
-scmInfo := Some(
-  ScmInfo(
-    url("https://github.com/ZinkDigital/boson"),
-    "scm:git@github.com:ZinkDigital/boson.git"
+  // The developers of the project
+  developers := List(
+    Developer(
+      id = "Zink Digital",
+      name = "Zink",
+      email = "hello@zink.io",
+      url = url("http://www.zink.io")
+    )
+
+    // then Growin' in here
+
+
+  ),
+  // Information about the source code repository of your code
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/ZinkDigital/boson"),
+      "scm:git@github.com:ZinkDigital/boson.git"
     )
   ),
   useGpg := true,
@@ -69,21 +69,21 @@ val libraries = Seq(
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
   "org.scala-lang" % "scala-compiler" % "2.11.12",
-  "org.parboiled" %% "parboiled" % "2.1.4",//,
+  "org.parboiled" %% "parboiled" % "2.1.4", //,
   "net.jodah" % "typetools" % "0.5.0"
-//
-//  "com.typesafe.akka" %% "akka-http" % "10.0.5",
-// "com.typesafe.akka" %% "akka-actor" % "2.5.1",
-// "com.typesafe.akka" %% "akka-stream" % "2.5.1",
-// "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1",
-//"com.typesafe.akka" %% "akka-testkit" % "2.5.1",
-//"com.typesafe.akka" %% "akka-http-testkit" % "10.0.5"
+  //
+  //  "com.typesafe.akka" %% "akka-http" % "10.0.5",
+  // "com.typesafe.akka" %% "akka-actor" % "2.5.1",
+  // "com.typesafe.akka" %% "akka-stream" % "2.5.1",
+  // "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1",
+  //"com.typesafe.akka" %% "akka-testkit" % "2.5.1",
+  //"com.typesafe.akka" %% "akka-http-testkit" % "10.0.5"
 
 )
 
 val testLibraries = Seq(
-  "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
-  "junit"             %  "junit"       % "4.12"  % Test,
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test withSources(),
+  "junit" % "junit" % "4.12" % Test,
   "io.vertx" % "vertx-core" % "3.5.0",
   "com.novocode" % "junit-interface" % "0.11" % "test",
   "com.jayway.jsonpath" % "json-path" % "2.4.0",
@@ -102,13 +102,13 @@ publishTo := {
   if (v.trim.endsWith("SNAPSHOT"))
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-lazy val root = project.in( file("."))
-    .aggregate(bosonScala, bosonJava)
+lazy val root = project.in(file("."))
+  .aggregate(bosonScala, bosonJava)
   .settings(basicSettings: _*)
-  .settings (
+  .settings(
     publishLocal := {},
     publish := {}
   )
@@ -123,7 +123,7 @@ lazy val bosonCore = project.in(file("boson-core"))
   )
 
 lazy val bosonScala = project.in(file("boson-scala"))
-    .dependsOn(bosonCore)
+  .dependsOn(bosonCore)
   .settings(basicSettings: _*)
   .settings(
     libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
