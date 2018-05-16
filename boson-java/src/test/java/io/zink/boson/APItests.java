@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-
 import scala.AnyVal;
 import scala.Byte;
 import scala.Int;
@@ -1659,11 +1658,17 @@ public class APItests {
 ////        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
 //    }
 
+    private <T> void completeFuture(CompletableFuture future, T extractedValue) {
+        System.out.println("APPLIED");
+        System.out.println("Extracted type: " + extractedValue.getClass());
+        future.complete(extractedValue);
+    }
+
     @Test
     public void ExtractStringValue() {
         String expression = ".Store.Book[0].Title";
         CompletableFuture<String> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
+        Boson boson = Boson.extractor(expression, (String out) -> completeFuture(future1, out));
         boson.go(bson.encodeToBarray());
         String result = future1.join();
         assertEquals(result, "Java");
@@ -1677,7 +1682,7 @@ public class APItests {
 
         String expression = ".Store.Book.Price";
         CompletableFuture<Double> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
+        Boson boson = Boson.extractor(expression, (Double out) -> completeFuture(future1, out));
         boson.go(bson.encodeToBarray());
         Double result = future1.join();
         assertTrue(result == 30.0);
@@ -1691,25 +1696,10 @@ public class APItests {
 
         String expression = ".Store.Book.Price";
         CompletableFuture<Integer> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
+        Boson boson = Boson.extractor(expression, (Integer out) -> completeFuture(future1, out));
         boson.go(bson.encodeToBarray());
         int result = future1.join();
         assertTrue(result == 30);
-    }
-
-
-    @Test
-    public void ExtractBooleanValue() {
-        BsonObject book = new BsonObject().put("Title", "Java").put("Price", 30).put("Sale", true);
-        BsonObject store = new BsonObject().put("Book", book);
-        BsonObject bson = new BsonObject().put("Store", store);
-
-        String expression = ".Store.Book.Sale";
-        CompletableFuture<Boolean> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
-        boson.go(bson.encodeToBarray());
-        boolean result = future1.join();
-        assertTrue(result);
     }
 
     @Test
@@ -1720,10 +1710,24 @@ public class APItests {
 
         String expression = ".Store.Book.Price";
         CompletableFuture<Float> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
+        Boson boson = Boson.extractor(expression, (Float out) -> completeFuture(future1, out));
         boson.go(bson.encodeToBarray());
         float result = future1.join();
         assertTrue(result == 30.0f);
+    }
+
+    @Test
+    public void ExtractBooleanValue() {
+        BsonObject book = new BsonObject().put("Title", "Java").put("Price", 30).put("Sale", true);
+        BsonObject store = new BsonObject().put("Book", book);
+        BsonObject bson = new BsonObject().put("Store", store);
+
+        String expression = ".Store.Book.Sale";
+        CompletableFuture<Boolean> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Boolean out) -> completeFuture(future1, out));
+        boson.go(bson.encodeToBarray());
+        boolean result = future1.join();
+        assertTrue(result);
     }
 
     @Test
@@ -1734,10 +1738,69 @@ public class APItests {
 
         String expression = ".Store.Book.Price";
         CompletableFuture<Long> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
+        Boson boson = Boson.extractor(expression, (Long out) -> completeFuture(future1, out));
         boson.go(bson.encodeToBarray());
         long result = future1.join();
         assertTrue(result == 30L);
+    }
+
+
+    @Test
+    public void ExtractInstantValue() {
+        BsonObject book = new BsonObject().put("Title", "Java").put("Price", 30L).put("Instant", Instant.EPOCH);
+        BsonObject store = new BsonObject().put("Book", book);
+        BsonObject bson = new BsonObject().put("Store", store);
+
+        String expression = ".Store.Book.Instant";
+        CompletableFuture<Instant> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Instant out) -> completeFuture(future1, out));
+        boson.go(bson.encodeToBarray());
+        Instant result = future1.join();
+        assertEquals(result, Instant.EPOCH);
+    }
+
+    @Test
+    public void ExtractByteArrayValue() {
+        BsonObject book = new BsonObject().put("Title", "Java");
+        BsonObject store = new BsonObject().put("Book", book);
+        BsonObject bson = new BsonObject().put("Store", store);
+
+        String expression = ".Store.Book";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> completeFuture(future1, out));
+        boson.go(bson.encodeToBarray());
+        byte[] result = future1.join();
+        System.out.println(result);
+        assertArrayEquals(new BsonObject().put("Title", "Java").encodeToBarray(), result);
+    }
+
+    @Test
+    public void ExtractCharSequenceValue() {
+        CharSequence charseq = "Java";
+        BsonObject book = new BsonObject().put("Title", charseq);
+        BsonObject store = new BsonObject().put("Book", book);
+        BsonObject bson = new BsonObject().put("Store", store);
+
+        String expression = ".Store.Book.Title";
+        CompletableFuture<CharSequence> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (CharSequence out) -> completeFuture(future1, out));
+        boson.go(bson.encodeToBarray());
+        CharSequence result = future1.join();
+        assertEquals(result, charseq);
+    }
+
+    @Test
+    public void ExtractObjectValue() {
+        BsonObject book = new BsonObject().put("Title", "Java").put("Price", 30L);
+        BsonObject store = new BsonObject().put("Book", book);
+        BsonObject bson = new BsonObject().put("Store", store);
+
+        String expression = ".Store.Book.Price";
+        CompletableFuture<Object> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Object out) -> completeFuture(future1, out));
+        boson.go(bson.encodeToBarray());
+        Object result = future1.join();
+        assertEquals(result, 30L);
     }
 
 

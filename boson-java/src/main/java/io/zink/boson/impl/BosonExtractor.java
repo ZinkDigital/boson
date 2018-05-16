@@ -38,11 +38,15 @@ public class BosonExtractor<T> implements Boson {
                 return BoxedUnit.UNIT;
             }
         };
-        Class<T> retainedClass = retainConsumerType(_extractFunction);
-        Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(retainedClass);
-        TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
+        Option<Class<T>> retainedClassOpt = retainConsumerType(_extractFunction);
         BosonImpl boson = new BosonImpl(Option.empty(), Option.empty(), Option.empty());
-        interpreter = new Interpreter<>(boson, expression, Option.empty(), Option.apply(anon), Option.apply(typeCase));
+        if (retainedClassOpt.isDefined()) {
+            Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(retainedClassOpt.get());
+            TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
+            interpreter = new Interpreter<>(boson, expression, Option.empty(), Option.apply(anon), Option.apply(typeCase));
+        } else {
+            interpreter = new Interpreter<>(boson, expression, Option.empty(), Option.apply(anon), Option.empty());
+        }
     }
 
     /**
@@ -53,11 +57,15 @@ public class BosonExtractor<T> implements Boson {
      * @param <T>  - The type to be retained
      * @return The retained T from the Consumer
      */
-    private static <T> Class<T> retainConsumerType(Consumer<T> cons) {
+    private static <T> Option<Class<T>> retainConsumerType(Consumer<T> cons) {
         try {
             Class<?>[] typeArgs = TypeResolver.resolveRawArguments(Function.class, cons.getClass());
-            Class<T> retainedClass = (Class<T>) Class.forName(typeArgs[0].getName());
-            return retainedClass;
+            if (typeArgs[0].getName().equals("[B")) {   //in case T type is a byte[] return a None
+                return Option.empty();
+            } else {    //Otherwise return the class of T wrapped in a Some
+                Class<T> retainedClass = (Class<T>) Class.forName(typeArgs[0].getName());
+                return Some.apply(retainedClass);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new CustomException("Java API could not retain type T from Consumer<T>");
