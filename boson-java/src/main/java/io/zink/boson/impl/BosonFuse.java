@@ -17,16 +17,18 @@ public class BosonFuse implements Boson {
     @Override
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
         return CompletableFuture.supplyAsync(() -> {
-           CompletableFuture<byte[]> firstFuture = first.go(bsonByteEncoding);
-           return second.go(firstFuture.join()).join();
+           /*CompletableFuture<byte[]> firstFuture = first.go(bsonByteEncoding);
+           return second.go(firstFuture.join()).join();*/
+           return bsonByteEncoding;
         });
     }
 
     @Override
     public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
         return CompletableFuture.supplyAsync(() -> {
-            CompletableFuture<ByteBuffer> firstFuture = first.go(bsonByteBufferEncoding);
-            return second.go(firstFuture.join()).join();
+            /*CompletableFuture<ByteBuffer> firstFuture = first.go(bsonByteBufferEncoding);
+            return second.go(firstFuture.join()).join();*/
+            return bsonByteBufferEncoding;
         });
     }
 
