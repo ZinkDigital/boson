@@ -5,9 +5,9 @@ import java.time.Instant
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
-import shapeless.{TypeCase, Typeable}
+import shapeless.TypeCase
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -167,9 +167,9 @@ class Interpreter[T](boson: BosonImpl,
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
   def run(bsonEncoded: Either[Array[Byte], String]): Any = {
-    //if (fInj.isDefined) startInjector(program)
-    //else
-    start(bsonEncoded)
+//    if (fInj.isDefined) startInjector(program) //TODO implement new startInjector
+//    else
+      start(bsonEncoded)
   }
 
   /**
@@ -182,6 +182,7 @@ class Interpreter[T](boson: BosonImpl,
     bsonEncoded match {
       case Left(byteArr) =>
         val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
+//        println("KeyList: " + keyList + "\nLismitList: " + limitList)
         extract(Left(buf), keyList, limitList)
       case Right(jsonString) => extract(Right(jsonString), keyList, limitList)
     }
@@ -224,9 +225,9 @@ class Interpreter[T](boson: BosonImpl,
           }
         }.seq
         case Right(stringList) => stringList.par.map { encoded =>
-          println(s"Right(encoded) -> $encoded")
+//          println(s"Right(encoded) -> $encoded")
           val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
-          println(s"Right(encoded) Result -> $res")
+//          println(s"Right(encoded) Result -> $res")
           res match {
             case tuples(list) => list
             case _ => //TODO: throw error perhaps
@@ -234,7 +235,7 @@ class Interpreter[T](boson: BosonImpl,
           }
         }.seq
       }
-    println(s"res from constructObj -> $res")
+//    println(s"res from constructObj -> $res")
 //      encodedSeqByteBuf.par.map { encoded =>
 //        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
 //        //println(s"before lowerCase -> $res")
@@ -326,7 +327,7 @@ class Interpreter[T](boson: BosonImpl,
     */
   private def extract(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
-    println(s"result -> $result")
+//    println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -335,8 +336,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
-    println(s"tCase: $tCase")
+//    println(s"typeClass: $typeClass")
+//    println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -352,7 +353,7 @@ class Interpreter[T](boson: BosonImpl,
   def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val value: List[Any] =
       keyList.size match {
-        case 1 =>
+        case 1 /*| 2 if keyList.drop(1).head._2.equals(C_FILTER)*/ =>
           boson.extract(encodedStructure, keyList, limitList)
         case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
           boson.extract(encodedStructure, keyList, limitList)
@@ -402,7 +403,7 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
             
- def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
+  def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
 
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
       tCase.isDefined match {
@@ -411,7 +412,7 @@ class Interpreter[T](boson: BosonImpl,
             case STRING =>
               val str: List[String] = result.asInstanceOf[List[String]]
               if(isJsonObjOrArrExtraction(str,returnInsideSeqFlag,tCase)) {
-                println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
+//                println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
                 constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
               } else {
                 if(returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
@@ -436,7 +437,7 @@ class Interpreter[T](boson: BosonImpl,
               val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
               if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
             case STRING =>
-
+//              println("BATE AQUI")
               val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
               if(returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
           }

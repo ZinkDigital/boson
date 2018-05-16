@@ -1,14 +1,13 @@
 package io.zink.boson.bson.bsonImpl
 
-import java.nio.{ByteBuffer, ReadOnlyBufferException}
+import java.nio.ByteBuffer
 import java.time.Instant
 
-import io.netty.buffer.{ByteBuf, Unpooled, UnpooledHeapByteBuf}
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
-
 import io.zink.boson.bson.codec._
-import io.zink.boson.bson.codec.impl.CodecJson
+
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -109,6 +108,7 @@ class BosonImpl(
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
+  //TODO param [T] - To be removed
   def extract[T](netty1: Either[ByteBuf, String], keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
 
@@ -159,8 +159,9 @@ class BosonImpl(
                     nettyC.release()
                     Nil
                 }
+              /*
               case _ if keyList.head._2.equals(C_BUILD)=>
-                Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
+                Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
                   case Success(v)=>
                     nettyC.release()
                     v
@@ -168,6 +169,7 @@ class BosonImpl(
                     nettyC.release()
                     Nil
                 }
+              */
               case _ =>
                 Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
                   case Success(v)=>
@@ -202,6 +204,7 @@ class BosonImpl(
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
+  //TODO [T] - To be Removed
   private def extractFromBsonObj[T](codec: Codec, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val seqTypeCodec: Int = codec.readDataType
     val finalValue: List[Any] =
@@ -1145,7 +1148,7 @@ class BosonImpl(
     * @param buffer Structure that contains the user input
     * @param fieldID Key of interest
     * @param f Function used to inject a new value in the structure
-    * @param result Auxiliar structure used to update the resulting value
+    * @param result Auxiliary structure used to update the resulting value
     * @tparam T Type of value to be injected
     * @return ByteBuf containing the new value injected
     */
@@ -1153,16 +1156,16 @@ class BosonImpl(
   def modifyAll[T](list: List[(Statement, String)], buffer: ByteBuf, fieldID: String, f: T => T, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
     /*
     * If fieldID is empty, it returns the original ByteBuf
-    * */
+    */
     val startReader: Int = buffer.readerIndex()
     val originalSize: Int = buffer.readIntLE()
     while ((buffer.readerIndex() - startReader) < originalSize) {
       val dataType: Int = buffer.readByte().toInt
       dataType match {
-        case 0 =>
-          result.writeByte(dataType)
+        case 0 => // Final
+          result.writeByte(dataType)//TODO - Do before
         case _ =>
-          result.writeByte(dataType)
+          result.writeByte(dataType)//TODO - Idem
           val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
             val key: ListBuffer[Byte] = new ListBuffer[Byte]
             while (buffer.getByte(buffer.readerIndex()) != 0 || key.lengthCompare(1) < 0) {

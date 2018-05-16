@@ -2,20 +2,23 @@ package io.zink.boson.impl
 
 import java.nio.ByteBuffer
 
-import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonPath.{DSLParser, Interpreter, ProgStatement}
+import io.zink.boson.bson.bsonPath.Interpreter
+import shapeless.TypeCase
 
-import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
 
-class BosonInjector[T](expression: String, injectFunction: Function[T, T]) extends Boson {
+class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  val anon: T => T = injectFunction
+//  val anon: T => T = injectFunction
+
+  private val boson: BosonImpl = new BosonImpl()
+
+  private val interpreter: Interpreter[T] = new Interpreter[T](boson,expression, fInj = Option(injectFunction))
 
 //  val boson: BosonImpl = new BosonImpl()
 //
@@ -31,9 +34,15 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 //    * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
 //    */
 //  // byteArr as argument to go to interpreter, Either[byte[],String]
-//  private def runInterpreter(bsonEncoded: Either[Array[Byte],String]): Unit = {
-//    new Interpreter[T](boson, bsonEncoded, keyList,limitList,returnInsideSeqFlag).run()
-//  }
+
+  /**
+    * This is new Code!!!
+    *
+    * @param bsonEncoded - ???
+    */
+  private def runInterpreter(bsonEncoded: Either[Array[Byte],String]): Unit = {
+    interpreter.run(bsonEncoded)
+  }
 //
 //  private def parseInj(netty: BosonImpl): Unit = {
 //    val parser = new DSLParser(expression)
@@ -50,11 +59,9 @@ class BosonInjector[T](expression: String, injectFunction: Function[T, T]) exten
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     //val boson:BosonImpl = new BosonImpl(byteArray = Option(bsonByteEncoding))
-    val future: Future[Array[Byte]] =
-      Future{
-      //val r: Array[Byte] = parseInj(boson).asInstanceOf[Array[Byte]]
-      //r
-        bsonByteEncoding
+    val future: Future[Array[Byte]] = Future {
+      runInterpreter(Left(bsonByteEncoding))
+      bsonByteEncoding
     }
     future
   }

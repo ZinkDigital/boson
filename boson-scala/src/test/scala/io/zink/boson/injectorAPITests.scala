@@ -3,17 +3,11 @@ package io.zink.boson
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
-import io.zink.boson.bson.bsonImpl.BosonImpl
-import mapper.Mapper
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 
 @RunWith(classOf[JUnitRunner])
 class injectorAPITests extends FunSuite {
@@ -152,17 +146,16 @@ class injectorAPITests extends FunSuite {
     val expected: Seq[Array[Byte]] =
       Seq(b3.encodeToBarray(),b10.encodeToBarray(), b9.encodeToBarray(), b8.encodeToBarray(), b11.encodeToBarray(), b5.encodeToBarray(), b6.encodeToBarray(), b7.encodeToBarray())
     val result = future.join()
+    println("Result:   "+result+"\nExpected: "+expected)
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
 
   test("extract Key.Key.Key") {
     val expression = "Store.Book.Title"
-    println(bsonEvent)
     val future: CompletableFuture[Seq[String]] = new CompletableFuture[Seq[String]]()
     val boson: Boson = Boson.extractor(expression,(out: Seq[String]) => future.complete(out))
     boson.go(validatedByteArr)
-
     assertEquals(Seq(), future.join())
   }
 

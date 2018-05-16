@@ -1,8 +1,8 @@
 package io.zink.boson.bson.codec.impl
 
-import io.netty.buffer.{ByteBuf, PooledByteBufAllocator, Unpooled}
-import io.zink.boson.bson.codec._
+import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.codec._
 
 import scala.collection.mutable.ListBuffer
 /**
@@ -152,7 +152,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec{
         case CS_NAME =>
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
           var i: Int = buff.readerIndex()
-          while (buff.getByte(i) != 0 ) {  // || key.lengthCompare(1) < 0 ??? TODO
+          while (buff.getByte(i) != 0 ) {
             key.append(buff.readByte())
             i += 1
           }

@@ -2,14 +2,11 @@ package io.zink.boson.impl
 
 import java.nio.ByteBuffer
 
-import io.netty.buffer.ByteBuf
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
-import shapeless.{TypeCase, Typeable}
+import shapeless.TypeCase
 
-import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -48,11 +45,10 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
 //  }
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
-    val future: Future[Array[Byte]] =
-      Future {
-        runInterpreter(Left(bsonByteEncoding))
-        bsonByteEncoding
-      }
+    val future: Future[Array[Byte]] = Future {
+      runInterpreter(Left(bsonByteEncoding))
+      bsonByteEncoding
+    }
     future
   }
 
