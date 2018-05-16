@@ -6,6 +6,7 @@ import io.zink.boson.impl.BosonExtractor;
 import io.zink.boson.impl.BosonInjector;
 import io.zink.boson.impl.BosonValidate;
 import net.jodah.typetools.TypeResolver;
+import shapeless.HList;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;

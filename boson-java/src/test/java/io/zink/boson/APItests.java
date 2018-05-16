@@ -3,6 +3,8 @@ package io.zink.boson;
 import bsonLib.BsonArray;
 import bsonLib.BsonObject;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -46,8 +48,8 @@ public class APItests {
     private BsonObject store = new BsonObject().put("Book", books).put("Hat", hats);
     private BsonObject bson = new BsonObject().put("Store", store);
 
-/*
 
+/*
     @Test
     public void ExtractFromArrayPos() {
         ArrayList<Object> al = new ArrayList<>();
@@ -73,12 +75,12 @@ public class APItests {
     @Test
     public void ExtractFromArrayPosWithEnd() {
         String expression = ".Store.Book[1 until end]";
-        CompletableFuture<List<byte[]>> future1 = new CompletableFuture<>();
-        Boson boson = Boson.<byte[],List<byte[]>>extractor(expression, (List<byte[]> out) -> future1.complete(out));
+        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Seq<byte[]> out) -> future1.complete(out));
         boson.go(bson.encodeToBarray());
 
-        List<byte[]> result = future1.join();
-        //List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
+        Seq<byte[]> res = future1.join();
+        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
         List<byte[]> expected = new ArrayList<>();
         expected.add(title2.encodeToBarray());
 
@@ -279,7 +281,7 @@ public class APItests {
                 "List(JavaMachine, ScalaMachine, C++Machine)",
                 result.toList().toString());
     }   //$..SpecialEditions[?(@.Price)].Title -> checked
-*/
+
 
     @Test
     public void ExtractEverywhereArrayWithElem() {
@@ -322,7 +324,7 @@ public class APItests {
         System.out.println("Result from test -> "+ result);
         //assertArrayEquals(title1.encodeToBarray(), result);
     }
-/*
+
     @Test
     public void ExtractEverywhereArrayPos() {
         String expression = "SpecialEditions[0]";
@@ -1682,7 +1684,7 @@ public class APItests {
         }
 //        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
     }
-
+*/
     @Test
     public void TypeInferenceExample() {
 
@@ -1698,14 +1700,36 @@ public class APItests {
     }
 
     @Test
-    public void Experiment() {
-        String expression = ".Book[0]..Price";
-        CompletableFuture<Seq<Double>> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, (Seq<Double> out) -> future1.complete(out));
-        boson.go(store.encodeToBarray());
-        Seq<Double> result = future1.join();
-        System.out.println("Result from test -> "+ result);
-        //assertArrayEquals(title1.encodeToBarray(), result);
+    public void Extract_Obj_As_Class() {
+        BsonObject title1 = new BsonObject().put("Title","Scala").put("Price",15.6);
+        BsonArray books = new BsonArray().add(title1);
+
+        String expression = ".[0]";
+        CompletableFuture<Book> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Book book) -> {
+            future1.complete(book);
+        });
+        boson.go(books.encodeToBarray());
+        Book result = future1.join();
+        Book expected = new Book("Scala",15.6);
+        Assert.assertTrue(EqualsBuilder.reflectionEquals(expected,result));
+
+    }
+
+    @Test
+    public void Extract_Obj_As_Class_With_Nested_Class() {
+        String expression = ".Store.Book[0]";
+        CompletableFuture<Book1> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (Book1 book) -> {
+            future1.complete(book);
+        });
+        boson.go(bson.encodeToBarray());
+        Book1 result = future1.join();
+        SpecialEditions sEdtn = new SpecialEditions("ScalaMachine", 39);
+        Book1 expected = new Book1("Java",15.5, sEdtn);
+        System.out.println("Result extracted -> " + result + ", Expected -> " + expected);
+        Assert.assertTrue(EqualsBuilder.reflectionEquals(expected,result));
+
     }
 
 //    //Injectors Tests
@@ -3376,6 +3400,26 @@ class Book {
     private String title;
     private Double price;
     public Book(String _title, Double _price) {
+        this.title = _title;
+        this.price = _price;
+    }
+}
+
+class Book1 {
+    private String title;
+    private Double price;
+    private SpecialEditions sEditions;
+    public Book1(String _title, Double _price, SpecialEditions _sEditions) {
+        this.title = _title;
+        this.price = _price;
+        this.sEditions = _sEditions;
+    }
+}
+
+class SpecialEditions {
+    private String title;
+    private int price;
+    public SpecialEditions(String _title, int _price) {
         this.title = _title;
         this.price = _price;
     }
