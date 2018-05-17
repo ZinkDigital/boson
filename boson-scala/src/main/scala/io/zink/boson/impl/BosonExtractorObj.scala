@@ -22,10 +22,14 @@ import scala.concurrent.Future
   * @tparam T Case Class
   * @tparam R HList of the Case Class originated by the LabelledGeneric.Aux
   */
-class BosonExtractorObj[T, R <: HList](expression: String, extractFunction: Option[T => Unit] = None, extractSeqFunction: Option[Seq[T] => Unit] = None)(implicit
-                                                                                                                                                         gen: LabelledGeneric.Aux[T, R],
-                                                                                                                                                         extract: extractLabels[R],
-                                                                                                                                                         tp: Option[TypeCase[T]]) extends Boson {
+class BosonExtractorObj[T, R <: HList](expression: String,
+                                       extractFunction: Option[T => Unit] = None,
+                                       extractSeqFunction: Option[Seq[T] => Unit] = None
+                                      )(implicit
+                                        gen: LabelledGeneric.Aux[T, R],
+                                        extract: extractLabels[R],
+                                        tp: Option[TypeCase[T]]) extends Boson {
+
   private val boson: BosonImpl = new BosonImpl()
 
   private val interpreter: Interpreter[T] = new Interpreter[T](boson,expression)

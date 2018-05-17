@@ -47,6 +47,7 @@ class injectorAPITests extends FunSuite {
 
     val expected: Seq[Array[Byte]] = Seq(br1.encodeToBarray())
     val result = future.join()
+    println("Result:   "+result+"\nExpected: "+expected)
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
@@ -146,7 +147,6 @@ class injectorAPITests extends FunSuite {
     val expected: Seq[Array[Byte]] =
       Seq(b3.encodeToBarray(),b10.encodeToBarray(), b9.encodeToBarray(), b8.encodeToBarray(), b11.encodeToBarray(), b5.encodeToBarray(), b6.encodeToBarray(), b7.encodeToBarray())
     val result = future.join()
-    println("Result:   "+result+"\nExpected: "+expected)
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }

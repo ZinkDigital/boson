@@ -80,5 +80,12 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
 
   override def fuse(boson: Boson): Boson = new BosonFuse(this,boson)
 
-  override def go(bsonByteEncoding: String): Future[String] = ???
+  override def go(bsonByteEncoding: String): Future[String] = {
+    val future: Future[String] =
+      Future {
+        runInterpreter(Right(bsonByteEncoding))
+        bsonByteEncoding
+      }
+    future
+  }
 }

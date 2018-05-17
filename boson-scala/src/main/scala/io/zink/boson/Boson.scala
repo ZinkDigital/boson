@@ -206,14 +206,13 @@ object Boson {
     * Make an Injector that will call the inject function (of T -> T) according to
     * the given expression.
     *
-    * @param expression String given by the User designated as BsonPath.
-    * @param injectFunction Inject function given by the User to be applied after injection.
-    * @tparam T Type of Value to be injected.
-    * @return Instance of Boson.
+    * expression String given by the User designated as BsonPath.
+    * injectFunction Inject function given by the User to be applied after injection.
+    * T Type of Value to be injected.
+    * Instance of Boson.
     */
 
 //  def injector[T](expression: String, injectFunction: T => T) = new BosonInjector[T](expression, injectFunction)
-//TODO - implicit val typeCase: Option[TypeCase[Int]] = Some(TypeCase[Int])
 
   trait injector[A] {
     def inject(expression: String, injectFunction: A => A): Boson
@@ -225,12 +224,12 @@ object Boson {
 
     implicit def caseClass[A, L <: HList](implicit
                                           f: LabelledGeneric.Aux[A, L],
-                                          inj: injectLabels[L], // TODO - Explore implementation Generator (Not necessary???)
+                                          //inj: injectLabels[L], // TODO - Explore implementation Generator (Not necessary???)
                                           tp: Typeable[A]): injector[A] = {
       new injector[A]{
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
         def inject(expression: String, injectFunction: A => A): Boson =
-          new BosonInjector/*Obj*/[A](expression, injectFunction = injectFunction)(f,inj,typeCase) //TODO - Option(injectFunction)
+          new BosonInjector/*Obj*/[A](expression, injectFunction = injectFunction) //TODO - Option(injectFunction)
       }
     }
 
@@ -238,7 +237,7 @@ object Boson {
       new injector[Seq[Array[Byte]]] {
         implicit val typeCase: Option[TypeCase[Seq[Array[Byte]]]] = None
         override def inject(expression: String, injectFunction: Seq[Array[Byte]] => Seq[Array[Byte]]): Boson =
-          new BosonInjector[Seq[Array[Byte]]](expression,injectFunction)
+          new BosonInjector[Seq[Array[Byte]]](expression, injectFunction)
       }
 
     implicit val double: injector[Double] =
@@ -252,10 +251,48 @@ object Boson {
       new injector[Float]{
         implicit val typeCase: Option[TypeCase[Float]] = Some(TypeCase[Float])
         override def inject(expression: String, injectFunction: Float => Float): Boson =
-          new BosonInjector[Float](expression,injectFunction)
+          new BosonInjector[Float](expression, injectFunction)
       }
 
-    //TODO - Write remaining cases...
+    implicit val instant: injector[Instant] =
+      new injector[Instant]{
+        implicit val typeCase: Option[TypeCase[Instant]] = Some(TypeCase[Instant])
+
+        override def inject(expression: String, injectFunction: Instant => Instant): Boson =
+          new BosonInjector[Instant](expression, injectFunction)
+      }
+
+    implicit val long: injector[Long] =
+      new injector[Long] {
+        implicit val typeCase: Option[TypeCase[Long]] = Some(TypeCase[Long])
+
+        override def inject(expression: String, injectFunction: Long => Long): Boson =
+          new BosonInjector[Long](expression, injectFunction)
+      }
+
+    implicit val int: injector[Int] =
+      new injector[Int] {
+        implicit val typeCase: Option[TypeCase[Int]] = Some(TypeCase[Int])
+
+        override def inject(expression: String, injectFunction: Int => Int): Boson =
+          new BosonInjector[Int](expression, injectFunction)
+      }
+
+    implicit val string: injector[String] =
+      new injector[String] {
+        implicit val typeCase: Option[TypeCase[String]] = Some(TypeCase[String])
+
+        override def inject(expression: String, injectFunction: String => String): Boson =
+          new BosonInjector[String](expression, injectFunction)
+      }
+
+    implicit val boolean: injector[Boolean] =
+      new injector[Boolean] {
+        implicit val typeCase: Option[TypeCase[Boolean]] = Some(TypeCase[Boolean])
+
+        override def inject(expression: String, injectFunction: Boolean => Boolean): Boson =
+          new BosonInjector[Boolean](expression, injectFunction)
+      }
   }
 }
 
