@@ -5,9 +5,9 @@ import java.time.Instant
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
-import shapeless.{TypeCase, Typeable}
+import shapeless.TypeCase
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -167,9 +167,9 @@ class Interpreter[T](boson: BosonImpl,
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
   def run(bsonEncoded: Either[Array[Byte], String]): Any = {
-    //if (fInj.isDefined) startInjector(program)
-    //else
-    start(bsonEncoded)
+//    if (fInj.isDefined) startInjector(program) //TODO implement new startInjector
+//    else
+      start(bsonEncoded)
   }
 
   /**
@@ -201,7 +201,6 @@ class Interpreter[T](boson: BosonImpl,
       encodedEither match {
         case Left(bufList) => bufList.par.map { encoded =>
           val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
-          println(s"res before cast of tuples in Core: $res")
           res match {
             case tuples(list) => list
             case _ => //TODO: throw error perhaps
@@ -209,9 +208,9 @@ class Interpreter[T](boson: BosonImpl,
           }
         }.seq
         case Right(stringList) => stringList.par.map { encoded =>
-          //println(s"Right(encoded) -> $encoded")
+//          println(s"Right(encoded) -> $encoded")
           val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
-          //println(s"Right(encoded) Result -> $res")
+//          println(s"Right(encoded) Result -> $res")
           res match {
             case tuples(list) => list
             case _ => //TODO: throw error perhaps
@@ -239,8 +238,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    println(s"typeClass: $typeClass")
-    println(s"tCase: $tCase")
+//    println(s"typeClass: $typeClass")
+//    println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -306,7 +305,7 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
 
-  def isJson(str: String): Boolean = if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) true else false
+  def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
 
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
     tCase.isDefined match {

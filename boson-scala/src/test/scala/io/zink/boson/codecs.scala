@@ -3,16 +3,14 @@ package io.zink.boson
 import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
-import com.jayway.jsonpath.{Configuration, JsonPath}
 import io.vertx.core.json.{JsonArray, JsonObject}
+import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
-
 import scala.io.Source
 
 
@@ -387,7 +385,6 @@ class codecs extends FunSuite{
 
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
-
       assertEquals(in,"""["key","value"]""")
       println(s"in: $in")
       println("APPLIED")
