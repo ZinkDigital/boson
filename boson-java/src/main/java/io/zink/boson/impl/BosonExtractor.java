@@ -107,19 +107,21 @@ public class BosonExtractor<T> implements Boson {
         return interpreter.run(Left$.MODULE$.apply(bsonEncoded));
     }
 
+    //triggers the process of construction
     private Object InstantiateExtractedObject(Object extResult) {
         Object finalObj = null;
         Seq<scala.collection.immutable.List<Tuple2<String,Object>>> _SeqOfTuplesList = (Seq<scala.collection.immutable.List<Tuple2<String,Object>>>) extResult;
         List<scala.collection.immutable.List<Tuple2<String,Object>>> seqOfTuplesList = scala.collection.JavaConverters.seqAsJavaList(_SeqOfTuplesList);
         LinkedList<ArrayList<Tuple2<String,Object>>> javaList = new LinkedList<>();
-        for (int i = 0; i<seqOfTuplesList.size();i++){
+        for (int i = 0; i<seqOfTuplesList.size();i++){ // each iteration represents one extracted object
             javaList.add(convert(seqOfTuplesList.get(i)));
-            Boolean allKeysAndTypesMatch = compareKeysAndTypes(javaList.get(i),keyNames,keyTypes); // now is returning boolean
-            finalObj = doSomething(allKeysAndTypesMatch, javaList.get(i),clazz, keyTypes);
+            Boolean allKeysAndTypesMatch = compareKeysAndTypes(javaList.get(i),keyNames,keyTypes);
+            finalObj = triggerConstruction(allKeysAndTypesMatch, javaList.get(i),clazz, keyTypes);
         }
         return finalObj;
     }
 
+    //validates keys and value types of given class with extracted object
     private Boolean compareKeysAndTypes(ArrayList<Tuple2<String,Object>> list, List<String> _keyNames, List<Class<?>> _keyTypes) {
         Boolean flag = false;
         for(int i = 0; i<_keyNames.size();i++){
@@ -144,15 +146,17 @@ public class BosonExtractor<T> implements Boson {
         return flag;
     }
 
-    private Object doSomething(Boolean allKeysAndTypesMatch, ArrayList<Tuple2<String,Object>> list, Class<?> outterClass,List<Class<?>> _keyTypes) {
+    // Verifies if all keys and types are valid and triggers construction
+    private Object triggerConstruction(Boolean allKeysAndTypesMatch, ArrayList<Tuple2<String,Object>> list, Class<?> outterClass,List<Class<?>> _keyTypes) {
         if (allKeysAndTypesMatch){
-                Object obj = instantiateInnerClasses(list,outterClass,_keyTypes);
+                Object obj = instantiateClasses(list,outterClass,_keyTypes);
                 return obj;
         }
         return null;
     }
 
-    private Object instantiateInnerClasses(ArrayList<Tuple2<String,Object>> list, Class<?> typeClass, List<Class<?>> _keyTypes){
+    // verifies the existence of nested classes and starts to instantiate them from the inside to the outside
+    private Object instantiateClasses(ArrayList<Tuple2<String,Object>> list, Class<?> typeClass, List<Class<?>> _keyTypes){
         Object instance = null;
         Object innerInstance;
         List<Class<?>> kTypes = new LinkedList<>();
@@ -163,7 +167,7 @@ public class BosonExtractor<T> implements Boson {
                 for (Field field: _fields) {
                     kTypes.add(field.getType());
                 }
-                innerInstance = instantiateInnerClasses((ArrayList<Tuple2<String,Object>>)list.get(i)._2,_keyTypes.get(i),kTypes);
+                innerInstance = instantiateClasses((ArrayList<Tuple2<String,Object>>)list.get(i)._2,_keyTypes.get(i),kTypes);
                 values.add(innerInstance);
             }else {
                 values.add(list.get(i)._2);
@@ -184,18 +188,15 @@ public class BosonExtractor<T> implements Boson {
         return instance;
     }
 
+    //converts scala.Lists to java.ArrayLists
     private java.util.ArrayList<Tuple2<String,Object>> convert(scala.collection.immutable.List<Tuple2<String,Object>> scalaList) {
         List<Tuple2<String,Object>> globalList = scala.collection.JavaConverters.seqAsJavaList(scalaList);
-        //System.out.println("GlobalList -> " + globalList);
         ArrayList<Tuple2<String,Object>> scndList = new ArrayList<>();
         for (int i = 0; i < globalList.size(); i++) {
             Tuple2<String,Object> elem = globalList.get(i);
-            //System.out.println("Element: " + elem + ", In position: " + i);
             if (elem._2 instanceof scala.collection.immutable.List) {
-                //System.out.println("Element is instance of List");
                 scndList.add(new Tuple2<>(elem._1,convert((scala.collection.immutable.List<Tuple2<String,Object>>)elem._2)));
             } else {
-                //System.out.println("Regular tuple");
                 scndList.add(elem);
             }
         }
@@ -207,10 +208,8 @@ public class BosonExtractor<T> implements Boson {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Object res = runInterpreter(bsonByteEncoding);
-                System.out.println("typeIsClass? -> " + typeIsClass);
                 if(typeIsClass){
                     Object instance = InstantiateExtractedObject(res);
-                    System.out.println("instance -> " + instance);
                     extractFunction.accept((T) instance);
                 }
                 return bsonByteEncoding;
