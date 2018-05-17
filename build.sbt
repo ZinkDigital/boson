@@ -92,7 +92,8 @@ val testLibraries = Seq(
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",
   "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
-  "com.storm-enroute" %% "scalameter" % "0.8.2"
+  "com.storm-enroute" %% "scalameter" % "0.8.2",
+  "org.hamcrest" % "hamcrest-parent" % "1.3"
 )
 
 

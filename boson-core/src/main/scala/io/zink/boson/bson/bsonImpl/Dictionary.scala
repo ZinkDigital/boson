@@ -2,6 +2,7 @@ package io.zink.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
 import java.time.Instant
+import java.util
 
 import shapeless.TypeCase
 
@@ -112,6 +113,18 @@ object Dictionary {
   //AkkaHttp
   val EXTRACTION: String = "extraction"
   val INJECTION: String = "injection"
+
+  // JAVA API
+  val TYPES_LIST: java.util.LinkedList[String] = new util.LinkedList[String]()
+  TYPES_LIST.add("String")
+  TYPES_LIST.add("Double")
+  TYPES_LIST.add("Integer")
+  TYPES_LIST.add("Float")
+  TYPES_LIST.add("Long")
+  TYPES_LIST.add("[B")
+  TYPES_LIST.add("Instant")
+  TYPES_LIST.add("Boolean")
+  TYPES_LIST.add("Null")
 
 
 

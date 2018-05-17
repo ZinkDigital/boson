@@ -2,7 +2,7 @@ package io.zink.boson;
 
 import bsonLib.BsonArray;
 import bsonLib.BsonObject;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -1718,17 +1718,27 @@ public class APItests {
 
     @Test
     public void Extract_Obj_As_Class_With_Nested_Class() {
-        String expression = ".Store.Book[0]";
+
+        BsonObject sEdition1 = new BsonObject().put("Title","ScalaMachine").put("Price",39);
+        BsonObject title1 = new BsonObject().put("Title","Scala").put("Price",15.6).put("SpecialEditions",sEdition1);
+        BsonArray books = new BsonArray().add(title1);
+
+        String expression = ".[0]";
         CompletableFuture<Book1> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, (Book1 book) -> {
             future1.complete(book);
         });
-        boson.go(bson.encodeToBarray());
+        boson.go(books.encodeToBarray());
+
         Book1 result = future1.join();
+
         SpecialEditions sEdtn = new SpecialEditions("ScalaMachine", 39);
-        Book1 expected = new Book1("Java",15.5, sEdtn);
-        System.out.println("Result extracted -> " + result + ", Expected -> " + expected);
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(expected,result));
+        Book1 expected = new Book1("Scala",15.6, sEdtn);
+
+        Assert.assertTrue(result.title.equals(expected.title) );
+        Assert.assertTrue(result.price.equals(expected.price) );
+        Assert.assertTrue(result.specialEditions.title.equals(expected.specialEditions.title));
+        Assert.assertTrue(result.specialEditions.price == expected.specialEditions.price);
 
     }
 
@@ -3406,20 +3416,22 @@ class Book {
 }
 
 class Book1 {
-    private String title;
-    private Double price;
-    private SpecialEditions sEditions;
+    public String title;
+    public Double price;
+    public SpecialEditions specialEditions;
     public Book1(String _title, Double _price, SpecialEditions _sEditions) {
         this.title = _title;
         this.price = _price;
-        this.sEditions = _sEditions;
+        this.specialEditions = _sEditions;
     }
+
+
 }
 
 class SpecialEditions {
-    private String title;
-    private int price;
-    public SpecialEditions(String _title, int _price) {
+    public String title;
+    public Integer price;
+    public SpecialEditions(String _title, Integer _price) {
         this.title = _title;
         this.price = _price;
     }
