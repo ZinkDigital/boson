@@ -125,6 +125,7 @@ object Dictionary {
   TYPES_LIST.add("Instant")
   TYPES_LIST.add("Boolean")
   TYPES_LIST.add("Null")
+  TYPES_LIST.add("CharSequence")
 
 
 

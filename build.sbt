@@ -62,23 +62,11 @@ val basicSettings = Seq(
 
 val libraries = Seq(
   "org.glassfish" % "javax.json" % "1.1",
-  "de.undercouch" % "bson4jackson" % "2.7.0",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "io.netty" % "netty-all" % "4.1.22.Final",
-
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
-  "org.scala-lang" % "scala-compiler" % "2.11.12",
-  "org.parboiled" %% "parboiled" % "2.1.4", //,
+  "org.parboiled" %% "parboiled" % "2.1.4",
   "net.jodah" % "typetools" % "0.5.0"
-  //
-  //  "com.typesafe.akka" %% "akka-http" % "10.0.5",
-  // "com.typesafe.akka" %% "akka-actor" % "2.5.1",
-  // "com.typesafe.akka" %% "akka-stream" % "2.5.1",
-  // "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1",
-  //"com.typesafe.akka" %% "akka-testkit" % "2.5.1",
-  //"com.typesafe.akka" %% "akka-http-testkit" % "10.0.5"
-
 )
 
 val testLibraries = Seq(
@@ -92,8 +80,7 @@ val testLibraries = Seq(
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",
   "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
-  "com.storm-enroute" %% "scalameter" % "0.8.2",
-  "org.hamcrest" % "hamcrest-parent" % "1.3"
+  "com.storm-enroute" %% "scalameter" % "0.8.2"
 )
 
 
