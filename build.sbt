@@ -3,38 +3,39 @@ import sbt.Resolver
 
 val basicSettings = Seq(
 
-  organization := "io.zink",
+organization:="io.zink",
 
-  version := "0.5.0",
+version := "0.5.0",
 
-  scalaVersion := "2.12.3",
+scalaVersion := "2.12.3",
 
-javacOptions  ++= Seq("-Xdoclint:none","-g:none"),
+ javacOptions  ++= Seq("-Xdoclint:none","-g:none"),
 
-//javacOptions += "-g:none",scalacOptions in Test ++= Seq(
+//javacOptions += "-g:none",
+scalacOptions in Test ++= Seq(
   "-encoding",
   "UTF-8"
 ),
 
-  testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
 
-  compileOrder := CompileOrder.Mixed,
-  compileOrder in Test := CompileOrder.Mixed,
+compileOrder := CompileOrder.Mixed,
+compileOrder in Test:= CompileOrder.Mixed,
 
-  //  Creates a jar with all libraries necessary
-  assemblyMergeStrategy in assembly := {
-    case PathList("META-INF", xs@_*) => MergeStrategy.discard
-    case x => MergeStrategy.first
-  },
+//  Creates a jar with all libraries necessary
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
+},
 
-  libraryDependencies ++= libraries ++ testLibraries,
-  homepage := Some(url("https://github.com/ZinkDigital/boson")),
-  description := "Boson - Streaming for JSON and BSON",
-  licenses += "The Apache License, Version 2.0" ->
-    url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
+libraryDependencies ++= libraries ++ testLibraries,
+homepage := Some( url("https://github.com/ZinkDigital/boson")),
+description := "Boson - Streaming for JSON and BSON",
+licenses += "The Apache License, Version 2.0" ->
+  url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
 
-  pomIncludeRepository := { _ => false },
-  publishArtifact in Test := false,
+pomIncludeRepository := { _ => false },
+publishArtifact in Test := false,
 
 
 // The developers of the project
@@ -44,11 +45,8 @@ developers := List(
     name= "zink",
     email="hello@zink.io",
     url=url("http://www.zink.io")
-
-)
+  )
   // then Growin' in here
-
-
 ),
 // Information about the source code repository of your code
 scmInfo := Some(

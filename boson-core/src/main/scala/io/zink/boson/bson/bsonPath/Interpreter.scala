@@ -191,8 +191,8 @@ class Interpreter[T](boson: BosonImpl,
     * This method does the final extraction of an Object.
     *
     * @param encodedEither Sequence of BsonObjects encoded.
-    * @param keyList       Pairs of Keys and Conditions used to decode the encodedSeqByteArray
-    * @param limitList     Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
+    * @param keyList             Pairs of Keys and Conditions used to decode the encodedSeqByteArray
+    * @param limitList           Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
   private def constructObj(encodedEither: Either[List[ByteBuf], List[String]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
@@ -230,6 +230,7 @@ class Interpreter[T](boson: BosonImpl,
     */
   private def extract(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
+    //println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -238,8 +239,8 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-//    println(s"typeClass: $typeClass")
-//    println(s"tCase: $tCase")
+   // println(s"typeClass: $typeClass")
+  //  println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -276,7 +277,7 @@ class Interpreter[T](boson: BosonImpl,
                   if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
                   else runExtractors(elem, keyList.drop(1), limitList.drop(1))
                 }.seq.toList
-              result.flatten //.reduce(_ ++ _)
+              result.flatten//.reduce(_ ++ _)
           }
       }
     value
@@ -305,7 +306,7 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
 
-  def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
+ def isJson(str: String):Boolean = if((str.startsWith("{") && str.endsWith("}"))||(str.startsWith("[") && str.endsWith("]"))) true else false
 
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
       tCase.isDefined match {
@@ -331,7 +332,7 @@ class Interpreter[T](boson: BosonImpl,
                 case elem => elem
               }
               if(returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-            case COPY_BYTEBUF =>println("copy_bytebuf") constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            case COPY_BYTEBUF => constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
           }
         case false if typeClass.isDefined =>
           typeClass.get match {
@@ -340,13 +341,13 @@ class Interpreter[T](boson: BosonImpl,
               if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
             case STRING =>
 
-            val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
-            if (returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
-        }
+              val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
+              if(returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
+          }
 
 
-      case _ => fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
-    }
+        case _ => fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
+      }
   }
 
   private def startInjector(statement: Statement): Array[Byte] = {
@@ -362,22 +363,22 @@ class Interpreter[T](boson: BosonImpl,
   }
 
   //  TODO: replace Statement -> Statement, etc..
-  //    private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
-  //      val value = Left(boson.getByteBuf)
-  //      val result: Array[Byte] =
-  //        Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
-  //          case Success(v) =>
-  //            //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
-  //            //v.release()
-  //            //bsResult
-  //            v.array
-  //          case Failure(e) =>
-  //            throw CustomException(e.getMessage)
-  //          //bsonValue.BsException(e.getMessage)
-  //        }
-  //      //boson.getByteBuf.release()
-  //      result
-  //    }
-  //  }
+//    private def executeMultipleKeysInjector(statements: List[(Statement, String)]): Array[Byte] = {
+//      val value = Left(boson.getByteBuf)
+//      val result: Array[Byte] =
+//        Try(boson.execStatementPatternMatch(boson.getByteBuf, statements, fInj.get)) match {
+//          case Success(v) =>
+//            //val bsResult: bsonValue.BsValue = bsonValue.BsObject.toBson( new BosonImpl(byteArray = Option(v.array())))
+//            //v.release()
+//            //bsResult
+//            v.array
+//          case Failure(e) =>
+//            throw CustomException(e.getMessage)
+//          //bsonValue.BsException(e.getMessage)
+//        }
+//      //boson.getByteBuf.release()
+//      result
+//    }
+//  }
 }
 

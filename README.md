@@ -33,18 +33,46 @@ Streaming Data Access for BSON and JSON encoded documents
 ## QuickStart Guide  
   
 Boson is available through the Central Maven Repository.  
-For SBT users, please add the following dependency in your build.sbt:  
+For SBT users, please add the following dependency in your build.sbt:
+
+Bosoncore:
 ```scala  
-libraryDependencies += “io.zink” % “boson” % “0.5”  
+libraryDependencies += “io.zink” % “bosoncore” % “0.5.0”
 ```  
 For Maven users, please add the following dependency in your pom.xml:  
 ```xml  
 <dependency>  
     <groupId>io.zink</groupId>  
-    <artifactId>boson</artifactId>  
-    <version>0.5</version>  
+    <artifactId>bosoncore</artifactId>
+    <version>0.5.0</version>
 </dependency>  
-```  
+```
+
+Bosonscala:
+```scala
+libraryDependencies += “io.zink” % “bosonscala” % “0.5.0”
+```
+For Maven users, please add the following dependency in your pom.xml:
+```xml
+<dependency>
+    <groupId>io.zink</groupId>
+    <artifactId>bosonsala</artifactId>
+    <version>0.5.0</version>
+</dependency>
+```
+
+Bosonjava:
+```scala
+libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
+```
+For Maven users, please add the following dependency in your pom.xml:
+```xml
+<dependency>
+    <groupId>io.zink</groupId>
+    <artifactId>bosonjava</artifactId>
+    <version>0.5.0</version>
+</dependency>
+```
   
 <div id='id-BosonScala'/>  
   
