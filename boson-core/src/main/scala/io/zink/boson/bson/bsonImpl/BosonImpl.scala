@@ -32,9 +32,9 @@ case class CustomException(smth: String) extends RuntimeException {
 /**
   * Class with all operations to be applied on a Netty ByteBuffer or a Json encoded String
   *
-  * @param byteArray  to be removed
-  * @param javaByteBuf  to be removed
-  * @param stringJson to be removed
+  * @param byteArray   to be removed
+  * @param javaByteBuf to be removed
+  * @param stringJson  to be removed
   */
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
@@ -51,7 +51,7 @@ class BosonImpl(
     javaByteBuf.get.getClass.getSimpleName
   } else if (byteArray.isDefined) {
     byteArray.get.getClass.getSimpleName
-  }else if (stringJson.isDefined) {
+  } else if (stringJson.isDefined) {
     stringJson.get.getClass.getSimpleName
   } else EMPTY_CONSTRUCTOR
 
@@ -76,7 +76,7 @@ class BosonImpl(
         Left(b)
       }
     case STRING =>
-      val b:String = stringJson.get
+      val b: String = stringJson.get
       Right(b)
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
@@ -102,9 +102,9 @@ class BosonImpl(
   /**
     * Public method to trigger extraction.
     *
-    * @param netty1 Encoded document.
-    * @param keyList  set of keys.
-    * @param limitList  limits of arrays.
+    * @param netty1    Encoded document.
+    * @param keyList   set of keys.
+    * @param limitList limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
@@ -117,45 +117,45 @@ class BosonImpl(
       case Left(x) => CodecObject.toCodec(x)
     }
 
-    val startReaderIndexCodec:Int = nettyC.getReaderIndex
+    val startReaderIndexCodec: Int = nettyC.getReaderIndex
     Try(nettyC.readSize) match {
       case Success(value) =>
         val size: Int = value
         val seqTypeCodec: SonNamedType = nettyC.rootType
         seqTypeCodec match {
           case SonZero => Nil
-          case SonArray(_,_) =>
+          case SonArray(_, _) =>
             val arrayFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
               case C_DOT if keyList.lengthCompare(1) == 0 =>
-                Try(nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].result) match{
-                  case Success(v)=>
+                Try(nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].result) match {
+                  case Success(v) =>
                     nettyC.release()
                     List(v)
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
               case _ =>
-                Try(extractFromBsonArray(nettyC, size, arrayFinishReaderIndex, keyList, limitList))match{
+                Try(extractFromBsonArray(nettyC, size, arrayFinishReaderIndex, keyList, limitList)) match {
                   case Success(v) =>
                     nettyC.release()
                     v
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
             }
-          case SonObject(_,_) =>
+          case SonObject(_, _) =>
             val bsonFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
               case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => Nil
               case C_DOT if keyList.lengthCompare(1) == 0 =>
-                Try(nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].result) match{
-                  case Success(v)=>
+                Try(nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].result) match {
+                  case Success(v) =>
                     nettyC.release()
                     List(v)
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
@@ -171,11 +171,11 @@ class BosonImpl(
                 }
               */
               case _ =>
-                Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
-                  case Success(v)=>
+                Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList)) match {
+                  case Success(v) =>
                     nettyC.release()
                     v
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
 
@@ -190,17 +190,17 @@ class BosonImpl(
   /**
     * Structure, types, and rules when traversing an Object.
     * Structure:
-    *   Total Length -> 4 bytes
-    *   Type of next Item -> 1 byte
-    *   Key bytes -> unknown length, ends with 0.
-    *   Value -> Number of bytes depends on type.
+    * Total Length -> 4 bytes
+    * Type of next Item -> 1 byte
+    * Key bytes -> unknown length, ends with 0.
+    * Value -> Number of bytes depends on type.
     * Types:
-    *   Consult Dictionary Object under ENCODING CONSTANTS.
+    * Consult Dictionary Object under ENCODING CONSTANTS.
     *
-    * @param codec  Abstraction of Encoded Document.
-    * @param keyList  set of keys.
-    * @param bsonFinishReaderIndex  last index of Object.
-    * @param limitList  limits of arrays.
+    * @param codec                 Abstraction of Encoded Document.
+    * @param keyList               set of keys.
+    * @param bsonFinishReaderIndex last index of Object.
+    * @param limitList             limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
@@ -234,10 +234,10 @@ class BosonImpl(
             Nil
           }
         case D_BSONOBJECT =>
-          val (matched: Boolean, key: String) = compareKeys(codec,keyList.head._1)
+          val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjConditions(keyList)) {
             val bsonStartReaderIndex: Int = codec.getReaderIndex
-            val valueTotalLength: Int =codec.readSize
+            val valueTotalLength: Int = codec.readSize
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case C_ALLNEXT | C_ALLDOTS =>
@@ -247,7 +247,7 @@ class BosonImpl(
               case C_BUILD =>
                 codec.downOneLevel
                 val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
-                List((key.toLowerCase,res))
+                List((key.toLowerCase, res))
               case _ =>
                 val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                 List(value0)
@@ -255,7 +255,7 @@ class BosonImpl(
             }
           } else {
             val bsonStartReaderIndex: Int = codec.getReaderIndex
-            val valueTotalLength: Int =codec.readSize
+            val valueTotalLength: Int = codec.readSize
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case C_LEVEL | C_LIMITLEVEL | C_NEXT =>
@@ -268,16 +268,16 @@ class BosonImpl(
             }
           }
         case D_BSONARRAY =>
-          val (matched: Boolean, key: String) = compareKeys(codec,keyList.head._1)
+          val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched) {
             val arrayStartReaderIndex: Int = codec.getReaderIndex
-            val valueLength: Int =codec.readSize
+            val valueLength: Int = codec.readSize
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
               case C_BUILD =>
                 codec.downOneLevel
-                val res = extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))
-                List((key.toLowerCase,res))
+                val res = extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY, C_BUILD)), List((None, None, EMPTY_RANGE)))
+                List((key.toLowerCase, res))
               case C_ALLNEXT | C_ALLDOTS =>
                 val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
                 codec.downOneLevel
@@ -285,22 +285,22 @@ class BosonImpl(
                 List(List(value0), res).flatten
               case C_LIMIT | C_LIMITLEVEL =>
                 codec.downOneLevel
-                traverseBsonArray( codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
+                traverseBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
               case _ =>
                 val value0 = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
                 List(value0)
             }
           } else {
             val arrayStartReaderIndex: Int = codec.getReaderIndex
-            val valueLength: Int =codec.readSize
+            val valueLength: Int = codec.readSize
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
-              case C_LEVEL | C_LIMITLEVEL | C_NEXT=>
+              case C_LEVEL | C_LIMITLEVEL | C_NEXT =>
                 codec.setReaderIndex(arrayFinishReaderIndex)
                 Nil
               case _ =>
                 codec.downOneLevel
-                extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
+                extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
 
             }
           }
@@ -330,7 +330,7 @@ class BosonImpl(
           }
         case D_INT =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-          if (matched && eObjPrimitiveConditions(keyList)){
+          if (matched && eObjPrimitiveConditions(keyList)) {
             val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0))
@@ -381,16 +381,17 @@ class BosonImpl(
   /**
     * Structure, types, and rules when traversing an Object.
     * Structure:
-    *   Total Length -> 4 bytes
-    *   Type of next Item -> 1 byte
-    *   Position bytes -> unknown length, ends with 0.
-    *   Value -> Number of bytes depends on type.
+    * Total Length -> 4 bytes
+    * Type of next Item -> 1 byte
+    * Position bytes -> unknown length, ends with 0.
+    * Value -> Number of bytes depends on type.
     * Types:
-    *   Consult Dictionary Object under ENCODING CONSTANTS.
-    * @param codec  Abstraction of Encoded Document.
-    * @param length Size of Array Object.
+    * Consult Dictionary Object under ENCODING CONSTANTS.
+    *
+    * @param codec      Abstraction of Encoded Document.
+    * @param length     Size of Array Object.
     * @param arrayFRIdx last index of Array Object.
-    * @param keyList  set of keys.
+    * @param keyList    set of keys.
     * @param limitList  limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
@@ -426,7 +427,7 @@ class BosonImpl(
               val valueLength2: Int = codec.readSize
               val finishReaderIndex: Int = startReaderIndex + valueLength2
               codec.downOneLevel
-              extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
+              extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
             case D_BOOLEAN =>
               codec.consumeValue(seqType2)
               Nil
@@ -443,15 +444,15 @@ class BosonImpl(
               Nil
           }
         val actualPos2: Int = arrayFRIdx - codec.getReaderIndex
-        if(finalValue.isEmpty) {
+        if (finalValue.isEmpty) {
           actualPos2 match {
-            case x if x > 0 => extractFromBsonArray(codec,  length, arrayFRIdx, keyList, limitList)
+            case x if x > 0 => extractFromBsonArray(codec, length, arrayFRIdx, keyList, limitList)
             case 0 => Nil
           }
         } else {
           actualPos2 match {
             case x if x > 0 =>
-              finalValue ++ extractFromBsonArray(codec,  length, arrayFRIdx, keyList, limitList)
+              finalValue ++ extractFromBsonArray(codec, length, arrayFRIdx, keyList, limitList)
             case 0 => finalValue
           }
         }
@@ -460,23 +461,23 @@ class BosonImpl(
 
   /**
     *
-    * @param codec  Abstraction of Encoded Document.
-    * @param key  given by user.
+    * @param codec Abstraction of Encoded Document.
+    * @param key   given by user.
     * @return Tuple of Boolean and String, Boolean representing if keys match, String is the key.
     */
   private def compareKeys(codec: Codec, key: String): (Boolean, String) = {
     val key0 = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].result.asInstanceOf[String]
-    (key.toCharArray.deep == key0.toCharArray.deep | isHalfword(key, key0),key0)
+    (key.toCharArray.deep == key0.toCharArray.deep | isHalfword(key, key0), key0)
   }
 
 
   /**
     * Traverse an array taking account the limits given.
     *
-    * @param codec  Abstraction of Encoded Document.
-    * @param length Size of Array Object.
+    * @param codec      Abstraction of Encoded Document.
+    * @param length     Size of Array Object.
     * @param arrayFRIdx last index of Array Object.
-    * @param keyList  set of keys.
+    * @param keyList    set of keys.
     * @param limitList  limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
@@ -602,6 +603,8 @@ class BosonImpl(
                     codec.setReader(bsonFinish)
                     codec.getDataType
                       case codec.setReader(bsonStart)
+
+
                      */
                     codec.setReaderIndex(bsonFinishReaderIndex)
                     codec.getDataType match {
@@ -628,7 +631,7 @@ class BosonImpl(
                     keyList.head._2 match {
                       case C_LIMIT | C_LIMITLEVEL if keyList.lengthCompare(1) > 0 && keyList.drop(1).head._2.equals(C_FILTER) =>
                         val copyCodec1: Codec = codec.duplicate
-                        val midResult = findElements(copyCodec1,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
+                        val midResult = findElements(copyCodec1, keyList, limitList, bsonStartReaderIndex, bsonFinishReaderIndex)
                         copyCodec1.release()
                         if (midResult.isEmpty) {
                           codec.setReaderIndex(bsonFinishReaderIndex)
@@ -668,7 +671,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) && limitList.head._3.equals(C_END) =>
-                    val res = extractFromBsonArray(codec,  valueLength2, finishReaderIndex, keyList, limitList)
+                    val res = extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
                     codec.getDataType match {
                       case 0 =>
                         codec.setReaderIndex(startReaderIndex)
@@ -679,7 +682,7 @@ class BosonImpl(
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
                     val buf = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
-                    val res = extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
+                    val res = extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
                     codec.setReaderIndex(finishReaderIndex)
@@ -722,7 +725,7 @@ class BosonImpl(
           case D_BOOLEAN =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
-                val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
                 List(value == 1)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -730,7 +733,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
-                    val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                    val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
                     List(value == 1)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -738,10 +741,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                        val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
                         List(value == 1)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                        val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
                         List(value == 1)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -846,7 +849,7 @@ class BosonImpl(
           case D_ZERO_BYTE =>
             Nil
         }
-      val actualPos2: Int = arrayFRIdx - codec.getReaderIndex//netty.readerIndex()
+      val actualPos2: Int = arrayFRIdx - codec.getReaderIndex //netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
           newSeq ++ constructWithLimits(iter + 1)
@@ -866,14 +869,14 @@ class BosonImpl(
     * Used to traverse an Object when Condition HasElem is required.
     * It searches for an element on a sub-copy of the encoded document, limited to the object to be traversed.
     *
-    * @param codec  Abstraction of Encoded sub-copy Document.
-    * @param keyList  set of keys.
+    * @param codec     Abstraction of Encoded sub-copy Document.
+    * @param keyList   set of keys.
     * @param limitList limits of arrays.
-    * @param start first index of Object.
-    * @param finish last index of Object.
+    * @param start     first index of Object.
+    * @param finish    last index of Object.
     * @return List with extraction result.
     */
-  private def findElements(codec: Codec, keyList: List[(String,String)], limitList: List[(Option[Int], Option[Int], String)],start: Int, finish: Int): List[Any] = {
+  private def findElements(codec: Codec, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], start: Int, finish: Int): List[Any] = {
     val seqType: Int = codec.readDataType
     val finalValue: List[Any] =
       seqType match {
@@ -910,7 +913,7 @@ class BosonImpl(
               case C_LIMIT =>
                 codec.setReaderIndex(start)
                 codec.readSize
-                extractFromBsonObj(codec,keyList,finish,limitList) match {
+                extractFromBsonObj(codec, keyList, finish, limitList) match {
                   case value if value.isEmpty => List(C_MATCH)
                   case value =>
                     codec.setReaderIndex(start)
@@ -929,7 +932,7 @@ class BosonImpl(
                 codec.setReaderIndex(bsonFinishReaderIndex)
                 Nil
               case C_LIMIT =>
-                extractFromBsonObj(codec,keyList,bsonFinishReaderIndex,limitList)
+                extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)
 
             }
           }
@@ -946,7 +949,7 @@ class BosonImpl(
               case C_LIMIT =>
                 codec.setReaderIndex(start)
                 codec.readSize
-                extractFromBsonObj(codec,keyList,finish,limitList) match {
+                extractFromBsonObj(codec, keyList, finish, limitList) match {
                   case value if value.isEmpty =>
                     List(C_MATCH)
                   case value =>
@@ -968,7 +971,7 @@ class BosonImpl(
               case C_LIMIT =>
                 codec.setReaderIndex(start)
                 codec.readSize
-                extractFromBsonObj(codec,keyList,finish,limitList) match {
+                extractFromBsonObj(codec, keyList, finish, limitList) match {
                   case value if value.isEmpty =>
                     codec.setReaderIndex(arrayFinishReaderIndex)
                     Nil
@@ -994,7 +997,7 @@ class BosonImpl(
           if (matched) {
             val value0 = codec.readToken(SonNull(CS_NULL))
             List(C_MATCH)
-          } else{
+          } else {
             //val value0 = codec.readToken(SonNull(CS_NULL))
             codec.consumeValue(seqType)
             Nil
@@ -1012,7 +1015,7 @@ class BosonImpl(
         case D_LONG =>
           val (matched: Boolean, _: String) = compareKeys(codec, keyList.drop(1).head._1)
           if (matched) {
-            val value0 =  codec.readToken(SonNumber(CS_LONG))
+            val value0 = codec.readToken(SonNumber(CS_LONG))
             List(C_MATCH)
           } else {
             //val value0 =  codec.readToken(SonNumber(CS_LONG))
@@ -1029,18 +1032,18 @@ class BosonImpl(
         codec.readSize
         val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
         codec.setReaderIndex(riAuz)
-        List(arr) ++ findElements(codec,  keyList, limitList, start, finish)
+        List(arr) ++ findElements(codec, keyList, limitList, start, finish)
       case 0 if finalValue.nonEmpty && finalValue.head.equals(C_MATCH) =>
         codec.setReaderIndex(start)
         codec.readSize
         val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
         List(arr)
       case x if x > 0 && finalValue.nonEmpty && keyList.head._2.equals(C_LIMIT) =>
-        finalValue ++ findElements(codec,  keyList,limitList,start,finish)
+        finalValue ++ findElements(codec, keyList, limitList, start, finish)
       case 0 if finalValue.nonEmpty && keyList.head._2.equals(C_LIMIT) => finalValue
       case _ if finalValue.nonEmpty => finalValue
       case x if x > 0 && finalValue.isEmpty =>
-        findElements(codec,  keyList,limitList,start,finish)
+        findElements(codec, keyList, limitList, start, finish)
       case 0 if finalValue.isEmpty =>
         Nil
     }
@@ -1048,16 +1051,18 @@ class BosonImpl(
 
   /**
     * Function used to create a duplicate BosonImpl
+    *
     * @return A new Copy of BosonImpl
     */
   @deprecated
-  def duplicate: BosonImpl = nettyBuffer match{
+  def duplicate: BosonImpl = nettyBuffer match {
     case Right(x) => new BosonImpl(stringJson = Option(x))
     case Left(x) => new BosonImpl(byteArray = Option(x.array))
   }
 
   /**
     * Access to Encoded Document.
+    *
     * @return Either[ByteBuf, String]
     */
   @deprecated
@@ -1065,8 +1070,9 @@ class BosonImpl(
 
   /**
     * Verifies if Key given by user is HalfWord and if it matches with the one extracted.
-    * @param fieldID  Key given by User.
-    * @param extracted  Key extracted.
+    *
+    * @param fieldID   Key given by User.
+    * @param extracted Key extracted.
     * @return
     */
   def isHalfword(fieldID: String, extracted: String): Boolean = {
@@ -1103,7 +1109,8 @@ class BosonImpl(
 
   /**
     * Function used to apply the final function given bbyb the used
-    * @param f Fucntion to be applied when the final value is extracted or when the position to inject has been found
+    *
+    * @param f     Fucntion to be applied when the final value is extracted or when the position to inject has been found
     * @param value Value on which the function is applied to
     * @tparam T Type of the value to be extracted of injected
     * @return Returns the value resulting from applying the value to the function
@@ -1138,42 +1145,45 @@ class BosonImpl(
         }
     }
   }
+
   // Injector Starts here
 
   /**
     * Function used to search for keys of interest recursively
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buffer Structure that contains the user input
+    *
+    * @param list    A list with pairs that contains the key of interest and the type of operation
+    * @param codec   The codec abstraction which contains the structure to work on
     * @param fieldID Key of interest
-    * @param f Function used to inject a new value in the structure
-    * @param result Auxiliary structure used to update the resulting value
+    * @param f       Function used to inject a new value in the structure
     * @tparam T Type of value to be injected
     * @return ByteBuf containing the new value injected
     */
   @deprecated
-  def modifyAll[T](list: List[(Statement, String)], buffer: ByteBuf, fieldID: String, f: T => T, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
+  def modifyAll[T](list: List[(Statement, String)], codec: Codec, fieldID: String, f: T => T): Codec = {
     /*
     * If fieldID is empty, it returns the original ByteBuf
     */
-    val startReader: Int = buffer.readerIndex()
-    val originalSize: Int = buffer.readIntLE()
-    while ((buffer.readerIndex() - startReader) < originalSize) {
-      val dataType: Int = buffer.readByte().toInt
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+    while ((codec.getReaderIndex - startReader) < originalSize) {
+      val dataType: Int = codec.readDataType
       dataType match {
         case 0 => // Final
-          result.writeByte(dataType)//TODO - Do before
+          codec.writeInformation(dataType)
         case _ =>
-          result.writeByte(dataType)//TODO - Idem
-        val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-          val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buffer.getByte(buffer.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-            val b: Byte = buffer.readByte()
-            key.append(b)
+          val codecWithDataType = codec.writeInformation(dataType)
+          val (isArray, key, b): (Boolean, Array[Byte], Int) = {
+            //            val key: ListBuffer[Byte] = new ListBuffer[Byte]
+            //            while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
+            //              val b: Byte = arg.readByte()
+            //              key.append(b)
+            //            }
+            val key: ListBuffer[Byte] = codecWithDataType.readKey
+            val b: Int = codecWithDataType.readNextInformation //TODO maybe change this to byte ?
+            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
           }
-          val b: Byte = buffer.readByte()
-          (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-        }
-          result.writeBytes(key).writeByte(b)
+          //TODO stopped here
+          //          result.writeBytes(key).writeByte(b)
           new String(key) match {
             case x if fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x) =>
               /*
@@ -1246,9 +1256,10 @@ class BosonImpl(
 
   /**
     * Function used to copied the values inside arrays that aren´t of interest to the resulting structure
+    *
     * @param dataType The type on the value we are reading and writting on the new structure
-    * @param buffer Structure from where we read the values
-    * @param result Structure to where we write the values
+    * @param buffer   Structure from where we read the values
+    * @param result   Structure to where we write the values
     * @return Doesn't return anything because the changes are reflected in the result structure
     */
   @deprecated
@@ -1284,10 +1295,11 @@ class BosonImpl(
 
   /**
     * Function used to perform injection of the new values
-    * @param buffer Structure from which we are reading the old values
+    *
+    * @param buffer  Structure from which we are reading the old values
     * @param seqType Type of the value found and processing
-    * @param f Function given by the user with the new value
-    * @param result Structure used to write the new values
+    * @param f       Function given by the user with the new value
+    * @param result  Structure used to write the new values
     * @tparam T Type of the value being injected
     */
   @deprecated
@@ -1359,12 +1371,13 @@ class BosonImpl(
 
   /**
     * Function used to copy the values inside objects that aren't of interest to the resulting structure
-    * @param list A list with pairs that contains the key of interest and the type of operation
+    *
+    * @param list    A list with pairs that contains the key of interest and the type of operation
     * @param seqType Type of the value found and processing
-    * @param buffer Structure from which we are reading the old values
-    * @param result Structure to where we write the values
+    * @param buffer  Structure from which we are reading the old values
+    * @param result  Structure to where we write the values
     * @param fieldID name of the field we are searching
-    * @param f Function given by the user with the new value
+    * @param f       Function given by the user with the new value
     * @tparam T Type of the value being injected
     */
   @deprecated
@@ -1404,10 +1417,11 @@ class BosonImpl(
 
   /**
     * Function used to perform the injection on the last ocurrence of a field
-    * @param buffer Structure from which we are reading the old values
-    * @param seqType Type of the value found and processing
-    * @param f Function given by the user with the new value
-    * @param result Structure to where we write the values
+    *
+    * @param buffer     Structure from which we are reading the old values
+    * @param seqType    Type of the value found and processing
+    * @param f          Function given by the user with the new value
+    * @param result     Structure to where we write the values
     * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
     * @tparam T Type of the value being injected
     */
@@ -1486,15 +1500,16 @@ class BosonImpl(
 
   /**
     * Function used to perform the search on the last element of an array
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buffer Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf Represent the inferior limit when a range is given
-    * @param limitSup Represent the superior limit when a range is given
-    * @param result Structure to where we write the values
+    *
+    * @param list       A list with pairs that contains the key of interest and the type of operation
+    * @param buffer     Structure from which we are reading the old values
+    * @param f          Function given by the user with the new value
+    * @param condition  Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf   Represent the inferior limit when a range is given
+    * @param limitSup   Represent the superior limit when a range is given
+    * @param result     Structure to where we write the values
     * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
-    * @tparam T  Type of the value being injected
+    * @tparam T Type of the value being injected
     * @return A new bosonImpl with the new values injected
     */
   @deprecated
@@ -1924,15 +1939,16 @@ class BosonImpl(
 
   /**
     * Function used to copy the values of an array that aren't of interest while searching for the last element
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param fieldID Name of the field of interest
-    * @param dataType Type of the value found and processing
-    * @param buf Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf Represent the inferior limit when a range is given
-    * @param limitSup Represent the superior limit when a range is given
-    * @param result Structure to where we write the values
+    *
+    * @param list       A list with pairs that contains the key of interest and the type of operation
+    * @param fieldID    Name of the field of interest
+    * @param dataType   Type of the value found and processing
+    * @param buf        Structure from which we are reading the old values
+    * @param f          Function given by the user with the new value
+    * @param condition  Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf   Represent the inferior limit when a range is given
+    * @param limitSup   Represent the superior limit when a range is given
+    * @param result     Structure to where we write the values
     * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
     * @tparam T Type of the value being injected
     */
@@ -1992,14 +2008,15 @@ class BosonImpl(
 
   /**
     * Function used to search for the last element of an array that corresponds to field with name fieldID
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buffer Structure from which we are reading the old values
-    * @param fieldID Name of the field of interest
-    * @param f Function given by the user with the new value
-    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf Represent the inferior limit when a range is given
-    * @param limitSup Represent the superior limit when a range is given
-    * @param result Structure to where we write the values
+    *
+    * @param list       A list with pairs that contains the key of interest and the type of operation
+    * @param buffer     Structure from which we are reading the old values
+    * @param fieldID    Name of the field of interest
+    * @param f          Function given by the user with the new value
+    * @param condition  Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf   Represent the inferior limit when a range is given
+    * @param limitSup   Represent the superior limit when a range is given
+    * @param result     Structure to where we write the values
     * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
     * @tparam T Type of the value being injected
     * @return a new BosonImpl with the new value injected
@@ -2135,11 +2152,12 @@ class BosonImpl(
 
   /**
     * Function used to search for a element within another element
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buf Structure from which we are reading the old values
-    * @param key Name of the field of interest
-    * @param elem Name of elements to search inside the obejcts inside an Array
-    * @param f Function given by the user with the new value
+    *
+    * @param list   A list with pairs that contains the key of interest and the type of operation
+    * @param buf    Structure from which we are reading the old values
+    * @param key    Name of the field of interest
+    * @param elem   Name of elements to search inside the obejcts inside an Array
+    * @param f      Function given by the user with the new value
     * @param result Structure to where we write the values
     * @tparam T Type of the value being injected
     * @return A structure with the new element injected
@@ -2191,17 +2209,18 @@ class BosonImpl(
 
   /**
     * Function used to copy values that aren't of interest while searching for a element inside a object inside a array
-    * @param list A list with pairs that contains the key of interest and the type of operation
+    *
+    * @param list     A list with pairs that contains the key of interest and the type of operation
     * @param dataType Type of the value found and processing
-    * @param key Name of the field of interest
-    * @param elem Name of elements to search inside the objects inside an Array
-    * @param buf Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param result Structure to where we write the values
+    * @param key      Name of the field of interest
+    * @param elem     Name of elements to search inside the objects inside an Array
+    * @param buf      Structure from which we are reading the old values
+    * @param f        Function given by the user with the new value
+    * @param result   Structure to where we write the values
     * @tparam T Type of the value being injected
     */
   @deprecated
-  private def processTypesHasElem[T](list: List[(Statement, String)], dataType: Int, key: String, elem: String, buf: ByteBuf, f: (T) => T, result: ByteBuf):Unit = {
+  private def processTypesHasElem[T](list: List[(Statement, String)], dataType: Int, key: String, elem: String, buf: ByteBuf, f: (T) => T, result: ByteBuf): Unit = {
     dataType match {
       case D_FLOAT_DOUBLE =>
         val value0: Double = buf.readDoubleLE()
@@ -2241,10 +2260,11 @@ class BosonImpl(
 
   /**
     * Fucntion used to search for an element inside a object inside a array after finding the key of interest
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buf Structure from which we are reading the old values
-    * @param elem Name of elements to search inside the objects inside an Array
-    * @param f Function given by the user with the new value
+    *
+    * @param list   A list with pairs that contains the key of interest and the type of operation
+    * @param buf    Structure from which we are reading the old values
+    * @param elem   Name of elements to search inside the objects inside an Array
+    * @param f      Function given by the user with the new value
     * @param result Structure to where we write the values
     * @tparam T Type of the value being injected
     * @return a new BosonImpl with the new value injected
@@ -2338,7 +2358,8 @@ class BosonImpl(
 
   /**
     * Function used to see if an object contains a certain elem inside
-    * @param buf Structure from which we are reading the old values
+    *
+    * @param buf  Structure from which we are reading the old values
     * @param elem Name of element to search inside the objects inside an Array
     * @return A boolean meaning if the element has been found or not
     */
@@ -2385,18 +2406,24 @@ class BosonImpl(
   }
 
   /**
-    * Function used to perform the search process recursively, performing the search key by key, separeted by '.' or '..' and performing the injection when the final key is reached
-    * @param buf Structure from which we are reading the old values
+    * Function used to perform the search process recursively, performing the search key by key, separated by '.' or '..' and performing the injection when the final key is reached
+    *
+    * @param netty1     Structure from which we are reading the old values, can be either a ByteBuf or a string
     * @param statements A list with pairs that contains the key of interest and the type of operation
-    * @param f Function given by the user with the new value
+    * @param f          Function given by the user with the new value
     * @tparam T Type of the value being injected
     * @return A new structure with the final value injected
     */
   @deprecated
-  def execStatementPatternMatch[T](buf: ByteBuf, statements: List[(Statement, String)], f: Function[T, T]): ByteBuf = {
-    val result: ByteBuf = Unpooled.buffer()
+  def execStatementPatternMatch[T](netty1: Either[ByteBuf, String], statements: List[(Statement, String)], f: Function[T, T]): Either[ByteBuf, String] = {
+    val codec: Codec = netty1 match {
+      case Right(x) => CodecObject.toCodec(x)
+      case Left(x) => CodecObject.toCodec(x)
+    }
+
     val statement: Statement = statements.head._1
     val newStatementList: List[(Statement, String)] = statements
+
     statement match {
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
@@ -2415,10 +2442,12 @@ class BosonImpl(
                   (key, 0, TO_RANGE, C_END)
               }
           }
-        val res: ByteBuf = execArrayFunction(newStatementList, buf, f, input._1, input._2, input._3, input._4)
-        val finalResult: ByteBuf = result.writeBytes(res)
+        val res: ByteBuf = execArrayFunction(newStatementList, codec, f, input._1, input._2, input._3, input._4)
+        val finalResult: ByteBuf = resultByteBuf.writeBytes(res) //começar a alterar aqui
         res.release()
         finalResult.capacity(finalResult.writerIndex())
+
+
       case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
@@ -2433,30 +2462,36 @@ class BosonImpl(
                 case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
               }
           }
-        val res: ByteBuf = execArrayFunction(newStatementList, buf, f, input._1, input._2, input._3, input._4)
-        val finalResult: ByteBuf = result.writeBytes(res).capacity(result.writerIndex())
+        val res: ByteBuf = execArrayFunction(newStatementList, netty1, f, input._1, input._2, input._3, input._4)
+        val finalResult: ByteBuf = resultByteBuf.writeBytes(res).capacity(resultByteBuf.writerIndex())
         res.release()
         finalResult
+
       case HalfName(half: String) =>
-        val res: ByteBuf = modifyAll(newStatementList, buf, half, f)
-        result.writeBytes(res)
+        val res: ByteBuf = modifyAll(newStatementList, codec, half, f)
+        resultByteBuf.writeBytes(res)
         res.release()
-        result.capacity(result.writerIndex())
+        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case HasElem(key: String, elem: String) =>
-        val res: ByteBuf = modifyHasElem(newStatementList, buf, key, elem, f)
-        result.writeBytes(res)
+        val res: ByteBuf = modifyHasElem(newStatementList, codec, key, elem, f)
+        resultByteBuf.writeBytes(res)
         res.release()
-        result.capacity(result.writerIndex())
+        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case Key(key: String) =>
-        val res: ByteBuf = modifyAll(newStatementList, buf, key, f)
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
+        val res: Codec = modifyAll(newStatementList, codec, key, f)
+
+      //        resultByteBuf.writeBytes(res)
+      //        res.release()
+      //        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case ROOT =>
-        val res: ByteBuf = execRootInjection(buf, f)
-        result.writeBytes(res)
+        val res: ByteBuf = execRootInjection(codec, f)
+        resultByteBuf.writeBytes(res)
         res.release()
-        result.capacity(result.writerIndex())
+        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case _ => throw CustomException("Wrong Statements, Bad Expression.")
       // Never Gets Here
 
@@ -2465,19 +2500,20 @@ class BosonImpl(
 
   /**
     * Function used with 'execStatementPatternMatch' to perform the process of recursive search while dealing with arrays
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buf Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param key Name of value to be used in search (can be empty)
-    * @param left Left argument of the array conditions
-    * @param mid Middle argument of the array conditions
-    * @param right Right argument of array conditions
+    *
+    * @param list   A list with pairs that contains the key of interest and the type of operation
+    * @param buf    Structure from which we are reading the old values
+    * @param f      Function given by the user with the new value
+    * @param key    Name of value to be used in search (can be empty)
+    * @param left   Left argument of the array conditions
+    * @param mid    Middle argument of the array conditions
+    * @param right  Right argument of array conditions
     * @param result Structure to where we write the values
     * @tparam T Type of the value being injected
     * @return A new structure with the final value injected
     **/
   @deprecated
-  def execArrayFunction[T](list: List[(Statement, String)], buf: ByteBuf, f: Function[T, T], key: String, left: Int, mid: String, right: Any, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
+  def execArrayFunction[T](list: List[(Statement, String)], codec: Codec, f: Function[T, T], key: String, left: Int, mid: String, right: Any, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
     (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, 0, C_END, None) =>
         val size: Int = buf.getIntLE(buf.readerIndex())
@@ -2571,8 +2607,9 @@ class BosonImpl(
 
   /**
     * Function used when the injection is done at Root level
+    *
     * @param buffer Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
+    * @param f      Function given by the user with the new value
     * @tparam T Type of the value being injected
     * @return A new structure with the final value injected
     */

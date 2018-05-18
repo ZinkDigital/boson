@@ -1,6 +1,6 @@
 package io.zink.boson.bson.codec.impl
 
-import io.netty.buffer.ByteBuf
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
 
@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
   * @param arg Value of type Array[Byte] representing the Bson after being encodec
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
   */
-class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
+class CodecBson(var arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   //val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
   /**
     * buff is a value of type ByteBuf to process the value received by the user
@@ -359,8 +359,19 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     case _ =>
   }
 
-//  //-------------------------------------Injector functions--------------------------
-//
-//  override def writeByte(byte: Int): Codec = ???
+  //-------------------------------------Injector functions--------------------------
+
+  override def writeInformation(byte: Int): Codec = ???
+
+  override def readKey: ListBuffer[Byte] = {
+    val key: ListBuffer[Byte] = new ListBuffer[Byte]
+    while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
+      val b: Byte = arg.readByte()
+      key.append(b)
+    }
+    key
+  }
+
+  override def readNextInformation: Int = arg.readByte()
 
 }

@@ -167,8 +167,8 @@ class Interpreter[T](boson: BosonImpl,
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
   def run(bsonEncoded: Either[Array[Byte], String]): Any = {
-//    if (fInj.isDefined) startInjector(bsonEncoded) //TODO implement new startInjector
-//    else
+    if (fInj.isDefined) startInjector(bsonEncoded) //TODO implement new startInjector
+    else
       start(bsonEncoded)
   }
 
@@ -350,34 +350,34 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
 
-//  private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
-//    val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
-//    executeMultipleKeysInjector(zipped, bsonEncoded)
-//  }
-//
-//  // TODO: replace Statement -> Statement, etc..
-//  private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
-//    val input: Either[ByteBuf, String] = bsonEncoded match {
-//      case Left(barArray) =>
-//        val buf: ByteBuf = Unpooled.copiedBuffer(barArray)
-//        Left(buf)
-//
-//      case Right(jsString) => Right(jsString)
-//    }
-//
-//    val result: Either[Array[Byte], String] =
-//      Try(boson.execStatementPatternMatch(input, statements, fInj.get)) match {
-//        case Success(v) =>
-//          v match {
-//            case Left(byteBuf) => Left(byteBuf.array)
-//            case Right(string) => Right(string)
-//          }
-//
-//        case Failure(e) =>
-//          throw CustomException(e.getMessage)
-//      }
-//    result
-//  }
+  private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
+    val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
+    executeMultipleKeysInjector(zipped, bsonEncoded)
+  }
+
+  // TODO: replace Statement -> Statement, etc..
+  private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
+    val input: Either[ByteBuf, String] = bsonEncoded match {
+      case Left(barArray) =>
+        val buf: ByteBuf = Unpooled.copiedBuffer(barArray)
+        Left(buf)
+
+      case Right(jsString) => Right(jsString)
+    }
+
+    val result: Either[Array[Byte], String] =
+      Try(boson.execStatementPatternMatch(input, statements, fInj.get)) match {
+        case Success(v) =>
+          v match {
+            case Left(byteBuf) => Left(byteBuf.array)
+            case Right(string) => Right(string)
+          }
+
+        case Failure(e) =>
+          throw CustomException(e.getMessage)
+      }
+    result
+  }
 
 }
 

@@ -577,9 +577,17 @@ class CodecJson(str: String) extends Codec {
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
   }
-//
-//  //-------------------------------------Injector functions--------------------------
-//
-//  override def writeByte(byte: Int): Codec = ???
+
+  //
+  //-------------------------------------Injector functions--------------------------
+
+  override def writeInformation(byte: Int): Codec = ???
+
+  //Maybe in readKey we should not read the last quote, because in CodecBson we read the key and then read a single byte (the closing byte)
+  //so maybe in CodecJson we should read the entire key except the last quote so we can read the last quote seperatly afterwards, so that both
+  //codecs are compliant with each other
+  override def readKey: ListBuffer[Byte] = ??? //TODO change this from ListBuffer[Byte] to something else like String
+
+  override def readNextInformation: Int = ???
 }
 
