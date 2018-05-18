@@ -3,11 +3,13 @@ package io.zink.boson
 import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
-import io.zink.boson.bson.bsonValue.BsValue
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class ReturnTypes extends FunSuite{
@@ -34,7 +36,7 @@ class ReturnTypes extends FunSuite{
   private val store = new BsonObject().put("Book", books).put("Hat", hats)
   private val bson = new BsonObject().put("Store", store)
 
-  test("") {
+  test("Matched in complex event") {
     val obj555: BsonObject = new BsonObject().put("Store", new BsonArray())
     val arr444: BsonArray = new BsonArray().add(obj555)//.add(obj555)
     val obj666: BsonObject = new BsonObject().put("Store",new BsonArray().add(new BsonObject().put("Store",1.1)))
@@ -43,85 +45,87 @@ class ReturnTypes extends FunSuite{
     //put("Store",new BsonObject())
     val obj111: BsonObject = new BsonObject().put("Store", arr222)
     val expression: String = "Store[@Store]..Store"
-    println(obj111)
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    val future: CompletableFuture[Seq[Double]] = new CompletableFuture[Seq[Double]]()
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => future.complete(in))
     boson.go(obj111.encodeToBarray())
-    val res = future.join().getValue.asInstanceOf[Vector[Any]]
+    val res = future.join()
     //res.foreach(elem => println(s"res: ${new String(elem)}"))
-    val expected: Vector[Any] = Vector(1.1)
+    val expected: Seq[Double] = Vector(1.1)
     assert(expected.size === res.size)
     assertTrue(expected.zip(res).forall{
-      case (e: Array[Byte],r: Array[Byte]) => e.sameElements(r)
-      case (e,r: Double) => e == r
-      case (e,r) => e.equals(r)
+      case (e,r) => e == r
     })
   }
 
   test("Matched obj in simple event V1") {
     val expression: String = ".Store"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    println(bson)
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => future.complete(in))
     boson.go(bson.encodeToBarray())
-    assertArrayEquals(store.encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
+    assertArrayEquals(store.encodeToBarray(), future.join())
   }
 
   test("Matched obj in simple event V2") {
     val expression: String = "Store"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(bson.encodeToBarray())
-    assertArrayEquals(store.encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
+    val expected: Seq[Array[Byte]] = Seq(store.encodeToBarray)
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
   }
 
   test("return obj inside ArrayPos V1") {
     val expression: String = ".[1]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
+    val future: CompletableFuture[Array[Byte]] = new CompletableFuture[Array[Byte]]()
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => future.complete(in))
     boson.go(books.encodeToBarray())
-    assertArrayEquals(books.getBsonObject(1).encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
+    assertArrayEquals(books.getBsonObject(1).encodeToBarray(), future.join())
   }
 
   test("return obj inside ArrayPos V2") {
     val expression: String = ".[1 until end]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(books.encodeToBarray())
-    assertArrayEquals(books.getBsonObject(1).encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
+    val expected: Seq[Array[Byte]] = Seq(books.getBsonObject(1).encodeToBarray())
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    })
+    val res = boson.go(books.encode.getBytes)
+    Await.result(res, Duration.Inf)
   }
 
   test("return obj inside ArrayPos V3") {
     val expression: String = "[1]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(books.encodeToBarray())
-    assertArrayEquals(books.getBsonObject(1).encodeToBarray(), future.join().getValue.asInstanceOf[Vector[Array[Byte]]].head)
+    val expected: Seq[Array[Byte]] = Seq(books.getBsonObject(1).encodeToBarray())
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    })
+    val res = boson.go(books.encode.getBytes)
+    Await.result(res, Duration.Inf)
   }
 
   test("return obj inside ArrayPos V4") {
     val expression: String = "Book[@Title]"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(bson.encodeToBarray())
-    val expected: Vector[Array[Byte]] =
-      Vector(books.getBsonObject(0).encodeToBarray(),books.getBsonObject(1).encodeToBarray(),books.getBsonObject(2).encodeToBarray())
-    val result = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
-    for(i <- result.indices) {
-      assertArrayEquals(expected.apply(i),result.apply(i))
-    }
+    val expected: Seq[Array[Byte]] =
+      Seq(books.getBsonObject(0).encodeToBarray(),books.getBsonObject(1).encodeToBarray(),books.getBsonObject(2).encodeToBarray())
+    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
+      assertTrue(expected.size === in.size)
+      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
   }
 
   test("return obj inside ArrayPos V5") {
     val expression: String = ".Store.Book"
-    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-    val boson: Boson = Boson.extractor(expression, (in: BsValue) => future.complete(in))
-    boson.go(bson.encodeToBarray())
-    val expected: Vector[Array[Byte]] =
-      Vector(books.encodeToBarray())
-    val result: Vector[Array[Byte]] = future.join().getValue.asInstanceOf[Vector[Array[Byte]]]
-    assert(expected.size === result.size)
-    assertTrue(expected.zip(result).forall(e => e._1.sameElements(e._2)))
+    val expected: Array[Byte] = books.encodeToBarray()
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      assertArrayEquals(expected, in)
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
   }
 
 }

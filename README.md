@@ -3,9 +3,17 @@
   
 Streaming Data Access for BSON and JSON encoded documents  
   
-[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)  
-  
-# Table of Contents  
+[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
+
+Bosonscala
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
+
+Bosonjava
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava)
+
+# Table of Contents
   
 - [Scala QuickStart Guide](#id-quickStartGuideScala)  
    * [Boson](#id-BosonScala)  
@@ -29,23 +37,40 @@ Streaming Data Access for BSON and JSON encoded documents
 ## QuickStart Guide  
   
 Boson is available through the Central Maven Repository.  
-For SBT users, please add the following dependency in your build.sbt:  
-```scala  
-libraryDependencies += “io.zink” % “boson” % “0.5”  
-```  
-For Maven users, please add the following dependency in your pom.xml:  
-```xml  
-<dependency>  
-    <groupId>io.zink</groupId>  
-    <artifactId>boson</artifactId>  
-    <version>0.5</version>  
-</dependency>  
-```  
+For SBT users, please add the following dependency in your build.sbt:
+
+Bosonscala:
+```scala
+libraryDependencies += “io.zink” % “bosonscala” % “0.5.0”
+```
+For Maven users, please add the following dependency in your pom.xml:
+```xml
+<dependency>
+    <groupId>io.zink</groupId>
+    <artifactId>bosonsala</artifactId>
+    <version>0.5.0</version>
+</dependency>
+```
+
+Bosonjava:
+```scala
+libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
+```
+For Maven users, please add the following dependency in your pom.xml:
+```xml
+<dependency>
+    <groupId>io.zink</groupId>
+    <artifactId>bosonjava</artifactId>
+    <version>0.5.0</version>
+</dependency>
+```
   
 <div id='id-BosonScala'/>  
   
 ### Boson  
-A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded BSON in a Netty buffer and processes it according to a given expression, traversing the buffer only once.  
+
+A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+
 <div id='id-bosonExtractionScala'/>  
   
 #### Extraction  
@@ -127,7 +152,9 @@ For Maven users, please add the following dependency in your pom.xml:
 <div id='id-BosonJava'/>  
   
 ### Boson  
-A "Boson" is an object created when constructing an extractor/injector that encapsulates an encoded BSON in a Netty buffer and processes it according to a given expression, traversing the buffer only once.  
+
+A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+
 <div id='id-bosonExtractionJava'/>  
   
 #### Extraction  
@@ -197,7 +224,9 @@ final byte[] result = fused.go(validatedByteArray).join();
 # Documentation  
 ## BsonPath  
   
-BsonPath expressions targets a BSON structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).  
+
+BsonPath expressions targets a Bson structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
+
   
 BsonPath expressions use the dot-notation: `key1.key2[0].key3`.  
   
@@ -286,6 +315,7 @@ BsonPath | JsonPath
 `*ok[@Pri*]..SpecialEd*.Price` | `Non existent.`  
   
 **Note: JsonPath doesn't support the *halfkey* (`B*ok`) as well as the range *until end* (`1 until end`).**
+
 
 ## Java Profiler
 

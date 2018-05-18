@@ -58,4 +58,6 @@ class BosonFuse(first: Boson, second: Boson) extends Boson {
   }
 
   override def fuse(boson: Boson) = new BosonFuse(this,boson)
+
+  override def go(bsonByteEncoding: String): Future[String] = ???
 }

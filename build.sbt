@@ -1,4 +1,5 @@
 import Dependencies._
+import sbt.Resolver
 
 val basicSettings = Seq(
 
@@ -8,8 +9,9 @@ version := "0.5.0",
 
 scalaVersion := "2.12.3",
 
-javacOptions in (Compile) ++= Seq("-g:none"),
+ javacOptions  ++= Seq("-Xdoclint:none","-g:none"),
 
+//javacOptions += "-g:none",
 scalacOptions in Test ++= Seq(
   "-encoding",
   "UTF-8"
@@ -40,14 +42,11 @@ publishArtifact in Test := false,
 developers := List(
   Developer(
     id="Zink Digital",
-    name= "Zink",
+    name= "zink",
     email="hello@zink.io",
     url=url("http://www.zink.io")
   )
-
   // then Growin' in here
-
-
 ),
 // Information about the source code repository of your code
 scmInfo := Some(
@@ -56,26 +55,79 @@ scmInfo := Some(
     "scm:git@github.com:ZinkDigital/boson.git"
     )
   ),
-  useGpg := true,
-  publishMavenStyle := true
+  //useGpg := true,
+  //pgpReadOnly := true,
+
+credentials += Credentials(Path.userHome /".sbt" /".credentials"),
+
+  //pgpPassphrase := Some("boson0000".toArray),
+  pgpSecretRing := file("/Users/ricardomartins/.gnupg/secring.gpg"),
+  publishMavenStyle := true,
+
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    val v = version.value
+    if (v.trim.endsWith("SNAPSHOT"))
+      //Opts.resolver.sonatypeSnapshots
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      //Opts.resolver.sonatypeStaging
+      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  }
+)
+val noPublishing = Seq(
+  publishArtifact := false,
+  publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
+
+
+
+def javaDoc = Seq(
+  doc in Compile := {
+    val cp = (fullClasspath in Compile in doc).value
+    val docTarget = (target in Compile in doc).value
+    val compileSrc = (javaSource in Compile).value
+    val s = streams.value
+    //def replace(x: Any) = x.toString.replace("boson-java", "boson-core")
+    def docLink = name.value match {
+      case "boson-java" => ""
+      case _ => ""
+    }
+    val cmd = "javadoc" +
+      " -sourcepath " + compileSrc +
+      " -classpath " + cp.map(_.data).mkString(":") +
+      " -d " + docTarget +
+      docLink +
+      " -encoding utf8" +
+      " -public" +
+      " -windowtitle " + name.value + "_" + version.value +
+      " -subpackages" +
+      " io.zink"
+    s.log.info(cmd)
+    sys.process.Process(cmd)
+    docTarget
+  }
 )
 
 val libraries = Seq(
-  "javax.json" % "javax.json-api" % "1.1",
   "org.glassfish" % "javax.json" % "1.1",
-  "de.undercouch" % "bson4jackson" % "2.7.0",
+
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "io.netty" % "netty-all" % "4.1.22.Final",
-  //"com.storm-enroute" % "scalameter-core_2.12" % "0.8.2",
-  "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0"
+
+  "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
+  "com.chuusai" % "shapeless_2.12" % "2.3.3",
+  "org.parboiled" %% "parboiled" % "2.1.4",
+  "net.jodah" % "typetools" % "0.5.0"
 )
 
 val testLibraries = Seq(
-  "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
-  "junit"             %  "junit"       % "4.12"  % Test,
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test withSources(),
+  "de.undercouch" % "bson4jackson" % "2.7.0",
+  "junit" % "junit" % "4.12" % Test,
   "io.vertx" % "vertx-core" % "3.5.0",
   "com.novocode" % "junit-interface" % "0.11" % "test",
   "com.jayway.jsonpath" % "json-path" % "2.4.0",
+  "com.google.code.gson" % "gson" % "2.3.1",
   "org.slf4j" % "slf4j-simple" % "1.7.25",
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",
@@ -84,25 +136,15 @@ val testLibraries = Seq(
 )
 
 
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  val v = version.value
-  if (v.trim.endsWith("SNAPSHOT"))
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
 
-lazy val root = project.in( file("."))
-    .aggregate(bosonScala, bosonJava)
+lazy val root = project.in(file("."))
+  .aggregate(bosonCore, bosonScala, bosonJava)
   .settings(basicSettings: _*)
-  .settings (
-    publishLocal := {},
-    publish := {}
-  )
+  .settings(noPublishing: _*)
 
 lazy val bosonCore = project.in(file("boson-core"))
   .settings(basicSettings: _*)
+  .settings(javaDoc:  _*)
   .settings(
     libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
     javacOptions in Test += "-g", // needed for bytecode rewriting
@@ -111,8 +153,9 @@ lazy val bosonCore = project.in(file("boson-core"))
   )
 
 lazy val bosonScala = project.in(file("boson-scala"))
-    .dependsOn(bosonCore)
+  .dependsOn(bosonCore)
   .settings(basicSettings: _*)
+  .settings(javaDoc:  _*)
   .settings(
     libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
     javacOptions in Test += "-g", // needed for bytecode rewriting
@@ -123,6 +166,7 @@ lazy val bosonScala = project.in(file("boson-scala"))
 lazy val bosonJava = project.in(file("boson-java"))
   .dependsOn(bosonCore)
   .settings(basicSettings: _*)
+  .settings(javaDoc:  _*)
   .settings(
     libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
     javacOptions in Test += "-g", // needed for bytecode rewriting
