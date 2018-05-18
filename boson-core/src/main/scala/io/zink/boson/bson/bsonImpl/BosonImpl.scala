@@ -45,20 +45,20 @@ class BosonImpl(
   /**
     * Deprecated, used on previous implementations of Boson to verify which input was given by the user.
     */
-    @deprecated
+  @deprecated
   private val valueOfArgument: String =
-    if (javaByteBuf.isDefined) {
-      javaByteBuf.get.getClass.getSimpleName
-    } else if (byteArray.isDefined) {
-      byteArray.get.getClass.getSimpleName
-    }else if (stringJson.isDefined) {
-      stringJson.get.getClass.getSimpleName
+  if (javaByteBuf.isDefined) {
+    javaByteBuf.get.getClass.getSimpleName
+  } else if (byteArray.isDefined) {
+    byteArray.get.getClass.getSimpleName
+  }else if (stringJson.isDefined) {
+    stringJson.get.getClass.getSimpleName
   } else EMPTY_CONSTRUCTOR
 
   /**
     * Deprecated for the same reason as the previous one.
     */
-    @deprecated
+  @deprecated
   private val nettyBuffer: (Either[ByteBuf, String]) = valueOfArgument match {
     case ARRAY_BYTE =>
       val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
@@ -81,7 +81,7 @@ class BosonImpl(
     case EMPTY_CONSTRUCTOR =>
       Unpooled.buffer()
       Left(Unpooled.buffer())
-}
+  }
 
   /**
     * Set of conditions to extract primitive types while traversing an Object.
@@ -246,10 +246,10 @@ class BosonImpl(
                 List(List(value0), extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)).flatten
               case C_BUILD =>
                 codec.downOneLevel
-                 val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
+                val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
                 List((key.toLowerCase,res))
               case _ =>
-                 val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
                 List(value0)
 
             }
@@ -281,13 +281,13 @@ class BosonImpl(
               case C_ALLNEXT | C_ALLDOTS =>
                 val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
                 codec.downOneLevel
-                 val res = extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
+                val res = extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 List(List(value0), res).flatten
               case C_LIMIT | C_LIMITLEVEL =>
                 codec.downOneLevel
-                 traverseBsonArray( codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
+                traverseBsonArray( codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
               case _ =>
-                 val value0 = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                val value0 = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
                 List(value0)
             }
           } else {
@@ -405,7 +405,7 @@ class BosonImpl(
       case _ =>
         val seqType2: Int = codec.readDataType
         if (seqType2 != 0) {
-         codec.readArrayPosition
+          codec.readArrayPosition
         }
         val finalValue: List[Any] =
           seqType2 match {
@@ -602,10 +602,8 @@ class BosonImpl(
                     codec.setReader(bsonFinish)
                     codec.getDataType
                       case codec.setReader(bsonStart)
-
-
                      */
-                  codec.setReaderIndex(bsonFinishReaderIndex)
+                    codec.setReaderIndex(bsonFinishReaderIndex)
                     codec.getDataType match {
                       case 0 =>
                         codec.setReaderIndex(bsonStartReaderIndex)
@@ -684,7 +682,7 @@ class BosonImpl(
                     val res = extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
-                   codec.setReaderIndex(finishReaderIndex)
+                    codec.setReaderIndex(finishReaderIndex)
                     codec.getDataType match {
                       case 0 =>
                         codec.setReaderIndex(startReaderIndex)
@@ -895,7 +893,7 @@ class BosonImpl(
             val value0 = codec.readToken(SonString(CS_STRING))
             List(C_MATCH)
           } else {
-           // val value0 =  codec.readToken(SonString(CS_STRING))
+            // val value0 =  codec.readToken(SonString(CS_STRING))
             codec.consumeValue(seqType)
             Nil
           }
@@ -969,7 +967,7 @@ class BosonImpl(
                 Nil
               case C_LIMIT =>
                 codec.setReaderIndex(start)
-               codec.readSize
+                codec.readSize
                 extractFromBsonObj(codec,keyList,finish,limitList) match {
                   case value if value.isEmpty =>
                     codec.setReaderIndex(arrayFinishReaderIndex)
@@ -987,7 +985,7 @@ class BosonImpl(
             val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
             List(C_MATCH)
           } else {
-           // val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
+            // val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
             codec.consumeValue(seqType)
             Nil
           }
@@ -1166,15 +1164,15 @@ class BosonImpl(
           result.writeByte(dataType)//TODO - Do before
         case _ =>
           result.writeByte(dataType)//TODO - Idem
-          val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buffer.getByte(buffer.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-              val b: Byte = buffer.readByte()
-              key.append(b)
-            }
+        val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
+          val key: ListBuffer[Byte] = new ListBuffer[Byte]
+          while (buffer.getByte(buffer.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
             val b: Byte = buffer.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
+            key.append(b)
           }
+          val b: Byte = buffer.readByte()
+          (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
+        }
           result.writeBytes(key).writeByte(b)
           new String(key) match {
             case x if fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x) =>
@@ -1955,20 +1953,20 @@ class BosonImpl(
         bytes.release()
       case D_BSONOBJECT =>
         val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
-//        if (condition.equals(TO_RANGE)) // || condition.equals(C_END))
-//          //result.writeBytes(res.getByteBuf)
-//        else if (condition.equals(C_END))
-//         // result.writeBytes(res.getByteBuf)
-//        else
-         // resultCopy.writeBytes(res.getByteBuf)
-       // res.getByteBuf.release()
+      //        if (condition.equals(TO_RANGE)) // || condition.equals(C_END))
+      //          //result.writeBytes(res.getByteBuf)
+      //        else if (condition.equals(C_END))
+      //         // result.writeBytes(res.getByteBuf)
+      //        else
+      // resultCopy.writeBytes(res.getByteBuf)
+      // res.getByteBuf.release()
       case D_BSONARRAY =>
         val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
-//        if (condition.equals(TO_RANGE))
-//       //   result.writeBytes(res.getByteBuf)
-//        else if (condition.equals(C_END))
-//       //   result.writeBytes(res.getByteBuf)
-//        else
+      //        if (condition.equals(TO_RANGE))
+      //       //   result.writeBytes(res.getByteBuf)
+      //        else if (condition.equals(C_END))
+      //       //   result.writeBytes(res.getByteBuf)
+      //        else
       //    resultCopy.writeBytes(res.getByteBuf)
 
       //  res.getByteBuf.release()
@@ -2046,56 +2044,56 @@ class BosonImpl(
                   val res: BosonImpl = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup)
                   //val buf2: ByteBuf = execStatementPatternMatch(res.getByteBuf.duplicate(), list, f)
 
-//                  if (condition.equals(TO_RANGE))
-//                  //  result.writeBytes(buf2)
-//                  else if (condition.equals(UNTIL_RANGE))
-//                  //  resultCopy.writeBytes(buf2)
-//                  else {
-                    // //////println("condition END")
-                 //   result.writeBytes(buf2)
-                    //resultCopy.writeBytes(res.getByteBuf)
-                 // }
+                  //                  if (condition.equals(TO_RANGE))
+                  //                  //  result.writeBytes(buf2)
+                  //                  else if (condition.equals(UNTIL_RANGE))
+                  //                  //  resultCopy.writeBytes(buf2)
+                  //                  else {
+                  // //////println("condition END")
+                  //   result.writeBytes(buf2)
+                  //resultCopy.writeBytes(res.getByteBuf)
+                  // }
 
                   buf1.release()
                   //buf2.release()
-                 // res.getByteBuf.release()
+                  // res.getByteBuf.release()
                 } else {
                   val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
-//                  if (condition.equals(TO_RANGE))
-//                 //   result.writeBytes(res.getByteBuf)
-//                  else if (condition.equals(UNTIL_RANGE))
-//                 //   resultCopy.writeBytes(res.getByteBuf)
-//                  else {
-//                 //   result.writeBytes(res.getByteBuf)
-//                  }
-//                 // res.getByteBuf.release()
+                  //                  if (condition.equals(TO_RANGE))
+                  //                 //   result.writeBytes(res.getByteBuf)
+                  //                  else if (condition.equals(UNTIL_RANGE))
+                  //                 //   resultCopy.writeBytes(res.getByteBuf)
+                  //                  else {
+                  //                 //   result.writeBytes(res.getByteBuf)
+                  //                  }
+                  //                 // res.getByteBuf.release()
                 }
               } else {
                 if (list.head._2.contains(C_DOUBLEDOT)) {
 
                   val size: Int = buffer.getIntLE(buffer.readerIndex())
                   val buf1: ByteBuf = buffer.readRetainedSlice(size)
-                 // val buf2: ByteBuf = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup).getByteBuf
+                  // val buf2: ByteBuf = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup).getByteBuf
                   buf1.release()
-//                  if (condition.equals(TO_RANGE))
-//                  //  result.writeBytes(buf2)
-//                  else if (condition.equals(UNTIL_RANGE))
-//                 //   resultCopy.writeBytes(buf2)
-//                  else {
-//                 //   result.writeBytes(buf2)
-//                  }
-                 /// buf2.release()
+                  //                  if (condition.equals(TO_RANGE))
+                  //                  //  result.writeBytes(buf2)
+                  //                  else if (condition.equals(UNTIL_RANGE))
+                  //                 //   resultCopy.writeBytes(buf2)
+                  //                  else {
+                  //                 //   result.writeBytes(buf2)
+                  //                  }
+                  /// buf2.release()
 
                 } else {
                   val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
-//                  if (condition.equals(TO_RANGE))
-//                //    result.writeBytes(res.getByteBuf)
-//                  else if (condition.equals(UNTIL_RANGE))
-//                 //   resultCopy.writeBytes(res.getByteBuf)
-//                  else {
-//                 //   result.writeBytes(res.getByteBuf)
-//                  }
-//                //  res.getByteBuf.release()
+                  //                  if (condition.equals(TO_RANGE))
+                  //                //    result.writeBytes(res.getByteBuf)
+                  //                  else if (condition.equals(UNTIL_RANGE))
+                  //                 //   resultCopy.writeBytes(res.getByteBuf)
+                  //                  else {
+                  //                 //   result.writeBytes(res.getByteBuf)
+                  //                  }
+                  //                //  res.getByteBuf.release()
                 }
               }
             case x if (fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x)) && dataType != D_BSONARRAY =>
@@ -2169,9 +2167,9 @@ class BosonImpl(
           val keyString: String = new String(k)
           keyString match {
             case x if (key.toCharArray.deep == x.toCharArray.deep || isHalfword(key, x)) && dataType == D_BSONARRAY =>
-             // val newBuf: ByteBuf = searchAndModify(list, buf, elem, f).getByteBuf
-             // result.writeBytes(newBuf)
-             // newBuf.release()
+            // val newBuf: ByteBuf = searchAndModify(list, buf, elem, f).getByteBuf
+            // result.writeBytes(newBuf)
+            // newBuf.release()
             case x if (key.toCharArray.deep == x.toCharArray.deep || isHalfword(key, x)) && (dataType != D_BSONARRAY) =>
               if (list.head._2.contains(C_DOUBLEDOT))
                 processTypesHasElem(list, dataType, key, elem, buf, f, result)
