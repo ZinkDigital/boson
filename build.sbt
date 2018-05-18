@@ -3,39 +3,38 @@ import sbt.Resolver
 
 val basicSettings = Seq(
 
-organization:="io.zink",
+  organization := "io.zink",
 
-version := "0.5.0",
+  version := "0.5.0",
 
-scalaVersion := "2.12.3",
+  scalaVersion := "2.12.3",
 
- javacOptions  ++= Seq("-Xdoclint:none","-g:none"),
+javacOptions  ++= Seq("-Xdoclint:none","-g:none"),
 
-//javacOptions += "-g:none",
-scalacOptions in Test ++= Seq(
+//javacOptions += "-g:none",scalacOptions in Test ++= Seq(
   "-encoding",
   "UTF-8"
 ),
 
-testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
+  testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
 
-compileOrder := CompileOrder.Mixed,
-compileOrder in Test:= CompileOrder.Mixed,
+  compileOrder := CompileOrder.Mixed,
+  compileOrder in Test := CompileOrder.Mixed,
 
-//  Creates a jar with all libraries necessary
-assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-  case x => MergeStrategy.first
-},
+  //  Creates a jar with all libraries necessary
+  assemblyMergeStrategy in assembly := {
+    case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case x => MergeStrategy.first
+  },
 
-libraryDependencies ++= libraries ++ testLibraries,
-homepage := Some( url("https://github.com/ZinkDigital/boson")),
-description := "Boson - Streaming for JSON and BSON",
-licenses += "The Apache License, Version 2.0" ->
-  url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
+  libraryDependencies ++= libraries ++ testLibraries,
+  homepage := Some(url("https://github.com/ZinkDigital/boson")),
+  description := "Boson - Streaming for JSON and BSON",
+  licenses += "The Apache License, Version 2.0" ->
+    url("http://www.apache.org/licenses/LICENSE-2.0.txt"),
 
-pomIncludeRepository := { _ => false },
-publishArtifact in Test := false,
+  pomIncludeRepository := { _ => false },
+  publishArtifact in Test := false,
 
 
 // The developers of the project
@@ -45,8 +44,11 @@ developers := List(
     name= "zink",
     email="hello@zink.io",
     url=url("http://www.zink.io")
-  )
+
+)
   // then Growin' in here
+
+
 ),
 // Information about the source code repository of your code
 scmInfo := Some(
@@ -57,9 +59,9 @@ scmInfo := Some(
   ),
   //useGpg := true,
   //pgpReadOnly := true,
-                                        
+
 credentials += Credentials(Path.userHome /".sbt" /".credentials"),
- 
+
   //pgpPassphrase := Some("boson0000".toArray),
   pgpSecretRing := file("/Users/ricardomartins/.gnupg/secring.gpg"),
   publishMavenStyle := true,
@@ -79,7 +81,7 @@ val noPublishing = Seq(
   publishArtifact := false,
   publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))))
 
- 
+
 
 def javaDoc = Seq(
   doc in Compile := {
@@ -116,22 +118,14 @@ val libraries = Seq(
 
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
-  "org.scala-lang" % "scala-compiler" % "2.11.12",
-  "org.parboiled" %% "parboiled" % "2.1.4"//,
-//
-//  "com.typesafe.akka" %% "akka-http" % "10.0.5",
-// "com.typesafe.akka" %% "akka-actor" % "2.5.1",
-// "com.typesafe.akka" %% "akka-stream" % "2.5.1",
-// "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1",
-//"com.typesafe.akka" %% "akka-testkit" % "2.5.1",
-//"com.typesafe.akka" %% "akka-http-testkit" % "10.0.5"
-
+  "org.parboiled" %% "parboiled" % "2.1.4",
+  "net.jodah" % "typetools" % "0.5.0"
 )
 
 val testLibraries = Seq(
-  "org.scalatest"     %% "scalatest"   % "3.0.3" % Test withSources(),
+  "org.scalatest" %% "scalatest" % "3.0.3" % Test withSources(),
   "de.undercouch" % "bson4jackson" % "2.7.0",
-  "junit"             %  "junit"       % "4.12"  % Test,
+  "junit" % "junit" % "4.12" % Test,
   "io.vertx" % "vertx-core" % "3.5.0",
   "com.novocode" % "junit-interface" % "0.11" % "test",
   "com.jayway.jsonpath" % "json-path" % "2.4.0",
@@ -145,11 +139,10 @@ val testLibraries = Seq(
 
 
 
-
-lazy val root = project.in( file("."))
-    .aggregate(bosonCore, bosonScala, bosonJava)
+lazy val root = project.in(file("."))
+  .aggregate(bosonCore, bosonScala, bosonJava)
   .settings(basicSettings: _*)
-  .settings (noPublishing: _*)
+  .settings(noPublishing: _*)
 
 lazy val bosonCore = project.in(file("boson-core"))
   .settings(basicSettings: _*)
@@ -162,7 +155,7 @@ lazy val bosonCore = project.in(file("boson-core"))
   )
 
 lazy val bosonScala = project.in(file("boson-scala"))
-    .dependsOn(bosonCore)
+  .dependsOn(bosonCore)
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
   .settings(

@@ -2,12 +2,11 @@ package io.zink.boson
 
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.util.ResourceLeakDetector
-import io.zink.boson.bson.bsonImpl.BosonImpl
-import io.zink.boson.bson.bsonPath.Interpreter
-import org.junit.Assert.{assertEquals, assertTrue}
+import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -34,7 +33,7 @@ class LanguageTests extends FunSuite {
     val expression = "fridgeTemp"
     val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
       assertTrue(Seq(5.2f, 15, 5.0, 12, 3.854f, 18).zip(in).forall(e=>e._1 == e._2))
-      println("APPLIED")
+//      println("APPLIED")
     })
     val res = boson.go(bsonEvent.encode.getBytes)
     Await.result(res, Duration.Inf)
