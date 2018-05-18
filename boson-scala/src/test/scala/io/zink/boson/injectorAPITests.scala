@@ -437,35 +437,42 @@ class injectorAPITests extends FunSuite {
 //
 //  }
 
-//  test("ProgStatement 1 arr*ay[0 until 1].damn*n[0 until 1].google"){
-//    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
-//    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
-//    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
-//    val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
-//    //val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
-//    val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux)//.add(bAux1)
-//    val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
-//
-//    //val newFridgeSerialCode: String = " what?"
-//    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
-//    //val expression = "a*rray.dam*nnn.cree*.goo*e"//.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
-//    val expression = "arr*ay[0 until 1].damn*n[0 until 1].google"
-//    val expression1 = "google"
-//    val boson: Boson = Boson.injector(expression, (in: String) => "sdfsf")
-//    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
-//
-//    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
-//    val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
-//
-//    Await.result(midResult, Duration.Inf)
-//    val result: Array[Byte] = midResult.value.get.get
-//    val finalResult: Future[Array[Byte]] = boson1.go(result)
-//    Await.result(finalResult, Duration.Inf)
-//
-//    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
-//    assertEquals(Vector("sdfsf", "DAMMN", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
-//
-//  }
+  test("ProgStatement 1 arr*ay[0 until 1].damn*n[0 until 1].google"){
+    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
+    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2).add(bAux2)
+    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
+    val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
+    val bsonEvent: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false).put("string", "the").put("bson", bAux)
+    val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux).add(bAux1)
+    val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
+
+    val newFridgeSerialCode: String = " what?"
+    val validBsonArray: Array[Byte] = bsonObjectRoot.encodeToBarray
+    //val expression = "a*rray.dam*nnn.cree*.goo*e.[2 to 3].efwwf.efwfwefwef.[@elem].*.[0]..first"
+
+
+    val expression = "arr*ay[0 until 1].damn*n[1 until 2].google"
+
+
+
+    val expression1 = "..google"
+
+
+    val boson: Boson = Boson.injector(expression, (in: String) => in.concat("hello"))
+    val midResult: Future[Array[Byte]] = boson.go(validBsonArray)
+
+    val future: CompletableFuture[BsValue] = new CompletableFuture[BsValue]()
+    val boson1: Boson = Boson.extractor(expression1, (in: BsValue) => future.complete(in))
+
+    Await.result(midResult, Duration.Inf)
+    val result: Array[Byte] = midResult.value.get.get
+    val finalResult: Future[Array[Byte]] = boson1.go(result)
+    Await.result(finalResult, Duration.Inf)
+
+    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
+    assertEquals(Vector("DAMMN", "DAMMNhello", "DAMMN", "DAMMN", "DAMMN", "DAMMN"),a  )
+
+  }
 
 
 //  test("ProgStatement array[@damnnn].damnnn[@google].google"){

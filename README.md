@@ -4,8 +4,12 @@
 Streaming Data Access for BSON and JSON encoded documents  
   
 [![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)  
-  
-# Table of Contents  
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosoncore/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosoncore)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava)
+
+# Table of Contents
   
 - [Scala QuickStart Guide](#id-quickStartGuideScala)  
    * [Boson](#id-BosonScala)  
