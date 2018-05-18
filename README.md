@@ -5,10 +5,6 @@ Streaming Data Access for BSON and JSON encoded documents
   
 [![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
 
-Bosoncore
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosoncore/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosoncore)
-
 Bosonscala
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
@@ -42,19 +38,6 @@ Bosonjava
   
 Boson is available through the Central Maven Repository.  
 For SBT users, please add the following dependency in your build.sbt:
-
-Bosoncore:
-```scala  
-libraryDependencies += “io.zink” % “bosoncore” % “0.5.0”
-```  
-For Maven users, please add the following dependency in your pom.xml:  
-```xml  
-<dependency>  
-    <groupId>io.zink</groupId>  
-    <artifactId>bosoncore</artifactId>
-    <version>0.5.0</version>
-</dependency>  
-```
 
 Bosonscala:
 ```scala
