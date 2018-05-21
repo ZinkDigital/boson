@@ -1170,18 +1170,18 @@ class BosonImpl(
       val dataType: Int = codec.readDataType
       dataType match {
         case 0 => // Final
-          codec.writeInformation(Array(dataType.toByte)) // change to writeToken
+          codec.writeToken(SonNumber(CS_INTEGER, dataType)) // change to writeToken
         case _ =>
-          val codecWithDataType = codec.writeInformation(Array(dataType.toByte)) // writeToken
-        val (key, b): (Array[Byte], Array[Byte]) = {
+          val codecWithDataType = codec.writeToken(SonNumber(CS_INTEGER, dataType)) // writeToken
+        val (key, b): (String, Int) = {
           val key: String = codecWithDataType.readKey //get the key as a String
           val token = codecWithDataType.readToken(SonBoolean(C_ZERO))
           val b: Byte = token match {
             case SonBoolean(_, result) => result.asInstanceOf[Byte]
           }
-          (key.getBytes, Array(b))
+          (key, b)
         }
-          val codecWithKey = codecWithDataType.writeInformation(key).writeInformation(b)
+          val codecWithKey = codecWithDataType.writeToken(SonString(CS_STRING, key)).writeToken(SonNumber(CS_INTEGER, b))
 
           new String(key) match {
             case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
@@ -1265,7 +1265,7 @@ class BosonImpl(
       case D_ZERO_BYTE =>
       case D_FLOAT_DOUBLE =>
         val info = codec.readToken(SonNumber(CS_DOUBLE)) match {
-          case SonNumber(_,result) => result.asInstanceOf[Double]
+          case SonNumber(_, result) => result.asInstanceOf[Double]
         }
         codec.writeInformation(Array(info.toByte))
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -1276,20 +1276,20 @@ class BosonImpl(
       //        result.writeCharSequence(codec.readCharSequence(valueLength, charset), charset)
       case D_BSONOBJECT =>
         val length: Int = codec.readSize
-//        val length: Int = codec.getIntLE(codec.readerIndex())
-        codec.writeInformation(Array(length.toByte))//TODO - Maybe not??
-        codec.writeInformation(codec.readNextInformation(D_BSONOBJECT,length))
-//        val bsonBuf: ByteBuf = buf.readBytes(length)
-//        result.writeBytes(bsonBuf)
-//        bsonBuf.release()
+        //        val length: Int = codec.getIntLE(codec.readerIndex())
+        codec.writeInformation(Array(length.toByte)) //TODO - Maybe not??
+        codec.writeInformation(codec.readNextInformation(D_BSONOBJECT, length))
+      //        val bsonBuf: ByteBuf = buf.readBytes(length)
+      //        result.writeBytes(bsonBuf)
+      //        bsonBuf.release()
       case D_BSONARRAY =>
         val length: Int = codec.readSize
-        codec.writeInformation(Array(length.toByte))//TODO - Maybe not??
-//        val length: Int = codec.getIntLE(codec.readerIndex())
-        codec.writeInformation(codec.readNextInformation(D_BSONARRAY,length))
-//        val bsonBuf: ByteBuf = codec.readBytes(length)
-//        result.writeBytes(bsonBuf)
-//        bsonBuf.release()
+        codec.writeInformation(Array(length.toByte)) //TODO - Maybe not??
+        //        val length: Int = codec.getIntLE(codec.readerIndex())
+        codec.writeInformation(codec.readNextInformation(D_BSONARRAY, length))
+      //        val bsonBuf: ByteBuf = codec.readBytes(length)
+      //        result.writeBytes(bsonBuf)
+      //        bsonBuf.release()
       case D_NULL => throw Exception
       case D_INT =>
         codec.writeInformation(codec.readNextInformation(D_INT))
@@ -1331,59 +1331,59 @@ class BosonImpl(
       }*/
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = codec.getSize
-        val array: Array[Byte] = codec.readNextInformation(D_ZERO_BYTE,length)
-//        val array: ByteBuf = Unpooled.buffer(length - 1).writeBytes(codec.readCharSequence(length - 1, charset).toString.getBytes)
-//        codec.readByte()
+        val array: Array[Byte] = codec.readNextInformation(D_ZERO_BYTE, length)
+        //        val array: ByteBuf = Unpooled.buffer(length - 1).writeBytes(codec.readCharSequence(length - 1, charset).toString.getBytes)
+        //        codec.readByte()
         val value: Any = applyFunction(f, array)
-//        array.release()
+        //        array.release()
         value match {
           case ab: Array[Byte] => codec.writeInformation(ab)
           case _ => throw Exception
         }
-        /*
-        Option(value) match {
-          case Some(n: Array[Byte]) =>
-            result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
-          case Some(n: String) =>
-            val aux: Array[Byte] = n.getBytes()
-            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-          case Some(n: Instant) =>
-            val aux: Array[Byte] = n.toString.getBytes()
-            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-          case _ =>
-        }
-        */
+      /*
+      Option(value) match {
+        case Some(n: Array[Byte]) =>
+          result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
+        case Some(n: String) =>
+          val aux: Array[Byte] = n.getBytes()
+          result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
+        case Some(n: Instant) =>
+          val aux: Array[Byte] = n.toString.getBytes()
+          result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
+        case _ =>
+      }
+      */
       case D_BSONOBJECT =>
         val length: Int = codec.getSize
-//        val valueLength: Int = codec.getIntLE(codec.readerIndex())
-        val bsonArray: Array[Byte] = codec.readNextInformation(D_ZERO_BYTE,length)
-//        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-//        val arrayBytes: Array[Byte] = buf.array()
-//        buf.release()
-//        val bsonBytes: Array[Byte] = arrayBytes
-//        bson.release()
+        //        val valueLength: Int = codec.getIntLE(codec.readerIndex())
+        val bsonArray: Array[Byte] = codec.readNextInformation(D_ZERO_BYTE, length)
+        //        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+        //        val arrayBytes: Array[Byte] = buf.array()
+        //        buf.release()
+        //        val bsonBytes: Array[Byte] = arrayBytes
+        //        bson.release()
         val value: Any = applyFunction(f, bsonArray)
         value match {
           case ab: Array[Byte] => codec.writeInformation(ab)
           case _ => throw Exception
         }
-//        (result.writeBytes(newValue), newValue.length - valueLength)
+      //        (result.writeBytes(newValue), newValue.length - valueLength)
       case D_BSONARRAY =>
         val length: Int = codec.getSize
-//        val valueLength: Int = codec.getIntLE(codec.readerIndex())
-        val bsonArray: Array[Byte] = codec.readNextInformation(D_ZERO_BYTE,length)
-//        val bson: ByteBuf = codec.readBytes(valueLength)
-//        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-//        val arrayBytes: Array[Byte] = buf.array()
-//        buf.release()
-//        val bsonBytes: Array[Byte] = arrayBytes
-//        bson.release()
+        //        val valueLength: Int = codec.getIntLE(codec.readerIndex())
+        val bsonArray: Array[Byte] = codec.readNextInformation(D_ZERO_BYTE, length)
+        //        val bson: ByteBuf = codec.readBytes(valueLength)
+        //        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
+        //        val arrayBytes: Array[Byte] = buf.array()
+        //        buf.release()
+        //        val bsonBytes: Array[Byte] = arrayBytes
+        //        bson.release()
         val value: Any = applyFunction(f, bsonArray)
         value match {
           case ab: Array[Byte] => codec.writeInformation(ab)
           case _ => throw Exception
         }
-//        (result.writeBytes(value), value.length - valueLength)
+      //        (result.writeBytes(value), value.length - valueLength)
       case D_BOOLEAN =>
         val value0: Array[Byte] = codec.readNextInformation(D_BOOLEAN)
         val value: Any = applyFunction(f, value0)
@@ -1393,7 +1393,7 @@ class BosonImpl(
         }
       case D_NULL =>
         throw Exception
-//        throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
+      //        throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
         val value0: Array[Byte] = codec.readNextInformation(D_INT)
         val value: Any = applyFunction(f, value0)
@@ -1430,45 +1430,45 @@ class BosonImpl(
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val length: Int = codec.readSize
         val codecAux = codec.writeInformation(Array(length.toByte))
-        codecAux.writeInformation(codec.readNextInformation(D_ARRAYB_INST_STR_ENUM_CHRSEQ,length))
-        /*val valueLength: Int = codec.readSize
-        val codec.readNextInformation()
-        result.writeIntLE(valueLength)
-        val buf: ByteBuf = codec.readBytes(valueLength)
-        result.writeBytes(buf)
-        buf.release()*/
+        codecAux.writeInformation(codec.readNextInformation(D_ARRAYB_INST_STR_ENUM_CHRSEQ, length))
+      /*val valueLength: Int = codec.readSize
+      val codec.readNextInformation()
+      result.writeIntLE(valueLength)
+      val buf: ByteBuf = codec.readBytes(valueLength)
+      result.writeBytes(buf)
+      buf.release()*/
       case D_BSONOBJECT =>
-//        val length: Int = codec.readSize
+        //        val length: Int = codec.readSize
         val partialCodec: Codec = codec.getPartialData match {
           case Left(x) => CodecObject.toCodec(x)
           case Right(x) => CodecObject.toCodec(x)
         }
-        val codecAux = modifyAll(list,partialCodec,fieldID,f)
-        codec.writeInformation(codecAux.readNextInformation(D_BSONOBJECT,codecAux.readSize))
-        /*val length: Int = codec.getIntLE(codec.readerIndex())
-        val bsonBuf: ByteBuf = codec.readBytes(length)
-        val resultAux: ByteBuf = modifyAll(list, bsonBuf, fieldID, f)
-        bsonBuf.release()
-        result.writeBytes(resultAux)
-        resultAux.release()*/
+        val codecAux = modifyAll(list, partialCodec, fieldID, f)
+        codec.writeInformation(codecAux.readNextInformation(D_BSONOBJECT, codecAux.readSize))
+      /*val length: Int = codec.getIntLE(codec.readerIndex())
+      val bsonBuf: ByteBuf = codec.readBytes(length)
+      val resultAux: ByteBuf = modifyAll(list, bsonBuf, fieldID, f)
+      bsonBuf.release()
+      result.writeBytes(resultAux)
+      resultAux.release()*/
       case D_BSONARRAY =>
         val partialCodec: Codec = codec.getPartialData match {
           case Left(x) => CodecObject.toCodec(x)
           case Right(x) => CodecObject.toCodec(x)
         }
-        val codecAux = modifyAll(list,partialCodec,fieldID,f)
-        codec.writeInformation(codecAux.readNextInformation(D_BSONARRAY,codecAux.readSize))
-//        val resultAux: ByteBuf = modifyAll(list, bsonBuf, fieldID, f)
-//        bsonBuf.release()
-//        result.writeBytes(resultAux)
-//        resultAux.release()
+        val codecAux = modifyAll(list, partialCodec, fieldID, f)
+        codec.writeInformation(codecAux.readNextInformation(D_BSONARRAY, codecAux.readSize))
+      //        val resultAux: ByteBuf = modifyAll(list, bsonBuf, fieldID, f)
+      //        bsonBuf.release()
+      //        result.writeBytes(resultAux)
+      //        resultAux.release()
       case D_NULL => throw Exception
       case D_INT =>
         codec.writeInformation(codec.readNextInformation(D_INT))
-//        result.writeIntLE(codec.readIntLE())
+      //        result.writeIntLE(codec.readIntLE())
       case D_LONG =>
         codec.writeInformation(codec.readNextInformation(D_LONG))
-//        result.writeLongLE(codec.readLongLE())
+      //        result.writeLongLE(codec.readLongLE())
       case D_BOOLEAN =>
         result.writeBoolean(codec.readBoolean())
     }

@@ -585,10 +585,10 @@ class CodecJson(str: String) extends Codec {
   /**
     * Method that duplicates the current codec, writes the information to the duplicated codec and returns it
     *
-    * @param information - the information to write to the codec
+    * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeInformation(information: Array[Byte]): Codec = ???
+  override def writeToken(token: SonNamedType): Codec = ???
 
   //Maybe in readKey we should not read the last quote, because in CodecBson we read the key and then read a single byte (the closing byte)
   //so maybe in CodecJson we should read the entire key except the last quote so we can read the last quote seperatly afterwards, so that both

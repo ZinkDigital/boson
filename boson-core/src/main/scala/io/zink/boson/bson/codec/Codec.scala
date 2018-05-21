@@ -185,10 +185,10 @@ trait Codec {
   /**
     * Method that duplicates the current codec, writes the information to the duplicated codec and returns it
     *
-    * @param information - the information to write to the codec
+    * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeInformation(information: Array[Byte]): Codec
+  def writeToken(token: SonNamedType): Codec //TODO Change input to be a SonNamedType , example if we want to write a double we say writeToken(SonNumber(D_DOUBLE, informatioToWirte))
 
   /**
     * Method that reads the key from the codec and returns it

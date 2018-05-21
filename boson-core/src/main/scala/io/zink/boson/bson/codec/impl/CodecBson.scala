@@ -362,14 +362,15 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   /**
     * Method that duplicates the current codec, writes the information to the duplicated codec and returns it
     *
-    * @param information - the information to write to the codec
+    * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeInformation(information: Array[Byte]): Codec = {
-    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
-    newB.readerIndex(buff.readerIndex)
-    newB.writeBytes(information)
-    new CodecBson(arg, Some(newB))
+  override def writeToken(token: SonNamedType): Codec = {
+    //    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
+    //    newB.readerIndex(buff.readerIndex)
+    //    newB.writeBytes(information)
+    //    new CodecBson(arg, Some(newB))
+    ???
   }
 
   /**
