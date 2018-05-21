@@ -3,7 +3,7 @@
   
 Streaming Data Access for BSON and JSON encoded documents  
   
-[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
+[![Build Status](https://travis-ci.org/ZinkDigital/boson.svg?branch=master)](https://travis-ci.org/ZinkDigital/boson)
 
 Bosonscala
 
