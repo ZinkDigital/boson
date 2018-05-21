@@ -3,8 +3,6 @@ package io.zink.boson.bson.codec
 import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
 
-import scala.collection.mutable.ListBuffer
-
 
 /**
   * Trait that represents the DSL used by the codecs to interchange data between codec and BosonImpl
@@ -187,7 +185,7 @@ trait Codec {
     *
     * @return The consumed byte/character
     */
-  def readNextInformation: Byte //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
+  def readNextInformation(tp: Int): Byte //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
 
 
   //--------------------------------------------Injector functions-----------------------------------------

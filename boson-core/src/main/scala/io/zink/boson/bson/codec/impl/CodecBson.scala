@@ -1,5 +1,6 @@
 package io.zink.boson.bson.codec.impl
 
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.Any
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
@@ -366,7 +367,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     new CodecBson(arg, Some(newB))
   }
 
-  override def readKey: String = {
+  override def readKey: ListBuffer[Byte] = {
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
     while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
       val b: Byte = arg.readByte()
@@ -375,6 +376,20 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     new String(key.toArray)
   }
 
-  override def readNextInformation: Byte = arg.readByte()
+  override def readNextInformation(tp: Int): Byte =  tp match {
+      case 0  => arg.readByte()
+      case 1  => arg.readFloatLE().toByte //Double??
+      case 2  => ???
+      case 3  => ???
+      case 4  => ???
+      case 8  => arg.readBoolean() match {
+        case true => 1
+        case false => 0
+      }
+      case 16 => arg.readIntLE().toByte
+      case 18 => arg.readLongLE().toByte
+    }
+
+
 
 }
