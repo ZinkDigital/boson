@@ -581,13 +581,13 @@ class CodecJson(str: String) extends Codec {
   //
   //-------------------------------------Injector functions--------------------------
 
-  override def writeInformation(byte: Int): Codec = ???
+  override def writeInformation(information: Array[Byte]): Codec = ???
 
   //Maybe in readKey we should not read the last quote, because in CodecBson we read the key and then read a single byte (the closing byte)
   //so maybe in CodecJson we should read the entire key except the last quote so we can read the last quote seperatly afterwards, so that both
   //codecs are compliant with each other
-  override def readKey: ListBuffer[Byte] = ??? //TODO change this from ListBuffer[Byte] to something else like String
+  override def readKey: String = ???
 
-  override def readNextInformation: Int = ???
+  override def readNextInformation: Byte = ???
 }
 
