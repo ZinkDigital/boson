@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
   * @param arg Value of type Array[Byte] representing the Bson after being encodec
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
   */
-class CodecBson(var arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
+class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   //val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
   /**
     * buff is a value of type ByteBuf to process the value received by the user
@@ -278,9 +278,7 @@ class CodecBson(var arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   override def duplicate: Codec = {
     val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
     newB.readerIndex(buff.readerIndex)
-    val c = new CodecBson(arg, Some(newB))
-    c
-
+    new CodecBson(arg, Some(newB))
   }
 
   /**
@@ -361,17 +359,22 @@ class CodecBson(var arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
   //-------------------------------------Injector functions--------------------------
 
-  override def writeInformation(byte: Int): Codec = ???
+  override def writeInformation(information: Array[Byte]): Codec = {
+    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
+    newB.readerIndex(buff.readerIndex)
+    newB.writeBytes(information)
+    new CodecBson(arg, Some(newB))
+  }
 
-  override def readKey: ListBuffer[Byte] = {
+  override def readKey: String = {
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
     while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
       val b: Byte = arg.readByte()
       key.append(b)
     }
-    key
+    new String(key.toArray)
   }
 
-  override def readNextInformation: Int = arg.readByte()
+  override def readNextInformation: Byte = arg.readByte()
 
 }

@@ -187,7 +187,7 @@ trait Codec {
     *
     * @return The consumed byte/character
     */
-  def readNextInformation: Int //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
+  def readNextInformation: Byte //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
 
 
   //--------------------------------------------Injector functions-----------------------------------------
@@ -198,14 +198,14 @@ trait Codec {
     * @param information - the information to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeInformation(information: Int): Codec //TODO Support something else for JSON
+  def writeInformation(information: Array[Byte]): Codec
 
   /**
     * Method that reads the key from the codec and returns it
     *
     * @return - The key that was read from the Codec
     */
-  def readKey: ListBuffer[Byte]
+  def readKey: String
 }
 
 

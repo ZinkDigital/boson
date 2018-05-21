@@ -1169,21 +1169,15 @@ class BosonImpl(
       val dataType: Int = codec.readDataType
       dataType match {
         case 0 => // Final
-          codec.writeInformation(dataType)
+          codec.writeInformation(Array(dataType.toByte))
         case _ =>
-          val codecWithDataType = codec.writeInformation(dataType)
-          val (isArray, key, b): (Boolean, Array[Byte], Int) = {
-            //            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            //            while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-            //              val b: Byte = arg.readByte()
-            //              key.append(b)
-            //            }
-            val key: ListBuffer[Byte] = codecWithDataType.readKey
-            val b: Int = codecWithDataType.readNextInformation //TODO maybe change this to byte ?
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
+          val codecWithDataType = codec.writeInformation(Array(dataType.toByte))
+          val (key, b): (Array[Byte], Byte) = {
+            val key: String = codecWithDataType.readKey //get the key as a String
+            val b: Byte = codecWithDataType.readNextInformation //read the last 0 (for codecBson) or do nothing (or read last quote) for codecJson
+            (key.getBytes, b)
           }
-          //TODO stopped here
-          //          result.writeBytes(key).writeByte(b)
+          val codecWithKey = codecWithDataType.writeInformation(key).writeInformation(Array(b))
           new String(key) match {
             case x if fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x) =>
               /*
