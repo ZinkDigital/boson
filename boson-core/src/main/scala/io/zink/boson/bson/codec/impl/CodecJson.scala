@@ -579,13 +579,6 @@ class CodecJson(str: String) extends Codec {
       readerIndex += size
   }
 
-  /**
-    * Method that consumes a single byte or a single character
-    *
-    * @return The consumed byte/character
-    */
-  override def readNextInformation(dataType: Int, length: Int = 1): Array[Byte] = ???
-
   //
   //-------------------------------------Injector functions--------------------------
 

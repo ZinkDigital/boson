@@ -357,25 +357,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     case _ =>
   }
 
-  /**
-    * Method that consumes a single byte or a single character
-    *
-    * @return The consumed byte/character
-    */
-  override def readNextInformation(dataType: Int, length: Int = 1): Array[Byte] =  dataType match {
-    case 0  => Array(buff.readByte())
-    case 1  => Array(buff.readFloatLE().toByte) //Double??
-    case 2  => buff.readBytes(length).array()
-    case 3  => buff.readBytes(length).array()
-    case 4  => buff.readBytes(length).array()
-    case 8  => buff.readBoolean() match {
-      case true => Array(1)
-      case false => Array(0)
-    }
-    case 16 => Array(buff.readIntLE().toByte)
-    case 18 => Array(buff.readLongLE().toByte)
-  }
-
   //-------------------------------------Injector functions--------------------------
 
   /**

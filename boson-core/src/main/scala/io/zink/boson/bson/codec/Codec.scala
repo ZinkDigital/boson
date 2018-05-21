@@ -180,14 +180,6 @@ trait Codec {
     */
   def consumeValue(seqType: Int): Unit
 
-  /**
-    * Method that consumes a single byte or a single character
-    *
-    * @return The consumed byte/character
-    */
-  def readNextInformation(dataType: Int, length: Int = 1): Array[Byte] //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
-
-
   //--------------------------------------------Injector functions-----------------------------------------
 
   /**
