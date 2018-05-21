@@ -39,9 +39,9 @@ Bosonjava
 
 ### Boson  
 
-A "Boson" is an object created to wrap either BSON encoded as a Byte Array or JSON encoded as a String, and to associate various Extractors and/or Injectors that processes the input according to a given expression in a type safe manner. The input is traversed only as needed add and so Extraction / Injection may complete before a single pass of the input data has been complete, and will complete ion at most one complete pass over the input data.
+A "Boson" is an object created to wrap either BSON encoded as a Byte Array, or JSON encoded as a String, and to associate various Extractors and/or Injectors that processes the input according to a given expression in a type safe manner. The input is traversed only as needed and so Extraction / Injection may complete before a single pass of the input data has been complete, and will complete in at most one complete pass over the input data.
 
-This make Boson extremely fast for certain types of BSON and JSON processing tasks 
+This make Boson extremely fast and type safe for certain types of BSON and JSON processing tasks. 
 
 <div id='id-bosonExtractionScala'/>  
   
@@ -109,15 +109,6 @@ val fused: Boson = ext.fuse(inj)
 //Finally call go() providing the byte array or a ByteBuffer on the new Boson object.  
 val result: Future[Array[Byte]] = fused.go(validatedByteArray) 
 ```  
-<div id='id-quickStartGuideJava'/>  
-  
-## QuickStart Guide  
-  
-
-  
-### Boson  
-
-A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
 
 <div id='id-bosonExtractionJava'/>  
   
