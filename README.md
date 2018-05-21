@@ -36,15 +36,17 @@ Bosonjava
   
 ## QuickStart Guide  
   
- 
+
 ### Boson  
 
-A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String, and processes it according to a given expression, traversing the input in at mopst one complete pass.
+A "Boson" is an object created to wrap either BSON encoded as a Byte Array or JSON encoded as a String, and to associate various Extractors and/or Injectors that processes the input according to a given expression in a type safe manner. The input is traversed only as needed add and so Extraction / Injection may complete before a single pass of the input data has been complete, and will complete ion at most one complete pass over the input data.
+
+This make Boson extremely fast for certain types of BSON and JSON processing tasks 
 
 <div id='id-bosonExtractionScala'/>  
   
 #### Extraction  
-Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
+Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and a Higher-Order Function. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
   
 ```scala  
 //Encode Bson:  
@@ -281,7 +283,7 @@ BsonPath | JsonPath
 
 ## Java Profiler
 
-Boson is a library that relies on high performance BSON data manipulation, and so performance monitoring is of paramount importance. The chosen java profiler is [YourKit](https://www.yourkit.com/) for being a supporter of open source projects and one of the most innovative and intelligent tools for profiling [Java](https://www.yourkit.com/java/profiler/) & [.NET](https://www.yourkit.com/.net/profiler/) applications as well .
+Boson is a library that relies on high performance BSON/JSON data manipulation, and so performance monitoring is of paramount importance. The chosen java profiler is [YourKit](https://www.yourkit.com/) for being a supporter of open source projects and one of the most innovative and intelligent tools for profiling [Java](https://www.yourkit.com/java/profiler/) & [.NET](https://www.yourkit.com/.net/profiler/) applications as well .
 
 ![](https://www.yourkit.com/images/yklogo.png)
 
