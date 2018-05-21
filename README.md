@@ -36,40 +36,10 @@ Bosonjava
   
 ## QuickStart Guide  
   
-Boson is available through the Central Maven Repository.  
-For SBT users, please add the following dependency in your build.sbt:
-
-Bosonscala:
-```scala
-libraryDependencies += “io.zink” % “bosonscala” % “0.5.0”
-```
-For Maven users, please add the following dependency in your pom.xml:
-```xml
-<dependency>
-    <groupId>io.zink</groupId>
-    <artifactId>bosonsala</artifactId>
-    <version>0.5.0</version>
-</dependency>
-```
-
-Bosonjava:
-```scala
-libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
-```
-For Maven users, please add the following dependency in your pom.xml:
-```xml
-<dependency>
-    <groupId>io.zink</groupId>
-    <artifactId>bosonjava</artifactId>
-    <version>0.5.0</version>
-</dependency>
-```
-  
-<div id='id-BosonScala'/>  
-  
+ 
 ### Boson  
 
-A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String, and processes it according to a given expression, traversing the input in at mopst one complete pass.
 
 <div id='id-bosonExtractionScala'/>  
   
@@ -141,15 +111,7 @@ val result: Future[Array[Byte]] = fused.go(validatedByteArray)
   
 ## QuickStart Guide  
   
-For Maven users, please add the following dependency in your pom.xml:  
-```xml  
-<dependency>  
-    <groupId>io.zink</groupId>  
-    <artifactId>boson</artifactId>  
-    <version>0.5</version>  
-</dependency>  
-```  
-<div id='id-BosonJava'/>  
+
   
 ### Boson  
 
