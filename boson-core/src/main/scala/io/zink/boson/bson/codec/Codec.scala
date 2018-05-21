@@ -142,11 +142,11 @@ trait Codec {
     * since we want to ignore a value
     */
   def consumeValue(seqType: Int): Unit
-//
-//
-//  //--------------------------------------------Injector functions-----------------------------------------
-//
-//  def writeByte(byte : Int) : Codec
+
+  //def printCodec()
+
+  def writeByte(byte: Int)//: Unit
+// TODO - def write : Unit...
 }
 
 
