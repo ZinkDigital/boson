@@ -1152,40 +1152,38 @@ class BosonImpl(
     * Function used to search for keys of interest recursively
     *
     * @param list    A list with pairs that contains the key of interest and the type of operation
-    * @param codec  Structure that contains the user input
+    * @param codec   The codec abstraction which contains the structure to work on
     * @param fieldID Key of interest
     * @param f       Function used to inject a new value in the structure
-    * @param result  Auxiliary structure used to update the resulting value
     * @tparam T Type of value to be injected
     * @return ByteBuf containing the new value injected
     */
   @deprecated
-  def modifyAll[T](list: List[(Statement, String)], codec: Codec, fieldID: String, f: T => T, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
+  def modifyAll[T](list: List[(Statement, String)], codec: Codec, fieldID: String, f: T => T): Codec = {
     /*
     * If fieldID is empty, it returns the original ByteBuf
     */
-//    val dup: Codec = codec.duplicate
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
     while ((codec.getReaderIndex - startReader) < originalSize) {
-      val dataType: Int = codec.getDataType
-        dataType match {
+      val dataType: Int = codec.readDataType
+      dataType match {
         case 0 => // Final
-          codec.writeByte(dataType)
-//          result.writeByte(dataType) //TODO - Do before
+          codec.writeInformation(dataType)
         case _ =>
-          result.writeByte(dataType)
-          //TODO - Idem
-          val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (codec.getByte(codec.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-              val b: Byte = codec.readByte()
-              key.append(b)
-            }
-            val b: Byte = codec.readByte()
+          val codecWithDataType = codec.writeInformation(dataType)
+          val (isArray, key, b): (Boolean, Array[Byte], Int) = {
+            //            val key: ListBuffer[Byte] = new ListBuffer[Byte]
+            //            while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
+            //              val b: Byte = arg.readByte()
+            //              key.append(b)
+            //            }
+            val key: ListBuffer[Byte] = codecWithDataType.readKey
+            val b: Int = codecWithDataType.readNextInformation //TODO maybe change this to byte ?
             (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
           }
-          result.writeBytes(key).writeByte(b)
+          //TODO stopped here
+          //          result.writeBytes(key).writeByte(b)
           new String(key) match {
             case x if fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x) =>
               /*
@@ -1196,8 +1194,8 @@ class BosonImpl(
                 if (list.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val size: Int = codec.getIntLE(codec.readerIndex())
-                      val buf1: ByteBuf = codec.readRetainedSlice(size)
+                      val size: Int = buffer.getIntLE(buffer.readerIndex())
+                      val buf1: ByteBuf = buffer.readRetainedSlice(size)
                       val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
                       buf1.release()
                       val buf3: ByteBuf = Unpooled.buffer()
@@ -1207,17 +1205,17 @@ class BosonImpl(
                       result.writeBytes(buf3)
                       buf3.release()
                     case _ =>
-                      modifierAll(codec, dataType, f, result)
+                      modifierAll(buffer, dataType, f, result)
                   }
                 } else {
-                  modifierAll(codec, dataType, f, result)
+                  modifierAll(buffer, dataType, f, result)
                 }
               } else {
                 if (list.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val size: Int = codec.getIntLE(codec.readerIndex())
-                      val buf1: ByteBuf = codec.readBytes(size)
+                      val size: Int = buffer.getIntLE(buffer.readerIndex())
+                      val buf1: ByteBuf = buffer.readBytes(size)
                       val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
                       buf1.release()
                       val buf3: ByteBuf = execStatementPatternMatch(buf2, list, f)
@@ -1225,16 +1223,16 @@ class BosonImpl(
                       result.writeBytes(buf3)
                       buf3.release()
                     case _ =>
-                      processTypesAll(list, dataType, codec, result, fieldID, f)
+                      processTypesAll(list, dataType, buffer, result, fieldID, f)
                   }
                 } else {
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val res: ByteBuf = execStatementPatternMatch(codec, list.drop(1), f)
+                      val res: ByteBuf = execStatementPatternMatch(buffer, list.drop(1), f)
                       result.writeBytes(res)
                       res.release()
                     case _ =>
-                      processTypesArray(dataType, codec, result)
+                      processTypesArray(dataType, buffer, result)
                   }
                 }
               }
@@ -1244,9 +1242,9 @@ class BosonImpl(
               * Consume value and check deeper Levels
               * */
               if (list.head._2.contains(C_DOUBLEDOT))
-                processTypesAll(list, dataType, codec, result, fieldID, f)
+                processTypesAll(list, dataType, buffer, result, fieldID, f)
               else
-                processTypesArray(dataType, codec, result)
+                processTypesArray(dataType, buffer, result)
           }
       }
     }
@@ -2408,9 +2406,9 @@ class BosonImpl(
   }
 
   /**
-    * Function used to perform the search process recursively, performing the search key by key, separeted by '.' or '..' and performing the injection when the final key is reached
+    * Function used to perform the search process recursively, performing the search key by key, separated by '.' or '..' and performing the injection when the final key is reached
     *
-    * @param netty1        Structure from which we are reading the old values
+    * @param netty1     Structure from which we are reading the old values, can be either a ByteBuf or a string
     * @param statements A list with pairs that contains the key of interest and the type of operation
     * @param f          Function given by the user with the new value
     * @tparam T Type of the value being injected
@@ -2423,9 +2421,9 @@ class BosonImpl(
       case Left(x) => CodecObject.toCodec(x)
     }
 
-    val result: ByteBuf = Unpooled.buffer()
     val statement: Statement = statements.head._1
     val newStatementList: List[(Statement, String)] = statements
+
     statement match {
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
@@ -2445,10 +2443,11 @@ class BosonImpl(
               }
           }
         val res: ByteBuf = execArrayFunction(newStatementList, codec, f, input._1, input._2, input._3, input._4)
-        val finalResult: ByteBuf = result.writeBytes(res)
-//        nettyC.write
+        val finalResult: ByteBuf = resultByteBuf.writeBytes(res) //começar a alterar aqui
         res.release()
         finalResult.capacity(finalResult.writerIndex())
+
+
       case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
@@ -2463,30 +2462,36 @@ class BosonImpl(
                 case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
               }
           }
-        val res: ByteBuf = execArrayFunction(newStatementList, codec, f, input._1, input._2, input._3, input._4)
-        val finalResult: ByteBuf = result.writeBytes(res).capacity(result.writerIndex())
+        val res: ByteBuf = execArrayFunction(newStatementList, netty1, f, input._1, input._2, input._3, input._4)
+        val finalResult: ByteBuf = resultByteBuf.writeBytes(res).capacity(resultByteBuf.writerIndex())
         res.release()
         finalResult
+
       case HalfName(half: String) =>
         val res: ByteBuf = modifyAll(newStatementList, codec, half, f)
-        result.writeBytes(res)
+        resultByteBuf.writeBytes(res)
         res.release()
-        result.capacity(result.writerIndex())
+        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case HasElem(key: String, elem: String) =>
         val res: ByteBuf = modifyHasElem(newStatementList, codec, key, elem, f)
-        result.writeBytes(res)
+        resultByteBuf.writeBytes(res)
         res.release()
-        result.capacity(result.writerIndex())
+        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case Key(key: String) =>
-        val res: ByteBuf = modifyAll(newStatementList, codec, key, f)
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
+        val res: Codec = modifyAll(newStatementList, codec, key, f)
+
+      //        resultByteBuf.writeBytes(res)
+      //        res.release()
+      //        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case ROOT =>
         val res: ByteBuf = execRootInjection(codec, f)
-        result.writeBytes(res)
+        resultByteBuf.writeBytes(res)
         res.release()
-        result.capacity(result.writerIndex())
+        resultByteBuf.capacity(resultByteBuf.writerIndex())
+
       case _ => throw CustomException("Wrong Statements, Bad Expression.")
       // Never Gets Here
 

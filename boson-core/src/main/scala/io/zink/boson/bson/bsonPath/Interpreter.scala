@@ -191,8 +191,8 @@ class Interpreter[T](boson: BosonImpl,
     * This method does the final extraction of an Object.
     *
     * @param encodedEither Sequence of BsonObjects encoded.
-    * @param keyList             Pairs of Keys and Conditions used to decode the encodedSeqByteArray
-    * @param limitList           Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
+    * @param keyList       Pairs of Keys and Conditions used to decode the encodedSeqByteArray
+    * @param limitList     Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
   private def constructObj(encodedEither: Either[List[ByteBuf], List[String]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
@@ -309,37 +309,37 @@ class Interpreter[T](boson: BosonImpl,
   def isJson(str: String): Boolean = if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) true else false
 
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
-      tCase.isDefined match {
-        case true if typeClass.isDefined =>
-          typeClass.get match {
-            case STRING =>
-              val str: List[String] = result.asInstanceOf[List[String]]
-              if(isJsonObjOrArrExtraction(str,returnInsideSeqFlag,tCase)) {
-                //println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
-                constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
-              } else {
-                if(returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
-              }
-            case INTEGER => if(returnInsideSeqFlag) applyFunction(List((INTEGER, result))) else applyFunction(List((INTEGER, result.head)))
-            case DOUBLE =>
-              val res = result.asInstanceOf[List[Double]]
-              if(returnInsideSeqFlag) applyFunction(List((DOUBLE, res), (FLOAT, res.map(_.toFloat)))) else applyFunction(List((DOUBLE, res.head), (FLOAT, res.head.toFloat)))
-            case LONG => if(returnInsideSeqFlag) applyFunction(List((LONG, result))) else applyFunction(List((LONG, result.head)))
-            case BOOLEAN => if(returnInsideSeqFlag) applyFunction(List((BOOLEAN, result))) else applyFunction(List((BOOLEAN, result.head)))
-            case ANY =>
-              val res = result.map {
-                case buf: ByteBuf => buf.array
-                case elem => elem
-              }
-              if(returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-            case COPY_BYTEBUF =>println("copy_bytebuf") constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
-          }
-        case false if typeClass.isDefined =>
-          typeClass.get match {
-            case COPY_BYTEBUF if fExt.isDefined =>
-              val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
-              if(returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
-            case STRING =>
+    tCase.isDefined match {
+      case true if typeClass.isDefined =>
+        typeClass.get match {
+          case STRING =>
+            val str: List[String] = result.asInstanceOf[List[String]]
+            if (isJsonObjOrArrExtraction(str, returnInsideSeqFlag, tCase)) {
+              //println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
+              constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            } else {
+              if (returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
+            }
+          case INTEGER => if (returnInsideSeqFlag) applyFunction(List((INTEGER, result))) else applyFunction(List((INTEGER, result.head)))
+          case DOUBLE =>
+            val res = result.asInstanceOf[List[Double]]
+            if (returnInsideSeqFlag) applyFunction(List((DOUBLE, res), (FLOAT, res.map(_.toFloat)))) else applyFunction(List((DOUBLE, res.head), (FLOAT, res.head.toFloat)))
+          case LONG => if (returnInsideSeqFlag) applyFunction(List((LONG, result))) else applyFunction(List((LONG, result.head)))
+          case BOOLEAN => if (returnInsideSeqFlag) applyFunction(List((BOOLEAN, result))) else applyFunction(List((BOOLEAN, result.head)))
+          case ANY =>
+            val res = result.map {
+              case buf: ByteBuf => buf.array
+              case elem => elem
+            }
+            if (returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
+          case COPY_BYTEBUF => constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+        }
+      case false if typeClass.isDefined =>
+        typeClass.get match {
+          case COPY_BYTEBUF if fExt.isDefined =>
+            val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
+            if (returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
+          case STRING =>
 
             val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
             if (returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
@@ -352,11 +352,10 @@ class Interpreter[T](boson: BosonImpl,
 
   private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
-    zipped.foreach(println)
     executeMultipleKeysInjector(zipped, bsonEncoded)
   }
 
-  //  //  TODO: replace Statement -> Statement, etc..
+  // TODO: replace Statement -> Statement, etc..
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val input: Either[ByteBuf, String] = bsonEncoded match {
       case Left(barArray) =>
@@ -373,10 +372,12 @@ class Interpreter[T](boson: BosonImpl,
             case Left(byteBuf) => Left(byteBuf.array)
             case Right(string) => Right(string)
           }
+
         case Failure(e) =>
           throw CustomException(e.getMessage)
       }
     result
   }
+
 }
 
