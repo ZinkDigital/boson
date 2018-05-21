@@ -1,5 +1,6 @@
 package io.zink.boson.bson.codec.impl
 
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.bsonImpl.Dictionary._
 
@@ -578,16 +579,51 @@ class CodecJson(str: String) extends Codec {
       readerIndex += size
   }
 
+  /**
+    * Method that consumes a single byte or a single character
+    *
+    * @return The consumed byte/character
+    */
+  override def readNextInformation(dataType: Int, length: Int = 1): Array[Byte] = ???
+
   //
   //-------------------------------------Injector functions--------------------------
 
+  /**
+    * Method that duplicates the current codec, writes the information to the duplicated codec and returns it
+    *
+    * @param information - the information to write to the codec
+    * @return a duplicated codec from the current codec, but with the new information
+    */
   override def writeInformation(information: Array[Byte]): Codec = ???
 
   //Maybe in readKey we should not read the last quote, because in CodecBson we read the key and then read a single byte (the closing byte)
   //so maybe in CodecJson we should read the entire key except the last quote so we can read the last quote seperatly afterwards, so that both
   //codecs are compliant with each other
+  //or Maybe this function will just return an empty String
+  /**
+    * Method that reads the key from the codec and returns it
+    *
+    * @return - The key that was read from the Codec
+    */
   override def readKey: String = ???
 
-  override def readNextInformation: Byte = ???
+  /**
+    * Method that returns a section of the data (whether it's a ByteBuf or a String). This section corresponds to
+    * the section of data we're interested in.
+    *
+    * @return The section of data we're interested in. Either a ByteBuf or a String
+    */
+  override def getPartialData: Either[ByteBuf, String] = ???
+
+  /**
+    * Method that returns a duplicate of the codec's data structure
+    *
+    * @return a duplicate of the codec's data structure
+    */
+  override def getCodecData: Either[ByteBuf, String] = {
+    val duplicate = str
+    Right(duplicate)
+  }
 }
 

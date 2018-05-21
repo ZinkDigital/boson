@@ -357,8 +357,33 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     case _ =>
   }
 
+  /**
+    * Method that consumes a single byte or a single character
+    *
+    * @return The consumed byte/character
+    */
+  override def readNextInformation(dataType: Int, length: Int = 1): Array[Byte] =  dataType match {
+    case 0  => Array(buff.readByte())
+    case 1  => Array(buff.readFloatLE().toByte) //Double??
+    case 2  => buff.readBytes(length).array()
+    case 3  => buff.readBytes(length).array()
+    case 4  => buff.readBytes(length).array()
+    case 8  => buff.readBoolean() match {
+      case true => Array(1)
+      case false => Array(0)
+    }
+    case 16 => Array(buff.readIntLE().toByte)
+    case 18 => Array(buff.readLongLE().toByte)
+  }
+
   //-------------------------------------Injector functions--------------------------
 
+  /**
+    * Method that duplicates the current codec, writes the information to the duplicated codec and returns it
+    *
+    * @param information - the information to write to the codec
+    * @return a duplicated codec from the current codec, but with the new information
+    */
   override def writeInformation(information: Array[Byte]): Codec = {
     val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
     newB.readerIndex(buff.readerIndex)
@@ -366,6 +391,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     new CodecBson(arg, Some(newB))
   }
 
+  /**
+    * Method that reads the key from the codec and returns it
+    *
+    * @return - The key that was read from the Codec
+    */
   override def readKey: String = {
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
     while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
@@ -375,20 +405,26 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     new String(key.toArray)
   }
 
-  override def readNextInformation(tp: Int, length: Int = 1): Array[Byte] =  tp match {
-      case 0  => Array(buff.readByte())
-      case 1  => Array(buff.readFloatLE().toByte) //Double??
-      case 2  => buff.readBytes(length).array()
-      case 3  => buff.readBytes(length).array()
-      case 4  => buff.readBytes(length).array()
-      case 8  => buff.readBoolean() match {
-        case true => Array(1)
-        case false => Array(0)
-      }
-      case 16 => Array(buff.readIntLE().toByte)
-      case 18 => Array(buff.readLongLE().toByte)
-    }
+  /**
+    * Method that returns a section of the data (whether it's a ByteBuf or a String). This section corresponds to
+    * the section of data we're interested in.
+    *
+    * @return The section of data we're interested in. Either a ByteBuf or a String
+    */
+  override def getPartialData: Either[ByteBuf, String] = {
+    val size: Int = buff.getIntLE(buff.readerIndex())
+    Left(buff.readRetainedSlice(size))
+  }
 
-
+  /**
+    * Method that returns a duplicate of the codec's data structure
+    *
+    * @return a duplicate of the codec's data structure
+    */
+  override def getCodecData: Either[ByteBuf, String] = {
+    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
+    newB.readerIndex(buff.readerIndex)
+    Left(newB)
+  }
 
 }
