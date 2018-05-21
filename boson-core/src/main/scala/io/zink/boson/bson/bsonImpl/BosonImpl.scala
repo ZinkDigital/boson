@@ -1186,7 +1186,10 @@ class BosonImpl(
           new String(key) match {
             case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
 
-              //Found a field equal to the key. Perform Injection
+              /*
+               * Found a field equal to the key.
+               * Perform injection
+               */
               if (list.lengthCompare(1) == 0) { //If the size of the list is 1
                 if (list.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
@@ -1214,22 +1217,18 @@ class BosonImpl(
                         }
                       }
                       val modifiedCodec: Codec = execStatementPatternMatch(dataStructure, list.drop(1), f)
-                      //                      buf1.release()
                       execStatementPatternMatch(modifiedCodec.getCodecData, list, f)
                     //                      buf2.release()
                     //                      result.writeBytes(buf3)
                     //                      buf3.release()
-                    case _ =>
-                      processTypesAll(list, dataType, buffer, result, fieldID, f)
+                    case _ => processTypesAll(list, dataType, codecWithKey, fieldID, f)
                   }
                 } else {
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val res: ByteBuf = execStatementPatternMatch(buffer, list.drop(1), f)
-                      result.writeBytes(res)
-                      res.release()
+                      execStatementPatternMatch(codecWithKey.getCodecData, list.drop(1), f)
                     case _ =>
-                      processTypesArray(dataType, buffer, result)
+                      processTypesArray(dataType, codecWithKey)
                   }
                 }
               }
@@ -1239,16 +1238,18 @@ class BosonImpl(
               * Consume value and check deeper Levels
               * */
               if (list.head._2.contains(C_DOUBLEDOT))
-                processTypesAll(list, dataType, buffer, result, fieldID, f)
+                processTypesAll(list, dataType, codecWithKey, fieldID, f)
               else
-                processTypesArray(dataType, codec)
+                processTypesArray(dataType, codecWithKey)
           }
+          codecWithKey
       }
     }
-    result.capacity(result.\ writerIndex())
-    val finalResult: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
-    result.release()
-    finalResult
+    codec //TODO Maybe change this ? is this correct
+    //    result.capacity(result.\ writerIndex())
+    //    val finalResult: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
+    //    result.release()
+    //    finalResult
   }
 
   /**
