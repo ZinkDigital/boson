@@ -185,7 +185,7 @@ trait Codec {
     *
     * @return The consumed byte/character
     */
-  def readNextInformation(tp: Int): Byte //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
+  def readNextInformation(tp: Int, length: Int = 1): Array[Byte] //TODO Supporting something else for JSON , maybe read just one char and convert that char to Int
 
 
   //--------------------------------------------Injector functions-----------------------------------------
