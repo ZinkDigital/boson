@@ -45,7 +45,7 @@ object Dictionary {
   val C_END: String = "end"
   val C_DOT: String = "."
   val C_DOUBLEDOT: String = ".."
-  val C_LAST: String = "last"  // "end" should be used to maintain consistency
+  val C_LAST: String = "last" // "end" should be used to maintain consistency
   val C_RANDOM: String = "random"
   val C_BUILD: String = "build"
   val C_ZERO: String = "0"
@@ -80,7 +80,7 @@ object Dictionary {
 
   val seqString: TypeCase[Seq[String]] = TypeCase[Seq[String]]
   //val seqTuples = TypeCase[Seq[List[Any]]] -> used in toTuples
-  val tuples = TypeCase[List[(String,Any)]]
+  val tuples = TypeCase[List[(String, Any)]]
   val listTuples = TypeCase[List[Any]]
 
   //CODECS CONSTANTS
@@ -90,6 +90,7 @@ object Dictionary {
   val CS_STRING: String = STRING
   val CS_INTEGER: String = INTEGER
   val CS_DOUBLE: String = DOUBLE
+  val CS_FLOAT: String = FLOAT
   val CS_LONG: String = LONG
   val CS_BOOLEAN: String = BOOLEAN
   val CS_NULL: String = V_NULL
@@ -126,7 +127,6 @@ object Dictionary {
   TYPES_LIST.add("Boolean")
   TYPES_LIST.add("Null")
   TYPES_LIST.add("CharSequence")
-
 
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")

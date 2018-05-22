@@ -16,17 +16,17 @@ import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
   */
 sealed trait SonNamedType
 
-case class SonString(name: String, result: Any = None) extends SonNamedType
+case class SonString(name: String, info: Any = None) extends SonNamedType
 
-case class SonNumber(name: String, result: Any = None) extends SonNamedType
+case class SonNumber(name: String, info: Any = None) extends SonNamedType
 
-case class SonObject(name: String, result: Any = None) extends SonNamedType
+case class SonObject(name: String, info: Any = None) extends SonNamedType
 
-case class SonArray(name: String, result: Any = None) extends SonNamedType
+case class SonArray(name: String, info: Any = None) extends SonNamedType
 
-case class SonBoolean(name: String, result: Any = None) extends SonNamedType
+case class SonBoolean(name: String, info: Any = None) extends SonNamedType
 
-case class SonNull(name: String, result: Any = None) extends SonNamedType
+case class SonNull(name: String, info: Any = None) extends SonNamedType
 
 case object SonZero extends SonNamedType
 
@@ -188,14 +188,7 @@ trait Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeToken(token: SonNamedType): Codec //TODO Change input to be a SonNamedType , example if we want to write a double we say writeToken(SonNumber(D_DOUBLE, informatioToWirte))
-
-  /**
-    * Method that reads the key from the codec and returns it
-    *
-    * @return - The key that was read from the Codec
-    */
-  def readKey: String
+  def writeToken(token: SonNamedType): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure

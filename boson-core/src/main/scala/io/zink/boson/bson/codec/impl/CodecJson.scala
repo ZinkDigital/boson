@@ -590,17 +590,6 @@ class CodecJson(str: String) extends Codec {
     */
   override def writeToken(token: SonNamedType): Codec = ???
 
-  //Maybe in readKey we should not read the last quote, because in CodecBson we read the key and then read a single byte (the closing byte)
-  //so maybe in CodecJson we should read the entire key except the last quote so we can read the last quote seperatly afterwards, so that both
-  //codecs are compliant with each other
-  //or Maybe this function will just return an empty String
-  /**
-    * Method that reads the key from the codec and returns it
-    *
-    * @return - The key that was read from the Codec
-    */
-  override def readKey: String = ???
-
   /**
     * Method that returns a duplicate of the codec's data structure
     *

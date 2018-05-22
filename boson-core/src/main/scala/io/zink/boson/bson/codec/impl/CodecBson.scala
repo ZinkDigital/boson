@@ -1,5 +1,7 @@
 package io.zink.boson.bson.codec.impl
 
+import java.nio.charset.Charset
+
 import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
@@ -130,8 +132,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *         (this is why there is a commented function with the same but returning a Int)
     */
   override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
-    case SonBoolean(x, _) =>
-      SonBoolean(x, buff.readByte)
+    case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
     case SonArray(x, _) =>
       x match {
         case C_DOT =>
@@ -366,25 +367,52 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a duplicated codec from the current codec, but with the new information
     */
   override def writeToken(token: SonNamedType): Codec = {
-    //    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
-    //    newB.readerIndex(buff.readerIndex)
-    //    newB.writeBytes(information)
-    //    new CodecBson(arg, Some(newB))
-    ???
+
+    case SonBoolean(_, info) =>
+      val duplicated = copyByteBuf //duplicate this codec's ByteBuf
+    val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
+      duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
+      new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
+
+    case SonNumber(numberType, info) =>
+      val duplicated = copyByteBuf
+      val manipulatedBuf: ByteBuf = numberType match {
+        case CS_INTEGER =>
+          val writableInt = info.asInstanceOf[Int]
+          duplicated.writeIntLE(writableInt)
+
+        case CS_DOUBLE =>
+          val writableDouble = info.asInstanceOf[Double]
+          duplicated.writeDoubleLE(writableDouble)
+
+        case CS_FLOAT =>
+          val writableFloat = info.asInstanceOf[Float]
+          duplicated.writeFloatLE(writableFloat)
+
+        case CS_LONG =>
+          val writableLong = info.asInstanceOf[Long]
+          duplicated.writeLongLE(writableLong)
+
+      }
+      new CodecBson(arg, Some(manipulatedBuf))
+
+    case SonString(_, info) =>
+      val duplicated = copyByteBuf
+      val writableCharSeq = info.asInstanceOf[CharSequence]
+      duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
+      new CodecBson(arg, Some(duplicated))
+
+    //TODO Maybe support SonObject and SonArray, not sure if necessary
   }
 
   /**
-    * Method that reads the key from the codec and returns it
+    * Private method that returns an exact copy of this codec's ByteBuf in order to manipulate this copied ByteBuf
     *
-    * @return - The key that was read from the Codec
+    * @return an exact copy of the current codec's ByteBuf
     */
-  override def readKey: String = {
-    val key: ListBuffer[Byte] = new ListBuffer[Byte]
-    while (arg.getByte(arg.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-      val b: Byte = arg.readByte()
-      key.append(b)
-    }
-    new String(key.toArray)
+  private def copyByteBuf: ByteBuf = {
+    val newBuf = buff.copy(0, buff.capacity)
+    newBuf.readerIndex(buff.readerIndex)
   }
 
   /**
