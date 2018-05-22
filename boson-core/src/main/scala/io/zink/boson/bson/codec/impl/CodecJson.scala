@@ -110,6 +110,8 @@ class CodecJson(str: String) extends Codec {
           val subSize = endIndex + 2
           val subStr1 = input.substring(rI, rI + subSize)
           SonString(request, subStr1.substring(1, subSize - 1))
+
+        case _ => ??? //TODO Implement cases where it is not a String
       }
     case SonNumber(request, _) =>
       request match {
