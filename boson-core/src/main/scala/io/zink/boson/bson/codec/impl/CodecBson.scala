@@ -377,6 +377,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     case SonNumber(numberType, info) =>
       val duplicated = copyByteBuf
       val manipulatedBuf: ByteBuf = numberType match {
+
+        case CS_BYTE =>
+          val writableByte = info.asInstanceOf[Byte]
+          duplicated.writeByte(writableByte)
+
         case CS_INTEGER =>
           val writableInt = info.asInstanceOf[Int]
           duplicated.writeIntLE(writableInt)

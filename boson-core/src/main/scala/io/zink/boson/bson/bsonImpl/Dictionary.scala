@@ -91,6 +91,7 @@ object Dictionary {
   val CS_INTEGER: String = INTEGER
   val CS_DOUBLE: String = DOUBLE
   val CS_FLOAT: String = FLOAT
+  val CS_BYTE: String = "byte"
   val CS_LONG: String = LONG
   val CS_BOOLEAN: String = BOOLEAN
   val CS_NULL: String = V_NULL
