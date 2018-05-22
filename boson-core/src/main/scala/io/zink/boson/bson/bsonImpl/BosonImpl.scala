@@ -1477,100 +1477,113 @@ class BosonImpl(
     * @param codec      Structure from which we are reading the old values
     * @param seqType    Type of the value found and processing
     * @param f          Function given by the user with the new value
-    * @param result     Structure to where we write the values
-    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
     * @tparam T Type of the value being injected
     */
-  @deprecated // TODO - return codec tuple
-  private def modifierEnd[T](codec: Codec, seqType: Int, f: T => T, result: ByteBuf, resultCopy: ByteBuf): Unit = {
+  @deprecated
+  private def modifierEnd[T](codec: Codec, seqType: Int, f: T => T): (Codec, Codec) = {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value0 = codec.readToken(SonNumber(CS_DOUBLE))
-        //        resultCopy.writeDoubleLE(value0)
-        applyFunction(f, value0) match {
+//        resultCopy.writeDoubleLE(value0)
+        val codecCopy = codec.writeToken(value0)
+        val codecRes = applyFunction(f, value0) match {
           case x: SonNumber => codec.writeToken(x)
         }
-      //        Option(value) match {
-      //          case Some(n: Float) =>
-      //            result.writeDoubleLE(n.toDouble)
-      //          case Some(n: Double) =>
-      //            result.writeDoubleLE(n)
-      //          case _ =>
-      //        }
+        (codecRes, codecCopy)
+//        Option(value) match {
+//          case Some(n: Float) =>
+//            result.writeDoubleLE(n.toDouble)
+//          case Some(n: Double) =>
+//            result.writeDoubleLE(n)
+//          case _ =>
+//        }
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         //        val length: Int = codec.readIntLE()
         val value0 = codec.readToken(SonString(CS_STRING))
-        //        val value0: Array[Byte] = Unpooled.buffer(length - 1).writeBytes(codec.readBytes(length - 1)).array()
-        //        resultCopy.writeIntLE(length).writeBytes(value0)
-        //        codec.readByte()
-        applyFunction(f, value0) match {
+//        val value0: Array[Byte] = Unpooled.buffer(length - 1).writeBytes(codec.readBytes(length - 1)).array()
+//        resultCopy.writeIntLE(length).writeBytes(value0)
+//        codec.readByte()
+        val codecCopy = codec.writeToken(value0)
+        val codeRes = applyFunction(f, value0) match {
           case value: SonString => codec.writeToken(value)
         }
-      //        val value: Any = applyFunction(f, value0)
-      /*Option(value) match {
-        case Some(n: Array[Byte]) =>
-          result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
-        case Some(n: String) =>
-          val aux: Array[Byte] = n.getBytes()
-          result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-        case Some(n: Instant) =>
-          val aux: Array[Byte] = n.toString.getBytes()
-          result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-        case _ =>
-      }*/
+        (codeRes, codecCopy)
+//        val value: Any = applyFunction(f, value0)
+        /*Option(value) match {
+          case Some(n: Array[Byte]) =>
+            result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
+          case Some(n: String) =>
+            val aux: Array[Byte] = n.getBytes()
+            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
+          case Some(n: Instant) =>
+            val aux: Array[Byte] = n.toString.getBytes()
+            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
+          case _ =>
+        }*/
       case D_BSONOBJECT =>
         //        val valueLength: Int = codec.getIntLE(codec.readerIndex())
         val value0 = codec.readToken(SonObject(CS_OBJECT))
-        //        resultCopy.writeBytes(bsonObj.duplicate())
-        //        val buf: ByteBuf = Unpooled.buffer(bsonObj.capacity()).writeBytes(bsonObj)
-        //        val arrayBytes: Array[Byte] = buf.array()
-        //        buf.release()
-        //        val bsonBytes: Array[Byte] = arrayBytes
-        //        bsonObj.release()
-        applyFunction(f, value0) match {
+        val codecCopy = codec.writeToken(value0)
+//        resultCopy.writeBytes(bsonObj.duplicate())
+//        val buf: ByteBuf = Unpooled.buffer(bsonObj.capacity()).writeBytes(bsonObj)
+//        val arrayBytes: Array[Byte] = buf.array()
+//        buf.release()
+//        val bsonBytes: Array[Byte] = arrayBytes
+//        bsonObj.release()
+        val codecRes =applyFunction(f, value0) match {
           case value: SonObject => codec.writeToken(value) // TODO - codec + codecAux ???
         }
-      //        result.writeBytes(newValue)
+        (codecRes, codecCopy)
+//        result.writeBytes(newValue)
       case D_BSONARRAY =>
         val value0 = codec.readToken(SonArray(CS_ARRAY))
-        //        val valueLength: Int = codec.getIntLE(codec.readerIndex())
-        //        val bsonArray: ByteBuf = codec.readBytes(valueLength)
-        //        resultCopy.writeBytes(bsonArray.duplicate())
-        //        val buf: ByteBuf = Unpooled.buffer(bsonArray.capacity()).writeBytes(bsonArray)
-        //        val arrayBytes: Array[Byte] = buf.array()
-        //        buf.release()
-        //        val bsonBytes: Array[Byte] = arrayBytes
-        //        bsonArray.release()
-        applyFunction(f, value0) match {
+        val codecCopy = codec.writeToken(value0)
+//        val valueLength: Int = codec.getIntLE(codec.readerIndex())
+//        val bsonArray: ByteBuf = codec.readBytes(valueLength)
+//        resultCopy.writeBytes(bsonArray.duplicate())
+//        val buf: ByteBuf = Unpooled.buffer(bsonArray.capacity()).writeBytes(bsonArray)
+//        val arrayBytes: Array[Byte] = buf.array()
+//        buf.release()
+//        val bsonBytes: Array[Byte] = arrayBytes
+//        bsonArray.release()
+        val codecRes = applyFunction(f, value0) match {
           case value: SonArray => codec.writeToken(value) // TODO - codec + codecAux ???
         }
-      //        result.writeBytes(value)
+        (codecRes, codecCopy)
+//        result.writeBytes(value)
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
-        //        val value0: Boolean = codec.readBoolean()
-        //        resultCopy.writeBoolean(value0)
-        applyFunction(f, value0) match {
+        val codecCopy = codec.writeToken(value0)
+//        val value0: Boolean = codec.readBoolean()
+//        resultCopy.writeBoolean(value0)
+        val codecRes = applyFunction(f, value0) match {
           case value: SonBoolean => codec.writeToken(value)
         }
-      //        result.writeBoolean(value)
+        (codecRes, codecCopy)
+//        result.writeBoolean(value)
       case D_NULL =>
-        throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
+        throw new Exception //TODO - Change
+//        throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
       case D_INT =>
         val value0 = codec.readToken(SonNumber(CS_INTEGER))
-        //        val value0: Int = codec.readIntLE()
-        //        resultCopy.writeIntLE(value0)
-        applyFunction(f, value0) match {
+        val codecCopy = codec.writeToken(value0)
+//        val value0: Int = codec.readIntLE()
+//        resultCopy.writeIntLE(value0)
+        val codecRes = applyFunction(f, value0) match {
           case value: SonNumber => codec.writeToken(value)
         }
-      //        result.writeIntLE(value)
+        (codecRes, codecCopy)
+//        result.writeIntLE(value)
       case D_LONG =>
         val value0 = codec.readToken(SonNumber(CS_LONG))
-        //        val value0: Long = codec.readLongLE()
-        //        resultCopy.writeLongLE(value0)
-        applyFunction(f, value0) match {
+        val codecCopy = codec.writeToken(value0)
+//        val value0: Long = codec.readLongLE()
+//        resultCopy.writeLongLE(value0)
+        val codecRes = applyFunction(f, value0) match {
           case value: SonNumber => codec.writeToken(value)
         }
-      //        result.writeLongLE(value)
+        (codecRes, codecCopy)
+//        result.writeLongLE(value)
     }
   }
 
@@ -1578,13 +1591,11 @@ class BosonImpl(
     * Function used to perform the search on the last element of an array
     *
     * @param list       A list with pairs that contains the key of interest and the type of operation
-    * @param buffer     Structure from which we are reading the old values
+    * @param codec     Structure from which we are reading the old values
     * @param f          Function given by the user with the new value
     * @param condition  Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
     * @param limitInf   Represent the inferior limit when a range is given
     * @param limitSup   Represent the superior limit when a range is given
-    * @param result     Structure to where we write the values
-    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
     * @tparam T Type of the value being injected
     * @return A new bosonImpl with the new values injected
     */
@@ -1593,27 +1604,35 @@ class BosonImpl(
     /*
     * If fieldID is empty returns the Original BosomImpl
     * */
-    val startReaderIndex: Int = buffer.readerIndex()
-    val originalSize: Int = buffer.readIntLE()
+    val startReaderIndex: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
     val exceptions: ListBuffer[Throwable] = new ListBuffer[Throwable]
-    while ((buffer.readerIndex() - startReaderIndex) < originalSize && exceptions.size < 2) {
-      val dataType: Int = buffer.readByte().toInt
-      result.writeByte(dataType)
-      resultCopy.writeByte(dataType)
+    while ((codec.getReaderIndex - startReaderIndex) < originalSize && exceptions.size < 2) {
+      val dataType: Int = codec.readDataType
+//      result.writeByte(dataType)
+//      resultCopy.writeByte(dataType)
       dataType match {
-        case 0 =>
+        case 0 => codec.writeToken(SonNumber(CS_BYTE, dataType))
         case _ =>
-          val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buffer.getByte(buffer.readerIndex()) != 0 || key.length < 1) {
-              val b: Byte = buffer.readByte()
-              key.append(b)
+          val codecWithDataType = codec.writeToken(SonNumber(CS_BYTE, dataType))
+          val (isArray, key, b): (Boolean, String, Int) = {
+            val key: String = codecWithDataType.readToken(SonString(CS_NAME)) match {
+              case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
-            val b: Byte = buffer.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
+//            val key: ListBuffer[Byte] = new ListBuffer[Byte]
+//            while (codec.getByte(codec.getReaderIndex) != 0 || key.length < 1) {
+//              val b: Byte = codec.readByte()
+//              key.append(b)
+//            }
+            val token = codecWithDataType.readToken(SonBoolean(C_ZERO))
+            val b: Byte = token match {
+              case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            }
+            (key.forall(byte => byte.isDigit), key, b)
           }
-          result.writeBytes(key).writeByte(b)
-          resultCopy.writeBytes(key).writeByte(b)
+          val codecWithKey = codecWithDataType.writeToken(SonString(CS_STRING,key))
+//          result.writeBytes(key).writeByte(b)
+//          resultCopy.writeBytes(key).writeByte(b)
           val keyString: String = new String(key)
           (keyString, condition, limitSup) match {
             case (x, C_END, _) if isArray =>
@@ -1623,34 +1642,39 @@ class BosonImpl(
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
                       if (exceptions.isEmpty) {
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
-                        val bufRes: ByteBuf = Unpooled.buffer()
-                        val bufResCopy: ByteBuf = Unpooled.buffer()
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        val buf3: ByteBuf =
+//                        val size: Int = codec.readSize
+                        //TODO - Create function to read Obj or Arr (Maybe)
+                        val partialCodec: Either[ByteBuf,String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf,String]]
+                          case SonObject(_, value) => value.asInstanceOf[Either[ByteBuf,String]]
+                        }
+//                        val bufRes: ByteBuf = Unpooled.buffer()
+//                        val bufResCopy: ByteBuf = Unpooled.buffer()
+//                        result.clear().writeBytes(resultCopy.duplicate()) //TODO - Why!?!
+                        val codec3: Codec = //TODO - Change names when I understand what they are
                           if (list.head._1.isInstanceOf[ArrExpr])
-                            execStatementPatternMatch(buf1, list, f)
+                            execStatementPatternMatch(partialCodec, list, f)
                           else
-                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
+                            CodecObject.toCodec(partialCodec)
 
-                        Try(modifierEnd(buf3.duplicate(), dataType, f, bufRes, bufResCopy)) match {
-                          case Success(_) =>
+                        Try(modifierEnd(codec3, dataType, f)) match {
+                          case Success(codecTuple) => codecTuple
                           case Failure(e) =>
                             exceptions.append(e)
                         }
-                        result.writeBytes(bufRes)
-                        resultCopy.writeBytes(bufResCopy)
-                        buf1.release()
-                        bufRes.release()
-                        bufResCopy.release()
-                        buf3.release()
+//                        (codecRes,codecResCopy)
+//                        result.writeBytes(bufRes)
+//                        resultCopy.writeBytes(bufResCopy)
+//                        buf1.release()
+//                        bufRes.release()
+//                        bufResCopy.release()
+//                        buf3.release()
                       }
                     case _ =>
                       if (exceptions.isEmpty) {
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                          case Success(_) =>
+//                        result.clear().writeBytes(resultCopy.duplicate())
+                        Try(modifierEnd(codec, dataType, f)) match {
+                          case Success(codecTuple) => codecTuple
                           case Failure(e) =>
                             exceptions.append(e)
                         }
@@ -1658,9 +1682,9 @@ class BosonImpl(
                   }
                 } else {
                   if (exceptions.isEmpty) {
-                    result.clear().writeBytes(resultCopy.duplicate())
-                    Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                      case Success(_) =>
+//                    result.clear().writeBytes(resultCopy.duplicate())
+                    Try(modifierEnd(codec, dataType, f)) match {
+                      case Success(codecTuple) => codecTuple
                       case Failure(e) =>
                         exceptions.append(e)
                     }
@@ -1671,17 +1695,21 @@ class BosonImpl(
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
                       if (exceptions.isEmpty) {
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
+//                        result.clear().writeBytes(resultCopy.duplicate())
+                        val size: Int = codec.getIntLE(codec.readerIndex())
+                        val buf1: ByteBuf = codec.readBytes(size)
+                        val codec1 = codec.readToken(SonArray(CS_ARRAY)) match{
+                          case SonArray(_,value) => value.asInstanceOf[Either[ByteBuf,String]]
+                        }
                         // val buf2: ByteBuf = execStatementPatternMatch(buf1.duplicate(), list, f)
-                        val buf2: ByteBuf =
+                        val buf2: Either[ByteBuf,String] =
                           if (list.head._1.isInstanceOf[ArrExpr])
-                            execStatementPatternMatch(buf1.duplicate(), list, f)
+                            execStatementPatternMatch(codec1, list, f) //I DON'T KNOW!!!!
                           else
-                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
+                            codec1
+//                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
                         //val buf3: ByteBuf =
-                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
+                        Try(execStatementPatternMatch(buf2, list.drop(1), f)) match {
                           case Success(v) =>
                             result.writeBytes(v)
                             v.release()
@@ -1698,7 +1726,7 @@ class BosonImpl(
                         //buf3.release()
                       }
                     case _ =>
-                      processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
+                      processTypesArrayEnd(list, EMPTY_KEY, dataType, codec, f, condition, limitInf, limitSup, result, resultCopy)
                   }
                 } else {
                   dataType match {
@@ -1706,20 +1734,20 @@ class BosonImpl(
                       if (exceptions.isEmpty) {
                         result.clear().writeBytes(resultCopy.duplicate())
                         // val res: ByteBuf =
-                        Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
+                        Try(execStatementPatternMatch(codec.duplicate(), list.drop(1), f)) match {
                           case Success(v) =>
                             result.writeBytes(v)
                             v.release()
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec, resultCopy)
                           case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec.duplicate(), result)
+                            processTypesArray(dataType, codec, resultCopy)
                             exceptions.append(e)
                         }
                       }
                     case _ =>
-                      processTypesArray(dataType, buffer.duplicate(), result)
-                      processTypesArray(dataType, buffer, resultCopy)
+                      processTypesArray(dataType, codec.duplicate(), result)
+                      processTypesArray(dataType, codec, resultCopy)
                   }
                 }
               }
@@ -1729,8 +1757,8 @@ class BosonImpl(
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
                       if (exceptions.isEmpty) {
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
+                        val size: Int = codec.getIntLE(codec.readerIndex())
+                        val buf1: ByteBuf = codec.readBytes(size)
                         val bufRes: ByteBuf = Unpooled.buffer()
                         val bufResCopy: ByteBuf = Unpooled.buffer()
                         resultCopy.clear().writeBytes(result.duplicate())
@@ -1751,7 +1779,7 @@ class BosonImpl(
                     case _ =>
                       if (exceptions.isEmpty) {
                         resultCopy.clear().writeBytes(result.duplicate())
-                        Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
+                        Try(modifierEnd(codec, dataType, f, result, resultCopy)) match {
                           case Success(_) =>
                           case Failure(e) =>
                             exceptions.append(e)
@@ -1762,7 +1790,7 @@ class BosonImpl(
                 } else {
                   if (exceptions.isEmpty) {
                     resultCopy.clear().writeBytes(result.duplicate())
-                    Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
+                    Try(modifierEnd(codec, dataType, f, result, resultCopy)) match {
                       case Success(_) =>
                       case Failure(e) =>
                         exceptions.append(e)
@@ -1776,8 +1804,8 @@ class BosonImpl(
                     case (D_BSONARRAY | D_BSONOBJECT) =>
                       if (exceptions.isEmpty) {
                         resultCopy.clear().writeBytes(result.duplicate())
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.duplicate().readRetainedSlice(size)
+                        val size: Int = codec.getIntLE(codec.readerIndex())
+                        val buf1: ByteBuf = codec.duplicate().readRetainedSlice(size)
                         val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
                         buf1.release()
                         // val buf3: ByteBuf =
@@ -1786,10 +1814,10 @@ class BosonImpl(
                             buf2.release()
                             result.writeBytes(v)
                             v.release()
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec, resultCopy)
                           case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec.duplicate(), result)
+                            processTypesArray(dataType, codec, resultCopy)
                             exceptions.append(e)
                         }
                       } else {
@@ -1797,7 +1825,7 @@ class BosonImpl(
                       }
 
                     case _ =>
-                      processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
+                      processTypesArrayEnd(list, EMPTY_KEY, dataType, codec, f, condition, limitInf, limitSup, result, resultCopy)
                   }
                 } else {
                   dataType match {
@@ -1805,21 +1833,21 @@ class BosonImpl(
                       if (exceptions.isEmpty) {
                         resultCopy.clear().writeBytes(result.duplicate())
                         //val res: ByteBuf =
-                        Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
+                        Try(execStatementPatternMatch(codec.duplicate(), list.drop(1), f)) match {
                           case Success(v) =>
                             result.writeBytes(v)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec, resultCopy)
                             v.release()
                           case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec.duplicate(), result)
+                            processTypesArray(dataType, codec, resultCopy)
                             exceptions.append(e)
                         }
                       } else
                         exceptions.append(exceptions.head)
                     case _ =>
-                      processTypesArray(dataType, buffer.duplicate(), result)
-                      processTypesArray(dataType, buffer, resultCopy)
+                      processTypesArray(dataType, codec.duplicate(), result)
+                      processTypesArray(dataType, codec, resultCopy)
                   }
                 }
               }
@@ -1827,20 +1855,20 @@ class BosonImpl(
               if (list.head._2.contains(C_DOUBLEDOT) /*&& list.head._1.isInstanceOf[ArrExpr]*/ )
                 dataType match {
                   case (D_BSONOBJECT | D_BSONARRAY) =>
-                    val size: Int = buffer.getIntLE(buffer.readerIndex())
-                    val buf1: ByteBuf = buffer.readBytes(size)
+                    val size: Int = codec.getIntLE(codec.readerIndex())
+                    val buf1: ByteBuf = codec.readBytes(size)
                     val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
                     result.writeBytes(buf2.duplicate())
                     resultCopy.writeBytes(buf2.duplicate())
                     buf1.release()
                     buf2.release()
                   case _ =>
-                    processTypesArray(dataType, buffer.duplicate(), result)
-                    processTypesArray(dataType, buffer, resultCopy)
+                    processTypesArray(dataType, codec.duplicate(), result)
+                    processTypesArray(dataType, codec, resultCopy)
                 }
               else {
-                processTypesArray(dataType, buffer.duplicate(), result)
-                processTypesArray(dataType, buffer, resultCopy)
+                processTypesArray(dataType, codec.duplicate(), result)
+                processTypesArray(dataType, codec, resultCopy)
               }
             case (x, _, l) if isArray && (limitInf.toInt <= x.toInt && l.toInt >= x.toInt) =>
               if (list.lengthCompare(1) == 0) {
@@ -1848,8 +1876,8 @@ class BosonImpl(
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
                       if (exceptions.isEmpty) {
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
+                        val size: Int = codec.getIntLE(codec.readerIndex())
+                        val buf1: ByteBuf = codec.readBytes(size)
                         val bufRes: ByteBuf = Unpooled.buffer()
                         val bufResCopy: ByteBuf = Unpooled.buffer()
                         resultCopy.clear().writeBytes(result.duplicate())
@@ -1870,7 +1898,7 @@ class BosonImpl(
                     case _ =>
                       if (exceptions.isEmpty) {
                         resultCopy.clear().writeBytes(result.duplicate())
-                        Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
+                        Try(modifierEnd(codec, dataType, f, result, resultCopy)) match {
                           case Success(_) =>
                           case Failure(e) =>
                             exceptions.append(e)
@@ -1882,7 +1910,7 @@ class BosonImpl(
                 } else {
                   if (exceptions.isEmpty) {
                     resultCopy.clear().writeBytes(result.duplicate())
-                    Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
+                    Try(modifierEnd(codec, dataType, f, result, resultCopy)) match {
                       case Success(_) =>
                       case Failure(e) =>
                         exceptions.append(e)
@@ -1896,46 +1924,46 @@ class BosonImpl(
                     case (D_BSONARRAY | D_BSONOBJECT) =>
                       if (exceptions.isEmpty) {
                         resultCopy.clear().writeBytes(result.duplicate())
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.duplicate().readBytes(size)
+                        val size: Int = codec.getIntLE(codec.readerIndex())
+                        val buf1: ByteBuf = codec.duplicate().readBytes(size)
                         val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
                         buf1.release()
                         Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
                           case Success(v) =>
                             result.writeBytes(v)
                             v.release()
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec, resultCopy)
                           case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec.duplicate(), result)
+                            processTypesArray(dataType, codec, resultCopy)
                             exceptions.append(e)
                         }
                         buf2.release()
                       } else
                         exceptions.append(exceptions.head)
                     case _ =>
-                      processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
+                      processTypesArrayEnd(list, EMPTY_KEY, dataType, codec, f, condition, limitInf, limitSup, result, resultCopy)
                   }
                 } else {
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
                       if (exceptions.isEmpty) {
                         resultCopy.clear().writeBytes(result.duplicate())
-                        Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
+                        Try(execStatementPatternMatch(codec.duplicate(), list.drop(1), f)) match {
                           case Success(v) =>
                             result.writeBytes(v)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec, resultCopy)
                             v.release()
                           case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
+                            processTypesArray(dataType, codec.duplicate(), result)
+                            processTypesArray(dataType, codec, resultCopy)
                             exceptions.append(e)
                         }
                       } else
                         exceptions.append(exceptions.head)
                     case _ =>
-                      processTypesArray(dataType, buffer.duplicate(), result)
-                      processTypesArray(dataType, buffer, resultCopy)
+                      processTypesArray(dataType, codec.duplicate(), result)
+                      processTypesArray(dataType, codec, resultCopy)
                   }
                 }
               }
@@ -1943,35 +1971,35 @@ class BosonImpl(
               if (list.head._2.contains(C_DOUBLEDOT))
                 dataType match {
                   case (D_BSONOBJECT | D_BSONARRAY) =>
-                    val size: Int = buffer.getIntLE(buffer.readerIndex())
-                    val buf1: ByteBuf = buffer.readBytes(size)
+                    val size: Int = codec.getIntLE(codec.readerIndex())
+                    val buf1: ByteBuf = codec.readBytes(size)
                     val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
                     result.writeBytes(buf2.duplicate())
                     resultCopy.writeBytes(buf2.duplicate())
                     buf1.release()
                     buf2.release()
                   case _ =>
-                    processTypesArray(dataType, buffer.duplicate(), result)
-                    processTypesArray(dataType, buffer, resultCopy)
+                    processTypesArray(dataType, codec.duplicate(), result)
+                    processTypesArray(dataType, codec, resultCopy)
                 }
               else {
-                processTypesArray(dataType, buffer.duplicate(), result)
-                processTypesArray(dataType, buffer, resultCopy)
+                processTypesArray(dataType, codec.duplicate(), result)
+                processTypesArray(dataType, codec, resultCopy)
               }
             case (x, _, l) if !isArray =>
               if (list.head._2.contains(C_DOUBLEDOT)) {
                 dataType match {
                   case (D_BSONOBJECT | D_BSONARRAY) =>
-                    val size: Int = buffer.getIntLE(buffer.readerIndex())
-                    val buf1: ByteBuf = buffer.readBytes(size)
+                    val size: Int = codec.getIntLE(codec.readerIndex())
+                    val buf1: ByteBuf = codec.readBytes(size)
                     val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
                     result.writeBytes(buf2.duplicate())
                     resultCopy.writeBytes(buf2.duplicate())
                     buf1.release()
                     buf2.release()
                   case _ =>
-                    processTypesArray(dataType, buffer.duplicate(), result)
-                    processTypesArray(dataType, buffer, resultCopy)
+                    processTypesArray(dataType, codec.duplicate(), result)
+                    processTypesArray(dataType, codec, resultCopy)
                 }
               } else throw CustomException("*ModifyArrayEnd* Not a Array")
           }
