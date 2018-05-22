@@ -1193,13 +1193,21 @@ class BosonImpl(
               if (list.lengthCompare(1) == 0) { //If the size of the list is 1
                 if (list.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val partialData: Either[ByteBuf, String] = codecWithKey.getPartialData
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT) else SonArray(CS_ARRAY)
+                      val partialData: Either[ByteBuf, String] = codecWithKey.readToken(token) match {
+                        case SonObject(_, result) => result match {
+                          case byteBuf: ByteBuf => Left(byteBuf)
+                          case jsonString: String => Right(jsonString)
+                        }
+                        case SonArray(_, result) => result match {
+                          case byteBuf: ByteBuf => Left(byteBuf)
+                          case jsonString: String => Right(jsonString)
+                        }
+                      }
                       val modifiedCodec = execStatementPatternMatch(partialData, list, f)
                       modifierAll(modifiedCodec, dataType, f)
-                    //                      buf3.capacity(buf3.writerIndex())   these operations are performed in modifierAll ???
-                    //                      result.writeBytes(buf3)
-                    //                      buf3.release()
+
                     case _ =>
                       modifierAll(codecWithKey, dataType, f)
                   }
@@ -1209,14 +1217,18 @@ class BosonImpl(
                 if (list.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val token = codecWithKey.readToken(SonObject(CS_OBJECT))
-                      val dataStructure: Either[ByteBuf, String] = token match {
+                      val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT) else SonArray(CS_ARRAY)
+                      val partialData: Either[ByteBuf, String] = codecWithKey.readToken(token) match {
                         case SonObject(_, result) => result match {
                           case byteBuf: ByteBuf => Left(byteBuf)
-                          case str: String => Right(str)
+                          case jsonString: String => Right(jsonString)
+                        }
+                        case SonArray(_, result) => result match {
+                          case byteBuf: ByteBuf => Left(byteBuf)
+                          case jsonString: String => Right(jsonString)
                         }
                       }
-                      val modifiedCodec: Codec = execStatementPatternMatch(dataStructure, list.drop(1), f)
+                      val modifiedCodec: Codec = execStatementPatternMatch(partialData, list.drop(1), f)
                       execStatementPatternMatch(modifiedCodec.getCodecData, list, f)
                     //                      buf2.release()
                     //                      result.writeBytes(buf3)

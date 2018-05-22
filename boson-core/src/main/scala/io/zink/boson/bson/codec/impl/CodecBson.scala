@@ -388,17 +388,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
-    * Method that returns a section of the data (whether it's a ByteBuf or a String). This section corresponds to
-    * the section of data we're interested in.
-    *
-    * @return The section of data we're interested in. Either a ByteBuf or a String
-    */
-  override def getPartialData: Either[ByteBuf, String] = {
-    val size: Int = buff.getIntLE(buff.readerIndex())
-    Left(buff.readRetainedSlice(size))
-  }
-
-  /**
     * Method that returns a duplicate of the codec's data structure
     *
     * @return a duplicate of the codec's data structure
