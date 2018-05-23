@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   * @param arg Value of type Array[Byte] representing the Bson after being encodec
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
   */
-class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
+ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   //val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
   /**
     * buff is a value of type ByteBuf to process the value received by the user

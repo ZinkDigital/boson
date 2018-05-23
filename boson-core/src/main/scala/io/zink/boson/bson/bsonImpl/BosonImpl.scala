@@ -2090,7 +2090,7 @@ class BosonImpl(
     * @return A structure with the new element injected
     */
   @deprecated
-  def modifyHasElem[T](list: List[(Statement, String)], codec: Codec, key: String, elem: String, f: Function[T, T]): Codec = {
+  def modifyHasElem[T](list: List[(Statement, String)], codec: Codec, asd: String, elem: String, f: Function[T, T]): Codec = {
     val startReader: Int = codec.getReaderIndex
     val size: Int = codec.readSize
     while ((codec.getReaderIndex - startReader) < size) {
