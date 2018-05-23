@@ -1241,7 +1241,7 @@ class BosonImpl(
               }
             case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
               /*
-              * Didn't found a field equal to key
+              * Didn't find a field equal to key
               * Consume value and check deeper Levels
               * */
               if (list.head._2.contains(C_DOUBLEDOT))
