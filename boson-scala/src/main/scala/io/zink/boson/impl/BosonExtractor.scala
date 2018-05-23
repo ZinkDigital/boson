@@ -3,7 +3,7 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bsonImpl.{BosonImpl, BosonImpl2}
 import io.zink.boson.bson.bsonPath._
 import shapeless.TypeCase
 

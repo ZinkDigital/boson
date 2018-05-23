@@ -370,7 +370,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodec: CodecBson, token: SonNamedType): Codec = {
+  override def writeToken(outCodec: CodecBson, token: SonNamedType): Codec = token match {
 
     case SonBoolean(_, info) =>
       val duplicated = outCodec.copyByteBuf //duplicate this codec's ByteBuf
