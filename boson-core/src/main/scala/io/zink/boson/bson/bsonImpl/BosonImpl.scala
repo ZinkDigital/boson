@@ -1643,7 +1643,7 @@ class BosonImpl(
                     case (D_BSONOBJECT | D_BSONARRAY) =>
                       if (exceptions.isEmpty) {
 //                        val size: Int = codec.readSize
-                        //TODO - Create function to read Obj or Arr (Maybe)
+                        //TODO - Create function to read Obj or Arr (Maybe) +
                         val partialCodec: Either[ByteBuf,String] = codec.readToken(SonArray(CS_ARRAY)) match {
                           case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf,String]]
                           case SonObject(_, value) => value.asInstanceOf[Either[ByteBuf,String]]
@@ -1696,24 +1696,25 @@ class BosonImpl(
                     case (D_BSONARRAY | D_BSONOBJECT) =>
                       if (exceptions.isEmpty) {
 //                        result.clear().writeBytes(resultCopy.duplicate())
-                        val size: Int = codec.getIntLE(codec.readerIndex())
-                        val buf1: ByteBuf = codec.readBytes(size)
+//                        val size: Int = codec.getIntLE(codec.readerIndex())
+//                        val buf1: ByteBuf = codec.readBytes(size)
                         val codec1 = codec.readToken(SonArray(CS_ARRAY)) match{
                           case SonArray(_,value) => value.asInstanceOf[Either[ByteBuf,String]]
                         }
                         // val buf2: ByteBuf = execStatementPatternMatch(buf1.duplicate(), list, f)
                         val buf2: Either[ByteBuf,String] =
                           if (list.head._1.isInstanceOf[ArrExpr])
-                            execStatementPatternMatch(codec1, list, f) //I DON'T KNOW!!!!
+                            execStatementPatternMatch(codec1, list, f).getCodecData //I DON'T KNOW!!!!
                           else
                             codec1
 //                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
                         //val buf3: ByteBuf =
                         Try(execStatementPatternMatch(buf2, list.drop(1), f)) match {
                           case Success(v) =>
-                            result.writeBytes(v)
-                            v.release()
-                            resultCopy.writeBytes(buf2)
+                            codec.writeToken(SonNumber(CS_BYTE,v))// Not right, v is a Codec
+//                            result.writeBytes(v)
+//                            v.release()
+//                            resultCopy.writeBytes(buf2)
                           case Failure(e) =>
                             result.writeBytes(buf2.duplicate())
                             resultCopy.writeBytes(buf2)
@@ -2326,7 +2327,7 @@ class BosonImpl(
   }
 
   /**
-    * Fucntion used to search for an element inside a object inside a array after finding the key of interest
+    * Function used to search for an element inside a object inside a array after finding the key of interest
     *
     * @param list   A list with pairs that contains the key of interest and the type of operation
     * @param buf    Structure from which we are reading the old values
