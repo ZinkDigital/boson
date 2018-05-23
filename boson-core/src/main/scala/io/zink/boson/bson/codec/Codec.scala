@@ -188,7 +188,7 @@ trait Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeToken(token: SonNamedType): Codec
+  def writeToken(outCodec: Codec, token: SonNamedType): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure

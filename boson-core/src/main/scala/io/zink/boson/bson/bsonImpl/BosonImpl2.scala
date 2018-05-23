@@ -45,7 +45,17 @@ class BosonImpl2 {
     * @return
     */
   def modifyAll[T](statementsList: StatementsList, codec: Codec, key: String, injFunction: T => T): Codec = {
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
 
+    while ((codec.getReaderIndex - startReader) < originalSize){
+      val dataType = codec.readDataType
+      dataType match {
+        case 0 => //This is the end
+        case _ =>
+      }
+    }
+    ???
   }
 
 }

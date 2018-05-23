@@ -370,16 +370,17 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(token: SonNamedType): Codec = {
+  override def writeToken(outCodec: CodecBson, token: SonNamedType): Codec = {
 
     case SonBoolean(_, info) =>
-      val duplicated = copyByteBuf //duplicate this codec's ByteBuf
-    val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
+      val duplicated = outCodec.copyByteBuf //duplicate this codec's ByteBuf
+      val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
       duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
       new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
 
     case SonNumber(numberType, info) =>
-      val duplicated = copyByteBuf
+      val duplicated = outCodec.copyByteBuf
+
       val manipulatedBuf: ByteBuf = numberType match {
 
         case CS_BYTE =>
@@ -406,7 +407,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       new CodecBson(arg, Some(manipulatedBuf))
 
     case SonString(_, info) =>
-      val duplicated = copyByteBuf
+      val duplicated = outCodec.copyByteBuf
       val writableCharSeq = info.asInstanceOf[CharSequence]
       duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
       new CodecBson(arg, Some(duplicated))
