@@ -4,8 +4,8 @@ import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonPath._
-import io.zink.boson.bson.codec._
 import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.codec._
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,7 +25,7 @@ class BosonImpl2 {
     * @param dataStructure -
     * @param statements    -
     * @param injFunction   -
-    * @tparam T            -
+    * @tparam T -
     * @return
     */
   def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T ): Codec = {
@@ -53,31 +53,19 @@ class BosonImpl2 {
     * @param codec          -
     * @param fieldID        -
     * @param injFunction    -
-    * @tparam T             -
+    * @tparam T -
     * @return
     */
-  def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
+  private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
-      if((codec.getReaderIndex - startReader) < originalSize) {
-        currentCodec
-      } else {
+      if ((codec.getReaderIndex - startReader) < originalSize) currentCodec
+      else {
         val dataType: Int = codec.readDataType
-        val newCodec = dataType match{
-          case 0 => // This is the end
-            codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
+        val newCodec = dataType match {
+          case 0 => codecWithDataType // This is the end
           case _ =>
-            val codecWithDataType = codec.writeToken(currentCodec,SonNumber(CS_BYTE,dataType))
-            val (key, b): (String, Int) = {
-              val key: String = codec.readToken(SonString(CS_NAME)) match {
-                case SonString(_, keyString) => keyString.asInstanceOf[String]
-              }
-              val b: Byte = codec.readToken(SonBoolean(CS_BYTE)) match {
-                case SonBoolean(_, bByte) => bByte.asInstanceOf[Byte]
-              }
-              (key,b)
-            }
-            val codecWithKey1 = codec.writeToken(codecWithDataType,SonString(CS_STRING,key))
-            val codecWithKey = codec.writeToken(codecWithKey1, SonNumber(CS_BYTE,b))
+            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
 
             key match{
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep => //add isHalWord Later
@@ -158,7 +146,159 @@ class BosonImpl2 {
     emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER,finalSize)) + codecWithoutSize
   }
 
-  def processTypesArray(dataType: Int, codec: Codec, currentResCodec: Codec): Codec = {
+  /**
+    *
+    * @param statementsList
+    * @param codec
+    * @param fieldID
+    * @param elem
+    * @param injFunction
+    * @tparam T
+    * @return
+    */
+  private def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
+
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+    //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
+    val emptyDataStructure: Codec = codec.getCodecData match {
+      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+      case Right(_) => CodecObject.toCodec("")
+    }
+
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param writableCodec - the codec to be modified
+      * @return A modified codec
+      */
+    def iterateDataStructure(writableCodec: Codec): Codec = {
+      if ((codec.getReaderIndex - startReader) < originalSize) writableCodec
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
+        dataType match {
+          case 0 => codecWithDataType //TODO do we return something here or do we continue the recursion ?
+          case _ => //In case its not the end
+
+            val (codecWithKeyByte, key) = writeKeyAndByte(codec, codecWithDataType)
+
+            //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
+            //or they're halfword's
+            //in all other cases we just want to copy the data from one codec to the other (using "process" like functions)
+            key match {
+              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
+                //the key is a halfword and matches with the extracted key, dataType is an array
+                //searchAndModify
+                val modifiedCodec: Codec = searchAndModify(statementsList, codec, fieldID, injFunction, codecWithKeyByte)
+                iterateDataStructure(modifiedCodec)
+
+              case _ =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  val processedCodec: Codec = ??? //processTypesHasElem(list, dataType, key, elem, buf, f, result)
+                  iterateDataStructure(processedCodec)
+                } else {
+                  val processedCodec: Codec = ??? //processTypesArray(dataType, buf, result)
+                  iterateDataStructure(processedCodec)
+                }
+            }
+        }
+      }
+    }
+
+    iterateDataStructure(emptyDataStructure) //Initiate recursion with an empty data structure
+  }
+
+  /**
+    * Function used to search for an element inside an object inside an array after finding the key of interesst
+    *
+    * @param statementsList
+    * @param codec
+    * @param fieldID
+    * @param injFunction
+    * @tparam T
+    * @return
+    */
+  private def searchAndModify[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, writableCodec: Codec): Codec = {
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+
+    def iterateDataStructure(writtableCodec: Codec): Codec = {
+      if ((codec.getReaderIndex - startReader) < originalSize) writableCodec
+      else {
+        val dataType = codec.readDataType
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
+        dataType match {
+          case 0 => codecWithDataType
+          case _ =>
+            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
+            dataType match {
+              case D_BSONOBJECT =>
+              //                val bsonSize: Int = codec.getSize //hasElem
+
+            }
+        }
+      }
+    }
+  }
+
+  /**
+    * Method used to see if an object contains a certain element inside it
+    *
+    * @param codec - The structure in which to look for the element
+    * @param elem  - The name of the element to look for
+    * @return A boolean value saying if the given element is present in that object
+    */
+  private def hasElem(codec: Codec, elem: String): Boolean = {
+    val size: Int = codec.readSize
+    var key: String = ""
+    while (codec.getReaderIndex < size && (!elem.equals(key) && !isHalfword(elem, key))) {
+      key = "" //clear the key
+      val dataType = codec.readDataType
+      dataType match {
+        case 0 => //TODO what do we do in this case
+        case _ =>
+          val key: String = codec.readToken(SonString(CS_NAME)) match {
+            case SonString(_, keyString) => keyString.asInstanceOf[String]
+          }
+          codec.readToken(SonBoolean(C_ZERO)) //read the closing byte of the key, we're not interested in this value
+        //TODO STOPED HERE
+
+      }
+    }
+    ???
+  }
+
+  /**
+    * Method that will perform the injection in the root of the data structure
+    *
+    * @param codec       - Codec encapsulating the data structure to inject in
+    * @param injFunction - The injection function to be applied
+    * @tparam T - The type of elements the injection function receives
+    * @return - A new codec with the injFunction applied to it
+    */
+  private def rootInjection[T](codec: Codec, injFunction: T => T): Codec = {
+    codec.getCodecData match {
+      case Left(byteBuf) =>
+        val bsonBytes: Array[Byte] = byteBuf.array() //extract the bytes from the bytebuf
+      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[Array[Byte]] //apply the injector function to the extracted bytes
+      val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
+        CodecObject.toCodec(newBuf)
+
+      case Right(jsonString) => //TODO not sure if this is correct for CodecJson
+        val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
+        CodecObject.toCodec(modifiedString)
+    }
+  }
+
+  /**
+    *
+    * @param dataType
+    * @param codec
+    * @param currentResCodec
+    * @return
+    */
+  private def processTypesArray(dataType: Int, codec: Codec, currentResCodec: Codec): Codec = {
     dataType match {
       case D_ZERO_BYTE =>
         currentResCodec
@@ -222,7 +362,18 @@ class BosonImpl2 {
     }
   }
 
-  def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T): Codec = {
+  /**
+    *
+    * @param statementsList
+    * @param seqType
+    * @param codec
+    * @param currentResCodec
+    * @param fieldID
+    * @param injFunction
+    * @tparam T
+    * @return
+    */
+  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T): Codec = {
     seqType match {
       case D_FLOAT_DOUBLE =>
         codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
@@ -248,76 +399,6 @@ class BosonImpl2 {
       case D_BOOLEAN =>
         codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
     }
-  }
-
-  /**
-    *
-    * @param statementsList
-    * @param codec
-    * @param fieldID
-    * @param elem
-    * @param injFunction
-    * @tparam T
-    * @return
-    */
-  def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
-
-    val startReader: Int = codec.getReaderIndex
-    val originalSize: Int = codec.readSize
-    //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
-    val emptyDataStructure: Codec = codec.getCodecData match {
-      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-      case Right(_) => CodecObject.toCodec("")
-    }
-
-    /**
-      * Recursive function to iterate through the given data structure and return the modified codec
-      *
-      * @param writtableCodec - the codec to be modified
-      * @return A modified codec
-      */
-    def iterateDataStructure(writtableCodec: Codec): Codec = {
-      if ((codec.getReaderIndex - startReader) < originalSize) writtableCodec
-      else {
-        val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(writtableCodec, SonNumber(CS_BYTE, dataType))
-        dataType match {
-          case 0 => writtableCodec //TODO do we return something here or do we continue the recursion ?
-          case _ =>
-            val key: String = codec.readToken(SonString(CS_NAME)) match {
-              case SonString(_, keyString) => keyString.asInstanceOf[String]
-            }
-            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
-              case SonBoolean(_, result) => result.asInstanceOf[Byte]
-            }
-
-            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-            val codecWithKeyByte = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b))
-
-            //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
-            //or they're halfword's
-            //in all other cases we just want to copy the data from one codec to the other (using "process" like functions)
-            key match {
-              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
-                //the key is a halfword and matches with the extracted key, dataType is an array
-                //searchAndModify
-                val modifiedCodec: Codec = ??? //searchAndModify
-                iterateDataStructure(modifiedCodec)
-
-              case _ =>
-                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  val processedCodec: Codec = ??? //processTypesHasElem(list, dataType, key, elem, buf, f, result)
-                  iterateDataStructure(processedCodec)
-                } else {
-                  val processedCodec: Codec = ??? //processTypesArray(dataType, buf, result)
-                  iterateDataStructure(processedCodec)
-                }
-            }
-        }
-      }
-    }
-
-    iterateDataStructure(emptyDataStructure)
   }
 
   /**
@@ -360,28 +441,6 @@ class BosonImpl2 {
   }
 
   /**
-    * Method that will perform the injection in the root of the data structure
-    *
-    * @param codec       - Codec encapsulating the data structure to inject in
-    * @param injFunction - The injection function to be applied
-    * @tparam T - The type of elements the injection function receives
-    * @return - A new codec with the injFunction applied to it
-    */
-  def rootInjection[T](codec: Codec, injFunction: T => T): Codec = {
-    codec.getCodecData match {
-      case Left(byteBuf) =>
-        val bsonBytes: Array[Byte] = byteBuf.array() //extract the bytes from the bytebuf
-      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[Array[Byte]] //apply the injector function to the extracted bytes
-      val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
-        CodecObject.toCodec(newBuf)
-
-      case Right(jsonString) => //TODO not sure if this is correct for CodecJson
-        val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
-        CodecObject.toCodec(modifiedString)
-    }
-  }
-
-  /**
     * Method that tries to apply the given injector function to a given value
     *
     * @param injFunction - The injector function to be applied
@@ -415,6 +474,24 @@ class BosonImpl2 {
 
       case _ => throw CustomException2(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
     }
+  }
+
+  /**
+    * Helper function to retrieve a Key and its closing byte
+    *
+    * @param codec
+    * @return
+    */
+  private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
+    val key: String = codec.readToken(SonString(CS_NAME)) match {
+      case SonString(_, keyString) => keyString.asInstanceOf[String]
+    }
+    val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+      case SonBoolean(_, result) => result.asInstanceOf[Byte]
+    }
+
+    val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key))
+    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b)), key)
   }
 
 }

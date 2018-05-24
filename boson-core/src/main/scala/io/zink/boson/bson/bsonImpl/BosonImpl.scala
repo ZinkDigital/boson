@@ -1356,7 +1356,7 @@ class BosonImpl(
         codec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         codec.writeToken(codec.readToken(SonString(CS_STRING)))
-     case D_BSONOBJECT =>
+      case D_BSONOBJECT =>
         val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT)) match {
           case SonObject(_, result) => CodecObject.toCodec(result)
         }
@@ -1383,9 +1383,9 @@ class BosonImpl(
   /**
     * Function used to perform the injection on the last ocurrence of a field
     *
-    * @param codec      Structure from which we are reading the old values
-    * @param seqType    Type of the value found and processing
-    * @param f          Function given by the user with the new value
+    * @param codec   Structure from which we are reading the old values
+    * @param seqType Type of the value found and processing
+    * @param f       Function given by the user with the new value
     * @tparam T Type of the value being injected
     */
   @deprecated
@@ -1408,7 +1408,7 @@ class BosonImpl(
       case D_BSONOBJECT =>
         val value0 = codec.readToken(SonObject(CS_OBJECT))
         val codecCopy = codec.writeToken(value0)
-        val codecRes =applyFunction(f, value0) match {
+        val codecRes = applyFunction(f, value0) match {
           case value: SonObject => codec.writeToken(value) // TODO - codec + codecAux ???
         }
         (codecRes, codecCopy)
@@ -1448,12 +1448,12 @@ class BosonImpl(
   /**
     * Function used to perform the search on the last element of an array
     *
-    * @param list       A list with pairs that contains the key of interest and the type of operation
+    * @param list      A list with pairs that contains the key of interest and the type of operation
     * @param codec     Structure from which we are reading the old values
-    * @param f          Function given by the user with the new value
-    * @param condition  Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf   Represent the inferior limit when a range is given
-    * @param limitSup   Represent the superior limit when a range is given
+    * @param f         Function given by the user with the new value
+    * @param condition Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
+    * @param limitInf  Represent the inferior limit when a range is given
+    * @param limitSup  Represent the superior limit when a range is given
     * @tparam T Type of the value being injected
     * @return A new bosonImpl with the new values injected
     */
@@ -1467,8 +1467,8 @@ class BosonImpl(
     val exceptions: ListBuffer[Throwable] = new ListBuffer[Throwable]
     while ((codec.getReaderIndex - startReaderIndex) < originalSize && exceptions.size < 2) {
       val dataType: Int = codec.readDataType
-//      result.writeByte(dataType)
-//      resultCopy.writeByte(dataType)
+      //      result.writeByte(dataType)
+      //      resultCopy.writeByte(dataType)
       dataType match {
         case 0 => codec.writeToken(SonNumber(CS_BYTE, dataType))
         case _ =>
@@ -1477,20 +1477,20 @@ class BosonImpl(
             val key: String = codecWithDataType.readToken(SonString(CS_NAME)) match {
               case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
-//            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-//            while (codec.getByte(codec.getReaderIndex) != 0 || key.length < 1) {
-//              val b: Byte = codec.readByte()
-//              key.append(b)
-//            }
+            //            val key: ListBuffer[Byte] = new ListBuffer[Byte]
+            //            while (codec.getByte(codec.getReaderIndex) != 0 || key.length < 1) {
+            //              val b: Byte = codec.readByte()
+            //              key.append(b)
+            //            }
             val token = codecWithDataType.readToken(SonBoolean(C_ZERO))
             val b: Byte = token match {
               case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
             (key.forall(byte => byte.isDigit), key, b)
           }
-          val codecWithKey = codecWithDataType.writeToken(SonString(CS_STRING,key))
-//          result.writeBytes(key).writeByte(b)
-//          resultCopy.writeBytes(key).writeByte(b)
+          val codecWithKey = codecWithDataType.writeToken(SonString(CS_STRING, key))
+          //          result.writeBytes(key).writeByte(b)
+          //          resultCopy.writeBytes(key).writeByte(b)
           val keyString: String = new String(key)
           (keyString, condition, limitSup) match {
             case (x, C_END, _) if isArray =>
@@ -1500,37 +1500,37 @@ class BosonImpl(
                   dataType match {
                     case (D_BSONOBJECT | D_BSONARRAY) =>
                       if (exceptions.isEmpty) {
-//                        val size: Int = codec.readSize
+                        //                        val size: Int = codec.readSize
                         //TODO - Create function to read Obj or Arr (Maybe) +
-                        val partialCodec: Either[ByteBuf,String] = codec.readToken(SonArray(CS_ARRAY)) match {
-                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf,String]]
-                          case SonObject(_, value) => value.asInstanceOf[Either[ByteBuf,String]]
+                        val partialCodec: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
+                          case SonObject(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
                         }
-//                        val bufRes: ByteBuf = Unpooled.buffer()
-//                        val bufResCopy: ByteBuf = Unpooled.buffer()
-//                        result.clear().writeBytes(resultCopy.duplicate()) //TODO - Why!?!
+                        //                        val bufRes: ByteBuf = Unpooled.buffer()
+                        //                        val bufResCopy: ByteBuf = Unpooled.buffer()
+                        //                        result.clear().writeBytes(resultCopy.duplicate()) //TODO - Why!?!
                         val codec3: Codec = //TODO - Change names when I understand what they are
-                          if (list.head._1.isInstanceOf[ArrExpr])
-                            execStatementPatternMatch(partialCodec, list, f)
-                          else
-                            CodecObject.toCodec(partialCodec)
+                        if (list.head._1.isInstanceOf[ArrExpr])
+                          execStatementPatternMatch(partialCodec, list, f)
+                        else
+                          CodecObject.toCodec(partialCodec)
 
                         Try(modifierEnd(codec3, dataType, f)) match {
                           case Success(codecTuple) => codecTuple
                           case Failure(e) =>
                             exceptions.append(e)
                         }
-//                        (codecRes,codecResCopy)
-//                        result.writeBytes(bufRes)
-//                        resultCopy.writeBytes(bufResCopy)
-//                        buf1.release()
-//                        bufRes.release()
-//                        bufResCopy.release()
-//                        buf3.release()
+                        //                        (codecRes,codecResCopy)
+                        //                        result.writeBytes(bufRes)
+                        //                        resultCopy.writeBytes(bufResCopy)
+                        //                        buf1.release()
+                        //                        bufRes.release()
+                        //                        bufResCopy.release()
+                        //                        buf3.release()
                       }
                     case _ =>
                       if (exceptions.isEmpty) {
-//                        result.clear().writeBytes(resultCopy.duplicate())
+                        //                        result.clear().writeBytes(resultCopy.duplicate())
                         Try(modifierEnd(codec, dataType, f)) match {
                           case Success(codecTuple) => codecTuple
                           case Failure(e) =>
@@ -1540,7 +1540,7 @@ class BosonImpl(
                   }
                 } else {
                   if (exceptions.isEmpty) {
-//                    result.clear().writeBytes(resultCopy.duplicate())
+                    //                    result.clear().writeBytes(resultCopy.duplicate())
                     Try(modifierEnd(codec, dataType, f)) match {
                       case Success(codecTuple) => codecTuple
                       case Failure(e) =>
@@ -1553,26 +1553,26 @@ class BosonImpl(
                   dataType match {
                     case (D_BSONARRAY | D_BSONOBJECT) =>
                       if (exceptions.isEmpty) {
-//                        result.clear().writeBytes(resultCopy.duplicate())
-//                        val size: Int = codec.getIntLE(codec.readerIndex())
-//                        val buf1: ByteBuf = codec.readBytes(size)
-                        val codec1 = codec.readToken(SonArray(CS_ARRAY)) match{
-                          case SonArray(_,value) => value.asInstanceOf[Either[ByteBuf,String]]
+                        //                        result.clear().writeBytes(resultCopy.duplicate())
+                        //                        val size: Int = codec.getIntLE(codec.readerIndex())
+                        //                        val buf1: ByteBuf = codec.readBytes(size)
+                        val codec1 = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
                         }
                         // val buf2: ByteBuf = execStatementPatternMatch(buf1.duplicate(), list, f)
-                        val buf2: Either[ByteBuf,String] =
+                        val buf2: Either[ByteBuf, String] =
                           if (list.head._1.isInstanceOf[ArrExpr])
                             execStatementPatternMatch(codec1, list, f).getCodecData //I DON'T KNOW!!!!
                           else
                             codec1
-//                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
+                        //                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
                         //val buf3: ByteBuf =
                         Try(execStatementPatternMatch(buf2, list.drop(1), f)) match {
                           case Success(v) =>
-                            codec.writeToken(SonNumber(CS_BYTE,v))// Not right, v is a Codec
-//                            result.writeBytes(v)
-//                            v.release()
-//                            resultCopy.writeBytes(buf2)
+                            codec.writeToken(SonNumber(CS_BYTE, v)) // Not right, v is a Codec
+                          //                            result.writeBytes(v)
+                          //                            v.release()
+                          //                            resultCopy.writeBytes(buf2)
                           case Failure(e) =>
                             result.writeBytes(buf2.duplicate())
                             resultCopy.writeBytes(buf2)
@@ -2220,8 +2220,8 @@ class BosonImpl(
             case D_BSONOBJECT =>
               val bsonSize: Int = buf.getIntLE(buf.readerIndex())
               val bsonBuf: ByteBuf = Unpooled.buffer(bsonSize)
-              buf.getBytes(buf.readerIndex(), bsonBuf, bsonSize)
-              val hasElem: Boolean = hasElement(bsonBuf.duplicate(), elem)
+              buf.getBytes(buf.readerIndex(), bsonBuf, bsonSize) //we're copying only a part we're interested in - in this case its the size of the object and the object it self
+            val hasElem: Boolean = hasElement(bsonBuf.duplicate(), elem)
               if (hasElem) {
                 if (list.size == 1) {
                   if (list.head._2.contains(C_DOUBLEDOT)) {
