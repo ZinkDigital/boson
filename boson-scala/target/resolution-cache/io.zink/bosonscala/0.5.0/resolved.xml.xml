@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+	<info organisation="io.zink"
+		module="bosonscala"
+		revision="0.5.0"
+		status="integration"
+		publication="20180524130945"
+	>
+		<license name="The Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt" />
+		<description homepage="https://github.com/ZinkDigital/boson">
+		Boson - Streaming for JSON and BSON
+		</description>
+	</info>
+	<configurations>
+		<conf name="compile" visibility="public" description=""/>
+		<conf name="runtime" visibility="public" description="" extends="compile"/>
+		<conf name="test" visibility="public" description="" extends="runtime"/>
+		<conf name="provided" visibility="public" description=""/>
+		<conf name="optional" visibility="public" description=""/>
+		<conf name="compile-internal" visibility="private" description="" extends="compile,optional,provided"/>
+		<conf name="runtime-internal" visibility="private" description="" extends="runtime,optional"/>
+		<conf name="test-internal" visibility="private" description="" extends="test,optional,provided"/>
+		<conf name="plugin" visibility="private" description=""/>
+		<conf name="sources" visibility="public" description=""/>
+		<conf name="docs" visibility="public" description=""/>
+		<conf name="pom" visibility="public" description=""/>
+		<conf name="scala-tool" visibility="private" description=""/>
+	</configurations>
+	<publications>
+		<artifact name="bosonscala" type="pom" ext="pom" conf="pom"/>
+		<artifact name="bosonscala" type="jar" ext="jar" conf="compile"/>
+		<artifact name="bosonscala" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+		<artifact name="bosonscala" type="doc" ext="jar" conf="docs" e:classifier="javadoc"/>
+	</publications>
+	<dependencies>
+		<dependency org="org.scala-lang" name="scala-compiler" rev="2.12.3" conf="scala-tool->default,optional(default)"/>
+		<dependency org="org.scala-lang" name="scala-library" rev="2.12.3" conf="scala-tool->default,optional(default)"/>
+		<dependency org="io.zink" name="bosoncore" rev="0.5.0" conf="compile->default(compile)"/>
+		<dependency org="org.glassfish" name="javax.json" rev="1.1" conf="compile->default(compile)"/>
+		<dependency org="org.scala-lang.modules" name="scala-parser-combinators_2.12" rev="1.0.4" conf="compile->default(compile)"/>
+		<dependency org="io.netty" name="netty-all" rev="4.1.22.Final" conf="compile->default(compile)"/>
+		<dependency org="org.scala-lang.modules" name="scala-java8-compat_2.12" rev="0.8.0" conf="compile->default(compile)"/>
+		<dependency org="com.chuusai" name="shapeless_2.12" rev="2.3.3" conf="compile->default(compile)"/>
+		<dependency org="org.parboiled" name="parboiled_2.12" rev="2.1.4" conf="compile->default(compile)"/>
+		<dependency org="net.jodah" name="typetools" rev="0.5.0" conf="compile->default(compile)"/>
+		<dependency org="org.scalatest" name="scalatest_2.12" rev="3.0.3" conf="test->default(compile)">
+			<artifact name="scalatest_2.12" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+			<artifact name="scalatest_2.12" type="jar" ext="jar" conf="*"/>
+		</dependency>
+		<dependency org="de.undercouch" name="bson4jackson" rev="2.7.0" conf="compile->default(compile)"/>
+		<dependency org="junit" name="junit" rev="4.12" conf="test->default(compile)"/>
+		<dependency org="io.vertx" name="vertx-core" rev="3.5.0" conf="compile->default(compile)"/>
+		<dependency org="com.novocode" name="junit-interface" rev="0.11" conf="test->default(compile)"/>
+		<dependency org="com.jayway.jsonpath" name="json-path" rev="2.4.0" conf="compile->default(compile)"/>
+		<dependency org="com.google.code.gson" name="gson" rev="2.3.1" conf="compile->default(compile)"/>
+		<dependency org="org.slf4j" name="slf4j-simple" rev="1.7.25" conf="compile->default(compile)"/>
+		<dependency org="io.rest-assured" name="scala-support" rev="3.0.6" conf="compile->default(compile)"/>
+		<dependency org="io.rest-assured" name="rest-assured" rev="3.0.6" conf="compile->default(compile)"/>
+		<dependency org="com.squareup.okhttp3" name="mockwebserver" rev="3.9.1" conf="compile->default(compile)"/>
+		<dependency org="com.storm-enroute" name="scalameter_2.12" rev="0.8.2" conf="compile->default(compile)"/>
+		<dependency org="org.ow2.asm" name="asm" rev="5.2" conf="compile->default(compile)"/>
+		<dependency org="org.ow2.asm" name="asm-tree" rev="5.2" conf="compile->default(compile)"/>
+		<dependency org="org.ow2.asm" name="asm-analysis" rev="5.2" conf="compile->default(compile)"/>
+		<dependency org="org.ow2.asm" name="asm-util" rev="5.2" conf="compile->default(compile)"/>
+	</dependencies>
+</ivy-module>
