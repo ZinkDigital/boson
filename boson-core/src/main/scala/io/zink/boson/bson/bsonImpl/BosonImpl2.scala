@@ -178,7 +178,7 @@ class BosonImpl2 {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
         dataType match {
-          case 0 => codecWithDataType //TODO do we return something here or do we continue the recursion ?
+          case 0 => iterateDataStructure(codecWithDataType)
           case _ => //In case its not the end
 
             val (codecWithKeyByte, key) = writeKeyAndByte(codec, codecWithDataType)
@@ -229,17 +229,72 @@ class BosonImpl2 {
         val dataType = codec.readDataType
         val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
         dataType match {
-          case 0 => codecWithDataType
+          case 0 => iterateDataStructure(codecWithDataType)
           case _ =>
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
             dataType match {
               case D_BSONOBJECT =>
-              //                val bsonSize: Int = codec.getSize //hasElem
+                val bsonSize = codec.getSize
+                val partialCodec: Codec = codec.getToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
+                  case SonObject(_, dataStruct) => dataStruct match {
+                    case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                    case jsonString: String => CodecObject.toCodec(jsonString)
+                  }
+                } //Obtain only the size and the object itself of this BsonObject
+                if (hasElem(partialCodec.duplicate, fieldID)) {
 
+                  if (statementsList.size == 1) {
+
+                    val codecWithObj: Codec = codec.readSpecificSize(bsonSize)
+                    val byteArr: Array[Byte] = codecWithObj.getCodecData match {
+                      case Left(byteBuff) => byteBuff.array
+                      case Right(jsonString) => jsonString.getBytes
+                    }
+                    val newArray: Array[Byte] = applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]
+                    val codecFromByteArr = codec.fromByteArray(newArray)
+                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                      val newCodec = inject(codec.getCodecData, statementsList, injFunction)
+                      iterateDataStructure(codecWithKey + newCodec)
+                    } else {
+                      iterateDataStructure(codecWithKey + codecFromByteArr)
+                    }
+
+                  } else {
+
+                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+
+                      val dataStruct: Either[ByteBuf, String] = codec.getToken(SonString(CS_ARRAY)) match {
+                        case SonString(_, data) => data match {
+                          case byteBuf: ByteBuf => Left(ByteBuf)
+                          case jsonString: String => Right(jsonString)
+                        }
+                      }
+                      val newCodec = inject(dataStruct, statementsList.drop(1), injFunction)
+                      val modifiedCodec = inject(newCodec.duplicate.getCodecData, statementsList, injFunction)
+                      iterateDataStructure(codecWithKey + modifiedCodec)
+
+                    } else {
+
+                      codec.readSpecificSize(bsonSize) //read the size of the object
+                      val newCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
+                      iterateDataStructure(codecWithKey + newCodec)
+
+                    }
+                  }
+
+                } else {
+                  val newCodec = codec.readSpecificSize(bsonSize) //read the size of the object
+                  iterateDataStructure(codecWithKey + newCodec)
+                }
+
+              case _ => processTypesArray(dataType, codec, writableCodec)
             }
         }
       }
+      //TODO maybe do something more here ?
     }
+
+    iterateDataStructure(writableCodec)
   }
 
   /**

@@ -2,7 +2,7 @@ package io.zink.boson.bson.codec.impl
 
 import java.nio.charset.Charset
 
-import io.netty.buffer.ByteBuf
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
 
@@ -89,6 +89,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           //val arr: Array[Byte] = new Array[Byte](size)
           val b: ByteBuf = buff.copy(buff.readerIndex - 4, size)
           //buff.getBytes(buff.readerIndex()-4, arr)
+          SonObject(x, b)
+
+        case CS_OBJECT_WITH_SIZE =>
+          val size = buff.getIntLE(buff.readerIndex)
+          val b: ByteBuf = buff.copy(buff.readerIndex, size)
           SonObject(x, b)
       }
     case SonString(x, _) =>
@@ -364,6 +369,27 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     case D_INT => buff.skipBytes(4)
     case D_LONG => buff.skipBytes(8)
     case _ =>
+  }
+
+  /**
+    * Method that reads a specified length and returns a new codec with that information
+    */
+  override def readSpecificSize(size: Int): Codec = {
+    val buf1 = buff.readBytes(size)
+    val newCodec = new CodecBson(arg, Some(Unpooled.buffer(buf1.capacity()).writeBytes(buf1)))
+    buf1.release()
+    newCodec
+  }
+
+  /**
+    * Create a new codec from an Array of Bytes
+    *
+    * @param byteArray - The Array of Bytes from which to create the codec
+    * @return a new codec with the information present in the array of byte
+    */
+  def fromByteArray(byteArray: Array[Byte]): Codec = {
+    val newBuff = Unpooled.buffer(byteArray.length).writeBytes(byteArray)
+    new CodecBson(arg, Some(newBuff))
   }
 
   //-------------------------------------Injector functions--------------------------

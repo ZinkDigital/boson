@@ -180,6 +180,19 @@ trait Codec {
     */
   def consumeValue(seqType: Int): Unit
 
+  /**
+    * Method that reads a specified length and returns a new codec with that information
+    */
+  def readSpecificSize(size: Int): Codec
+
+  /**
+    * Create a new codec from an Array of Bytes
+    *
+    * @param byteArray - The Array of Bytes from which to create the codec
+    * @return a new codec with the information present in the array of byte
+    */
+  def fromByteArray(byteArray: Array[Byte]): Codec
+
   //--------------------------------------------Injector functions-----------------------------------------
 
   /**

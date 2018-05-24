@@ -581,6 +581,20 @@ class CodecJson(str: String) extends Codec {
       readerIndex += size
   }
 
+  /**
+    * Method that reads a specified length and returns a new codec with that information
+    */
+  override def readSpecificSize(size: Int): Codec = ???
+
+
+  /**
+    * Create a new codec from an Array of Bytes
+    *
+    * @param byteArray - The Array of Bytes from which to create the codec
+    * @return a new codec with the information present in the array of byte
+    */
+  def fromByteArray(byteArray: Array[Byte]): Codec = new CodecJson(new String(byteArray))
+
   //
   //-------------------------------------Injector functions--------------------------
 
@@ -590,7 +604,7 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(token: SonNamedType): Codec = ???
+  override def writeToken(outCodec: Codec, token: SonNamedType): Codec = ???
 
   /**
     * Method that returns a duplicate of the codec's data structure
