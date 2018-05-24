@@ -251,6 +251,115 @@ class BosonImpl2 {
   }
 
   /**
+    *
+    * @param statementsList
+    * @param codec
+    * @param fieldID
+    * @param elem
+    * @param injFunction
+    * @tparam T
+    * @return
+    */
+  def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
+
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+    //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
+    val emptyDataStructure: Codec = codec.getCodecData match {
+      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+      case Right(_) => CodecObject.toCodec("")
+    }
+
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param writtableCodec - the codec to be modified
+      * @return A modified codec
+      */
+    def iterateDataStructure(writtableCodec: Codec): Codec = {
+      if ((codec.getReaderIndex - startReader) < originalSize) writtableCodec
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(writtableCodec, SonNumber(CS_BYTE, dataType))
+        dataType match {
+          case 0 => writtableCodec //TODO do we return something here or do we continue the recursion ?
+          case _ =>
+            val key: String = codec.readToken(SonString(CS_NAME)) match {
+              case SonString(_, keyString) => keyString.asInstanceOf[String]
+            }
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+              case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            }
+
+            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val codecWithKeyByte = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b))
+
+            //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
+            //or they're halfword's
+            //in all other cases we just want to copy the data from one codec to the other (using "process" like functions)
+            key match {
+              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
+                //the key is a halfword and matches with the extracted key, dataType is an array
+                //searchAndModify
+                val modifiedCodec: Codec = ??? //searchAndModify
+                iterateDataStructure(modifiedCodec)
+
+              case _ =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  val processedCodec: Codec = ??? //processTypesHasElem(list, dataType, key, elem, buf, f, result)
+                  iterateDataStructure(processedCodec)
+                } else {
+                  val processedCodec: Codec = ??? //processTypesArray(dataType, buf, result)
+                  iterateDataStructure(processedCodec)
+                }
+            }
+        }
+      }
+    }
+
+    iterateDataStructure(emptyDataStructure)
+  }
+
+  /**
+    * Verifies if Key given by user is HalfWord and if it matches with the one extracted.
+    *
+    * @param fieldID   Key given by User.
+    * @param extracted Key extracted.
+    * @return
+    */
+  private def isHalfword(fieldID: String, extracted: String): Boolean = {
+    if (fieldID.contains(STAR) & extracted.nonEmpty) {
+      val list: Array[String] = fieldID.split(STAR_CHAR)
+      (extracted, list.length) match {
+        case (_, 0) =>
+          true
+        case (x, 1) if x.startsWith(list.head) =>
+          true
+        case (x, 2) if x.startsWith(list.head) & x.endsWith(list.last) =>
+          true
+        case (x, i) if i > 2 =>
+          fieldID match {
+            case s if s.startsWith(STAR) =>
+              if (x.startsWith(list.apply(1)))
+                isHalfword(s.substring(1 + list.apply(1).length), x.substring(list.apply(1).length))
+              else {
+                isHalfword(s, x.substring(1))
+              }
+            case s if !s.startsWith(STAR) =>
+              if (x.startsWith(list.head)) {
+                isHalfword(s.substring(list.head.length), extracted.substring(list.head.length))
+              } else {
+                false
+              }
+          }
+        case _ =>
+          false
+      }
+    } else
+      false
+  }
+
+  /**
     * Method that will perform the injection in the root of the data structure
     *
     * @param codec       - Codec encapsulating the data structure to inject in
