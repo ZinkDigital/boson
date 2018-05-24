@@ -196,6 +196,13 @@ trait Codec {
     * @return a duplicate of the codec's data structure
     */
   def getCodecData: Either[ByteBuf, String]
+
+  /**
+    *
+    * @param sumCodec
+    * @return
+    */
+  def +(sumCodec: Codec): Codec
 }
 
 

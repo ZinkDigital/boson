@@ -412,7 +412,18 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
       new CodecBson(arg, Some(duplicated))
 
-    //TODO Maybe support SonObject and SonArray, not sure if necessary
+    case SonArray(_, info) =>
+      val duplicated = outCodec.copyByteBuf
+      val writableByteSeq = info.asInstanceOf[Array[Byte]]
+      duplicated.writeBytes(writableByteSeq)
+      new CodecBson(arg, Some(duplicated))
+
+    case SonObject(_, info) =>
+      val duplicated = outCodec.copyByteBuf
+      val writableByteSeq = info.asInstanceOf[Array[Byte]]
+      duplicated.writeBytes(writableByteSeq)
+      new CodecBson(arg, Some(duplicated))
+
   }
 
   /**
@@ -434,6 +445,20 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
     newB.readerIndex(buff.readerIndex)
     Left(newB)
+  }
+
+  /**
+    * Method that adds 2 Codecs and returns the result codec
+    *
+    * @param sumCodec - codec to be added to the first
+    * @return a codec with the added information of the other 2
+    */
+  override def + (sumCodec: Codec): Codec ={
+    val duplicated = copyByteBuf
+    val addBuff = sumCodec.getCodecData match {
+      case Left(x) => duplicated.writeBytes(x)
+    }
+    CodecObject.toCodec(addBuff)
   }
 
 }

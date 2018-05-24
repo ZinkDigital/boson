@@ -1304,13 +1304,11 @@ class BosonImpl(
         applyFunction(f, value0) match {
           case value: SonNumber => codec.writeToken(value)
         }
-
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING))
         applyFunction(f, value0) match {
           case value: SonString => codec.writeToken(value)
         }
-
       case D_BSONOBJECT =>
         val value0 = codec.readToken(SonObject(CS_OBJECT))
         applyFunction(f, value0) match {
