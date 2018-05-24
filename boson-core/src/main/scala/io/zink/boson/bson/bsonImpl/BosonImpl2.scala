@@ -28,8 +28,8 @@ class BosonImpl2 {
     * @tparam T -
     * @return
     */
-  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T ): Codec = {
-    val codec: Codec = dataStructure match{
+  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T): Codec = {
+    val codec: Codec = dataStructure match {
       case Right(jsonString) => CodecObject.toCodec(jsonString)
       case Left(byteBuf) => CodecObject.toCodec(byteBuf)
     }
@@ -67,10 +67,10 @@ class BosonImpl2 {
           case _ =>
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
 
-            key match{
+            key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep => //add isHalWord Later
-                if(statementsList.lengthCompare(1) == 0) {
-                  if(statementsList.head._2.contains(C_DOUBLEDOT)) {
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT) else SonArray(CS_ARRAY)
@@ -123,7 +123,7 @@ class BosonImpl2 {
                   }
                 }
               case x if fieldID.toCharArray.deep != x.toCharArray.deep => //TODO - add !isHalfWord
-                if(statementsList.head._2.contains(C_DOUBLEDOT))
+                if (statementsList.head._2.contains(C_DOUBLEDOT))
                   processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
                 else
                   processTypesArray(dataType, codec, codecWithKey)
@@ -143,7 +143,7 @@ class BosonImpl2 {
       case Right(string) => string.length
     }
 
-    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER,finalSize)) + codecWithoutSize
+    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
   }
 
   /**
@@ -252,6 +252,7 @@ class BosonImpl2 {
   private def hasElem(codec: Codec, elem: String): Boolean = {
     val size: Int = codec.readSize
     var key: String = ""
+    //Iterate through all of the keys from the dataStructure in order to see if it contains the elem
     while (codec.getReaderIndex < size && (!elem.equals(key) && !isHalfword(elem, key))) {
       key = "" //clear the key
       val dataType = codec.readDataType
@@ -262,11 +263,26 @@ class BosonImpl2 {
             case SonString(_, keyString) => keyString.asInstanceOf[String]
           }
           codec.readToken(SonBoolean(C_ZERO)) //read the closing byte of the key, we're not interested in this value
-        //TODO STOPED HERE
+          dataType match {
+            case D_ZERO_BYTE => //TODO what do we do in this case
 
+            case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE))
+
+            case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_ARRAY))
+
+            case D_BSONOBJECT | D_BSONARRAY => codec.getToken(SonString(CS_ARRAY))
+
+            case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN))
+
+            case D_NULL => //TODO what do we do in this case
+
+            case D_INT => codec.readToken(SonNumber(CS_INTEGER))
+
+            case D_LONG => codec.readToken(SonNumber(CS_LONG))
+          }
       }
     }
-    ???
+    key.toCharArray.deep == elem.toCharArray.deep || isHalfword(elem, key)
   }
 
   /**

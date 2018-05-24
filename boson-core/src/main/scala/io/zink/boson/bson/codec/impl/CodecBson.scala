@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
   * @param arg Value of type Array[Byte] representing the Bson after being encodec
   * @param opt Value of type Option[ByteBuf] used when creating a duplicate
   */
- class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
+class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   //val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
   /**
     * buff is a value of type ByteBuf to process the value received by the user
@@ -107,6 +107,10 @@ import scala.collection.mutable.ListBuffer
           val arr: Array[Byte] = new Array[Byte](valueLength)
           buff.getBytes(buff.readerIndex() + 4, arr)
           SonString(x, arr)
+
+        case _ =>
+          val valueLength: Int = buff.getIntLE(buff.readerIndex())
+          SonString(x, buff.readBytes(valueLength))
       }
     case SonNumber(x, y) =>
       x match {
@@ -374,7 +378,7 @@ import scala.collection.mutable.ListBuffer
 
     case SonBoolean(_, info) =>
       val duplicated = outCodec.copyByteBuf //duplicate this codec's ByteBuf
-      val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
+    val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
       duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
       new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
 
@@ -453,7 +457,7 @@ import scala.collection.mutable.ListBuffer
     * @param sumCodec - codec to be added to the first
     * @return a codec with the added information of the other 2
     */
-  override def + (sumCodec: Codec): Codec ={
+  override def +(sumCodec: Codec): Codec = {
     val duplicated = copyByteBuf
     val addBuff = sumCodec.getCodecData match {
       case Left(x) => duplicated.writeBytes(x)
