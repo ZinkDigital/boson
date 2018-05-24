@@ -37,11 +37,13 @@ class BosonImpl2 {
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction) //execRootInjection(codec, f)
 
-      case Key(key: String) => ??? //modifyAll(statements, codec, key, injFunction) (key = fieldID)
+      case Key(key: String) => modifyAll(statements, codec, key, injFunction) // (key = fieldID)
 
-      case HalfName(half: String) => ??? //modifyAll(statements, codec, half, injFunction)
+      case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
 
-      case HasElem(key: String, elem: String) => ??? //modifyHasElem(statements, codec, key, elem, f)
+      case HasElem(key: String, elem: String) => modifyHasElem(statements, codec, key, elem, injFunction)
+
+      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) => ???
 
       case _ => ???
     }
@@ -63,7 +65,7 @@ class BosonImpl2 {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
         val newCodec = dataType match {
-          case 0 => codecWithDataType // This is the end
+          case 0 => writeCodec(codecWithDataType, startReader, originalSize) // This is the end
           case _ =>
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
 
@@ -490,6 +492,50 @@ class BosonImpl2 {
 
       case _ => throw CustomException2(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
     }
+  }
+
+  def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
+    (key, left, mid.toLowerCase(), right) match {
+      case (EMPTY_KEY, 0, C_END, None) =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        val codecArrayEnd = ??? //modifyArrayEnd(statementsList, CodecObject.toCodec(arrayToken), injFunction, C_END, 0.toString)
+        currentCodec + codecArrayEnd
+      case (EMPTY_KEY, from, UNTIL_RANGE, C_END) =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        val codecArrayEnd = ??? //modifyArrayEnd
+        currentCodec + codecArrayEnd
+      case (EMPTY_KEY, from, TO_RANGE, C_END) =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        val codecArrayEnd = ??? //modifyArrayEnd
+        currentCodec + codecArrayEnd
+      case (EMPTY_KEY, from, expression, to) if to.isInstanceOf[Int] =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        ???
+      case (nonEmptyKey, 0, C_END, None) =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        val codecArrayEnd = ??? //modifyArrayEndWithKey
+        currentCodec + codecArrayEnd
+      case (nonEmptyKey, from, UNTIL_RANGE, C_END) =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        val codecArrayEnd = ??? //modifyArrayEndWithKey
+        currentCodec + codecArrayEnd
+      case (k, a, TO_RANGE, C_END) =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        val codecArrayEnd = ??? //modifyArrayEndWithKey
+        currentCodec + codecArrayEnd
+      case (k, a, expr, b) if b.isInstanceOf[Int] =>
+        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+        ???
+    }
+    ???
+  }
+
+  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, to: String, from: String):Codec = {
+    ???
+  }
+
+  def modifyArrayEndWithKey[T](): Codec = {
+    ???
   }
 
   /**
