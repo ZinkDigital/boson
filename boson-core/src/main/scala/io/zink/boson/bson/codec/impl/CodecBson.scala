@@ -184,6 +184,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           }
           buff.readByte()
           SonString(x, new String(key.toArray).filter(p => p != 0))
+
         case CS_STRING =>
           val valueLength: Int = buff.readIntLE()
           SonString(x, buff.readCharSequence(valueLength, charset).toString.filter(b => b != 0))
@@ -191,6 +192,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         case _ =>
           val valueLength: Int = buff.readIntLE()
           SonString(x, buff.readBytes(valueLength))
+
       }
     case SonNumber(x, _) =>
       x match {
@@ -382,6 +384,20 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
+    * Method that retains only a slice, of a specified length, of the data structure.
+    * Returns a new codec containing that slice
+    *
+    * @param length - The length of the slice to retain
+    * @return - a new codec containing only a slice of the old codec's dataStructure
+    */
+  override def readSlice(length: Int): Codec = {
+    val partialBuf = buff.readRetainedSlice(length)
+    val newCodec = new CodecBson(arg, Some(partialBuf))
+    partialBuf.release()
+    newCodec
+  }
+
+  /**
     * Create a new codec from an Array of Bytes
     *
     * @param byteArray - The Array of Bytes from which to create the codec
@@ -436,10 +452,23 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       }
       new CodecBson(arg, Some(manipulatedBuf))
 
-    case SonString(_, info) =>
+    case SonString(objType, info) =>
       val duplicated = outCodec.copyByteBuf
-      val writableCharSeq = info.asInstanceOf[CharSequence]
-      duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
+
+      objType match {
+
+        case CS_ARRAY_WITH_SIZE =>
+          val valueLength: Int = buff.readIntLE()
+          val bytes: ByteBuf = buff.readBytes(valueLength)
+          duplicated.writeIntLE(valueLength)
+          duplicated.writeBytes(bytes)
+          bytes.release()
+
+        case _ =>
+          val writableCharSeq = info.asInstanceOf[CharSequence]
+          duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
+      }
+
       new CodecBson(arg, Some(duplicated))
 
     case SonArray(_, info) =>

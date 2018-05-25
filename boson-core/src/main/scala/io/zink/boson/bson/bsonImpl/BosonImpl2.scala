@@ -21,12 +21,14 @@ class BosonImpl2 {
   type StatementsList = List[(Statement, String)]
 
   /**
+    * Starter method for the injection process, this method will pattern match the statements in the statements list
+    * and will delegate to other helper methods
     *
-    * @param dataStructure -
-    * @param statements    -
-    * @param injFunction   -
-    * @tparam T -
-    * @return
+    * @param dataStructure - The data structure in which to perform the injection process (either a ByteBuf or a String)
+    * @param statements    - The statements with information regarding where to perform the injection
+    * @param injFunction   - The injection function to be applied
+    * @tparam T - The type of the input and output of the injection function
+    * @return a new codec with the changes applied to it
     */
   def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T): Codec = {
     val codec: Codec = dataStructure match {
@@ -149,14 +151,15 @@ class BosonImpl2 {
   }
 
   /**
+    * Function used to search for a element within an object
     *
-    * @param statementsList
-    * @param codec
-    * @param fieldID
-    * @param elem
-    * @param injFunction
-    * @tparam T
-    * @return
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the old values
+    * @param fieldID        - Name of the field of interest
+    * @param elem           - Name of the element to look for inside the objects inside an Array
+    * @param injFunction    - The injection function to be applied
+    * @tparam T - The type of input and output of the injection function
+    * @return a modified Codec where the injection function may have been applied to the desired element (if it exists)
     */
   private def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
 
@@ -191,16 +194,15 @@ class BosonImpl2 {
             key match {
               case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
                 //the key is a halfword and matches with the extracted key, dataType is an array
-                //searchAndModify
                 val modifiedCodec: Codec = searchAndModify(statementsList, codec, fieldID, injFunction, codecWithKeyByte)
                 iterateDataStructure(modifiedCodec)
 
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  val processedCodec: Codec = ??? //processTypesHasElem(list, dataType, key, elem, buf, f, result)
+                  val processedCodec: Codec = processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction)
                   iterateDataStructure(processedCodec)
                 } else {
-                  val processedCodec: Codec = ??? //processTypesArray(dataType, buf, result)
+                  val processedCodec: Codec = processTypesArray(dataType, codec, codecWithKeyByte)
                   iterateDataStructure(processedCodec)
                 }
             }
@@ -212,14 +214,15 @@ class BosonImpl2 {
   }
 
   /**
-    * Function used to search for an element inside an object inside an array after finding the key of interesst
+    * Function used to search for an element inside an object inside an array after finding the key of interest
     *
-    * @param statementsList
-    * @param codec
-    * @param fieldID
-    * @param injFunction
-    * @tparam T
-    * @return
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the old values
+    * @param fieldID        - Name of the field of interest
+    * @param injFunction    - The injection function to be applied
+    * @param writableCodec  - Structure to where we write the values
+    * @tparam T - The type of input and output of the injection function
+    * @return a new Codec with the value injected
     */
   private def searchAndModify[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, writableCodec: Codec): Codec = {
     val startReader: Int = codec.getReaderIndex
@@ -365,6 +368,49 @@ class BosonImpl2 {
   }
 
   /**
+    * Function used to copy values that aren't of interest while searching for a element inside a object inside a array
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param dataType       - Type of the value found
+    * @param fieldID        - Name of the field of interest
+    * @param elem           - Name of the element to search inside the objects inside an Array
+    * @param codec          - Structure from which we are reading the old values
+    * @param resultCodec    - Structure to where we write the values
+    * @param injFunction    - Injection function to be applied
+    * @tparam T - The type of input and output of the injection function
+    * @return a new Codec with the copied information
+    */
+  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T): Codec = dataType match {
+    case D_BSONOBJECT =>
+      val bsonObjectCodec: Codec = codec.getToken(SonString(CS_ARRAY)) match {
+        case SonString(_, data) => data match {
+          case byteBuff: ByteBuf => CodecObject.toCodec(byteBuff)
+          case jsonString: String => CodecObject.toCodec(jsonString)
+        }
+      }
+      val modifiedCodec: Codec = modifyHasElem(statementsList, bsonObjectCodec, fieldID, elem, injFunction)
+      resultCodec + modifiedCodec
+
+    case D_BSONARRAY =>
+      val length = codec.getSize
+      val partialCodec: Codec = codec.readSlice(length)
+      val modifiedCodec: Codec = modifyHasElem(statementsList, partialCodec, fieldID, elem, injFunction)
+      resultCodec + modifiedCodec
+
+    case D_FLOAT_DOUBLE => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.writeToken(resultCodec, SonString(CS_ARRAY_WITH_SIZE))
+
+    case D_INT => codec.writeToken(resultCodec, SonNumber(CS_INTEGER))
+
+    case D_LONG => codec.writeToken(resultCodec, SonNumber(CS_LONG))
+
+    case D_BOOLEAN => codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN))
+
+    case D_NULL => ??? //TODO what do we do in this case
+  }
+
+  /**
     *
     * @param dataType
     * @param codec
@@ -393,6 +439,15 @@ class BosonImpl2 {
     }
   }
 
+  /**
+    *
+    * @param codec
+    * @param curentResCodec
+    * @param seqType
+    * @param f
+    * @tparam T
+    * @return
+    */
   private def modifierAll[T](codec: Codec, curentResCodec: Codec, seqType: Int, f: T => T): Codec = {
     seqType match {
       case D_FLOAT_DOUBLE =>
@@ -549,7 +604,20 @@ class BosonImpl2 {
     }
   }
 
-  def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
+  /**
+    *
+    * @param statementsList
+    * @param codec
+    * @param currentCodec
+    * @param injFunction
+    * @param key
+    * @param left
+    * @param mid
+    * @param right
+    * @tparam T
+    * @return
+    */
+  private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
     (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, 0, C_END, None) =>
         val arrayToken = codec.readToken(SonArray(CS_ARRAY))
@@ -585,11 +653,26 @@ class BosonImpl2 {
     ???
   }
 
-  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, to: String, from: String):Codec = {
+  /**
+    *
+    * @param statementsList
+    * @param codec
+    * @param injFunction
+    * @param to
+    * @param from
+    * @tparam T
+    * @return
+    */
+  private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, to: String, from: String): Codec = {
     ???
   }
 
-  def modifyArrayEndWithKey[T](): Codec = {
+  /**
+    *
+    * @tparam T
+    * @return
+    */
+  private def modifyArrayEndWithKey[T](): Codec = {
     ???
   }
 

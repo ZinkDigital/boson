@@ -586,6 +586,14 @@ class CodecJson(str: String) extends Codec {
     */
   override def readSpecificSize(size: Int): Codec = ???
 
+  /**
+    * Method that retains only a slice, of a specified length, of the data structure.
+    * Returns a new codec containing that slice
+    *
+    * @param length - The length of the slice to retain
+    * @return - a new codec containing only a slice of the old codec's dataStructure
+    */
+  override def readSlice(length: Int): Codec = ???
 
   /**
     * Create a new codec from an Array of Bytes

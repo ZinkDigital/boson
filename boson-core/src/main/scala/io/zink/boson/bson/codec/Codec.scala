@@ -181,9 +181,19 @@ trait Codec {
   def consumeValue(seqType: Int): Unit
 
   /**
-    * Method that reads a specified length and returns a new codec with that information
+    * Method that reads a specified length and returns a new codec with the length of the old one, but with only the read information
     */
   def readSpecificSize(size: Int): Codec
+
+
+  /**
+    * Method that retains only a slice, of a specified length, of the data structure.
+    * Returns a new codec containing that slice
+    *
+    * @param length - The length of the slice to retain
+    * @return - a new codec containing only a slice of the old codec's dataStructure
+    */
+  def readSlice(length: Int): Codec
 
   /**
     * Create a new codec from an Array of Bytes
