@@ -617,63 +617,85 @@ class BosonImpl2 {
     * @tparam T
     * @return
     */
-  private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
-    (key, left, mid.toLowerCase(), right) match {
-      case (EMPTY_KEY, 0, C_END, None) =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        val codecArrayEnd = ??? //modifyArrayEnd(statementsList, CodecObject.toCodec(arrayToken), injFunction, C_END, 0.toString)
-        currentCodec + codecArrayEnd
-      case (EMPTY_KEY, from, UNTIL_RANGE, C_END) =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        val codecArrayEnd = ??? //modifyArrayEnd
-        currentCodec + codecArrayEnd
-      case (EMPTY_KEY, from, TO_RANGE, C_END) =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        val codecArrayEnd = ??? //modifyArrayEnd
-        currentCodec + codecArrayEnd
-      case (EMPTY_KEY, from, expression, to) if to.isInstanceOf[Int] =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        ???
-      case (nonEmptyKey, 0, C_END, None) =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        val codecArrayEnd = ??? //modifyArrayEndWithKey
-        currentCodec + codecArrayEnd
-      case (nonEmptyKey, from, UNTIL_RANGE, C_END) =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        val codecArrayEnd = ??? //modifyArrayEndWithKey
-        currentCodec + codecArrayEnd
-      case (k, a, TO_RANGE, C_END) =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        val codecArrayEnd = ??? //modifyArrayEndWithKey
-        currentCodec + codecArrayEnd
-      case (k, a, expr, b) if b.isInstanceOf[Int] =>
-        val arrayToken = codec.readToken(SonArray(CS_ARRAY))
-        ???
+  def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
+    val arrayToken = codec.readToken(SonArray(CS_ARRAY))
+    val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
+      case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
+        modifyArrayEnd(statementsList, CodecObject.toCodec(arrayToken), injFunction, expr, from.toString, to.toString)
+      case (EMPTY_KEY, from, expr, _) =>
+        modifyArrayEnd(statementsList, CodecObject.toCodec(arrayToken), injFunction, expr, from.toString)
+      case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] =>
+        modifyArrayEndWithKey(statementsList, CodecObject.toCodec(arrayToken), nonEmptyKey, injFunction, expr, from.toString, to.toString)
+      case (nonEmptyKey, from, expr, _) =>
+        modifyArrayEndWithKey(statementsList, CodecObject.toCodec(arrayToken), nonEmptyKey, injFunction, expr, from.toString)
     }
-    ???
+    currentCodec + codecArrayEnd
   }
 
-  /**
-    *
-    * @param statementsList
-    * @param codec
-    * @param injFunction
-    * @param to
-    * @param from
-    * @tparam T
-    * @return
-    */
-  private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, to: String, from: String): Codec = {
-    ???
+  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END):Codec = {
+    val startReaderIndex = codec.getReaderIndex
+    val originalSize = codec.readSize
+
+    def iterateDataStructure(currentCodec: Codec): Codec = {
+      if ((codec.getReaderIndex - startReaderIndex) < originalSize)
+        currentCodec
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_INTEGER, dataType))
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType)
+          case _ => ???
+        }
+      }
+    }
+
+    val emptyCodec = CodecObject.toCodec()
+    val codecWithoutSize = iterateDataStructure(emptyCodec)
+    val finalSize = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.capacity
+      case Right(string) => string.length
+    }
+    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
   }
 
-  /**
-    *
-    * @tparam T
-    * @return
-    */
-  private def modifyArrayEndWithKey[T](): Codec = {
-    ???
+  def modifyArrayEndWithKey[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
+    val startReaderIndex = codec.getReaderIndex
+    val originalSize = codec.readSize
+
+    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): Codec = {
+      if ((codec.getReaderIndex - startReaderIndex) < originalSize)
+        currentCodec
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
+        val codecWithDataTypeCopy: Codec = codecWithDataType(currentCodecCopy, SonNumber(CS_BYTE, dataType))
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
+          case _ =>
+            val (key, byte): (String, Byte) = {
+              val key: String = codec.readToken(SonString(CS_NAME)) match {
+                case SonString(_, keyString) => keyString.asInstanceOf[String]
+              }
+              val token = codec.readToken(SonBoolean(C_ZERO))
+              val byte: Byte = token match {
+                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
+              }
+              (key, byte)
+            }
+            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            ???
+        }
+      }
+    }
+    //TODO - Check Either to create empty codec
+    val emptyCodec = CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+    val codecWithoutSize = iterateDataStructure(emptyCodec, emptyCodec)
+    val finalSize = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.capacity
+      case Right(string) => string.length
+    }
+    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
   }
 
   /**

@@ -416,73 +416,77 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodec: CodecBson, token: SonNamedType): Codec = token match {
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType): Codec = {
+    val duplicated: ByteBuf = outCodecOpt.getCodecData match {
+      case Left(byteBuf) =>
+        val duplicated = byteBuf.copy(0, byteBuf.capacity())
+        duplicated.readerIndex(byteBuf.readerIndex())
+    }
+    token match {
 
-    case SonBoolean(_, info) =>
-      val duplicated = outCodec.copyByteBuf //duplicate this codec's ByteBuf
-    val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
-      duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
-      new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
+      case SonBoolean(_, info) =>
+        //      val duplicated = outCodec.copyByteBuf //duplicate this codec's ByteBuf
+        val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
+        duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
+        new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
 
-    case SonNumber(numberType, info) =>
-      val duplicated = outCodec.copyByteBuf
+      case SonNumber(numberType, info) =>
+        //      val duplicated = outCodec.copyByteBuf
 
-      val manipulatedBuf: ByteBuf = numberType match {
+        val manipulatedBuf: ByteBuf = numberType match {
 
-        case CS_BYTE =>
-          val writableByte = info.asInstanceOf[Byte]
-          duplicated.writeByte(writableByte)
+          case CS_BYTE =>
+            val writableByte = info.asInstanceOf[Byte]
+            duplicated.writeByte(writableByte)
 
-        case CS_INTEGER =>
-          val writableInt = info.asInstanceOf[Int]
-          duplicated.writeIntLE(writableInt)
+          case CS_INTEGER =>
+            val writableInt = info.asInstanceOf[Int]
+            duplicated.writeIntLE(writableInt)
 
-        case CS_DOUBLE =>
-          val writableDouble = info.asInstanceOf[Double]
-          duplicated.writeDoubleLE(writableDouble)
+          case CS_DOUBLE =>
+            val writableDouble = info.asInstanceOf[Double]
+            duplicated.writeDoubleLE(writableDouble)
 
-        case CS_FLOAT =>
-          val writableFloat = info.asInstanceOf[Float]
-          duplicated.writeFloatLE(writableFloat)
+          case CS_FLOAT =>
+            val writableFloat = info.asInstanceOf[Float]
+            duplicated.writeFloatLE(writableFloat)
 
-        case CS_LONG =>
-          val writableLong = info.asInstanceOf[Long]
-          duplicated.writeLongLE(writableLong)
+          case CS_LONG =>
+            val writableLong = info.asInstanceOf[Long]
+            duplicated.writeLongLE(writableLong)
 
-      }
-      new CodecBson(arg, Some(manipulatedBuf))
+        }
+        new CodecBson(arg, Some(manipulatedBuf))
 
-    case SonString(objType, info) =>
-      val duplicated = outCodec.copyByteBuf
+      case SonString(objType, info) =>
+        objType match {
+          case CS_ARRAY_WITH_SIZE =>
+            val valueLength: Int = buff.readIntLE()
+            val bytes: ByteBuf = buff.readBytes(valueLength)
+            duplicated.writeIntLE(valueLength)
+            duplicated.writeBytes(bytes)
+            bytes.release()
 
-      objType match {
+          case _ =>
+            val writableCharSeq = info.asInstanceOf[CharSequence]
+            duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
+        }
 
-        case CS_ARRAY_WITH_SIZE =>
-          val valueLength: Int = buff.readIntLE()
-          val bytes: ByteBuf = buff.readBytes(valueLength)
-          duplicated.writeIntLE(valueLength)
-          duplicated.writeBytes(bytes)
-          bytes.release()
+        new CodecBson(arg, Some(duplicated))
 
-        case _ =>
-          val writableCharSeq = info.asInstanceOf[CharSequence]
-          duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
-      }
+      case SonArray(_, info) =>
+        //      val duplicated = outCodec.copyByteBuf
+        val writableByteSeq = info.asInstanceOf[Array[Byte]]
+        duplicated.writeBytes(writableByteSeq)
+        new CodecBson(arg, Some(duplicated))
 
-      new CodecBson(arg, Some(duplicated))
+      case SonObject(_, info) =>
+        //      val duplicated = outCodec.copyByteBuf
+        val writableByteSeq = info.asInstanceOf[Array[Byte]]
+        duplicated.writeBytes(writableByteSeq)
+        new CodecBson(arg, Some(duplicated))
 
-    case SonArray(_, info) =>
-      val duplicated = outCodec.copyByteBuf
-      val writableByteSeq = info.asInstanceOf[Array[Byte]]
-      duplicated.writeBytes(writableByteSeq)
-      new CodecBson(arg, Some(duplicated))
-
-    case SonObject(_, info) =>
-      val duplicated = outCodec.copyByteBuf
-      val writableByteSeq = info.asInstanceOf[Array[Byte]]
-      duplicated.writeBytes(writableByteSeq)
-      new CodecBson(arg, Some(duplicated))
-
+    }
   }
 
   /**
