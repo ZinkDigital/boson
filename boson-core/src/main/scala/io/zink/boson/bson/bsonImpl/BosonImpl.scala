@@ -1506,11 +1506,13 @@ class BosonImpl(
                         //                        val bufRes: ByteBuf = Unpooled.buffer()
                         //                        val bufResCopy: ByteBuf = Unpooled.buffer()
                         //                        result.clear().writeBytes(resultCopy.duplicate()) //TODO - Why!?!
-                        val codec3: Codec = //TODO - Change names when I understand what they are
-                        if (list.head._1.isInstanceOf[ArrExpr])
-                          execStatementPatternMatch(partialCodec, list, f)
-                        else
-                          CodecObject.toCodec(partialCodec)
+                        val codec3: Codec = {
+                          //TODO - Change names when I understand what they are
+                          if (list.head._1.isInstanceOf[ArrExpr])
+                            execStatementPatternMatch(partialCodec, list, f)
+                          else
+                            CodecObject.toCodec(partialCodec)
+                        }
 
                         Try(modifierEnd(codec3, dataType, f)) match {
                           case Success(codecTuple) => codecTuple
@@ -1590,7 +1592,7 @@ class BosonImpl(
                       if (exceptions.isEmpty) {
                         result.clear().writeBytes(resultCopy.duplicate())
                         // val res: ByteBuf =
-                        Try(execStatementPatternMatch(codec.duplicate(), list.drop(1), f)) match {
+                        Try(execStatementPatternMatch(codec.duplicate.getCodecData, list.drop(1), f)) match {
                           case Success(v) =>
                             result.writeBytes(v)
                             v.release()

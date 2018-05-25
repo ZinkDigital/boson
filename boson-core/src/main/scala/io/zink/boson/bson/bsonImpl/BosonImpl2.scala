@@ -671,14 +671,133 @@ class BosonImpl2 {
     val originalSize = codec.readSize
 
     def iterateDataStructure(currentCodec: Codec): Codec = {
-      if ((codec.getReaderIndex - startReaderIndex) < originalSize)
+      if ((codec.getReaderIndex - startReaderIndex) < originalSize) //exceptions
         currentCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_INTEGER, dataType))
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
-          case _ => ???
+          case _ =>
+            val (isArray, key, byte): (Boolean, String, Int) = {
+              val key: String = codec.readToken(SonString(CS_NAME)) match {
+                case SonString(_, keyString) => keyString.asInstanceOf[String]
+              }
+              val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
+                case SonBoolean(_, result) => result.asInstanceOf[Byte]
+              }
+              (key.forall(b => b.isDigit), key, byte)
+            }
+            val codecWithKey = codec.writeToken(codecWithDataType,SonString(CS_STRING,key))
+
+            (new String(key), condition, to) match {
+              case (x, C_END, _) if isArray =>
+                //exception = 0
+                if (statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
+                          case SonObject(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
+                        }
+
+                        val partialCodec = {
+                          if (statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(partialData,statementsList,injFunction)
+                          else
+                            CodecObject.toCodec(partialData)
+                        }
+
+                        //modifierEnd(partialCodec, dataType, injFunction)
+                        ???
+                      case _ =>
+                        //modifier(codec, dataType, injFunction)
+                        ???
+                    }
+                  } else {
+                    //modifierEnd(codec, dataType, injFunction)
+                    ???
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
+                        }
+
+                        val auxCodec: Codec = inject(partialData, statementsList, injFunction)
+
+                        val partialCodec = {
+                          if(statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(auxCodec.getCodecData, statementsList.drop(1), injFunction)
+                          else
+                            inject(partialData, statementsList.drop(1), injFunction)
+                        }
+                        //currentCodec(Check) + partialCodec
+                      case _ =>
+                        //processTypesArrayEnd()
+                    }
+                  } else {
+                    dataType match { //TODO - I Don't understand this!!!!
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                      case _ =>
+                    }
+                  }
+                }
+              case (x, _, C_END) if isArray && from.toInt <= key.toInt =>
+                if(statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    ???
+                  } else {
+                    ???
+                  }
+                } else {
+                  ???
+                }
+              case (x, _, C_END) if isArray && from.toInt > key.toInt =>
+                if(statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    ???
+                  } else {
+                    ???
+                  }
+                } else {
+                  ???
+                }
+              case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
+                if(statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    ???
+                  } else {
+                    ???
+                  }
+                } else {
+                  ???
+                }
+              case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
+                if(statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    ???
+                  } else {
+                    ???
+                  }
+                } else {
+                  ???
+                }
+              case (x, _, l) if !isArray =>
+                if(statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    ???
+                  } else {
+                    ???
+                  }
+                } else {
+                  ???
+                }
+            }
+            ???
         }
       }
     }
