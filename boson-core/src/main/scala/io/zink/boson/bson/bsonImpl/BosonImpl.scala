@@ -2351,10 +2351,13 @@ class BosonImpl(
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
           (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
+
             case (i, o1, o2) if o1.isDefined && o2.isDefined =>
               (key, arrEx.leftArg, o1.get.value, o2.get)
+
             case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
               (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg)
+
             case (0, str, None) =>
               str.get.value match {
                 case C_FIRST =>

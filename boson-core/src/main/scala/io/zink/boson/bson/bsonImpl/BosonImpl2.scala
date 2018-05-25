@@ -47,7 +47,30 @@ class BosonImpl2 {
 
       case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) => ???
 
-      case _ => ???
+      case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
+        val input: (String, Int, String, Any) =
+          (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
+
+            case (_, o1, o2) if o1.isDefined && o2.isDefined =>
+              (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
+
+            case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg) //User sent, for example, Key[1] translates to - Key[1 TO 1]
+
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST =>
+                  (key, 0, TO_RANGE, 0) //User sent Key[first] , translates to - Key[0 TO 0]
+                case C_END =>
+                  (key, 0, C_END, None)
+                case C_ALL =>
+                  (key, 0, TO_RANGE, C_END) //user sent Key[all], translates to - Key[0 TO END]
+              }
+          }
+        val modifiedCodec = arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
+        codec + modifiedCodec
+
+      case _ => throw CustomException2("Wrong Statements, Bad Expression.")
     }
   }
 
@@ -632,7 +655,18 @@ class BosonImpl2 {
     currentCodec + codecArrayEnd
   }
 
-  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END):Codec = {
+  /**
+    *
+    * @param statementsList
+    * @param codec
+    * @param injFunction
+    * @param condition
+    * @param from
+    * @param to
+    * @tparam T
+    * @return
+    */
+  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
@@ -658,13 +692,30 @@ class BosonImpl2 {
     emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
   }
 
-  def modifyArrayEndWithKey[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
+  /**
+    * Function used to search for the last element of an array that corresponds to field with name fieldID
+    *
+    * @param statementsList
+    * @param codec
+    * @param fieldID
+    * @param injFunction
+    * @param condition
+    * @param from
+    * @param to
+    * @tparam T
+    * @return
+    */
+  private def modifyArrayEndWithKey[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
+    val emptyDataStructure: Codec = codec.getCodecData match {
+      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+      case Right(_) => CodecObject.toCodec("")
+    }
+
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): Codec = {
-      if ((codec.getReaderIndex - startReaderIndex) < originalSize)
-        currentCodec
+      if ((codec.getReaderIndex - startReaderIndex) < originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
@@ -684,10 +735,57 @@ class BosonImpl2 {
             }
             val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
             val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-            ???
+
+            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
+            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+            key match {
+              //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
+              //datatype is a BsonArray
+              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
+                if (statementsList.size == 1) {
+
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                      case SonString(_, result) => CodecObject.toCodec(result)
+                    }
+                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to)
+                    iterateDataStructure(newCodec, newCodec.duplicate)
+                  } else {
+                    val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to)
+                    iterateDataStructure(newCodec, newCodec.duplicate)
+                  }
+
+                } else {
+
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                      case SonString(_, result) => CodecObject.toCodec(result)
+                    }
+                    ???
+                  } else {
+                    val res = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to)
+                    ???
+                  }
+
+                }
+
+              //If we found the desired elem but the dataType is not an array, or if we didn't find the desired elem
+              case _ =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                  val (processedCodec, processedCodecCopy): (Codec, Codec) = ??? //processTypesArrayEnd(list, fieldID, dataType, codec, f, condition, limitInf, limitSup, resultCodec, resultCopyCodec)
+                  iterateDataStructure(processedCodec, processedCodecCopy)
+                } else {
+                  //                  processTypesArray(dataType, codec.duplicate(), result)
+                  //                  processTypesArray(dataType, buffer, resultCopy)
+                  ???
+                }
+
+            }
         }
       }
+      iterateDataStructure(emptyDataStructure, emptyDataStructure.duplicate)
     }
+
     //TODO - Check Either to create empty codec
     val emptyCodec = CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
     val codecWithoutSize = iterateDataStructure(emptyCodec, emptyCodec)
@@ -699,7 +797,7 @@ class BosonImpl2 {
   }
 
   /**
-    * Helper function to retrieve a Key and its closing byte
+    * Helper function to retrieve a codec with the key information written in it , and the key that was written
     *
     * @param codec
     * @return
