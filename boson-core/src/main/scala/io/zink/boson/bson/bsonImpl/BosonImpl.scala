@@ -1135,7 +1135,7 @@ class BosonImpl(
     */
   private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
-      if ((codec.getReaderIndex - startReader) < originalSize) currentCodec //TODO I think this is not correct
+      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec //TODO I think this is not correct
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
@@ -1255,7 +1255,7 @@ class BosonImpl(
       * @return A modified codec
       */
     def iterateDataStructure(writableCodec: Codec): Codec = {
-      if ((codec.getReaderIndex - startReader) < originalSize) writableCodec
+      if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
@@ -1306,7 +1306,7 @@ class BosonImpl(
     val originalSize: Int = codec.readSize
 
     def iterateDataStructure(writtableCodec: Codec): Codec = {
-      if ((codec.getReaderIndex - startReader) < originalSize) writableCodec
+      if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
       else {
         val dataType = codec.readDataType
         val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
@@ -1854,7 +1854,7 @@ class BosonImpl(
     val originalSize = codec.readSize
 
     def iterateDataStructure(currentCodec: Codec): Codec = {
-      if ((codec.getReaderIndex - startReaderIndex) < originalSize) //exceptions
+      if ((codec.getReaderIndex - startReaderIndex) >= originalSize) //exceptions
         currentCodec
       else {
         val dataType: Int = codec.readDataType
@@ -2026,7 +2026,7 @@ class BosonImpl(
     }
 
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): Codec = {
-      if ((codec.getReaderIndex - startReaderIndex) < originalSize) currentCodec
+      if ((codec.getReaderIndex - startReaderIndex) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
