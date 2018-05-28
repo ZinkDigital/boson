@@ -45,7 +45,19 @@ class BosonImpl2 {
 
       case HasElem(key: String, elem: String) => modifyHasElem(statements, codec, key, elem, injFunction)
 
-      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) => ???
+      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        val input: (String, Int, String, Any) =
+          (leftArg, midArg, rightArg) match {
+            case (i, o1, o2) if midArg.isDefined && rightArg.isDefined =>
+              (EMPTY_KEY, leftArg, midArg.get.value, rightArg.get)
+            case (i, o1, o2) if midArg.isEmpty && rightArg.isEmpty =>
+              (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
+            case (0, str, None) =>
+              str.get.value match {
+                ???
+              }
+          }
+        ???
 
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
@@ -162,7 +174,10 @@ class BosonImpl2 {
 
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
-    val emptyCodec: Codec = CodecObject.toCodec()
+    val emptyCodec: Codec = codec.getCodecData match {
+      case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+      case Right(string) => CodecObject.toCodec("")
+    }
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
     val finalSize = codecWithoutSize.getCodecData match {
@@ -251,7 +266,7 @@ class BosonImpl2 {
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
 
-    def iterateDataStructure(writtableCodec: Codec): Codec = {
+    def iterateDataStructure(writableCodec: Codec): Codec = {
       if ((codec.getReaderIndex - startReader) < originalSize) writableCodec
       else {
         val dataType = codec.readDataType
@@ -780,14 +795,15 @@ class BosonImpl2 {
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
-    def iterateDataStructure(currentCodec: Codec): Codec = {
-      if ((codec.getReaderIndex - startReaderIndex) < originalSize) //exceptions
+    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec, exceptions: Int): Codec = {
+      if ((codec.getReaderIndex - startReaderIndex) < originalSize && exceptions < 2)
         currentCodec
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_INTEGER, dataType))
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType)) //Verify
+        val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType))
         dataType match {
-          case 0 => iterateDataStructure(codecWithDataType)
+          case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
           case _ =>
             val (isArray, key, byte): (Boolean, String, Int) = {
               val key: String = codec.readToken(SonString(CS_NAME)) match {
@@ -799,8 +815,9 @@ class BosonImpl2 {
               (key.forall(b => b.isDigit), key, byte)
             }
             val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
 
-            (new String(key), condition, to) match {
+            val ((codecResult, codecResultCopy), exceptionsResult) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
                 //exception = 0
                 if (statementsList.size == 1) {
@@ -819,15 +836,27 @@ class BosonImpl2 {
                             CodecObject.toCodec(partialData)
                         }
 
-                        //modifierEnd(partialCodec, dataType, injFunction)
-                        ???
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try (modifierEnd(partialCodec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                          case Success(tuple) => (tuple, 0)
+                          case Failure(e) => ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
+                        }
+                        (codecTuple, exceptionsReturn)
+
                       case _ =>
-                        //modifier(codec, dataType, injFunction)
-                        ???
+                        //modifierEnd(codec, dataType, injFunction)
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try (modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                          case Success(tuple) => (tuple, 0)
+                          case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
+                        }
+                        (codecTuple, exceptionsReturn)
                     }
                   } else {
                     //modifierEnd(codec, dataType, injFunction)
-                    ???
+                    val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try (modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                      case Success(tuple) => (tuple, 0)
+                      case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
+                    }
+                    (codecTuple, exceptionsReturn)
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
@@ -837,15 +866,19 @@ class BosonImpl2 {
                           case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
                         }
 
-                        val auxCodec: Codec = inject(partialData, statementsList, injFunction)
-
-                        val partialCodec = {
-                          if (statementsList.head._1.isInstanceOf[ArrExpr])
-                            inject(auxCodec.getCodecData, statementsList.drop(1), injFunction)
+                        val codecData =
+                          if(statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(partialData, statementsList, injFunction).getCodecData
                           else
-                            inject(partialData, statementsList.drop(1), injFunction)
+                            partialData
+
+                        val partialCodec = CodecObject.toCodec(codecData)
+
+                        val (codecTuple, exceptionsReturn): ((Codec,Codec), Int) = Try(inject(codecData, statementsList.drop(1), injFunction)) match {
+                          case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
+                          case Failure(e) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
                         }
-                      //currentCodec(Check) + partialCodec
+                        (codecTuple, exceptionsReturn)
                       case _ =>
                       //processTypesArrayEnd()
                     }
@@ -912,8 +945,13 @@ class BosonImpl2 {
       }
     }
 
-    val emptyCodec = CodecObject.toCodec()
-    val codecWithoutSize = iterateDataStructure(emptyCodec)
+    val emptyCodec: Codec = codec.getCodecData match {
+      case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+      case Right(string) => CodecObject.toCodec("")
+    }
+
+    val codecWithoutSize = iterateDataStructure(emptyCodec, emptyCodec)
+
     val finalSize = codecWithoutSize.getCodecData match {
       case Left(byteBuf) => byteBuf.capacity
       case Right(string) => string.length

@@ -5,8 +5,10 @@ import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bsonPath.{ArrExpr, Statement}
 import io.zink.boson.bson.codec._
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 /**
