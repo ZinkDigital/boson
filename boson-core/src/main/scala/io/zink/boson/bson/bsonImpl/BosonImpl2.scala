@@ -1194,7 +1194,7 @@ class BosonImpl2 {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val valueStr = codec.readToken(SonString(CS_STRING))
         val codecString = CodecObject.toCodec(valueStr)
-        (resultCodec + codecString, returnCodecCopy + codecString)
+        (resultCodec + codecString, resultCodecCopy + codecString)
       case D_BSONOBJECT =>
 //        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
         val valueObj = codec.readToken(SonObject(CS_OBJECT))
@@ -1207,7 +1207,7 @@ class BosonImpl2 {
         val valueArr = codec.readToken(SonArray(CS_ARRAY))
         val codecArr = CodecObject.toCodec(valueArr)
 //        modifyArrayEndWithKey()
-        (resultCodec + codecArr, returnCodecCopy + codecArr)
+        (resultCodec + codecArr, resultCodecCopy + codecArr)
       //        if (condition.equals(TO_RANGE))
       //       //   result.writeBytes(res.getByteBuf)
       //        else if (condition.equals(C_END))
