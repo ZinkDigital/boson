@@ -54,7 +54,7 @@ class BosonImpl2 {
               (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
             case (0, str, None) =>
               str.get.value match {
-                ???
+                case _=> ???
               }
           }
         ???
@@ -1183,6 +1183,56 @@ class BosonImpl2 {
         ???
       }
     ???
+  }
+
+  private def processTypesArrayEnd[T](list: List[(Statement, String)], fieldID: String, dataType: Int, codec: Codec, f: (T) => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
+    val (returnCodec, returnCodecCopy): (Codec, Codec) = dataType match {
+      case D_FLOAT_DOUBLE =>
+        val valueDouble = codec.readToken(SonNumber(CS_DOUBLE))
+        val codecDouble = CodecObject.toCodec(valueDouble)
+        (resultCodec + codecDouble, resultCodecCopy + codecDouble)
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val valueStr = codec.readToken(SonString(CS_STRING))
+        val codecString = CodecObject.toCodec(valueStr)
+        (resultCodec + codecString, returnCodecCopy + codecString)
+      case D_BSONOBJECT =>
+//        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
+        val valueObj = codec.readToken(SonObject(CS_OBJECT))
+        val codecObj = CodecObject.toCodec(valueObj)
+//        modifyArrayEndWithKey()
+        (resultCodec + codecObj, resultCodecCopy + codecObj)
+        ???
+      case D_BSONARRAY =>
+//        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
+        val valueArr = codec.readToken(SonArray(CS_ARRAY))
+        val codecArr = CodecObject.toCodec(valueArr)
+//        modifyArrayEndWithKey()
+        (resultCodec + codecArr, returnCodecCopy + codecArr)
+      //        if (condition.equals(TO_RANGE))
+      //       //   result.writeBytes(res.getByteBuf)
+      //        else if (condition.equals(C_END))
+      //       //   result.writeBytes(res.getByteBuf)
+      //        else
+      //    resultCopy.writeBytes(res.getByteBuf)
+
+      //  res.getByteBuf.release()
+        ???
+      case D_NULL =>
+        (resultCodec, resultCodecCopy)
+      case D_INT =>
+        val valueInt = codec.readToken(SonNumber(CS_INTEGER))
+        val codecInt = CodecObject.toCodec(valueInt)
+        (resultCodec + codecInt, resultCodecCopy + codecInt)
+      case D_LONG =>
+        val valueLong = codec.readToken(SonNumber(CS_LONG))
+        val codecLong = CodecObject.toCodec(valueLong)
+        (resultCodec + codecLong, resultCodecCopy + codecLong)
+      case D_BOOLEAN =>
+        val valuBool = codec.readToken(SonBoolean(CS_BOOLEAN))
+        val codecBool = CodecObject.toCodec(valuBool)
+        (resultCodec + codecBool, resultCodecCopy + codecBool)
+    }
+    (returnCodec,returnCodecCopy)
   }
 
   /**
