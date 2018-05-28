@@ -623,5 +623,12 @@ class CodecJson(str: String) extends Codec {
     val duplicate = str
     Right(duplicate)
   }
+
+  /**
+    *
+    * @param sumCodec
+    * @return
+    */
+  override def +(sumCodec: Codec): Codec = ???
 }
 

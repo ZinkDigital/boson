@@ -167,10 +167,10 @@ class Interpreter[T](boson: BosonImpl,
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
   def run(bsonEncoded: Either[Array[Byte], String]): Any = {
-//    if (fInj.isDefined) startInjector(bsonEncoded)
-    startInjector(bsonEncoded) //TODO implement new startInjector
-//    else
-//      start(bsonEncoded)
+    if (fInj.isDefined)
+      startInjector(bsonEncoded)
+    else
+      start(bsonEncoded)
   }
 
   /**
@@ -245,44 +245,44 @@ class Interpreter[T](boson: BosonImpl,
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
-    /**
-      * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
-      * between Interpreter with BosonImpl.
-      *
-      * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
-      * @param keyList          List of pairs (Key,Condition) used to perform extraction according to the User.
-      * @param limitList        List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
-      * @return Extracted result.
-      */
-    def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
-      val value: List[Any] =
-        keyList.size match {
-          case 1 =>
-            boson.extract(encodedStructure, keyList, limitList)
-          case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
-            boson.extract(encodedStructure, keyList, limitList)
-          case _ =>
-            val res: List[Any] = boson.extract(encodedStructure, keyList, limitList)
-            val filtered: Seq[Either[ByteBuf, String]] =
-              res.collect {
-                case buf: ByteBuf => Left(buf)
-                //case buf: Array[Byte] => Left(buf)
-                case str: String if isJson(str) => Right(str)
-              }
-            //println(s"filtered -> $filtered")
-            filtered.size match {
-              case 0 => Nil //throw CustomException("The given path doesn't correspond with the event structure.")
-              case _ =>
-                val result: List[List[Any]] =
-                  filtered.par.map { elem =>
-                    if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
-                    else runExtractors(elem, keyList.drop(1), limitList.drop(1))
-                  }.seq.toList
-                result.flatten //.reduce(_ ++ _)
+  /**
+    * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
+    * between Interpreter with BosonImpl.
+    *
+    * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
+    * @param keyList          List of pairs (Key,Condition) used to perform extraction according to the User.
+    * @param limitList        List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
+    * @return Extracted result.
+    */
+  def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
+    val value: List[Any] =
+      keyList.size match {
+        case 1 =>
+          boson.extract(encodedStructure, keyList, limitList)
+        case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
+          boson.extract(encodedStructure, keyList, limitList)
+        case _ =>
+          val res: List[Any] = boson.extract(encodedStructure, keyList, limitList)
+          val filtered: Seq[Either[ByteBuf, String]] =
+            res.collect {
+              case buf: ByteBuf => Left(buf)
+              //case buf: Array[Byte] => Left(buf)
+              case str: String if isJson(str) => Right(str)
             }
-        }
-      value
-    }
+          //println(s"filtered -> $filtered")
+          filtered.size match {
+            case 0 => Nil //throw CustomException("The given path doesn't correspond with the event structure.")
+            case _ =>
+              val result: List[List[Any]] =
+                filtered.par.map { elem =>
+                  if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
+                  else runExtractors(elem, keyList.drop(1), limitList.drop(1))
+                }.seq.toList
+              result.flatten //.reduce(_ ++ _)
+          }
+      }
+    value
+  }
 
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
     typesNvalues.head._2 match {
@@ -361,37 +361,21 @@ class Interpreter[T](boson: BosonImpl,
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val input: Either[ByteBuf, String] = bsonEncoded match {
       case Left(byteArr) =>
-//        val alloc: PooledByteBufAllocator = PooledByteBufAllocator.DEFAULT
-//        val buf = alloc.buffer(byteArr.length).writeBytes(byteArr)
-//        println("here")
-        val buf: ByteBuf = Unpooled.EMPTY_BUFFER/*Unpooled.copiedBuffer(byteArr)*/
+        val buf: ByteBuf = Unpooled.buffer(byteArr.length).writeBytes(byteArr) /*Unpooled.copiedBuffer(byteArr)*/
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
-    println("aqui")
 
 
     val result: Either[Array[Byte], String] =
       Try(boson.inject(input, statements, fInj.get)) match {
-        case Success(v) =>
-          v match {
-            case Left(byteBuf) => Left(byteBuf.array())
-            case Right(string) => Right(string)
-          }
+        case Success(resultCodec) => resultCodec.getCodecData match {
+          case Left(byteBuf) => Left(byteBuf.array())
+          case Right(string) => Right(string)
+        }
         case Failure(e) => throw CustomException(e.getMessage)
       }
-
-
-    //      Try(boson.execStatementPatternMatch(input, statements, fInj.get)) match {
-    //        case Success(v) =>
-    //          v match {
-    //            case Left(byteBuf) => Left(byteBuf.array)
-    //            case Right(string) => Right(string)
-    //          }
-    //
-    //        case Failure(e) =>
-    //          throw CustomException(e.getMessage)
-    //      }
+    println("O resultado foi : " + result)
     result
   }
 

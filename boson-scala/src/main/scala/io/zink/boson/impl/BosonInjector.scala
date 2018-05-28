@@ -19,7 +19,7 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
 //  private val boson: BosonImpl = new BosonImpl()
 
   private val boson: BosonImpl = new BosonImpl()
-  private val interpreter: Interpreter[T] = new Interpreter[T](boson,expression, fInj = Option(injectFunction))
+  private val interpreter: Interpreter[T] = new Interpreter[T](boson,expression, fInj = Some(injectFunction))
 
 //  val boson: BosonImpl = new BosonImpl()
 //
