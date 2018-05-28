@@ -1080,6 +1080,7 @@ class BosonImpl(
     * @return a new codec with the changes applied to it
     */
   def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T): Codec = {
+    println(statements)
     val codec: Codec = dataStructure match {
       case Right(jsonString) => CodecObject.toCodec(jsonString)
       case Left(byteBuf) => CodecObject.toCodec(byteBuf)
@@ -1088,7 +1089,7 @@ class BosonImpl(
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction)
 
-      case Key(key: String) => modifyAll(statements, codec, key, injFunction) // (key = fieldID)
+      case Key(key: String) => println("entrou aqui"); modifyAll(statements, codec, key, injFunction) // (key = fieldID)
 
       case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
 
@@ -1134,7 +1135,7 @@ class BosonImpl(
     */
   private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
-      if ((codec.getReaderIndex - startReader) < originalSize) currentCodec
+      if ((codec.getReaderIndex - startReader) < originalSize) currentCodec //TODO I think this is not correct
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
