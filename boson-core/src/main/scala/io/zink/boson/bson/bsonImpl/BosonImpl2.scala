@@ -515,6 +515,100 @@ class BosonImpl2 {
 
   /**
     *
+    * @param codec
+    * @param dataType
+    * @param injFunction
+    * @tparam T
+    * @return
+    */
+  private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec): (Codec, Codec) = dataType match {
+
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+      val token = codec.readToken(SonString(CS_STRING))
+      val value0 = token match {
+        case SonString(_, data) => data.asInstanceOf[String]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case str: String => codec.writeToken(codecRes, SonString(CS_STRING, str))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_BSONOBJECT =>
+      val bsonObjToken = codec.getToken(SonString(CS_ARRAY))
+      val resCodecCopy = codec.writeToken(codecResCopy, bsonObjToken)
+      val info = bsonObjToken match {
+        case SonString(_, data) => data
+      }
+      val codecWithObj = codec.writeToken(codecRes, SonObject(CS_OBJTECT_NEW_BUFFER, info))
+      codecWithObj.getCodecData match {
+        case Left(byteBuf) =>
+          val resCodec: Codec = applyFunction(injFunction, byteBuf.array()) match {
+            case arr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, arr))
+          }
+          (resCodec, resCodecCopy)
+
+        case Right(str) =>
+          val resCodec: Codec = applyFunction(injFunction, str) match {
+            case resString: String => codec.writeToken(codecRes, SonString(CS_STRING, resString))
+          }
+          (resCodec, resCodecCopy)
+      }
+
+    case D_BSONARRAY => ???
+
+    case D_BOOLEAN =>
+      val token = codec.readToken(SonBoolean(CS_BOOLEAN))
+      val value0: Boolean = token match {
+        case SonBoolean(_, data) => data.asInstanceOf[Boolean]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Boolean => codec.writeToken(codecRes, SonBoolean(CS_BOOLEAN, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_FLOAT_DOUBLE =>
+      val token = codec.readToken(SonNumber(CS_DOUBLE))
+      val value0: Double = token match {
+        case SonNumber(_, data) => data.asInstanceOf[Double]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Double => codec.writeToken(codecRes, SonNumber(CS_DOUBLE, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_INT =>
+      val token = codec.readToken(SonNumber(CS_INTEGER))
+      val value0: Int = token match {
+        case SonNumber(_, data) => data.asInstanceOf[Int]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Int => codec.writeToken(codecRes, SonNumber(CS_INTEGER, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_LONG =>
+
+      val token = codec.readToken(SonNumber(CS_LONG))
+      val value0: Long = token match {
+        case SonNumber(_, data) => data.asInstanceOf[Long]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Long => codec.writeToken(codecRes, SonNumber(CS_LONG, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_NULL => throw new Exception() //TODO Implement
+
+
+  }
+
+  /**
+    *
     * @param statementsList
     * @param seqType
     * @param codec
@@ -688,7 +782,7 @@ class BosonImpl2 {
               }
               (key.forall(b => b.isDigit), key, byte)
             }
-            val codecWithKey = codec.writeToken(codecWithDataType,SonString(CS_STRING,key))
+            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
 
             (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
@@ -704,7 +798,7 @@ class BosonImpl2 {
 
                         val partialCodec = {
                           if (statementsList.head._1.isInstanceOf[ArrExpr])
-                            inject(partialData,statementsList,injFunction)
+                            inject(partialData, statementsList, injFunction)
                           else
                             CodecObject.toCodec(partialData)
                         }
@@ -730,14 +824,14 @@ class BosonImpl2 {
                         val auxCodec: Codec = inject(partialData, statementsList, injFunction)
 
                         val partialCodec = {
-                          if(statementsList.head._1.isInstanceOf[ArrExpr])
+                          if (statementsList.head._1.isInstanceOf[ArrExpr])
                             inject(auxCodec.getCodecData, statementsList.drop(1), injFunction)
                           else
                             inject(partialData, statementsList.drop(1), injFunction)
                         }
-                        //currentCodec(Check) + partialCodec
+                      //currentCodec(Check) + partialCodec
                       case _ =>
-                        //processTypesArrayEnd()
+                      //processTypesArrayEnd()
                     }
                   } else {
                     dataType match { //TODO - I Don't understand this!!!!
@@ -747,7 +841,7 @@ class BosonImpl2 {
                   }
                 }
               case (x, _, C_END) if isArray && from.toInt <= key.toInt =>
-                if(statementsList.size == 1) {
+                if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     ???
                   } else {
@@ -757,7 +851,7 @@ class BosonImpl2 {
                   ???
                 }
               case (x, _, C_END) if isArray && from.toInt > key.toInt =>
-                if(statementsList.size == 1) {
+                if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     ???
                   } else {
@@ -767,7 +861,7 @@ class BosonImpl2 {
                   ???
                 }
               case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
-                if(statementsList.size == 1) {
+                if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     ???
                   } else {
@@ -777,7 +871,7 @@ class BosonImpl2 {
                   ???
                 }
               case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
-                if(statementsList.size == 1) {
+                if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     ???
                   } else {
@@ -787,7 +881,7 @@ class BosonImpl2 {
                   ???
                 }
               case (x, _, l) if !isArray =>
-                if(statementsList.size == 1) {
+                if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     ???
                   } else {

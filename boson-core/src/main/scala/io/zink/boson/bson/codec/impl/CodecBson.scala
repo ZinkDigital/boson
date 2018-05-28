@@ -480,12 +480,16 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         duplicated.writeBytes(writableByteSeq)
         new CodecBson(arg, Some(duplicated))
 
-      case SonObject(_, info) =>
-        //      val duplicated = outCodec.copyByteBuf
-        val writableByteSeq = info.asInstanceOf[Array[Byte]]
-        duplicated.writeBytes(writableByteSeq)
-        new CodecBson(arg, Some(duplicated))
-
+      case SonObject(objType, info) => objType match {
+        case CS_OBJTECT_NEW_BUFFER =>
+          val writableByteBuf = info.asInstanceOf[ByteBuf]
+          val newBuf: ByteBuf = Unpooled.buffer(writableByteBuf.capacity()).writeBytes(writableByteBuf) //TODO maybe just use "duplicated"
+          new CodecBson(arg, Some(newBuf))
+        case _ =>
+          val writableByteSeq = info.asInstanceOf[Array[Byte]]
+          duplicated.writeBytes(writableByteSeq)
+          new CodecBson(arg, Some(duplicated))
+      }
     }
   }
 
