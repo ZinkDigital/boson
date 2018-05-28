@@ -1433,10 +1433,12 @@ class BosonImpl(
     codec.getCodecData match {
       case Left(byteBuf) =>
         val bsonBytes: Array[Byte] = byteBuf.array() //extract the bytes from the bytebuf
-        bsonBytes.foreach(b => print(b + ", "))
-        val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[Array[Byte]] //apply the injector function to the extracted bytes
-      //        modifiedBytes.foreach(b => print(b + ", "))
-      val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
+      /*
+        We first cast the result of applyFunction as String because when we input a byte array we apply the injFunction to it
+        as a String. We return that modified String and convert it back to a byte array in order to create a ByteBuf from it
+       */
+      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[String].getBytes()
+        val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
         CodecObject.toCodec(newBuf)
 
       case Right(jsonString) => //TODO not sure if this is correct for CodecJson
@@ -1774,7 +1776,6 @@ class BosonImpl(
 
     Try(injFunction(value.asInstanceOf[T])) match {
       case Success(modifiedValue) =>
-        println("Ele entrou aqui efetivamente")
         modifiedValue
 
       case Failure(_) => value match {
@@ -1786,12 +1787,8 @@ class BosonImpl(
           }
 
         case byteArr: Array[Byte] =>
-          println("ENTROU AQUIII")
           Try(injFunction(new String(byteArr).asInstanceOf[T])) match { //try with the value being a Array[Byte]
-            case Success(modifiedValue) =>
-              println("foi succ?")
-              println(modifiedValue.asInstanceOf[T])
-              println("da treta")
+            case Success(modifiedValue) => //TODO should we always try to transform the byte arr to a string ? our injFunction could receive a Array[Byte] as input/output?
               modifiedValue.asInstanceOf[T]
 
             case Failure(_) =>

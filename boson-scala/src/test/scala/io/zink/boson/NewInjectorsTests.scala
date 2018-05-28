@@ -3,7 +3,12 @@ package io.zink.boson
 import bsonLib.BsonObject
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 import org.scalatest.junit.JUnitRunner
+
+import scala.util.{Failure, Success}
+
 
 @RunWith(classOf[JUnitRunner])
 class NewInjectorsTests extends FunSuite {
@@ -14,7 +19,11 @@ class NewInjectorsTests extends FunSuite {
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase()
     })
-    bsonInj.go(bson.encodeToBarray())
+    val future = bsonInj.go(bson.encodeToBarray())
+    future onComplete {
+      case Success(smt) => println("no sucesso: " + new String(smt))
+      case Failure(e) => println("noooooooooo " + e)
+    }
     //    BsonArray services = new BsonArray();
     //        BsonObject rootx = new BsonObject().put("Store", services);
     //        String expression = ".Store";

@@ -375,7 +375,10 @@ class Interpreter[T](boson: BosonImpl,
         }
         case Failure(e) => throw CustomException(e.getMessage)
       }
-    println("O resultado foi : " + result)
+    result match {
+      case Left(bb) => println("Result was : " + new String(bb))
+      case Right(str) => println("Result was : " + str)
+    }
     result
   }
 
