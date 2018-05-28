@@ -86,7 +86,6 @@ object Dictionary {
   //CODECS CONSTANTS
   val CS_OBJECT: String = "Object"
   val CS_OBJECT_WITH_SIZE: String = "ObjectWithSize"
-  val CS_OBJTECT_NEW_BUFFER: String = "ObjectNewBuffer"
   val CS_ARRAY: String = "Array"
   val CS_ARRAY_WITH_SIZE: String = "ArrayWithSize"
   val CS_NAME: String = "Name"
