@@ -419,8 +419,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   override def writeToken(outCodecOpt: Codec, token: SonNamedType): Codec = {
     val duplicated: ByteBuf = outCodecOpt.getCodecData match {
       case Left(byteBuf) =>
-        val duplicated = byteBuf.copy(0, byteBuf.capacity())
-        duplicated.readerIndex(byteBuf.readerIndex())
+        val newBuf = byteBuf.copy(0, byteBuf.capacity())
+        newBuf.readerIndex(byteBuf.readerIndex())
     }
     token match {
 

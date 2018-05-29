@@ -367,14 +367,20 @@ class Interpreter[T](boson: BosonImpl,
     }
 
 
-    val result: Either[Array[Byte], String] =
-      Try(boson.inject(input, statements, fInj.get)) match {
-        case Success(resultCodec) => resultCodec.getCodecData match {
-          case Left(byteBuf) => Left(byteBuf.array())
-          case Right(string) => Right(string)
-        }
-        case Failure(e) => throw CustomException(e.getMessage)
+    val result: Either[Array[Byte], String] = {
+      val x = boson.inject(input, statements, fInj.get)
+      x.getCodecData match {
+        case Left(byteBuf) => Left(byteBuf.array())
+        case Right(string) => Right(string)
       }
+    }
+    //      Try(boson.inject(input, statements, fInj.get)) match {
+    //        case Success(resultCodec) => resultCodec.getCodecData match {
+    //          case Left(byteBuf) => Left(byteBuf.array())
+    //          case Right(string) => Right(string)
+    //        }
+    //        case Failure(e) => throw CustomException(e.getMessage)
+    //      }
     result match {
       case Left(bb) => println("Result was : " + new String(bb))
       case Right(str) => println("Result was : " + str)

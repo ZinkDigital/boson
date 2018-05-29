@@ -185,7 +185,6 @@ trait Codec {
     */
   def readSpecificSize(size: Int): Codec
 
-
   /**
     * Method that retains only a slice, of a specified length, of the data structure.
     * Returns a new codec containing that slice
@@ -227,7 +226,6 @@ trait Codec {
     */
   def +(sumCodec: Codec): Codec
 }
-
 
 sealed trait CodecFacade {
   def toCodec[T](a: T)(implicit c: Codecs[T]): Codec

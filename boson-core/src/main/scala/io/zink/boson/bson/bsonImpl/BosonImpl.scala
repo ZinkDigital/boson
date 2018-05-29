@@ -1089,7 +1089,7 @@ class BosonImpl(
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction)
 
-      case Key(key: String) => println("entrou aqui"); modifyAll(statements, codec, key, injFunction) // (key = fieldID)
+      case Key(key: String) => modifyAll(statements, codec, key, injFunction) // (key = fieldID)
 
       case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
 
@@ -1135,10 +1135,11 @@ class BosonImpl(
     */
   private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
+      println("startReader : " + startReader + "\nReaderIndex : " + codec.getReaderIndex + "\noriginalSize: " + originalSize)
       if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec //TODO I think this is not correct
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
         val newCodec = dataType match {
           case 0 => writeCodec(codecWithDataType, startReader, originalSize) // This is the end
           case _ =>
@@ -1213,10 +1214,7 @@ class BosonImpl(
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
     //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
-    val emptyCodec: Codec = codec.getCodecData match {
-      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-      case Right(_) => CodecObject.toCodec("")
-    }
+    val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
     val finalSize = codecWithoutSize.getCodecData match {
@@ -1243,10 +1241,7 @@ class BosonImpl(
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
     //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
-    val emptyDataStructure: Codec = codec.getCodecData match {
-      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-      case Right(_) => CodecObject.toCodec("")
-    }
+    val emptyDataStructure: Codec = createEmptyCodec(codec)
 
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
@@ -1991,10 +1986,7 @@ class BosonImpl(
       }
     }
 
-    val emptyCodec = codec.getCodecData match {
-      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-      case Right(_) => CodecObject.toCodec("")
-    }
+    val emptyCodec = createEmptyCodec(codec)
     val codecWithoutSize = iterateDataStructure(emptyCodec)
     val finalSize = codecWithoutSize.getCodecData match {
       case Left(byteBuf) => byteBuf.capacity
@@ -2020,10 +2012,7 @@ class BosonImpl(
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
-    val emptyDataStructure: Codec = codec.getCodecData match {
-      case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-      case Right(_) => CodecObject.toCodec("")
-    }
+    val emptyDataStructure: Codec = createEmptyCodec(codec)
 
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): Codec = {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) currentCodec
@@ -2104,7 +2093,7 @@ class BosonImpl(
     }
 
     //TODO - Check Either to create empty codec
-    val emptyCodec = CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+    val emptyCodec = CodecObject.toCodec(Unpooled.buffer())
     val codecWithoutSize = iterateDataStructure(emptyCodec, emptyCodec)
     val finalSize = codecWithoutSize.getCodecData match {
       case Left(byteBuf) => byteBuf.capacity
@@ -2129,5 +2118,23 @@ class BosonImpl(
 
     val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key))
     (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b)), key)
+  }
+
+  /**
+    * Method that creates a Codec with an empty data structure inside it.
+    *
+    * For CodecBson it creates a ByteBuf with capacity 256.
+    * For CodecJson it creates an empty String
+    *
+    * @param inputCodec - a codec in order to determine which codec to create
+    * @return a Codec with an empty data structure inside it
+    */
+  private def createEmptyCodec(inputCodec: Codec): Codec = {
+    val emptyCodec = inputCodec.getCodecData match {
+      case Left(_) => CodecObject.toCodec(Unpooled.buffer()) //Creates a CodecBson with an empty ByteBuf with capacity 256
+      case Right(_) => CodecObject.toCodec("") //Creates a CodecJson with an empty String
+    }
+    emptyCodec.setWriterIndex(0) //Sets the writerIndex of the newly created codec to 0 (Initialy it starts at 256 for CodecBson, so we need o reset it)
+    emptyCodec
   }
 }
