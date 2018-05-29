@@ -1145,7 +1145,7 @@ class BosonImpl(
     * @param codec          - Structure from which we are reading the old values
     * @param fieldID        - Name of the field of interest
     * @param injFunction    - The injection function to be applied
-    * @tparam T             - The type of input and output of the injection function
+    * @tparam T - The type of input and output of the injection function
     * @return A Codec containing the alterations made
     */
   private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
@@ -1159,8 +1159,7 @@ class BosonImpl(
       * @return A Codec containing the alterations made
       */
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
-      println("startReader : " + startReader + "\nReaderIndex : " + codec.getReaderIndex + "\noriginalSize: " + originalSize)
-      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec //TODO I think this is not correct
+      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
@@ -1257,7 +1256,7 @@ class BosonImpl(
     * @param fieldID        - Name of the field of interest
     * @param elem           - Name of the element to look for inside the objects inside an Array
     * @param injFunction    - The injection function to be applied
-    * @tparam T             - The type of input and output of the injection function
+    * @tparam T - The type of input and output of the injection function
     * @return a modified Codec where the injection function may have been applied to the desired element (if it exists)
     */
   private def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
@@ -1277,7 +1276,7 @@ class BosonImpl(
       if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte)) //write the read byte to a Codec
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ => //In case its not the end
@@ -1334,7 +1333,7 @@ class BosonImpl(
       if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
       else {
         val dataType = codec.readDataType
-        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType)) //write the read byte to a Codec
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte)) //write the read byte to a Codec
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ =>
@@ -1551,7 +1550,7 @@ class BosonImpl(
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @param seqType         - Type of the value found and processing
     * @param injFunction     - Function given by the user with the new value
-    * @tparam T              - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T): Codec = {
@@ -1603,7 +1602,7 @@ class BosonImpl(
     * @param injFunction  - Function given by the user with the new value
     * @param codecRes     - Structure that contains the information already processed and where we write the values
     * @param codecResCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
-    * @tparam T           - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made and an Auxiliary Codec
     */
   private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec): (Codec, Codec) = dataType match {
@@ -1716,7 +1715,7 @@ class BosonImpl(
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @param fieldID         - name of the field we are searching
     * @param injFunction     - Function given by the user with the new value
-    * @tparam T              - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T): Codec = {
@@ -1842,7 +1841,7 @@ class BosonImpl(
     * @param left           - Left argument of the array conditions
     * @param mid            - Middle argument of the array conditions
     * @param right          - Right argument of the array conditions
-    * @tparam T             - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
@@ -1873,7 +1872,7 @@ class BosonImpl(
     * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
     * @param from           - Represent the inferior limit of a given range
     * @param to             - Represent the superior limit of a given range
-    * @tparam T             - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
@@ -1973,7 +1972,10 @@ class BosonImpl(
                           else
                             partialData
 
-                        val partialCodec = CodecObject.toCodec(codecData) //TODO CHANGE THISSSSSSSS
+                        val partialCodec = partialData match {
+                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+                          case Right(jsonString) => CodecObject.toCodec(jsonString)
+                        }
 
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try(inject(codecData, statementsList.drop(1), injFunction)) match {
                           case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
@@ -2275,17 +2277,17 @@ class BosonImpl(
 
     condition match {
       case TO_RANGE =>
-        if(exceptions == 0)
+        if (exceptions == 0)
           codecFinal
         else
           throw new Exception
       case UNTIL_RANGE =>
-        if(exceptions <= 1)
+        if (exceptions <= 1)
           codecFinalCopy
         else
           throw new Exception
       case _ =>
-        if(exceptions == 0)
+        if (exceptions == 0)
           codecFinal
         else
           throw new Exception
@@ -2304,7 +2306,7 @@ class BosonImpl(
     * @param to              - Represent the superior limit when a range is given
     * @param resultCodec     - Structure that contains the information already processed and where we write the values
     * @param resultCodecCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
-    * @tparam T              - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made and an Auxiliary Codec
     */
   private def processTypesArrayEnd[T](statementList: List[(Statement, String)], fieldID: String, dataType: Int, codec: Codec, injFunction: T => T, condition: String, from: String = C_ZERO, to: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
@@ -2367,7 +2369,7 @@ class BosonImpl(
     * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
     * @param from           - Represent the inferior limit when a range is given
     * @param to             - Represent the superior limit when a range is given
-    * @tparam T             - Type of the value being injected
+    * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def modifyArrayEndWithKey[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
@@ -2387,8 +2389,8 @@ class BosonImpl(
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType))
-        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType))
+        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
+        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
           case _ =>
