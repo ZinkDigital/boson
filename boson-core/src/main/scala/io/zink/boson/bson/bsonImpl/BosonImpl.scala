@@ -1095,7 +1095,22 @@ class BosonImpl(
 
       case HasElem(key: String, elem: String) => modifyHasElem(statements, codec, key, elem, injFunction)
 
-      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) => ???
+      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        val input: (String, Int, String, Any) =
+          (leftArg, midArg, rightArg) match {
+            case (i, o1, o2) if midArg.isDefined && rightArg.isDefined =>
+              (EMPTY_KEY, leftArg, midArg.get.value, rightArg.get)
+            case (i, o1, o2) if midArg.isEmpty && rightArg.isEmpty =>
+              (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
+                case C_END => (EMPTY_KEY, 0, C_END, None)
+                case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
+              }
+          }
+        val modified = arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
+        codec + modified
 
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
@@ -1212,7 +1227,7 @@ class BosonImpl(
 
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
-    //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
+
     val emptyCodec: Codec = codec.getCodecData match {
       case Left(_) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
       case Right(_) => CodecObject.toCodec("")
@@ -1849,159 +1864,146 @@ class BosonImpl(
     * @tparam T
     * @return
     */
-    def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
-      val startReaderIndex = codec.getReaderIndex
-      val originalSize = codec.readSize
+  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
+    val startReaderIndex = codec.getReaderIndex
+    val originalSize = codec.readSize
 
-      def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec, exceptions: Int): (Codec, Codec, Int) = {
-        if ((codec.getReaderIndex - startReaderIndex) >= originalSize && exceptions < 2)
-          (currentCodec, currentCodecCopy, exceptions)
-        else {
-          val dataType: Int = codec.readDataType
-          val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType)) //Verify
-          val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType))
-          dataType match {
-            case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
-            case _ =>
-              val (isArray, key, byte): (Boolean, String, Int) = {
-                val key: String = codec.readToken(SonString(CS_NAME)) match {
-                  case SonString(_, keyString) => keyString.asInstanceOf[String]
-                }
-                val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
-                  case SonBoolean(_, result) => result.asInstanceOf[Byte]
-                }
-                (key.forall(b => b.isDigit), key, byte)
+    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec, exceptions: Int): (Codec, Codec, Int) = {
+      if ((codec.getReaderIndex - startReaderIndex) >= originalSize && exceptions < 2)
+        (currentCodec, currentCodecCopy, exceptions)
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType)) //Verify
+        val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType))
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
+          case _ =>
+            val (isArray, key, byte): (Boolean, String, Int) = {
+              val key: String = codec.readToken(SonString(CS_NAME)) match {
+                case SonString(_, keyString) => keyString.asInstanceOf[String]
               }
-              val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-              val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+              val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
+                case SonBoolean(_, result) => result.asInstanceOf[Byte]
+              }
+              (key.forall(b => b.isDigit), key, byte)
+            }
+            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
 
-              val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
-                case (x, C_END, _) if isArray =>
-                  if (statementsList.size == 1) {
-                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                      dataType match {
-                        case D_BSONOBJECT | D_BSONARRAY =>
-                          val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
-                            case SonArray(_, value) => value match {
-                               case byteBuf: ByteBuf => Left(byteBuf)
-                               case jsonString: String => Right(jsonString)
-                            }
+            val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
+              case (x, C_END, _) if isArray =>
+                if (statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value match {
+                            case byteBuf: ByteBuf => Left(byteBuf)
+                            case jsonString: String => Right(jsonString)
                           }
-
-                          val partialCodec = {
-                            if (statementsList.head._1.isInstanceOf[ArrExpr])
-                              inject(partialData, statementsList, injFunction)
-                            else{
-                              CodecObject.toCodec(partialData)
-                              }
-                            }
-
-                            val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                              Try (modifierEnd(partialCodec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
-                                case Success(tuple) =>
-                                  (tuple, 0)
-                                case Failure(e) =>
-                                  ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
-                              }
-                            (codecTuple, exceptionsReturn)
-
-                          case _ =>
-                            val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                              Try (modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
-                                case Success(tuple) => (tuple, 0)
-                                case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
-                              }
-                            (codecTuple, exceptionsReturn)
                         }
-                      } else {
+
+                        val partialCodec = {
+                          if (statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(partialData, statementsList, injFunction)
+                          else {
+                            CodecObject.toCodec(partialData)
+                          }
+                        }
+
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                          Try (modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                          Try(modifierEnd(partialCodec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                            case Success(tuple) =>
+                              (tuple, 0)
+                            case Failure(e) =>
+                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
+                          }
+                        (codecTuple, exceptionsReturn)
+
+                      case _ =>
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
                             case Success(tuple) => (tuple, 0)
                             case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
                           }
                         (codecTuple, exceptionsReturn)
-                      }
-                    } else {
-                      if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
-                        dataType match {
-                          case D_BSONARRAY | D_BSONOBJECT =>
-                            val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
-                              case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
-                            }
-
-                            val codecData =
-                              if(statementsList.head._1.isInstanceOf[ArrExpr])
-                                inject(partialData, statementsList, injFunction).getCodecData
-                              else
-                                partialData
-
-                            val partialCodec = CodecObject.toCodec(codecData)
-
-                            val (codecTuple, exceptionsReturn): ((Codec,Codec), Int) = Try(inject(codecData, statementsList.drop(1), injFunction)) match {
-                              case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
-                              case Failure(e) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
-                            }
-                            (codecTuple, exceptionsReturn)
-                          case _ =>
-                          //processTypesArrayEnd()// TODO missing function
-                            ???
-                        }
-                      } else {
-                        dataType match {
-                          case D_BSONARRAY | D_BSONOBJECT =>
-                            val newCodec: Codec = codecWithKeyCopy.duplicate
-                            val (codecTuple, exceptionReturn): ((Codec, Codec), Int) = Try(inject(codec.getCodecData, statementsList.drop(1), injFunction)) match {
-                              case Success(c) => ((c, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-                              case Failure(e) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
-                            }
-                          case _ =>
-                            ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-                        }
-                      }
                     }
-                  case (x, _, C_END) if isArray && from.toInt <= key.toInt =>
-                    if (statementsList.size == 1) {
-                      if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
-                        dataType match {
-                          case D_BSONOBJECT|D_BSONARRAY =>
-                            if( exceptions==0) {
-                              val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
-                                case SonArray(_,value) => value match {
-                                  case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                                  case string: String => CodecObject.toCodec(string)
-                                }
-                              }
-                              val emptyCodec: Codec = codec.getCodecData match {
-                                case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-                                case Right(string) => CodecObject.toCodec("")
-                              }
-                              val newCodecCopy = codecWithKey.duplicate
-                              val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try( modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
-                                  case Success(tuple) =>
-                                    ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
-                                  case Failure(e) =>
-                                    ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions +1)
-                                }
-                              (codecTuple, exceptionsReturn)
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                          case _ =>
-                            if(exceptions == 0) {
-                              val newCodecCopy = codecWithKey.duplicate
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try(modifierEnd(codec, dataType,injFunction, codecWithKey, newCodecCopy)) match {
-                                  case Success(tuple) =>
-                                    (tuple, exceptions)
-                                  case Failure(e) =>
-                                    ((codecWithKey, newCodecCopy), exceptions + 1)
-                                }
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                  } else {
+                    val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                        case Success(tuple) => (tuple, 0)
+                        case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
+                      }
+                    (codecTuple, exceptionsReturn)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
                         }
-                      } else {
-                        if(exceptions == 0) {
+
+                        val codecData =
+                          if (statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(partialData, statementsList, injFunction).getCodecData
+                          else
+                            partialData
+
+                        val partialCodec = CodecObject.toCodec(codecData)
+
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try(inject(codecData, statementsList.drop(1), injFunction)) match {
+                          case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
+                          case Failure(e) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
+                        }
+                        (codecTuple, exceptionsReturn)
+                      case _ =>
+                        val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
+                        (codecTuple, exceptions)
+                    }
+                  } else {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        val newCodec: Codec = codecWithKeyCopy.duplicate
+                        val (codecTuple, exceptionReturn): ((Codec, Codec), Int) = Try(inject(codec.getCodecData, statementsList.drop(1), injFunction)) match {
+                          case Success(c) => ((c, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                          case Failure(e) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                        }
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                    }
+                  }
+                }
+              case (x, _, C_END) if isArray && from.toInt <= key.toInt =>
+                if (statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        if (exceptions == 0) {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val emptyCodec: Codec = codec.getCodecData match {
+                            case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+                            case Right(string) => CodecObject.toCodec("")
+                          }
+                          val newCodecCopy = codecWithKey.duplicate
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
+                              case Success(tuple) =>
+                                ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
+                              case Failure(e) =>
+                                ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
+                            }
+                          (codecTuple, exceptionsReturn)
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        if (exceptions == 0) {
                           val newCodecCopy = codecWithKey.duplicate
                           val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                             Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
@@ -2009,59 +2011,150 @@ class BosonImpl(
                                 (tuple, exceptions)
                               case Failure(e) =>
                                 ((codecWithKey, newCodecCopy), exceptions + 1)
-                          }
+                            }
                         } else
                           ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                      }
-                    } else {
-                      if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
-                        dataType match {
-                          case D_BSONARRAY | D_BSONOBJECT =>
-                            if (exceptions == 0) {
-                              val newCodecCopy = codecWithKey.duplicate
-                              val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
-                                case SonArray(_,value) => value match {
-                                  case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                                  case string: String => CodecObject.toCodec(string)
-                                }
-                              }
-                              val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
-                                  case Success(c) =>
-                                    ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
-                                  case Failure(e) =>
-                                    ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
-                                }
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                          case _ =>
-                            //processTypesArrayEnd() //TODO - missing implementation
-                            ???
-                        }
-                      } else {
-                        dataType match {
-                          case D_BSONARRAY | D_BSONOBJECT =>
-                            if (exceptions == 0) {
-                              val newCodecCopy = codecWithKey.duplicate
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
-                                  case Success(c) =>
-                                    ((c, processTypesArray(dataType, codec, newCodecCopy)),exceptions)
-                                  case Failure(e) =>
-                                    ((codecWithKey, newCodecCopy), exceptions + 1)
-                                }
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                          case _=>
-                            ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
-                        }
-                      }
                     }
-                  case (x, _, C_END) if isArray && from.toInt > key.toInt =>
-                    if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
-                      dataType match {
-                        case D_BSONOBJECT | D_BSONARRAY =>
+                  } else {
+                    if (exceptions == 0) {
+                      val newCodecCopy = codecWithKey.duplicate
+                      val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                        Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                          case Success(tuple) =>
+                            (tuple, exceptions)
+                          case Failure(e) =>
+                            ((codecWithKey, newCodecCopy), exceptions + 1)
+                        }
+                    } else
+                      ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+                              case Success(c) =>
+                                ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                              case Failure(e) =>
+                                ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
+                            }
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
+                        (codecTuple, exceptions)
+                    }
+                  } else {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
+                              case Success(c) =>
+                                ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                              case Failure(e) =>
+                                ((codecWithKey, newCodecCopy), exceptions + 1)
+                            }
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                    }
+                  }
+                }
+              case (x, _, C_END) if isArray && from.toInt > key.toInt =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                  dataType match {
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                        case SonArray(_, value) => value match {
+                          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                          case string: String => CodecObject.toCodec(string)
+                        }
+                      }
+                      val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                      val newCodecResult = codecWithKey + modifiedPartialCodec
+                      val newCodecResultCopy = codecWithKeyCopy + modifiedPartialCodec
+                      ((newCodecResult, newCodecResultCopy), exceptions)
+                    case _ =>
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                  }
+                } else {
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                }
+
+              case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        if (exceptions == 0) {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val emptyCodec: Codec = codec.getCodecData match {
+                            case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+                            case Right(string) => CodecObject.toCodec("")
+                          }
+                          val newCodecCopy = codecWithKey.duplicate
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
+                              case Success(tuple) =>
+                                ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
+                              case Failure(e) =>
+                                ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
+                            }
+                          (codecTuple, exceptionsReturn)
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                              case Success(tuple) =>
+                                (tuple, exceptions)
+                              case Failure(e) =>
+                                ((codecWithKey, newCodecCopy), exceptions + 1)
+                            }
+                          (codecTuple, exceptionsReturn)
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                    }
+                  } else {
+                    if (exceptions == 0) {
+                      val newCodecCopy = codecWithKey.duplicate
+                      val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                        Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                          case Success(tuple) =>
+                            (tuple, exceptions)
+                          case Failure(e) =>
+                            ((codecWithKey, newCodecCopy), exceptions + 1)
+                        }
+                    } else
+                      ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
                           val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
@@ -2069,182 +2162,118 @@ class BosonImpl(
                             }
                           }
                           val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                          val newCodecResult = codecWithKey + modifiedPartialCodec
-                          val newCodecResultCopy = codecWithKeyCopy + modifiedPartialCodec
-                          ((newCodecResult, newCodecResultCopy), exceptions)
-                        case _ =>
-                          ((processTypesArray(dataType, codec.duplicate, codecWithKey),processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-                      }
-                    } else {
-                      ((processTypesArray(dataType, codec.duplicate, codecWithKey),processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-                    }
-
-                  case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
-                    if (statementsList.lengthCompare(1) == 0) {
-                      if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                        dataType match {
-                          case D_BSONOBJECT|D_BSONARRAY =>
-                            if( exceptions==0) {
-                              val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
-                                case SonArray(_,value) => value match {
-                                  case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                                  case string: String => CodecObject.toCodec(string)
-                                }
-                              }
-                              val emptyCodec: Codec = codec.getCodecData match {
-                                case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-                                case Right(string) => CodecObject.toCodec("")
-                              }
-                              val newCodecCopy = codecWithKey.duplicate
-                              val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try( modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
-                                  case Success(tuple) =>
-                                    ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
-                                  case Failure(e) =>
-                                    ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions +1)
-                                }
-                              (codecTuple, exceptionsReturn)
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                          case _ =>
-                            if(exceptions == 0) {
-                              val newCodecCopy = codecWithKey.duplicate
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try(modifierEnd(codec, dataType,injFunction, codecWithKey, newCodecCopy)) match {
-                                  case Success(tuple) =>
-                                    (tuple, exceptions)
-                                  case Failure(e) =>
-                                    ((codecWithKey, newCodecCopy), exceptions + 1)
-                                }
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                        }
-                      } else {
-                        if(exceptions == 0) {
-                          val newCodecCopy = codecWithKey.duplicate
                           val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                            Try(modifierEnd(codec, dataType,injFunction, codecWithKey, newCodecCopy)) match {
-                              case Success(tuple) =>
-                                (tuple, exceptions)
+                            Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+                              case Success(c) =>
+                                ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
                               case Failure(e) =>
-                                ((codecWithKey, newCodecCopy), exceptions + 1)
+                                ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
                             }
                         } else
                           ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                      }
-                    } else {
-                      if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
-                        dataType match {
-                          case D_BSONARRAY | D_BSONOBJECT =>
-                            if (exceptions == 0) {
-                              val newCodecCopy = codecWithKey.duplicate
-                              val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
-                                case SonArray(_,value) => value match {
-                                  case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                                  case string: String => CodecObject.toCodec(string)
-                                }
-                              }
-                              val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
-                                  case Success(c) =>
-                                    ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
-                                  case Failure(e) =>
-                                    ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
-                                }
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                          case _ =>
-                            //processTypesArrayEnd() //TODO - missing implementation
-                            ???
-                        }
-                      } else {
-                        dataType match {
-                          case D_BSONARRAY | D_BSONOBJECT =>
-                            if (exceptions == 0) {
-                              val newCodecCopy = codecWithKey.duplicate
-                              val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                                Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
-                                  case Success(c) =>
-                                    ((c, processTypesArray(dataType, codec, newCodecCopy)),exceptions)
-                                  case Failure(e) =>
-                                    ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
-                                }
-                            } else
-                              ((codecWithKey, codecWithKeyCopy), exceptions + 1)
-                          case _=>
-                            ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
-                        }
-                      }
-                    }
-                  case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
-                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                      dataType match {
-                        case D_BSONOBJECT | D_BSONARRAY =>
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
-                            case SonArray(_,value) => value match {
-                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
-                            }
-                          }
-                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                          ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
+                      case _ =>
+                        val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
+                        (codecTuple, exceptions)
 
-                        case _=>
-                          ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
-                      }
-                    } else {
-                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
                     }
-                  case (x, _, l) if !isArray =>
-                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                      dataType match {
-                        case D_BSONOBJECT | D_BSONARRAY =>
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
-                            case SonArray(_,value) => value match {
-                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
+                  } else {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
+                              case Success(c) =>
+                                ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                              case Failure(e) =>
+                                ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
                             }
-                          }
-                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                          ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
-                        case _=>
-                          ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
-                      }
-                    } else
-                      throw new Exception
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                    }
+                  }
                 }
-                iterateDataStructure(codecResult,codecResultCopy,exceptionsResult)
+              case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  dataType match {
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                        case SonArray(_, value) => value match {
+                          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                          case string: String => CodecObject.toCodec(string)
+                        }
+                      }
+                      val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                      ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
+
+                    case _ =>
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                  }
+                } else {
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                }
+              case (x, _, l) if !isArray =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  dataType match {
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                        case SonArray(_, value) => value match {
+                          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                          case string: String => CodecObject.toCodec(string)
+                        }
+                      }
+                      val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                      ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
+                    case _ =>
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                  }
+                } else
+                  throw new Exception
             }
-          }
+            iterateDataStructure(codecResult, codecResultCopy, exceptionsResult)
         }
-
-        val emptyCodec: Codec = codec.getCodecData match {
-          case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
-          case Right(string) => CodecObject.toCodec("")
-        }
-
-        val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, emptyCodec.duplicate, 0)
-
-        val finalSize = codecWithoutSize.getCodecData match {
-          case Left(byteBuf) => byteBuf.capacity
-          case Right(string) => string.length
-        }
-        val codecFinal = emptyCodec.writeToken(emptyCodec, SonNumber(CS_BYTE, finalSize)) + codecWithoutSize
-
-        val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
-          case Left(byteBuf) => byteBuf.capacity
-          case Right(string) => string.length
-        }
-        val codecFinalCopy = emptyCodec.writeToken(emptyCodec, SonNumber(CS_BYTE, finalSizeCopy)) + codecWithoutSizeCopy
-
-        if(condition.equals(TO_RANGE))
-          if (exceptions == 0) {
-            ???
-          }
-        ???
       }
+    }
+
+    val emptyCodec: Codec = codec.getCodecData match {
+      case Left(byteBuf) => CodecObject.toCodec(Unpooled.EMPTY_BUFFER)
+      case Right(string) => CodecObject.toCodec("")
+    }
+
+    val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, emptyCodec.duplicate, 0)
+
+    val finalSize = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.capacity
+      case Right(string) => string.length
+    }
+    val codecFinal = emptyCodec.writeToken(emptyCodec, SonNumber(CS_BYTE, finalSize)) + codecWithoutSize
+
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+      case Left(byteBuf) => byteBuf.capacity
+      case Right(string) => string.length
+    }
+    val codecFinalCopy = emptyCodec.writeToken(emptyCodec, SonNumber(CS_BYTE, finalSizeCopy)) + codecWithoutSizeCopy
+
+    condition match {
+      case TO_RANGE =>
+        if(exceptions == 0)
+          codecFinal
+        else
+          throw new Exception
+      case UNTIL_RANGE =>
+        if(exceptions <= 1)
+          codecFinalCopy
+        else
+          throw new Exception
+      case _ =>
+        if(exceptions == 0)
+          codecFinal
+        else
+          throw new Exception
+    }
+  }
 
   /**
     *
@@ -2261,29 +2290,29 @@ class BosonImpl(
     * @tparam T
     * @return
     */
-    private def processTypesArrayEnd[T](list: List[(Statement, String)], fieldID: String, dataType: Int, codec: Codec, f: (T) => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
-      val (returnCodec, returnCodecCopy): (Codec, Codec) = dataType match {
-        case D_FLOAT_DOUBLE =>
-          val valueDouble = codec.readToken(SonNumber(CS_DOUBLE))
-          val codecDouble = CodecObject.toCodec(valueDouble)
-          (resultCodec + codecDouble, resultCodecCopy + codecDouble)
-        case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-          val valueStr = codec.readToken(SonString(CS_STRING))
-          val codecString = CodecObject.toCodec(valueStr)
-          (resultCodec + codecString, resultCodecCopy + codecString)
-        case D_BSONOBJECT =>
-  //        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
-          val valueObj = codec.readToken(SonObject(CS_OBJECT))
-          val codecObj = CodecObject.toCodec(valueObj)
-  //        modifyArrayEndWithKey()
-          (resultCodec + codecObj, resultCodecCopy + codecObj)
-          ???
-        case D_BSONARRAY =>
-  //        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
-          val valueArr = codec.readToken(SonArray(CS_ARRAY))
-          val codecArr = CodecObject.toCodec(valueArr)
-  //        modifyArrayEndWithKey()
-          (resultCodec + codecArr, resultCodecCopy + codecArr)
+  private def processTypesArrayEnd[T](list: List[(Statement, String)], fieldID: String, dataType: Int, codec: Codec, f: (T) => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
+    val (returnCodec, returnCodecCopy): (Codec, Codec) = dataType match {
+      case D_FLOAT_DOUBLE =>
+        val valueDouble = codec.readToken(SonNumber(CS_DOUBLE))
+        val codecDouble = CodecObject.toCodec(valueDouble)
+        (resultCodec + codecDouble, resultCodecCopy + codecDouble)
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val valueStr = codec.readToken(SonString(CS_STRING))
+        val codecString = CodecObject.toCodec(valueStr)
+        (resultCodec + codecString, resultCodecCopy + codecString)
+      case D_BSONOBJECT =>
+        //        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
+        val valueObj = codec.readToken(SonObject(CS_OBJECT))
+        val codecObj = CodecObject.toCodec(valueObj)
+        //        modifyArrayEndWithKey()
+        (resultCodec + codecObj, resultCodecCopy + codecObj)
+        ???
+      case D_BSONARRAY =>
+        //        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
+        val valueArr = codec.readToken(SonArray(CS_ARRAY))
+        val codecArr = CodecObject.toCodec(valueArr)
+        //        modifyArrayEndWithKey()
+        (resultCodec + codecArr, resultCodecCopy + codecArr)
         //        if (condition.equals(TO_RANGE))
         //       //   result.writeBytes(res.getByteBuf)
         //        else if (condition.equals(C_END))
@@ -2292,24 +2321,24 @@ class BosonImpl(
         //    resultCopy.writeBytes(res.getByteBuf)
 
         //  res.getByteBuf.release()
-          ???
-        case D_NULL =>
-          (resultCodec, resultCodecCopy)
-        case D_INT =>
-          val valueInt = codec.readToken(SonNumber(CS_INTEGER))
-          val codecInt = CodecObject.toCodec(valueInt)
-          (resultCodec + codecInt, resultCodecCopy + codecInt)
-        case D_LONG =>
-          val valueLong = codec.readToken(SonNumber(CS_LONG))
-          val codecLong = CodecObject.toCodec(valueLong)
-          (resultCodec + codecLong, resultCodecCopy + codecLong)
-        case D_BOOLEAN =>
-          val valuBool = codec.readToken(SonBoolean(CS_BOOLEAN))
-          val codecBool = CodecObject.toCodec(valuBool)
-          (resultCodec + codecBool, resultCodecCopy + codecBool)
-      }
-      (returnCodec,returnCodecCopy)
+        ???
+      case D_NULL =>
+        (resultCodec, resultCodecCopy)
+      case D_INT =>
+        val valueInt = codec.readToken(SonNumber(CS_INTEGER))
+        val codecInt = CodecObject.toCodec(valueInt)
+        (resultCodec + codecInt, resultCodecCopy + codecInt)
+      case D_LONG =>
+        val valueLong = codec.readToken(SonNumber(CS_LONG))
+        val codecLong = CodecObject.toCodec(valueLong)
+        (resultCodec + codecLong, resultCodecCopy + codecLong)
+      case D_BOOLEAN =>
+        val valuBool = codec.readToken(SonBoolean(CS_BOOLEAN))
+        val codecBool = CodecObject.toCodec(valuBool)
+        (resultCodec + codecBool, resultCodecCopy + codecBool)
     }
+    (returnCodec, returnCodecCopy)
+  }
 
   /**
     * Function used to search for the last element of an array that corresponds to field with name fieldID
