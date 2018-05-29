@@ -1244,7 +1244,7 @@ class BosonImpl(
       case Right(string) => string.length + 4
     }
 
-    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
+    emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
   }
 
   /**
@@ -1309,7 +1309,7 @@ class BosonImpl(
       case Right(string) => string.length + 4
     }
 
-    emptyDataStructure.writeToken(emptyDataStructure, SonNumber(CS_INTEGER, size)) + codecWithoutSize
+    emptyDataStructure.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, size)) + codecWithoutSize
   }
 
   /**
@@ -2280,13 +2280,13 @@ class BosonImpl(
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecFinal = emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
+    val codecFinal = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
 
     val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecFinalCopy = emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
+    val codecFinalCopy = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>
@@ -2486,8 +2486,8 @@ class BosonImpl(
       case Right(string) => string.length + 4
     }
 
-    val finalCodec = emptyCodec.writeToken(emptyCodec.duplicate, SonNumber(CS_INTEGER, finalSize))+ codecWithoutSize
-    val finalCodecCopy = emptyCodec.writeToken(emptyCodec.duplicate, SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
+    val finalCodec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))+ codecWithoutSize
+    val finalCodecCopy = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>
