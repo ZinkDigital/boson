@@ -49,7 +49,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bson.encodeToBarray())
     future onComplete {
-      case Success(resultValue) => println("ENTROU aqui" + new String(resultValue)); assert(new String(resultValue) contains "JOHN DOE")
+      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE")
       case Failure(e) => println(e); fail
     }
     Await.result(future, Duration.Inf)

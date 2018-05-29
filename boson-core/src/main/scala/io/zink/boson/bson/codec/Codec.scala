@@ -225,6 +225,15 @@ trait Codec {
     * @return
     */
   def +(sumCodec: Codec): Codec
+
+  /**
+    * This method will remove the empty space in this codec.
+    *
+    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
+    *
+    * @return
+    */
+  def removeEmptySpace: Unit
 }
 
 sealed trait CodecFacade {

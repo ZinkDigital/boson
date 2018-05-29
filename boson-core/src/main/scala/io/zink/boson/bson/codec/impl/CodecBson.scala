@@ -521,4 +521,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     CodecObject.toCodec(addBuff)
   }
 
+  /**
+    * This method will remove the empty space in this codec.
+    *
+    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
+    */
+  def removeEmptySpace: Unit = buff.capacity(buff.writerIndex())
+
 }

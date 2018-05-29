@@ -1243,8 +1243,10 @@ class BosonImpl(
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-
-    emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize //TODO TRUNCATE BYTEBUFS EMPTY SIZE
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSize.removeEmptySpace
+    codecWithSize + codecWithoutSize
   }
 
   /**
@@ -2279,13 +2281,23 @@ class BosonImpl(
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecFinal = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
+
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSize.removeEmptySpace
+
+    val codecFinal = codecWithoutSize + codecWithoutSize
 
     val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecFinalCopy = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
+
+    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSizeCopy.removeEmptySpace
+
+    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>
@@ -2485,8 +2497,16 @@ class BosonImpl(
       case Right(string) => string.length + 4
     }
 
-    val finalCodec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
-    val finalCodecCopy = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSize.removeEmptySpace
+
+    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSizeCopy.removeEmptySpace
+
+    val finalCodec = codecWithSize + codecWithoutSize
+    val finalCodecCopy = codecWithSizeCopy + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>

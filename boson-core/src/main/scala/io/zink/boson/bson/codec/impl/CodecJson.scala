@@ -630,5 +630,13 @@ class CodecJson(str: String) extends Codec {
     * @return
     */
   override def +(sumCodec: Codec): Codec = ???
+
+  /**
+    * This method will remove the empty space in this codec.
+    *
+    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
+    *
+    */
+  def removeEmptySpace: Unit = ???
 }
 
