@@ -1076,7 +1076,7 @@ class BosonImpl(
     * @param dataStructure - The data structure in which to perform the injection process (either a ByteBuf or a String)
     * @param statements    - The statements with information regarding where to perform the injection
     * @param injFunction   - The injection function to be applied
-    * @tparam T - The type of the input and output of the injection function
+    * @tparam T            - The type of the input and output of the injection function
     * @return a new codec with the changes applied to it
     */
   def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T): Codec = {
@@ -1145,7 +1145,7 @@ class BosonImpl(
     * @param codec          - Structure from which we are reading the old values
     * @param fieldID        - Name of the field of interest
     * @param injFunction    - The injection function to be applied
-    * @tparam T - The type of input and output of the injection function
+    * @tparam T             - The type of input and output of the injection function
     * @return A Codec containing the alterations made
     */
   private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
@@ -1236,13 +1236,12 @@ class BosonImpl(
 
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
-    //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
     val finalSize = codecWithoutSize.getCodecData match {
-      case Left(byteBuf) => byteBuf.capacity
-      case Right(string) => string.length
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
     }
 
     emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
@@ -1256,14 +1255,13 @@ class BosonImpl(
     * @param fieldID        - Name of the field of interest
     * @param elem           - Name of the element to look for inside the objects inside an Array
     * @param injFunction    - The injection function to be applied
-    * @tparam T - The type of input and output of the injection function
+    * @tparam T             - The type of input and output of the injection function
     * @return a modified Codec where the injection function may have been applied to the desired element (if it exists)
     */
   private def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
 
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
-    //TODO DONT FORGET TO WRITE THE SIZE TO THE RESULT CODEC
     val emptyDataStructure: Codec = createEmptyCodec(codec)
 
     /**
@@ -1305,7 +1303,13 @@ class BosonImpl(
       }
     }
 
-    iterateDataStructure(emptyDataStructure) //Initiate recursion with an empty data structure
+    val codecWithoutSize = iterateDataStructure(emptyDataStructure) //Initiate recursion with an empty data structure
+    val size = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
+
+    emptyDataStructure.writeToken(emptyDataStructure, SonNumber(CS_INTEGER, size)) + codecWithoutSize
   }
 
   /**
@@ -1316,7 +1320,7 @@ class BosonImpl(
     * @param fieldID        - Name of the field of interest
     * @param injFunction    - The injection function to be applied
     * @param writableCodec  - Structure to where we write the values
-    * @tparam T - The type of input and output of the injection function
+    * @tparam T             - The type of input and output of the injection function
     * @return a new Codec with the value injected
     */
   private def searchAndModify[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, writableCodec: Codec): Codec = {
@@ -1451,7 +1455,7 @@ class BosonImpl(
     *
     * @param codec       - Codec encapsulating the data structure to inject in
     * @param injFunction - The injection function to be applied
-    * @tparam T - The type of elements the injection function receives
+    * @tparam T          - The type of elements the injection function receives
     * @return - A new codec with the injFunction applied to it
     */
   private def rootInjection[T](codec: Codec, injFunction: T => T): Codec = {
@@ -1482,7 +1486,7 @@ class BosonImpl(
     * @param codec          - Structure from which we are reading the old values
     * @param resultCodec    - Structure to where we write the values
     * @param injFunction    - Injection function to be applied
-    * @tparam T - The type of input and output of the injection function
+    * @tparam T             - The type of input and output of the injection function
     * @return a new Codec with the copied information
     */
   private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T): Codec = dataType match {
@@ -1550,7 +1554,7 @@ class BosonImpl(
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @param seqType         - Type of the value found and processing
     * @param injFunction     - Function given by the user with the new value
-    * @tparam T - Type of the value being injected
+    * @tparam T              - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T): Codec = {
@@ -1634,7 +1638,7 @@ class BosonImpl(
     * @param injFunction  - Function given by the user with the new value
     * @param codecRes     - Structure that contains the information already processed and where we write the values
     * @param codecResCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
-    * @tparam T - Type of the value being injected
+    * @tparam T           - Type of the value being injected
     * @return A Codec containing the alterations made and an Auxiliary Codec
     */
   private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec): (Codec, Codec) = dataType match {
@@ -1687,7 +1691,6 @@ class BosonImpl(
             (resCodec, resCodecCopy)
         }
       }
-
 
     case D_BOOLEAN =>
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
@@ -1747,7 +1750,7 @@ class BosonImpl(
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @param fieldID         - name of the field we are searching
     * @param injFunction     - Function given by the user with the new value
-    * @tparam T - Type of the value being injected
+    * @tparam T              - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T): Codec = {
@@ -1789,7 +1792,7 @@ class BosonImpl(
     *
     * @param fieldID   - Key given by User.
     * @param extracted - Key extracted.
-    * @return //TODO - write
+    * @return A boolean that is true if it's a HalWord or false or if it's not
     */
   private def isHalfword(fieldID: String, extracted: String): Boolean = {
     if (fieldID.contains(STAR) & extracted.nonEmpty) {
@@ -1828,7 +1831,7 @@ class BosonImpl(
     *
     * @param injFunction - The injector function to be applied
     * @param value       - The value to apply the injector function to
-    * @tparam T - The type of the value
+    * @tparam T          - The type of the value
     * @return A modified value in which the injector function was applied
     */
   private def applyFunction[T](injFunction: T => T, value: Any): T = {
@@ -1873,7 +1876,7 @@ class BosonImpl(
     * @param left           - Left argument of the array conditions
     * @param mid            - Middle argument of the array conditions
     * @param right          - Right argument of the array conditions
-    * @tparam T - Type of the value being injected
+    * @tparam T             - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
@@ -1904,7 +1907,7 @@ class BosonImpl(
     * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
     * @param from           - Represent the inferior limit of a given range
     * @param to             - Represent the superior limit of a given range
-    * @tparam T - Type of the value being injected
+    * @tparam T             - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
@@ -2022,10 +2025,11 @@ class BosonImpl(
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         val newCodec: Codec = codecWithKeyCopy.duplicate
-                        Try(inject(codec.getCodecData, statementsList.drop(1), injFunction)) match {
+                        val (codecTuple, exceptionReturn): ((Codec, Codec), Int) = Try(inject(codec.getCodecData, statementsList.drop(1), injFunction)) match {
                           case Success(c) => ((c, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                           case Failure(e) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
                         }
+                        (codecTuple, exceptionReturn)
                       case _ =>
                         ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                     }
@@ -2273,16 +2277,16 @@ class BosonImpl(
     val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, emptyCodec.duplicate, 0)
 
     val finalSize = codecWithoutSize.getCodecData match {
-      case Left(byteBuf) => byteBuf.capacity
-      case Right(string) => string.length
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
     }
-    val codecFinal = emptyCodec.writeToken(emptyCodec, SonNumber(CS_BYTE, finalSize)) + codecWithoutSize
+    val codecFinal = emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
 
     val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
-      case Left(byteBuf) => byteBuf.capacity
-      case Right(string) => string.length
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
     }
-    val codecFinalCopy = emptyCodec.writeToken(emptyCodec, SonNumber(CS_BYTE, finalSizeCopy)) + codecWithoutSizeCopy
+    val codecFinalCopy = emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>
@@ -2315,7 +2319,7 @@ class BosonImpl(
     * @param to              - Represent the superior limit when a range is given
     * @param resultCodec     - Structure that contains the information already processed and where we write the values
     * @param resultCodecCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
-    * @tparam T - Type of the value being injected
+    * @tparam T              - Type of the value being injected
     * @return A Codec containing the alterations made and an Auxiliary Codec
     */
   private def processTypesArrayEnd[T](statementList: List[(Statement, String)], fieldID: String, dataType: Int, codec: Codec, injFunction: T => T, condition: String, from: String = C_ZERO, to: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
@@ -2336,7 +2340,8 @@ class BosonImpl(
             case jsonString: String => CodecObject.toCodec(jsonString)
           }
         }
-        (resultCodec + codecObj, resultCodecCopy + codecObj)
+        val auxCodec = modifyArrayEndWithKey(statementList, codecObj, fieldID, injFunction, condition, from, to)
+        (resultCodec + auxCodec, resultCodecCopy + auxCodec)
       case D_BSONARRAY =>
         //        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
         val codecArr = codec.readToken(SonArray(CS_ARRAY)) match {
@@ -2345,7 +2350,8 @@ class BosonImpl(
             case jsonString: String => CodecObject.toCodec(jsonString)
           }
         }
-        (resultCodec + codecArr, resultCodecCopy + codecArr)
+        val auxCodec = modifyArrayEndWithKey(statementList, codecArr, fieldID, injFunction, condition, from, to)
+        (resultCodec + auxCodec, resultCodecCopy + auxCodec)
 
       case D_NULL => (resultCodec, resultCodecCopy)
 
@@ -2373,7 +2379,7 @@ class BosonImpl(
     * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
     * @param from           - Represent the inferior limit when a range is given
     * @param to             - Represent the superior limit when a range is given
-    * @tparam T - Type of the value being injected
+    * @tparam T             - Type of the value being injected
     * @return A Codec containing the alterations made
     */
   private def modifyArrayEndWithKey[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
@@ -2389,8 +2395,10 @@ class BosonImpl(
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
       * @return a modified codec
       */
-    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): Codec = {
-      if ((codec.getReaderIndex - startReaderIndex) >= originalSize) currentCodec
+    //TODO - Check to see if it's necessary to pass statementsList
+    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec/*, currentStatementList: StatementsList*/): (Codec, Codec) = {
+      if ((codec.getReaderIndex - startReaderIndex) >= originalSize)
+        (currentCodec, currentCodecCopy)
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
@@ -2418,7 +2426,6 @@ class BosonImpl(
               //datatype is a BsonArray
               case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
                 if (statementsList.size == 1) {
-
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
                       case SonArray(_, result) => result match {
@@ -2427,14 +2434,12 @@ class BosonImpl(
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to)
-                    iterateDataStructure(newCodec, newCodec.duplicate)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   } else {
                     val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to)
-                    iterateDataStructure(newCodec, newCodec.duplicate)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
-
                 } else {
-
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
                       case SonArray(_, result) => result match {
@@ -2442,39 +2447,56 @@ class BosonImpl(
                         case jsonString: String => CodecObject.toCodec(jsonString)
                       }
                     }
-                    ???
+                    //TODO - Check
+                    val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   } else {
-                    val res = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to)
-                    ???
+                    //TODO - Check
+                    val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
 
                 }
-
               //If we found the desired elem but the dataType is not an array, or if we didn't find the desired elem
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
-                  val (processedCodec, processedCodecCopy): (Codec, Codec) = ??? //processTypesArrayEnd(list, fieldID, dataType, codec, f, condition, limitInf, limitSup, resultCodec, resultCopyCodec)
+                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
                   iterateDataStructure(processedCodec, processedCodecCopy)
                 } else {
-                  //                  processTypesArray(dataType, codec.duplicate(), result)
-                  //                  processTypesArray(dataType, buffer, resultCopy)
-                  ???
+                  val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
+                  val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)
+                  iterateDataStructure(codecIterate, codecIterateCopy)
                 }
-
             }
         }
       }
       iterateDataStructure(emptyDataStructure, emptyDataStructure.duplicate)
     }
 
-    //TODO - Check Either to create empty codec
     val emptyCodec = createEmptyCodec(codec)
-    val codecWithoutSize = iterateDataStructure(emptyCodec, emptyCodec)
+
+    val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(emptyCodec, emptyCodec.duplicate)
+
     val finalSize = codecWithoutSize.getCodecData match {
-      case Left(byteBuf) => byteBuf.capacity
-      case Right(string) => string.length
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
     }
-    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
+
+    val finalCodec = emptyCodec.writeToken(emptyCodec.duplicate, SonNumber(CS_INTEGER, finalSize))+ codecWithoutSize
+    val finalCodecCopy = emptyCodec.writeToken(emptyCodec.duplicate, SonNumber(CS_INTEGER, finalSizeCopy)) + codecWithoutSizeCopy
+
+    condition match {
+      case TO_RANGE =>
+        finalCodec
+      case UNTIL_RANGE =>
+        finalCodecCopy
+      case _ =>
+        finalCodec
+    }
   }
 
   /**
