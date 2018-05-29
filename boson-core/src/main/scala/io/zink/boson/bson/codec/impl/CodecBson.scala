@@ -431,8 +431,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
 
       case SonNumber(numberType, info) =>
-        //      val duplicated = outCodec.copyByteBuf
-
         val manipulatedBuf: ByteBuf = numberType match {
 
           case CS_BYTE =>
