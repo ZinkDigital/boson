@@ -1241,11 +1241,11 @@ class BosonImpl(
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
     val finalSize = codecWithoutSize.getCodecData match {
-      case Left(byteBuf) => byteBuf.capacity
+      case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length
     }
 
-    emptyCodec.writeToken(emptyCodec, SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize
+    emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize)) + codecWithoutSize //TODO TRUNCATE EMPTY BYTEBUF SPACE
   }
 
   /**
