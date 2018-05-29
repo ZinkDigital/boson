@@ -182,7 +182,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
             key.append(buff.readByte())
             i += 1
           }
-          buff.readByte()
           SonString(x, new String(key.toArray).filter(p => p != 0))
 
         case CS_STRING =>
@@ -420,12 +419,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     val duplicated: ByteBuf = outCodecOpt.getCodecData match {
       case Left(byteBuf) =>
         val newBuf = byteBuf.copy(0, byteBuf.capacity())
-        newBuf.readerIndex(byteBuf.readerIndex())
+        newBuf.readerIndex(byteBuf.readerIndex()) //Will always be 0
+        newBuf.writerIndex(byteBuf.writerIndex())
     }
     token match {
 
       case SonBoolean(_, info) =>
-        //      val duplicated = outCodec.copyByteBuf //duplicate this codec's ByteBuf
         val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
         duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
         new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
@@ -503,7 +502,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def getCodecData: Either[ByteBuf, String] = {
     val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
-    newB.readerIndex(buff.readerIndex)
+    newB.readerIndex(buff.readerIndex) //Set the reader index to be the same as it is in this moment
+    newB.writerIndex(buff.writerIndex()) //Set the writer index to be the same as it is in this moment
     Left(newB)
   }
 

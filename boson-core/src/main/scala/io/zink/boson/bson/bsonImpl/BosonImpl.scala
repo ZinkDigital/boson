@@ -1089,7 +1089,7 @@ class BosonImpl(
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction)
 
-      case Key(key: String) => modifyAll(statements, codec, key, injFunction) // (key = fieldID)
+      case Key(key: String) => modifyAll(statements, codec, key, injFunction)
 
       case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
 
@@ -1556,41 +1556,73 @@ class BosonImpl(
   private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T): Codec = {
     seqType match {
       case D_FLOAT_DOUBLE =>
-        val value0 = codec.readToken(SonNumber(CS_DOUBLE))
-        applyFunction(injFunction, value0) match {
-          case value: SonNumber => codec.writeToken(currentResCodec, value)
+        val value0 = codec.readToken(SonNumber(CS_DOUBLE)) match {
+          case SonNumber(_, data) => data.asInstanceOf[Double]
         }
+        applyFunction(injFunction, value0) match {
+          case value: Double => codec.writeToken(currentResCodec, SonNumber(CS_DOUBLE, value))
+        }
+
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val value0 = codec.readToken(SonString(CS_STRING))
-        applyFunction(injFunction, value0) match {
-          case value: SonString => codec.writeToken(currentResCodec, value)
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
         }
+        applyFunction(injFunction, value0) match {
+          case value: String => codec.writeToken(currentResCodec, SonString(CS_STRING, value))
+        }
+
       case D_BSONOBJECT =>
-        val value0 = codec.readToken(SonObject(CS_OBJECT))
-        applyFunction(injFunction, value0) match {
-          case value: SonObject => codec.writeToken(currentResCodec, value)
+        codec.readToken(SonObject(CS_OBJECT)) match {
+          case SonObject(_, data) => data match {
+            case byteBuf: ByteBuf =>
+              applyFunction(injFunction, byteBuf.array()) match {
+                case arr: Array[Byte] => codec.writeToken(currentResCodec, SonArray(CS_ARRAY, arr))
+              }
+            case str: String =>
+              applyFunction(injFunction, str) match {
+                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING, resString))
+              }
+          }
         }
+
       case D_BSONARRAY =>
-        val value0 = codec.readToken(SonArray(CS_ARRAY))
-        applyFunction(injFunction, value0) match {
-          case value: SonArray => codec.writeToken(currentResCodec, value)
+        codec.readToken(SonArray(CS_ARRAY)) match {
+          case SonArray(_, data) => data match {
+            case byteBuf: ByteBuf =>
+              applyFunction(injFunction, byteBuf.array()) match {
+                case arr: Array[Byte] => codec.writeToken(currentResCodec, SonArray(CS_ARRAY, arr))
+              }
+            case str: String =>
+              applyFunction(injFunction, str) match {
+                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING, resString))
+              }
+          }
         }
+
       case D_BOOLEAN =>
-        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
-        applyFunction(injFunction, value0) match {
-          case value: SonBoolean => codec.writeToken(currentResCodec, value)
+        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)) match {
+          case SonBoolean(_, data) => data.asInstanceOf[Boolean]
         }
-      case D_NULL =>
-        throw new Exception //TODO
+        applyFunction(injFunction, value0) match {
+          case value: Boolean => codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value))
+        }
+
+      case D_NULL => throw new Exception //TODO
+
       case D_INT =>
-        val value0 = codec.readToken(SonNumber(CS_INTEGER))
-        applyFunction(injFunction, value0) match {
-          case value: SonNumber => codec.writeToken(currentResCodec, value)
+        val value0 = codec.readToken(SonNumber(CS_INTEGER)) match {
+          case SonNumber(_, data) => data.asInstanceOf[Int]
         }
-      case D_LONG =>
-        val value0 = codec.readToken(SonNumber(CS_LONG))
         applyFunction(injFunction, value0) match {
-          case value: SonNumber => codec.writeToken(currentResCodec, value)
+          case value: Int => codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value))
+        }
+
+      case D_LONG =>
+        val value0 = codec.readToken(SonNumber(CS_LONG)) match {
+          case SonNumber(_, data) => data.asInstanceOf[Long]
+        }
+        applyFunction(injFunction, value0) match {
+          case value: Long => codec.writeToken(currentResCodec, SonNumber(CS_LONG, value))
         }
     }
   }
