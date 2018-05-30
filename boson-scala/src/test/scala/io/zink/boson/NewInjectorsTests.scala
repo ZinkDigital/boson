@@ -41,22 +41,34 @@ class NewInjectorsTests extends FunSuite {
   //    }
   //  }
 
-  test("Key modification") {
-    val bson = new BsonObject().put("name", "john doe")
-    val ex = ".name"
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase
-    })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE")
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
-    //    future onComplete {
-    //      case Success(resultValue) =>assert(new String(resultValue) contains "JOHN DOE")
-    //      case Failure(e) => println(e); fail
-    //    }
+  //  test("Top level key modification") {
+  //    val bson = new BsonObject().put("name", "john doe")
+  //    val ex = ".name"
+  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bson.encodeToBarray())
+  //    future onComplete {
+  //      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE")
+  //      case Failure(e) => println(e); fail
+  //    }
+  //    Await.result(future, Duration.Inf)
+  //  }
+
+  test("Nested key modification - Single Dots") {
+    val person = new BsonObject().put("name", "john doe")
+    val bson = new BsonObject().put("person", person)
+    val ex = ".person.name"
+//    val bsonInj = Boson.injector(ex, (in: String) => {
+//      in.toUpperCase
+//    })
+//    val future = bsonInj.go(bson.encodeToBarray())
+//    future onComplete {
+//      case Success(resultValue) => println("ENTROU AQUI " + resultValue); //assert(new String(resultValue) contains "JOHN DOE")
+//      case Failure(e) => println(e); fail
+//    }
+//    Await.result(future, Duration.Inf)
+    println(bson.encodeToBarray().foreach(b => print(b+", ")))
   }
 
 }

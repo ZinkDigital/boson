@@ -638,5 +638,13 @@ class CodecJson(str: String) extends Codec {
     *
     */
   def removeEmptySpace: Unit = ???
+
+  /**
+    * This method creates a new codec containing the size of this codec (plus 4 in for CodecBson) and joins it with this codec
+    * to return a new codec containing the size and all the information
+    *
+    * @return a new codec containing the size and all the information
+    */
+  def addSize: Codec = ???
 }
 

@@ -1185,13 +1185,13 @@ class BosonImpl(
                             case string: String => Right(string)
                           }
                         }
-                        val partialCodec = inject(partialData, statementsList, injFunction)
-                        modifierAll(codec, codecWithKey + partialCodec, dataType, injFunction)
+                        val partialCodec = inject(partialData, statementsList, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                        modifierAll(codec, codecWithKey + partialCodec, dataType, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
                       case _ =>
-                        modifierAll(codec, codecWithKey, dataType, injFunction)
+                        modifierAll(codec, codecWithKey, dataType, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
                     }
                   } else {
-                    modifierAll(codec, codecWithKey, dataType, injFunction)
+                    modifierAll(codec, codecWithKey, dataType, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -1208,8 +1208,9 @@ class BosonImpl(
                             case string: String => Right(string)
                           }
                         }
-                        val modifiedPartialCodec = inject(partialData, statementsList.drop(1), injFunction)
-                        inject((codecWithKey + modifiedPartialCodec).getCodecData, statementsList, injFunction)
+                        val modifiedPartialCodec = inject(partialData, statementsList.drop(1), injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                        inject((codecWithKey + modifiedPartialCodec).getCodecData, statementsList, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                      //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
 
                       case _ =>
                         processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
@@ -1217,9 +1218,13 @@ class BosonImpl(
                   } else {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        inject(codec.getCodecData, statementsList.drop(1), injFunction)
-                      case _ =>
-                        processTypesArray(dataType, codec, codecWithKey)
+                        val subCodecNoSize = inject(codec.getCodecData, statementsList.drop(1), injFunction)
+                        subCodecNoSize.removeEmptySpace //remove empty space from the subcodec
+                      val subCodec = subCodecNoSize.addSize //add the size of the subcodec to itself
+                      val mergedCodecs = codecWithKey + subCodec
+                        mergedCodecs.setReaderIndex(subCodec.getSize) //Skip the bytes that the subcodec already read
+                        mergedCodecs
+                      case _ => processTypesArray(dataType, codec, codecWithKey)
                     }
                   }
                 }
