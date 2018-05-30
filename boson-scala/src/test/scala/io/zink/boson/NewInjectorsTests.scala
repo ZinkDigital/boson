@@ -121,26 +121,26 @@ class NewInjectorsTests extends FunSuite {
     Await.result(future3, Duration.Inf)
   }
 
-  //  test("Array modification - Single Dots") {
-  //    val person1 = new BsonObject().put("name", "john doe")
-  //    val person2 = new BsonObject().put("name", "jane doe")
-  //    val person3 = new BsonObject().put("name", "first last")
-  //    val bsonArray = new BsonArray().add(person1).add(person2).add(person3)
-  //    val bson = new BsonObject().put("person", bsonArray)
-  //    val ex = ".person.name"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bson.encodeToBarray())
-  //    future onComplete {
-  //      case Success(resultValue) =>
-  //        println("ENTROU AQUI " + resultValue)
-  //      //        assert(new String(resultValue) contains "JOHN DOE")
-  //      case Failure(e) =>
-  //        println("You have failed this city:   " + e)
-  //        fail
-  //    }
-  //    Await.result(future, Duration.Inf)
-  //    println(bson.encodeToBarray().foreach(b => print(b + ", ")))
-  //  }
+  test("Array modification - Single Dots") {
+    val person1 = new BsonObject().put("name", "john doe")
+    val person2 = new BsonObject().put("name", "jane doe")
+    val person3 = new BsonObject().put("name", "first last")
+    val bsonArray = new BsonArray().add(person1).add(person2).add(person3)
+    val bson = new BsonObject().put("person", bsonArray)
+    val ex = ".person.name[0 to 1]"
+    val bsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val future = bsonInj.go(bson.encodeToBarray())
+    future onComplete {
+      case Success(resultValue) =>
+        println("ENTROU AQUI " + resultValue)
+      //        assert(new String(resultValue) contains "JOHN DOE")
+      case Failure(e) =>
+        println("You have failed this city:   " + e)
+        fail
+    }
+    Await.result(future, Duration.Inf)
+    println(bson.encodeToBarray().foreach(b => print(b + ", ")))
+  }
 }

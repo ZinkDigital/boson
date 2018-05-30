@@ -1095,12 +1095,16 @@ class BosonImpl(
       case HasElem(key: String, elem: String) => modifyHasElem(statements, codec, key, elem, injFunction)
 
       case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        println("I'm Here!! ArrExpr")
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
+
             case (i, o1, o2) if midArg.isDefined && rightArg.isDefined =>
               (EMPTY_KEY, leftArg, midArg.get.value, rightArg.get)
+
             case (i, o1, o2) if midArg.isEmpty && rightArg.isEmpty =>
               (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
+
             case (0, str, None) =>
               str.get.value match {
                 case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
@@ -1116,6 +1120,7 @@ class BosonImpl(
           (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
 
             case (_, o1, o2) if o1.isDefined && o2.isDefined =>
+              println("key: "+ key + " ; left: " + arrEx.leftArg + " ; mid: " + o1.get.value + " ; right: " + o2.get)
               (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
 
             case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
@@ -1134,7 +1139,8 @@ class BosonImpl(
         val modifiedCodec = arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
         codec + modifiedCodec
 
-      case _ => throw CustomException("Wrong Statements, Bad Expression.")
+      case _ =>
+        throw CustomException("Wrong Statements, Bad Expression.")
     }
   }
 
@@ -1168,7 +1174,7 @@ class BosonImpl(
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
 
             key match {
-              case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) => //add isHalWord Later
+              case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
                 if (statementsList.lengthCompare(1) == 0) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     dataType match {
@@ -1893,12 +1899,14 @@ class BosonImpl(
     * @return A Codec containing the alterations made
     */
   private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
-    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+    println(key + left + mid + right)
+    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY)) match { //TODO - IT'S BREAKING HERE!!!!!
       case SonArray(_, data) => data match {
         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
         case jsonString: String => CodecObject.toCodec(jsonString)
       }
     }
+    println(key + left + mid + right)
     val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString)
