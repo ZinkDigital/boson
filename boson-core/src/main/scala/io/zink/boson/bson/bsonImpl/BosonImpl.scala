@@ -1158,8 +1158,7 @@ class BosonImpl(
       * @return A Codec containing the alterations made
       */
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
-      val rIndex = codec.getReaderIndex
-      if ((rIndex - startReader) >= originalSize) currentCodec
+      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
