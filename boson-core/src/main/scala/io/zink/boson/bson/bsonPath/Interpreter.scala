@@ -2,12 +2,12 @@ package io.zink.boson.bson.bsonPath
 
 import java.time.Instant
 
-import io.netty.buffer.{ByteBuf, PooledByteBufAllocator, Unpooled}
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -366,6 +366,10 @@ class Interpreter[T](boson: BosonImpl,
       case Right(jsString) => Right(jsString)
     }
 
+    input match {
+      case Left(bb) => println("Input was : " + new String(bb.array()))
+      case Right(str) => println("Input was : " + str)
+    }
 
     val result: Either[Array[Byte], String] = {
       val x = boson.inject(input, statements, fInj.get)
