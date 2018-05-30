@@ -515,10 +515,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def +(sumCodec: Codec): Codec = {
     val duplicated = copyByteBuf
-    val addBuff = sumCodec.getCodecData match {
+    duplicated.writerIndex(buff.writerIndex())
+    sumCodec.getCodecData match {
       case Left(x) => duplicated.writeBytes(x) //TODO This moves the reader index from sumCodec's ByteBuf, this might be problematic
     }
-    new CodecBson(arg, Some(addBuff))
+    duplicated.capacity(duplicated.writerIndex())
+    new CodecBson(arg, Some(duplicated))
   }
 
   /**
@@ -527,21 +529,5 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * For CodecBson this method will set the ByteBuf's capacity to the same index as writerIndex
     */
   def removeEmptySpace: Unit = buff.capacity(buff.writerIndex())
-
-  /**
-    * This method creates a new codec containing the size of this codec (plus 4 in for CodecBson) and joins it with this codec
-    * to return a new codec containing the size and all the information
-    *
-    * @return a new codec containing the size and all the information
-    */
-  def addSize: Codec = {
-    val size = buff.writerIndex + 4 //Get the size of this codec and add 4 to it (the bytes that encode the size)
-    val sizeBuf = Unpooled.buffer() //Create a new ByteBuf to hold this size
-    sizeBuf.writerIndex(0) //Set the writerIndex of this ByteBuf to 0 so we can write to it
-    val duplicatedBuf = copyByteBuf //Create a copy of this Codec's ByteBuf so we can pass its bytes to the ByteBuf that holds the size
-    sizeBuf.writeBytes(duplicatedBuf) //write the bytes from this ByteBuf (the duplicated one)
-    sizeBuf.capacity(sizeBuf.writerIndex()) //Remove empty bytes from the created ByteBuf
-    new CodecBson(sizeBuf) //return a new codec with the new ByteBuf inside it
-  }
 
 }

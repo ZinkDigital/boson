@@ -1159,7 +1159,8 @@ class BosonImpl(
       * @return A Codec containing the alterations made
       */
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
-      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
+      val rIndex = codec.getReaderIndex
+      if ((rIndex - startReader) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
@@ -1185,13 +1186,14 @@ class BosonImpl(
                             case string: String => Right(string)
                           }
                         }
-                        val partialCodec = inject(partialData, statementsList, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
-                        modifierAll(codec, codecWithKey + partialCodec, dataType, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                        val partialCodec = inject(partialData, statementsList, injFunction)
+                        modifierAll(codec, codecWithKey + partialCodec, dataType, injFunction)
+                      //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
                       case _ =>
-                        modifierAll(codec, codecWithKey, dataType, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                        modifierAll(codec, codecWithKey, dataType, injFunction)
                     }
                   } else {
-                    modifierAll(codec, codecWithKey, dataType, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                    modifierAll(codec, codecWithKey, dataType, injFunction)
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -1208,8 +1210,8 @@ class BosonImpl(
                             case string: String => Right(string)
                           }
                         }
-                        val modifiedPartialCodec = inject(partialData, statementsList.drop(1), injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
-                        inject((codecWithKey + modifiedPartialCodec).getCodecData, statementsList, injFunction) //TODO ADD THE SIZE TO THE SUB CODEC
+                        val modifiedPartialCodec = inject(partialData, statementsList.drop(1), injFunction)
+                        inject((codecWithKey + modifiedPartialCodec).getCodecData, statementsList, injFunction)
                       //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
 
                       case _ =>
@@ -1218,11 +1220,9 @@ class BosonImpl(
                   } else {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val subCodecNoSize = inject(codec.getCodecData, statementsList.drop(1), injFunction)
-                        subCodecNoSize.removeEmptySpace //remove empty space from the subcodec
-                      val subCodec = subCodecNoSize.addSize //add the size of the subcodec to itself
-                      val mergedCodecs = codecWithKey + subCodec
-                        mergedCodecs.setReaderIndex(subCodec.getSize) //Skip the bytes that the subcodec already read
+                        val subCodec = inject(codec.getCodecData, statementsList.drop(1), injFunction)
+                        val mergedCodecs = codecWithKey + subCodec
+                        codec.setReaderIndex(codec.getReaderIndex + subCodec.getSize + 1) //Skip the bytes that the subcodec already read
                         mergedCodecs
                       case _ => processTypesArray(dataType, codec, codecWithKey)
                     }
@@ -1244,14 +1244,18 @@ class BosonImpl(
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
-    val finalSize = codecWithoutSize.getCodecData match {
+    val codecWithLastByte = if (codec.getReaderIndex == originalSize) {
+      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+    } else codecWithoutSize
+
+    val finalSize = codecWithLastByte.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
-    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithLastByte.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
     codecWithSize.removeEmptySpace
-    codecWithSize + codecWithoutSize
+    codecWithSize + codecWithLastByte
   }
 
   /**
@@ -1579,7 +1583,9 @@ class BosonImpl(
           case SonString(_, data) => data.asInstanceOf[String]
         }
         applyFunction(injFunction, value0) match {
-          case value: String => codec.writeToken(currentResCodec, SonString(CS_STRING, value))
+          case value: String =>
+            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length))
+            codec.writeToken(strSizeCodec, SonString(CS_STRING, value))
         }
 
       case D_BSONOBJECT =>
