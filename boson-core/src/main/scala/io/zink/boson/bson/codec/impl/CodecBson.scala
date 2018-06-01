@@ -134,7 +134,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
-    * getArrayPosition is used to get the actual array position, without consuming the value from stream
+    * getArrayPosition is used to get the actual array position, without consuming the value from stream //TODO - Correct Docs
     *
     * @return this method doesn't return anything because this data is not usefull for extraction
     *         however, in the future when dealing with injection, we may have the need to work with this value
@@ -154,6 +154,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val b = buff.copy(buff.readerIndex - 4, size)
           buff.readerIndex(endIndex)
           SonArray(x, b)
+        case CS_ARRAY_INJ =>
+          val size = buff.getIntLE(buff.readerIndex)
+          val endIndex = buff.readerIndex + size
+          val b = buff.copy(buff.readerIndex, size)
+          buff.readerIndex(endIndex)
+          SonArray(x, b)
       }
     case SonObject(x, _) =>
       x match {
@@ -170,6 +176,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val size = buff.getIntLE(buff.readerIndex - 4)
           val endIndex = buff.readerIndex - 4 + size
           val b = buff.copy(buff.readerIndex - 4, size)
+          buff.readerIndex(endIndex)
+          SonObject(x, b)
+        case CS_OBJECT_INJ =>
+          val size = buff.getIntLE(buff.readerIndex) - 4
+          val endIndex = buff.readerIndex - 4 + size
+          val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
       }
@@ -478,7 +490,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         new CodecBson(arg, Some(duplicated))
 
       case SonObject(_, info) =>
-        val writableByteSeq = info.asInstanceOf[Array[Byte]]
+        val writableByteSeq = info.asInstanceOf[Array[Byte]] // TODO - Breaking Here
         duplicated.writeBytes(writableByteSeq)
         new CodecBson(arg, Some(duplicated))
 

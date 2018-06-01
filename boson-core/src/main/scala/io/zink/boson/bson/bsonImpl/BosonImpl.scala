@@ -1550,7 +1550,7 @@ class BosonImpl(
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         codec.writeToken(currentResCodec, codec.readToken(SonString(CS_STRING)))
       case D_BSONOBJECT =>
-        codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT)))
+        codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT_INJ)))
       case D_BSONARRAY =>
         codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY)))
       case D_NULL =>
@@ -1899,14 +1899,13 @@ class BosonImpl(
     * @return A Codec containing the alterations made
     */
   private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
-    println(key + left + mid + right)
-    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY)) match { //TODO - IT'S BREAKING HERE!!!!!
+
+    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
       case SonArray(_, data) => data match {
         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
         case jsonString: String => CodecObject.toCodec(jsonString)
       }
     }
-    println(key + left + mid + right)
     val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString)
@@ -2264,10 +2263,10 @@ class BosonImpl(
                       ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
 
                     case _ =>
-                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
                 } else {
-                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions) // Exceptions
                 }
               case (x, _, l) if !isArray =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -2415,8 +2414,6 @@ class BosonImpl(
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
-    val emptyDataStructure: Codec = createEmptyCodec(codec)
-
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
@@ -2433,21 +2430,26 @@ class BosonImpl(
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
           case _ =>
-            val (key, byte): (String, Byte) = {
-              val key: String = codec.readToken(SonString(CS_NAME)) match {
-                case SonString(_, keyString) => keyString.asInstanceOf[String]
-              }
-              val token = codec.readToken(SonBoolean(C_ZERO))
-              val byte: Byte = token match {
-                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
-              }
-              (key, byte)
-            }
-            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            val (resCodec, key): (Codec, String) = writeKeyAndByte(codec, codecWithDataType)
+            val resCodecCopy = resCodec.duplicate
 
-            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
-            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+//            val (key, byte): (String, Byte) = {
+//              val key: String = codec.readToken(SonString(CS_NAME)) match {
+//                case SonString(_, keyString) => keyString.asInstanceOf[String]
+//              }
+//              val token = codec.readToken(SonBoolean(C_ZERO))
+//              val byte: Byte = token match {
+//                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
+//              }
+//              (key, byte)
+//            }
+//            // writeKeyandByte
+//            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+//            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+
+//            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
+//            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
               //datatype is a BsonArray
