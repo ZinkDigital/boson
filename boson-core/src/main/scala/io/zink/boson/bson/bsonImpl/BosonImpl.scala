@@ -1095,12 +1095,16 @@ class BosonImpl(
       case HasElem(key: String, elem: String) => modifyHasElem(statements, codec, key, elem, injFunction)
 
       case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        println("I'm Here!! ArrExpr")
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
+
             case (i, o1, o2) if midArg.isDefined && rightArg.isDefined =>
               (EMPTY_KEY, leftArg, midArg.get.value, rightArg.get)
+
             case (i, o1, o2) if midArg.isEmpty && rightArg.isEmpty =>
               (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
+
             case (0, str, None) =>
               str.get.value match {
                 case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
@@ -1116,6 +1120,7 @@ class BosonImpl(
           (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
 
             case (_, o1, o2) if o1.isDefined && o2.isDefined =>
+              println("key: "+ key + " ; left: " + arrEx.leftArg + " ; mid: " + o1.get.value + " ; right: " + o2.get)
               (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
 
             case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
@@ -1134,7 +1139,8 @@ class BosonImpl(
         val modifiedCodec = arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
         codec + modifiedCodec
 
-      case _ => throw CustomException("Wrong Statements, Bad Expression.")
+      case _ =>
+        throw CustomException("Wrong Statements, Bad Expression.")
     }
   }
 
@@ -1547,7 +1553,7 @@ class BosonImpl(
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         codec.writeToken(currentResCodec, codec.readToken(SonString(CS_STRING)))
       case D_BSONOBJECT =>
-        codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT)))
+        codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT_INJ)))
       case D_BSONARRAY =>
         codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY)))
       case D_NULL =>
@@ -1896,7 +1902,8 @@ class BosonImpl(
     * @return A Codec containing the alterations made
     */
   private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
-    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+
+    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
       case SonArray(_, data) => data match {
         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
         case jsonString: String => CodecObject.toCodec(jsonString)
@@ -2259,10 +2266,10 @@ class BosonImpl(
                       ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
 
                     case _ =>
-                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
                 } else {
-                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions) // Exceptions
                 }
               case (x, _, l) if !isArray =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -2410,8 +2417,6 @@ class BosonImpl(
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
-    val emptyDataStructure: Codec = createEmptyCodec(codec)
-
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
@@ -2428,21 +2433,26 @@ class BosonImpl(
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
           case _ =>
-            val (key, byte): (String, Byte) = {
-              val key: String = codec.readToken(SonString(CS_NAME)) match {
-                case SonString(_, keyString) => keyString.asInstanceOf[String]
-              }
-              val token = codec.readToken(SonBoolean(C_ZERO))
-              val byte: Byte = token match {
-                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
-              }
-              (key, byte)
-            }
-            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            val (resCodec, key): (Codec, String) = writeKeyAndByte(codec, codecWithDataType)
+            val resCodecCopy = resCodec.duplicate
 
-            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
-            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+//            val (key, byte): (String, Byte) = {
+//              val key: String = codec.readToken(SonString(CS_NAME)) match {
+//                case SonString(_, keyString) => keyString.asInstanceOf[String]
+//              }
+//              val token = codec.readToken(SonBoolean(C_ZERO))
+//              val byte: Byte = token match {
+//                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
+//              }
+//              (key, byte)
+//            }
+//            // writeKeyandByte
+//            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+//            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+
+//            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
+//            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
               //datatype is a BsonArray
