@@ -366,10 +366,10 @@ class Interpreter[T](boson: BosonImpl,
       case Right(jsString) => Right(jsString)
     }
 
-    input match {
-      case Left(bb) => println("Input was : " + new String(bb.array()))
-      case Right(str) => println("Input was : " + str)
-    }
+//    input match {
+//      case Left(bb) => println("Input was : " + new String(bb.array()))
+//      case Right(str) => println("Input was : " + str)
+//    }
 
     val result: Either[Array[Byte], String] = {
       val x = boson.inject(input, statements, fInj.get)
