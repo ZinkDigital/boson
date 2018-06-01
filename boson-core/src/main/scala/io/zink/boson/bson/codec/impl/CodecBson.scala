@@ -162,14 +162,16 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           buff.readerIndex(buff.capacity)
           SonObject(x, b)
         case CS_OBJECT =>
-          //          val size = buff.getIntLE(buff.readerIndex-4)
-          //          buff.readerIndex(buff.readerIndex-4) //TODO: rethink this situation, going back and forth
-          //          val b: ByteBuf = Unpooled.buffer(size)
-          //          buff.readBytes(b)
-          //          SonObject(x, b)
           val size = buff.getIntLE(buff.readerIndex - 4)
           val endIndex = buff.readerIndex - 4 + size
           val b = buff.copy(buff.readerIndex - 4, size)
+          buff.readerIndex(endIndex)
+          SonObject(x, b)
+
+        case CS_OBJECT_WITH_SIZE =>
+          val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
+        val endIndex = buff.readerIndex + size
+          val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
       }
