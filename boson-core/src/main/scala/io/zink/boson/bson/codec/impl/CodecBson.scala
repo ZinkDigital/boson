@@ -176,7 +176,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
-          val endIndex = buff.readerIndex + size
+        val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
@@ -190,13 +190,16 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       }
     case SonString(x, _) =>
       x match {
-        case CS_NAME =>
+        case CS_NAME | CS_NAME_NO_LAST_BYTE =>
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
           var i: Int = buff.readerIndex()
           while (buff.getByte(i) != 0) {
             key.append(buff.readByte())
             i += 1
           }
+
+          if(x equals CS_NAME) buff.readByte()
+
           SonString(x, new String(key.toArray).filter(p => p != 0))
 
         case CS_STRING =>

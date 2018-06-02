@@ -87,11 +87,11 @@ object Dictionary {
   val CS_OBJECT: String = "Object"
   val CS_OBJECT_INJ: String = "ObjectInj"
   val CS_OBJECT_WITH_SIZE: String = "ObjectWithSize"
-  val CS_OBJECT_INJ: String = "ObjectInj"
   val CS_ARRAY: String = "Array"
   val CS_ARRAY_WITH_SIZE: String = "ArrayWithSize"
   val CS_ARRAY_INJ: String = "ArrayInj"
   val CS_NAME: String = "Name"
+  val CS_NAME_NO_LAST_BYTE: String = "NameNoLastByte"
   val CS_STRING: String = STRING
   val CS_INTEGER: String = INTEGER
   val CS_DOUBLE: String = DOUBLE

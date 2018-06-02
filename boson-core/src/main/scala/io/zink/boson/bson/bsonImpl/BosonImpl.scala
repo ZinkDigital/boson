@@ -1441,7 +1441,6 @@ class BosonImpl(
           val key: String = codec.readToken(SonString(CS_NAME)) match {
             case SonString(_, keyString) => keyString.asInstanceOf[String]
           }
-          codec.readToken(SonBoolean(C_ZERO)) //read the closing byte of the key, we're not interested in this value
           dataType match {
             case D_ZERO_BYTE => //TODO what do we do in this case
 
@@ -1964,7 +1963,7 @@ class BosonImpl(
             val isArray = key.forall(b => b.isDigit)
 
 //            val (isArray, key, byte): (Boolean, String, Int) = {
-//              val key: String = codec.readToken(SonString(CS_NAME)) match {
+//              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
 //                case SonString(_, keyString) => keyString.asInstanceOf[String]
 //              }
 //              val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
@@ -2449,7 +2448,7 @@ class BosonImpl(
             val resCodecCopy = resCodec.duplicate
 
 //            val (key, byte): (String, Byte) = {
-//              val key: String = codec.readToken(SonString(CS_NAME)) match {
+//              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
 //                case SonString(_, keyString) => keyString.asInstanceOf[String]
 //              }
 //              val token = codec.readToken(SonBoolean(C_ZERO))
@@ -2558,7 +2557,7 @@ class BosonImpl(
     * @return
     */
   private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
-    val key: String = codec.readToken(SonString(CS_NAME)) match {
+    val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
       case SonString(_, keyString) => keyString.asInstanceOf[String]
     }
     val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
