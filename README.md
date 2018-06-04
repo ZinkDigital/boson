@@ -15,11 +15,12 @@ Bosonjava
 
 # Table of Contents
   
+- [Introduction to Boson](#id-introductionToBoson)  
 - [Scala QuickStart Guide](#id-quickStartGuideScala)  
    * [Boson](#id-BosonScala)  
       * [Extractor](#id-bosonExtractionScala)  
       * [Injector](#id-bosonInjectionScala)  
-      * [Fuse](#id-bosonFuseScala)  
+      * [Fuse](#id-bosonFuseScala)
 - [Java QuickStart Guide](#id-quickStartGuideJava)  
    * [Boson](#id-BosonJava)  
       * [Extractor](#id-extractionJava)  
@@ -31,33 +32,45 @@ Bosonjava
       * [Comparison with JsonPath](#comparison-with-jsonpath)
    * [Java Profiler](#java-profiler)
   
+<div id='id-introductionToBoson'/>  
   
+## Introduction to Boson
+
+Boson is a library written in Scala with both Scala and Java APIs and it is built to extract and inject data to and from various ‘wire encodings’. It currently implements two input codecs, JSON documents encoded in the form of UTF8 strings, and BSON documents encoded in the form of binary arrays.
+
+Through the use of Shapeless, Boson allows the use of user created classes as data extraction/injection types.
+
+In the following points we show how to use Boson in both Scala ans Java in a QuickStart Guide.
+
+    
 <div id='id-quickStartGuideScala'/>  
   
-## QuickStart Guide  
+## Scala QuickStart Guide  
   
 Boson is available through the Central Maven Repository.  
-For SBT users, please add the following dependency in your build.sbt:
+To include Boson in your projects you need to had the dependencies listed bellow.
 
-Bosonscala:
+For SBT users, add the following to your build.sbt: 
 ```scala
+//For the Scala API
 libraryDependencies += “io.zink” % “bosonscala” % “0.5.0”
 ```
-For Maven users, please add the following dependency in your pom.xml:
+```scala
+//For the Java API
+libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
+```
+
+For Maven users, add the following to your pom.xml:
 ```xml
+<!--For the Scala API-->
 <dependency>
     <groupId>io.zink</groupId>
     <artifactId>bosonsala</artifactId>
     <version>0.5.0</version>
 </dependency>
 ```
-
-Bosonjava:
-```scala
-libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
-```
-For Maven users, please add the following dependency in your pom.xml:
 ```xml
+<!--For the Java API-->
 <dependency>
     <groupId>io.zink</groupId>
     <artifactId>bosonjava</artifactId>
@@ -100,6 +113,7 @@ boson.go(validBson)
   
 #### Injection  
 Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a Future[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.  
+
 ```scala  
 //Encode Bson:  
 val validBsonArray: Array[Byte] = bsonEvent.encode.getBytes 
@@ -118,7 +132,9 @@ val result: Future[Array[Byte]] = boson.go(validBsonArray)
 <div id='id-bosonFuseScala'>  
   
 ### Fuse  
-Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.  
+Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
+which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.  
+
 ```scala  
 //First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.  
 val validatedByteArray: Array[Byte] = bsonEvent.encode.getBytes 
@@ -139,9 +155,10 @@ val result: Future[Array[Byte]] = fused.go(validatedByteArray)
 ```  
 <div id='id-quickStartGuideJava'/>  
   
-## QuickStart Guide  
+##Java QuickStart Guide  
   
 For Maven users, please add the following dependency in your pom.xml:  
+
 ```xml  
 <dependency>  
     <groupId>io.zink</groupId>  
@@ -153,12 +170,17 @@ For Maven users, please add the following dependency in your pom.xml:
   
 ### Boson  
 
-A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+A "Boson" is an object created when constructing an extractor/injector that includes a 
+Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes 
+it according to a given expression, traversing the buffer only once.
 
 <div id='id-bosonExtractionJava'/>  
   
 #### Extraction  
-Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and a lambda expression. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
+Extraction requires a "BsonPath" expression (see [Operators](#operators) table for 
+examples and syntax), an encoded BSON and a lambda expression. The Extractor instance 
+is built only once and can be reused multiple times to extract from different encoded 
+BSON.  
   
 ```java  
 //Encode Bson:  
@@ -183,7 +205,11 @@ boson.go(validatedByteArray);
 <div id='id-injectionJava'/>  
   
 #### Injection  
-Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and a lambda expression. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.  
+Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples
+and syntax), an encoded BSON and a lambda expression. The returned result is a
+CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to 
+inject different encoded BSON.  
+
 ```java  
 //Encode Bson:  
 byte[] validatedByteArray = bsonEvent.encode().getBytes();  
@@ -200,8 +226,13 @@ Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
 //Trigger injection with encoded Bson:  
 byte[] result = boson.go(validatedByteArray).join();  
 ```  
+
 ### Fuse  
-Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.  
+Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a 
+[Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
+which fuse is applied is left to the discretion of the user. This fusion is executed 
+sequentially at the moment.  
+
 ```java  
 //First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.  
 final byte[] validatedByteArray  = bsonEvent.encode().array();  
@@ -308,13 +339,15 @@ BsonPath | JsonPath
 `Book[1]` | `$..Book[1]`  
 `Book[0 to end]..Price` | `$..Book[:]..Price`  
 `Book[0 to end].*..Title` | `$..Book[:].*..Title`  
+`Book[0 until end]..Price` | `$..Book[:-1]..Price`
+`Book[0 until end].*..Title` | `$..Book[:-1].*..Title`
 `.*` | `$.*`  
 `Book.*.[0 to end]` | `$..Book.*.[:]`  
-`.Store..Book[1 until end]..SpecialEditions[@Price]` | `$.Store..Book[1:1]..SpecialEditions[?(@.Price)]`  
+`.Store..Book[1 until end]..SpecialEditions[@Price]` | `$.Store..Book[1:-1]..SpecialEditions[?(@.Price)]`  
 `Bo*k`, `*ok` or `Bo*`  | `Non existent.`  
 `*ok[@Pri*]..SpecialEd*.Price` | `Non existent.`  
   
-**Note: JsonPath doesn't support the *halfkey* (`B*ok`) as well as the range *until end* (`1 until end`).**
+**Note: JsonPath doesn't support the *halfkey* (`B*ok`).**
 
 
 ## Java Profiler

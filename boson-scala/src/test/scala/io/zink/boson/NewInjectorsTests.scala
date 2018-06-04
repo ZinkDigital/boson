@@ -1,14 +1,8 @@
 package io.zink.boson
 
-import bsonLib.{BsonArray, BsonObject}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -188,7 +182,7 @@ class NewInjectorsTests extends FunSuite {
   //    Await.result(future, Duration.Inf)
   //  }
   //
-  //  test("Key with Array Exp modification - Single Dots") {
+  //  test("Key with Array Exp [0 to 1] modification - Single Dots") {
   //    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
   //    val bson = new BsonObject().put("person", bsonArray)
   //    val ex = ".person[0 to 1]"
@@ -202,13 +196,33 @@ class NewInjectorsTests extends FunSuite {
   //        val string = new String(resultValue)
   //        assert((string contains "PERSON1") && (string contains "PERSON2"))
   //      case Failure(e) =>
-  //        println("You have failed this city:   " + e)
+  //        println(e)
   //        fail
   //    }
   //    Await.result(future, Duration.Inf)
   //    println(bson.encodeToBarray().mkString(", "))
   //  }
   //
+//  test("Key with Array Exp [0 until 1] modification - Single Dots") { //TODO - On Stand By
+//    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
+//    val bson = new BsonObject().put("person", bsonArray)
+//    val ex = ".person[0 until 1]"
+//    val bsonInj = Boson.injector(ex, (in: String) => {
+//      in.toUpperCase
+//    })
+//    val future = bsonInj.go(bson.encodeToBarray())
+//    future onComplete {
+//      case Success(resultValue) =>
+//        println("After: " + resultValue.mkString(", "))
+//        val string = new String(resultValue)
+//        assert((string contains "PERSON1") && (string contains "person2"))
+//      case Failure(e) =>
+//        println(e)
+//        fail
+//    }
+//    Await.result(future, Duration.Inf)
+//    println("Before: " + bson.encodeToBarray().mkString(", "))
+//  }
   //
   //  test("Nested key injection - Multiple Layers- Double dots") {
   //    val person = new BsonObject().put("name", "john doe")
