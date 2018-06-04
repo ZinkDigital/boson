@@ -2444,8 +2444,21 @@ class BosonImpl(
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
           case _ =>
-            val (resCodec, key): (Codec, String) = writeKeyAndByte(codec, codecWithDataType)
-            val resCodecCopy = resCodec.duplicate
+//            val (resCodec, key): (Codec, String) = writeKeyAndByte(codec, codecWithDataType)
+//            val resCodecCopy = resCodec.duplicate//This is wrong
+
+            val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+              case SonString(_, keyString) => keyString.asInstanceOf[String]
+            }
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+              case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            }
+
+            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val resCodec = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b))
+
+            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b))
 
 //            val (key, byte): (String, Byte) = {
 //              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
@@ -2460,7 +2473,7 @@ class BosonImpl(
 //            // writeKeyandByte
 //            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
 //            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-
+//
 //            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
 //            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
 
