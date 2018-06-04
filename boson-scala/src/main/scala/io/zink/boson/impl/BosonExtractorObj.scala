@@ -13,12 +13,11 @@ import scala.concurrent.Future
 /**
   * Whenever this class is instantiated the extraction value type is either a Case Class or a sequence of Case Classes.
   *
-  *
-  * @param expression String parsed to build the extractors.
-  * @param extractFunction  Function to apply to a Case Class
+  * @param expression         String parsed to build the extractors.
+  * @param extractFunction    Function to apply to a Case Class
   * @param extractSeqFunction Function to apply to a sequence of Case Classes
-  * @param gen  LabelledGeneric of the Case Class
-  * @param extract  Trait that transforms HList into Case Classe Instances
+  * @param gen                LabelledGeneric of the Case Class
+  * @param extract            Trait that transforms HList into Case Classe Instances
   * @tparam T Case Class
   * @tparam R HList of the Case Class originated by the LabelledGeneric.Aux
   */
@@ -32,35 +31,37 @@ class BosonExtractorObj[T, R <: HList](expression: String,
 
   private val boson: BosonImpl = new BosonImpl()
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](boson,expression)
+  private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fExt = extractFunction)
 
-//  private def runInterpreter2(bsonEncoded: Seq[ByteBuf]): Any = {
-//    val midRes =
-//      bsonEncoded.par.map { elem =>
-//        interpreter.runExtractors(Left(elem), interpreter.keyList, interpreter.limitList)
-//      }.seq.flatten.toList
-//    val seqTuples = TypeCase[Seq[List[(String,Any)]]]
-//    val result: Seq[T] =
-//      midRes match {
-//        case seqTuples(vs) =>
-//          vs.par.map{ elem =>
-//            extractLabels.to[T].from[gen.Repr](elem)
-//          }.seq.collect { case v if v.nonEmpty => v.get }
-//        case _ => Seq.empty[T]
-//      }
-//    if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
-//
-//  }
+  //  private def runInterpreter2(bsonEncoded: Seq[ByteBuf]): Any = {
+  //    val midRes =
+  //      bsonEncoded.par.map { elem =>
+  //        interpreter.runExtractors(Left(elem), interpreter.keyList, interpreter.limitList)
+  //      }.seq.flatten.toList
+  //    val seqTuples = TypeCase[Seq[List[(String,Any)]]]
+  //    val result: Seq[T] =
+  //      midRes match {
+  //        case seqTuples(vs) =>
+  //          vs.par.map{ elem =>
+  //            extractLabels.to[T].from[gen.Repr](elem)
+  //          }.seq.collect { case v if v.nonEmpty => v.get }
+  //        case _ => Seq.empty[T]
+  //      }
+  //    if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
+  //
+  //  }
 
   /**
     * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
     * statements used to instantiate the Interpreter.
+    *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
   // byteArr as argument to go to interpreter, Either[byte[],String]
-  private def runInterpreter(bsonEncoded: Either[Array[Byte],String]): Any = {
+  private def runInterpreter(bsonEncoded: Either[Array[Byte], String]): Any = {
     interpreter.run(bsonEncoded)
   }
+
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor this will result in
@@ -72,45 +73,45 @@ class BosonExtractorObj[T, R <: HList](expression: String,
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] = Future {
       val midRes: Any = runInterpreter(Left(bsonByteEncoding))
-      val seqTuples = TypeCase[Seq[List[(String,Any)]]]
+      val seqTuples = TypeCase[Seq[List[(String, Any)]]]
       val result: Seq[T] =
         midRes match {
           case seqTuples(vs) =>
-            vs.par.map{ elem =>
+            vs.par.map { elem =>
               extractLabels.to[T].from[gen.Repr](elem)
             }.seq.collect { case v if v.nonEmpty => v.get }
           case _ => Seq.empty[T]
         }
-      if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
+      if (extractSeqFunction.isDefined) extractSeqFunction.get(result) else result.foreach(elem => extractFunction.get(elem))
       bsonByteEncoding
     }
     future
   }
 
-//  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
-//    val future: Future[Seq[ByteBuf]] =
-//      Future {
-//        runInterpreter2(encodedStructures)
-//        encodedStructures
-//      }
-//    future
-//  }
+  //  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
+  //    val future: Future[Seq[ByteBuf]] =
+  //      Future {
+  //        runInterpreter2(encodedStructures)
+  //        encodedStructures
+  //      }
+  //    future
+  //  }
 
   override def go(bsonByteEncoding: String): Future[String] = {
     val future: Future[String] =
       Future {
         //val boson: BosonImpl = new BosonImpl(stringJson = Option(bsonByteEncoding))
         val midRes: Any = runInterpreter(Right(bsonByteEncoding))
-        val seqTuples = TypeCase[Seq[List[(String,Any)]]]
+        val seqTuples = TypeCase[Seq[List[(String, Any)]]]
         val result: Seq[T] =
           midRes match {
             case seqTuples(vs) =>
-              vs.par.map{ elem =>
+              vs.par.map { elem =>
                 extractLabels.to[T].from[gen.Repr](elem)
               }.seq.collect { case v if v.nonEmpty => v.get }
             case _ => Seq.empty[T]
           }
-        if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
+        if (extractSeqFunction.isDefined) extractSeqFunction.get(result) else result.foreach(elem => extractFunction.get(elem))
         bsonByteEncoding
       }
     future
@@ -128,16 +129,16 @@ class BosonExtractorObj[T, R <: HList](expression: String,
     val future: Future[ByteBuffer] =
       Future {
         val midRes: Any = runInterpreter(Left(bsonByteBufferEncoding.array()))
-        val seqTuples = TypeCase[Seq[List[(String,Any)]]]
+        val seqTuples = TypeCase[Seq[List[(String, Any)]]]
         val result: Seq[T] =
           midRes match {
             case seqTuples(vs) =>
-              vs.par.map{ elem =>
+              vs.par.map { elem =>
                 extractLabels.to[T].from[gen.Repr](elem)
               }.seq.collect { case v if v.nonEmpty => v.get }
             case _ => Seq.empty[T]
           }
-        if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
+        if (extractSeqFunction.isDefined) extractSeqFunction.get(result) else result.foreach(elem => extractFunction.get(elem))
         bsonByteBufferEncoding
       }
     future

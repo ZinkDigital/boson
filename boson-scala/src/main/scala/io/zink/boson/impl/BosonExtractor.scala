@@ -23,7 +23,7 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
 
   private val boson: BosonImpl = new BosonImpl()
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fExt = Option(extractFunction))
+  private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fExt = Some(extractFunction))
 
   //private val interpreter2 = new Interpreter[T](boson, expression, fExt = Option(extractFunction))
 
