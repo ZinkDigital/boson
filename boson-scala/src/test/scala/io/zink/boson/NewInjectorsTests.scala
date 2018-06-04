@@ -221,10 +221,26 @@ class NewInjectorsTests extends FunSuite {
   //    })
   //    val future = bsonInj.go(bson.encodeToBarray())
   //    future onComplete {
-  //      case Success(resultValue) => println("Here, result was this: " + new String(resultValue));
+  //      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE");
   //      case Failure(e) => println(e); fail
   //    }
   //    Await.result(future, Duration.Inf)
-  //    println(bson.encodeToBarray().foreach(b => print(b + ", ")))
   //  }
+
+  test("Nested key injection - Multiple Layers- Double dots") { //TODO FIX
+    val person = new BsonObject().put("name", "john doe").put("age", 21)
+    val client = new BsonObject().put("person", person)
+    val bson = new BsonObject().put("client", client)
+
+    val ex = "..age"
+    val bsonInj = Boson.injector(ex, (in: Int) => {
+      in + 20
+    })
+    val future = bsonInj.go(bson.encodeToBarray())
+    future onComplete {
+      case Success(resultValue) => println(resultValue.mkString(" "));
+      case Failure(e) => println(e); fail
+    }
+    Await.result(future, Duration.Inf)
+  }
 }
