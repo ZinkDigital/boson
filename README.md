@@ -342,7 +342,7 @@ BsonPath | JsonPath | Result
 `Book[0 until end]..Price` | `$..Book[:-1]..Price` | All the values of the tag "Price" from the Books and the objects they contain, excluding the last Book
 `Book[0 until end].*..Title` | `$..Book[:-1].*..Title` | All the values of the tag "Title" if the objects contained in each Book, excluding the last Book
 `.*` | `$.*` | All the objects contained in Store
-`Book.*.[0 to end]` | `$..Book.*.[:]` | 
+`Book.*.[0 to end]` | `$..Book.*.[:]` | An Array contained in all the objects in Book(considering the case above, nothing)
 `.Store..Book[1 until end]..SpecialEditions[@Price]` | `$.Store..Book[1:-1]..SpecialEditions[?(@.Price)]` | All the Special Editions of Book that contain the tag "Price" from the second Book until the end, excluding
 `Bo*k`, `*ok` or `Bo*`  | `Non existent.` | Halfkeys of Book that return all Books
 `*ok[@Pri*]..SpecialEd*.Price` | `Non existent.` | Prices of Halfkey of SpecialEditions of Halfkey of Book that contain the Halfkey of Price
