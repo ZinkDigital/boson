@@ -40,7 +40,7 @@ Boson is a library written in Scala with both Scala and Java APIs and it is buil
 
 Through the use of Shapeless, Boson allows the use of user created classes as data extraction/injection types.
 
-In the following points we show how to use Boson in both Scala ans Java in a QuickStart Guide.
+In the following points we show how to use Boson in both Scala and Java in a QuickStart Guide.
 
     
 <div id='id-quickStartGuideScala'/>  
@@ -155,7 +155,7 @@ val result: Future[Array[Byte]] = fused.go(validatedByteArray)
 ```  
 <div id='id-quickStartGuideJava'/>  
   
-##Java QuickStart Guide  
+## Java QuickStart Guide  
   
 For Maven users, please add the following dependency in your pom.xml:  
 
@@ -277,7 +277,7 @@ Operator | Description
 `[first | end | all]` | Array index through condition.
 `*` | Wildcard. Available anywhere a name is required.  
   
-### Comparison with JsonPath  
+### Path Examples and Comparison with JsonPath  
 Given the json  
 ```json  
 {  
@@ -331,21 +331,21 @@ Given the json
     }  
 }  
 ```  
-BsonPath | JsonPath  
----------|---------  
-`.Store` | `$.Store`  
-`.Store.Book[@Price]` | `$.Store.Book[?(@.Price)]`  
-`Book[@Price]..Title` | `$..Book[?(@.Price)]..Title`  
-`Book[1]` | `$..Book[1]`  
-`Book[0 to end]..Price` | `$..Book[:]..Price`  
-`Book[0 to end].*..Title` | `$..Book[:].*..Title`  
-`Book[0 until end]..Price` | `$..Book[:-1]..Price`
-`Book[0 until end].*..Title` | `$..Book[:-1].*..Title`
-`.*` | `$.*`  
-`Book.*.[0 to end]` | `$..Book.*.[:]`  
-`.Store..Book[1 until end]..SpecialEditions[@Price]` | `$.Store..Book[1:-1]..SpecialEditions[?(@.Price)]`  
-`Bo*k`, `*ok` or `Bo*`  | `Non existent.`  
-`*ok[@Pri*]..SpecialEd*.Price` | `Non existent.`  
+BsonPath | JsonPath | Result 
+---------|----------|-------  
+`.Store` | `$.Store`  | All Stores and what they contain 
+`.Store.Book[@Price]` | `$.Store.Book[?(@.Price)]` | All Books that contain the tag "Price"
+`Book[@Price]..Title` | `$..Book[?(@.Price)]..Title` | All the "Titles" of the Books that contain the tag "Price"
+`Book[1]` | `$..Book[1]` | The second Book
+`Book[0 to end]..Price` | `$..Book[:]..Price` | All the values of the tag "Price" from all the Books and the objects they contain
+`Book[0 to end].*..Title` | `$..Book[:].*..Title` | All the values of the tag "Title" if the objects contained in Book
+`Book[0 until end]..Price` | `$..Book[:-1]..Price` | All the values of the tag "Price" from the Books and the objects they contain, excluding the last Book
+`Book[0 until end].*..Title` | `$..Book[:-1].*..Title` | All the values of the tag "Title" if the objects contained in each Book, excluding the last Book
+`.*` | `$.*` | All the objects contained in Store
+`Book.*.[0 to end]` | `$..Book.*.[:]` | An Array contained in all the objects in Book(considering the case above, nothing)
+`.Store..Book[1 until end]..SpecialEditions[@Price]` | `$.Store..Book[1:-1]..SpecialEditions[?(@.Price)]` | All the Special Editions of Book that contain the tag "Price" from the second Book until the end, excluding
+`Bo*k`, `*ok` or `Bo*`  | `Non existent.` | Halfkeys of Book that return all Books
+`*ok[@Pri*]..SpecialEd*.Price` | `Non existent.` | Prices of Halfkey of SpecialEditions of Halfkey of Book that contain the Halfkey of Price
   
 **Note: JsonPath doesn't support the *halfkey* (`B*ok`).**
 
