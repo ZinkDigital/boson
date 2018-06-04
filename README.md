@@ -155,7 +155,7 @@ val result: Future[Array[Byte]] = fused.go(validatedByteArray)
 ```  
 <div id='id-quickStartGuideJava'/>  
   
-##Java QuickStart Guide  
+## Java QuickStart Guide  
   
 For Maven users, please add the following dependency in your pom.xml:  
 
