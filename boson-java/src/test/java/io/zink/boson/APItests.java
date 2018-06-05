@@ -169,7 +169,6 @@ public class APItests {
         boson.go(bson.encodeToBarray());
         future1.join();
         future1.thenRun(() -> {
-            System.out.println("Here");
             List<String> expected = new ArrayList();
             expected.add("Java");
             expected.add("Scala");

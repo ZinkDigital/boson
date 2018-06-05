@@ -343,7 +343,7 @@ class Interpreter[T](boson: BosonImpl,
           //            if (returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
         }
 
-      case _ => Nil //fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
+      case _ =>  //fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
     }
   }
 
