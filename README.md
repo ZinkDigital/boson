@@ -16,36 +16,36 @@ Bosonjava
 # Table of Contents
   
 - [Introduction to Boson](#id-introductionToBoson)  
-- [Scala QuickStart Guide](#id-quickStartGuideScala)  
-   * [Boson](#id-BosonScala)  
-      * [Extractor](#id-bosonExtractionScala)  
-      * [Injector](#id-bosonInjectionScala)  
-      * [Fuse](#id-bosonFuseScala)
-- [Java QuickStart Guide](#id-quickStartGuideJava)  
-   * [Boson](#id-BosonJava)  
-      * [Extractor](#id-extractionJava)  
-      * [Injector](#id-injectionJava)  
-      * [Fuse](#id-bosonFuseJava)  
+- [QuickStart Guide](#id-quickStartGuide)  
+   * [Boson](#id-Boson) 
+   * [Scala](#id-quickStartGuideScala) 
+      * [Extraction](#id-bosonExtractionScala)  
+      * [Injection](#id-bosonInjectionScala)  
+      * [Fusion](#id-bosonFuseScala)
+   * [Java](#id-quickStartGuideJava)  
+      * [Extraction](#id-extractionJava)  
+      * [Injection](#id-injectionJava)  
+      * [Fusion](#id-bosonFuseJava)  
 - [Documentation](#documentation)  
    * [BsonPath](#bsonpath)  
       * [Operators](#operators)  
-      * [Comparison with JsonPath](#comparison-with-jsonpath)
+      * [Examples and Comparison with JsonPath](#comparison-with-jsonpath)
    * [Java Profiler](#java-profiler)
   
 <div id='id-introductionToBoson'/>  
   
 ## Introduction to Boson
 
-Boson is a library written in Scala with both Scala and Java APIs and it is built to extract and inject data to and from various ‘wire encodings’. It currently implements two input codecs, JSON documents encoded in the form of UTF8 strings, and BSON documents encoded in the form of binary arrays.
+Boson is a library, written in Scala with both Scala and Java APIs, built to extract and inject data to and from various ‘wire encodings’. It currently implements two input codecs, JSON documents encoded in the form of UTF8 strings, and BSON documents encoded in the form of binary arrays.
 
 Through the use of Shapeless, Boson allows the use of user created classes as data extraction/injection types.
 
 In the following points we show how to use Boson in both Scala and Java in a QuickStart Guide.
 
     
-<div id='id-quickStartGuideScala'/>  
+<div id='id-quickStartGuide'/>  
   
-## Scala QuickStart Guide  
+## QuickStart Guide  
   
 Boson is available through the Central Maven Repository.  
 To include Boson in your projects you need to had the dependencies listed bellow.
@@ -77,17 +77,20 @@ For Maven users, add the following to your pom.xml:
     <version>0.5.0</version>
 </dependency>
 ```
-  
 <div id='id-BosonScala'/>  
   
 ### Boson  
 
-A "Boson" is an object created when constructing an extractor/injector that includes a Bson encoded as an Array[Byte] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
+A "Boson" is an object created when constructing an extractor/injector that includes either a Bson encoded as an Array[Byte] or a Json encoded as a String in a Netty buffer and processes it according to a given expression, traversing the buffer only once.
 
-<div id='id-bosonExtractionScala'/>  
+<div id='id-quickStartGuideScala'/>  
   
+### Scala
+
+<div id='id-bosonExtractionScala'/>
+
 #### Extraction  
-Extraction requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
+Extraction requires a "BsonPath" expression (see [Documentation](#documentation) for examples and syntax), an encoded BSON and an Higher-Order Function. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
   
 ```scala  
 //Encode Bson:  
@@ -112,7 +115,7 @@ boson.go(validBson)
 <div id='id-bosonInjectionScala'/>  
   
 #### Injection  
-Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a Future[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.  
+Injection requires a "BsonPath" expression (see [Documentation](#documentation) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a Future[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.  
 
 ```scala  
 //Encode Bson:  
@@ -130,9 +133,9 @@ val result: Future[Array[Byte]] = boson.go(validBsonArray)
 // Function will be called as a result of calling 'go' 
 ```  
 <div id='id-bosonFuseScala'>  
-  
-### Fuse  
-Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
+
+#### Fusion  
+Fusion requires a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
 which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.  
 
 ```scala  
@@ -154,10 +157,9 @@ val fused: Boson = ext.fuse(inj)
 val result: Future[Array[Byte]] = fused.go(validatedByteArray) 
 ```  
 <div id='id-quickStartGuideJava'/>  
-  
-## Java QuickStart Guide  
-  
-For Maven users, please add the following dependency in your pom.xml:  
+
+### Java  
+To work in Java, for Maven users, it is also necessary to add the following dependency to the pom.xml of your project:  
 
 ```xml  
 <dependency>  
@@ -166,21 +168,10 @@ For Maven users, please add the following dependency in your pom.xml:
     <version>0.5</version>  
 </dependency>  
 ```  
-<div id='id-BosonJava'/>  
-  
-### Boson  
-
-A "Boson" is an object created when constructing an extractor/injector that includes a 
-Bson encoded as a byte[] or a Json encoded as a String in a Netty buffer and processes 
-it according to a given expression, traversing the buffer only once.
-
 <div id='id-bosonExtractionJava'/>  
-  
-#### Extraction  
-Extraction requires a "BsonPath" expression (see [Operators](#operators) table for 
-examples and syntax), an encoded BSON and a lambda expression. The Extractor instance 
-is built only once and can be reused multiple times to extract from different encoded 
-BSON.  
+
+#### Extraction 
+Extraction requires a "BsonPath" expression (see [Documentation](#documentation) table for examples and syntax), an encoded BSON and a lambda expression. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
   
 ```java  
 //Encode Bson:  
@@ -203,12 +194,9 @@ boson.go(validatedByteArray);
 // Function will be called as a result of calling 'go'  
 ```  
 <div id='id-injectionJava'/>  
-  
+
 #### Injection  
-Injection requires a "BsonPath" expression (see [Operators](#operators) table for examples
-and syntax), an encoded BSON and a lambda expression. The returned result is a
-CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to 
-inject different encoded BSON.  
+Injection requires a "BsonPath" expression (see [Documentation](#documentation) table for examplesand syntax), an encoded BSON and a lambda expression. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.  
 
 ```java  
 //Encode Bson:  
@@ -226,8 +214,9 @@ Boson boson = Boson.injector(expression,  (Map<String, Object> in) -> {
 //Trigger injection with encoded Bson:  
 byte[] result = boson.go(validatedByteArray).join();  
 ```  
+<div id='id-bosonFuseJava'/>  
 
-### Fuse  
+#### Fusion
 Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a 
 [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
 which fuse is applied is left to the discretion of the user. This fusion is executed 
@@ -255,15 +244,13 @@ final byte[] result = fused.go(validatedByteArray).join();
 # Documentation  
 ## BsonPath  
   
-
-BsonPath expressions targets a Bson structure with the same logic as JsonPath expressions target JSON structure and XPath targeted a XML document. Unlike JsonPath there is no reference of a "root member object", instead if you want to specify a path starting from the root, the expression must begin with a dot (`.key`).
-
+BsonPath expressions target a Bson structure with the same logic JsonPath expressions target a JSON structure and XPath targeted an XML document. Unlike in JsonPath, there is no reference of a "root member object", instead if you want to specify a path starting from the root the expression must begin with a dot (example: `.key`).
   
 BsonPath expressions use the dot-notation: `key1.key2[0].key3`.  
   
 Expressions whose path doesn't necessarily start from the root can be expressed in two ways:  
-* No dot - ` key`  
-* Two dots - `..key`  
+* No dot: ` key`  
+* Two dots: `..key`  
   
 ### Operators  
   
