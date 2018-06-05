@@ -1,6 +1,5 @@
 package io.zink.boson.bson.bsonImpl
 
-import java.nio.ByteBuffer
 import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
@@ -21,56 +20,11 @@ case class CustomException(smth: String) extends RuntimeException {
 /**
   * Class with all operations to be applied on a Netty ByteBuffer or a Json encoded String
   */
-class BosonImpl(
-                 byteArray: Option[Array[Byte]] = None,
-                 javaByteBuf: Option[ByteBuffer] = None,
-                 stringJson: Option[String] = None
-               ) {
-
+class BosonImpl() {
 
   type DataStructure = Either[ByteBuf, String]
   type StatementsList = List[(Statement, String)]
 
-  /**
-    * Deprecated, used on previous implementations of Boson to verify which input was given by the user.
-    */
-  @deprecated
-  private val valueOfArgument: String =
-  if (javaByteBuf.isDefined) {
-    javaByteBuf.get.getClass.getSimpleName
-  } else if (byteArray.isDefined) {
-    byteArray.get.getClass.getSimpleName
-  } else if (stringJson.isDefined) {
-    stringJson.get.getClass.getSimpleName
-  } else EMPTY_CONSTRUCTOR
-
-  /**
-    * Deprecated for the same reason as the previous one.
-    */
-  @deprecated
-  private val nettyBuffer: Either[ByteBuf, String] = valueOfArgument match {
-    case ARRAY_BYTE =>
-      val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
-      Left(b)
-    case JAVA_BYTEBUFFER =>
-      val buff: ByteBuffer = javaByteBuf.get
-      if (buff.position() != 0) {
-        buff.position(0)
-        val b: ByteBuf = Unpooled.copiedBuffer(buff)
-        buff.clear()
-        Left(b)
-      } else {
-        val b: ByteBuf = Unpooled.copiedBuffer(buff)
-        buff.clear()
-        Left(b)
-      }
-    case STRING =>
-      val b: String = stringJson.get
-      Right(b)
-    case EMPTY_CONSTRUCTOR =>
-      Unpooled.buffer()
-      Left(Unpooled.buffer())
-  }
 
   /**
     * Set of conditions to extract primitive types while traversing an Object.
@@ -192,7 +146,6 @@ class BosonImpl(
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
-  //TODO [T] - To be Removed
   private def extractFromBsonObj[T](codec: Codec, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val seqTypeCodec: Int = codec.readDataType
     val finalValue: List[Any] =
@@ -1031,28 +984,7 @@ class BosonImpl(
     }
   }
 
-  /**
-    * Function used to create a duplicate BosonImpl
-    *
-    * @return A new Copy of BosonImpl
-    */
-  @deprecated
-  def duplicate: BosonImpl = nettyBuffer match {
-    case Right(x) => new BosonImpl(stringJson = Option(x))
-    case Left(x) => new BosonImpl(byteArray = Option(x.array))
-  }
-
-  /**
-    * Access to Encoded Document.
-    *
-    * @return Either[ByteBuf, String]
-    */
-  @deprecated
-  def getByteBuf: Either[ByteBuf, String] = this.nettyBuffer
-
-
   //----------------------------------------------------- INJECTORS ----------------------------------------------------
-
 
   /**
     * Starter method for the injection process, this method will pattern match the statements in the statements list
@@ -1217,7 +1149,7 @@ class BosonImpl(
                     }
                   }
                 }
-              case x if fieldID.toCharArray.deep != x.toCharArray.deep => //TODO - add !isHalfWord
+              case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   val partialCodec = processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
                   codec.setReaderIndex(codec.getReaderIndex + 1) //partial codec reads a byte that codec is not expecting it to read, skip it, it's already read
