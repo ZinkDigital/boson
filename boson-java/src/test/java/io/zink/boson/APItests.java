@@ -2,7 +2,9 @@ package io.zink.boson;
 
 import bsonLib.BsonArray;
 import bsonLib.BsonObject;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,6 +22,8 @@ import scala.AnyVal;
 import scala.Byte;
 import scala.Int;
 import scala.collection.immutable.*;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 
 import static org.junit.Assert.*;
@@ -48,323 +52,393 @@ public class APItests {
     private BsonObject bson = new BsonObject().put("Store", store);
 
 
-//    @Test
-//    public void ExtractFromArrayPos() {
-//        ArrayList<Object> al = new ArrayList<>();
-//
-//        String expression = ".Store.Book[1 to 2]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        System.out.println("future1.join() -> " + res);
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(title2.encodeToBarray());
-//        expected.add(title3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$.Store.Book[1:2] -> checked
-//
-//    @Test
-//    public void ExtractFromArrayPosWithEnd() {
-//        String expression = ".Store.Book[1 until end]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, (Seq<byte[]> out) -> future1.complete(out));
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(title2.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$.Store.Book[0:2] -> checked
-//
-//    @Test
-//    public void ExtractKeyFromArrayPosWithEnd() {
-//        String expression = ".Store.Book[1 until end].Price";
-//        CompletableFuture<Seq<String>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<String> result = future1.join();
-//
-//        assertEquals(
-//                "List(21.5)",
-//                result.toList().toString());
-//    }   //$.Store.Book[:].Price -> checked
-//
-//    @Test
-//    public void ExtractFromArrayWithElem2Times() {
-//        String expression = ".Store.Book[@Price].SpecialEditions[@Title]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(edition1.encodeToBarray());
-//        expected.add(edition2.encodeToBarray());
-//        expected.add(edition3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
-//
-//    @Test
-//    public void ExtractFromArrayWithElem() {
-//        String expression = ".Store.Book[@SpecialEditions]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(title1.encodeToBarray());
-//        expected.add(title2.encodeToBarray());
-//        expected.add(title3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$.Store.Book[?(@.SpecialEditions)]
-//
-//    @Test
-//    public void ExtractKeyFromArrayWithElem() {
-//        String expression = ".Store.Book[@Price].Title";
-//        CompletableFuture<Seq<String>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<String> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List(Java, Scala, C++)",
-//                result.toList().toString());
-//    } //$.Store.Book[?(@.Price)].Title -> checked
-//
-//    @Test
-//    public void ExtractFromArrayWithElemAndArrayPos() {
-//        String expression = ".Store.Book[@SpecialEditions].SpecialEditions[0]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(edition1.encodeToBarray());
-//        expected.add(edition2.encodeToBarray());
-//        expected.add(edition3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }
-//
-//    @Test
-//    public void ExtractFromArrayPosAndArrayWithElem() {
-//        String expression = ".Store.Book[0 until 1].SpecialEditions[@Price]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(edition1.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }
-//
-//    @Test
-//    public void ExtractEverythingFromRoot() {
-//        String expression = ".*";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(store.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$.* -> checked
-//
-//    @Test
-//    public void ExtractEntireArray() {
-//        String expression = ".Store.Book";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        byte[] res = future1.join();
-//        byte[] expected = books.encodeToBarray();
-//
-//        assertTrue(Arrays.equals(res, expected));
-//    }   //$.Store.Book -> checked
-//
-//    @Test
-//    public void ExtractAllPrices() {
-//        String expression = "Price";
-//        CompletableFuture<Seq<AnyVal>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<AnyVal> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List(15.5, 39, 21.5, 40, 12.6, 38, 48, 35, 38)",
-//                result.toList().toString());
-//    }   //$..Price -> checked
-//
-//    @Test
-//    public void ExtractAllBookPrices() {
-//        String expression = "Book..Price";
-//        CompletableFuture<Seq<AnyVal>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<AnyVal> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List(15.5, 39, 21.5, 40, 12.6, 38)",
-//                result.toList().toString());
-//    }   //$.Book..Price -> checked
-//
-//    @Test
-//    public void ExtractTitlesOfBooks() {
-//        String expression = "Book.Title";
-//        CompletableFuture<Seq<String>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<String> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List()",
-//                result.toList().toString());
-//    }   //$..Book.Title -> checked
-//
-//    @Test
-//    public void ExtractKeyEverywhereArrayWithElem() {
-//        String expression = "SpecialEditions[@Price].Title";
-//        CompletableFuture<Seq<String>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<String> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List(JavaMachine, ScalaMachine, C++Machine)",
-//                result.toList().toString());
-//    }   //$..SpecialEditions[?(@.Price)].Title -> checked
-//
-//    @Test
-//    public void ExtractEverywhereArrayWithElem() {
-//        String expression = "SpecialEditions[@Price]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(edition1.encodeToBarray());
-//        expected.add(edition2.encodeToBarray());
-//        expected.add(edition3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$..SpecialEditions[?(@.Price)] -> checked
-//
-//    @Test
-//    public void ExtractEverywhereArrayPos() {
-//        String expression = "SpecialEditions[0]";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(edition1.encodeToBarray());
-//        expected.add(edition2.encodeToBarray());
-//        expected.add(edition3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }   //$..SpecialEditions[0] -> checked
-//
-//    @Test
-//    public void ExtractEverywhereHalfKeyV1() {
-//        String expression = "*tle";
-//        CompletableFuture<Seq<String>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<String> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List(Java, JavaMachine, Scala, ScalaMachine, C++, C++Machine)",
-//                result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractEverywhereHalfKeyV2() {
-//        String expression = "B*k";
-//        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//
-//        Seq<byte[]> res = future1.join();
-//        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(books.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//    }
-//
-//    @Test
-//    public void ExtractEverywhereHalfKeyV3() {
-//        String expression = "Pri*";
-//        CompletableFuture<Seq<AnyVal>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<AnyVal> result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List(15.5, 39, 21.5, 40, 12.6, 38, 48, 35, 38)",
-//                result.toList().toString());
-//    }
+    @Test
+    public void ExtractFromArrayPos() {
+        String expression = ".Store.Book[1 to 2]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        byte[] res = future1.join();
+        System.out.println("future1.join() -> " + res);
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(title2.encodeToBarray());
+        expected.add(title3.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$.Store.Book[1:2] -> checked
+
+    @Test
+    public void ExtractFromArrayPosWithEnd() {
+        String expression = ".Store.Book[1 until end]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+
+        byte[] res = future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(title2.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$.Store.Book[0:2] -> checked
+
+    @Test
+    public void ExtractKeyFromArrayPosWithEnd() {
+        String expression = ".Store.Book[1 until end].Price";
+        CompletableFuture<Double> future1 = new CompletableFuture<>();
+        ArrayList<Double> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Double out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        assert (mutableBuffer.contains(21.5));
+    }   //$.Store.Book[:].Price -> checked
+
+    @Test
+    public void ExtractFromArrayWithElem2Times() {
+        String expression = ".Store.Book[@Price].SpecialEditions[@Title]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(edition1.encodeToBarray());
+        expected.add(edition2.encodeToBarray());
+        expected.add(edition3.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$.Store.Book[?(@.Price)].SpecialEditions[?(@.Title)] -> checked
+
+    @Test
+    public void ExtractFromArrayWithElem() {
+        String expression = ".Store.Book[@SpecialEditions]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        future1.join();
+
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(title1.encodeToBarray());
+        expected.add(title2.encodeToBarray());
+        expected.add(title3.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$.Store.Book[?(@.SpecialEditions)]
+
+    @Test
+    public void ExtractKeyFromArrayWithElem() {
+        String expression = ".Store.Book[@Price].Title";
+        CompletableFuture<String> future1 = new CompletableFuture<>();
+        ArrayList<String> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (String out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        future1.thenRun(() -> {
+            System.out.println("Here");
+            List<String> expected = new ArrayList();
+            expected.add("Java");
+            expected.add("Scala");
+            expected.add("C++");
+            assert (mutableBuffer.containsAll(expected));
+        });
+    } //$.Store.Book[?(@.Price)].Title -> checked
+
+    @Test
+    public void ExtractFromArrayWithElemAndArrayPos() {
+        String expression = ".Store.Book[@SpecialEditions].SpecialEditions[0]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(edition1.encodeToBarray());
+        expected.add(edition2.encodeToBarray());
+        expected.add(edition3.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }
+
+    @Test
+    public void ExtractFromArrayPosAndArrayWithElem() {
+        String expression = ".Store.Book[0 until 1].SpecialEditions[@Price]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(edition1.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }
+
+    @Test
+    public void ExtractEverythingFromRoot() {
+        String expression = ".*";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(store.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$.* -> checked
+
+    @Test
+    public void ExtractEntireArray() {
+        String expression = ".Store.Book";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> future1.complete(byteArr));
+        boson.go(bson.encodeToBarray());
+
+        byte[] res = future1.join();
+        byte[] expected = books.encodeToBarray();
+
+        assertTrue(Arrays.equals(res, expected));
+    }   //$.Store.Book -> checked
+
+    @Test
+    public void ExtractAllPrices() {
+        String expression = "Price";
+        CompletableFuture<Object> future1 = new CompletableFuture<>();
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        List<Number> expected = new ArrayList<>();
+        expected.add(15.5);
+        expected.add(39);
+        expected.add(21.5);
+        expected.add(40);
+        expected.add(12.6);
+        expected.add(38);
+        expected.add(48);
+        expected.add(35);
+        expected.add(38);
+        assert (mutableBuffer.containsAll(expected));
+    }   //$..Price -> checked
+
+    @Test
+    public void ExtractAllBookPrices() {
+        String expression = "Book..Price";
+        CompletableFuture<Object> future1 = new CompletableFuture<>();
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        future1.thenRun(() -> {
+            List<Number> expected = new ArrayList<>();
+            expected.add(15.5);
+            expected.add(39);
+            expected.add(21.5);
+            expected.add(40);
+            expected.add(12.6);
+            expected.add(38);
+            expected.add(48);
+            expected.add(35);
+            expected.add(38);
+            assert (mutableBuffer.containsAll(expected));
+        });
+    }   //$.Book..Price -> checked
+
+    @Test
+    public void ExtractKeyEverywhereArrayWithElem() {
+        String expression = "SpecialEditions[@Price].Title";
+        CompletableFuture<String> future1 = new CompletableFuture<>();
+        ArrayList<String> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (String out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        future1.thenRun(() -> {
+            List<String> expected = new ArrayList<>();
+            expected.add("JavaMachine");
+            expected.add("ScalaMachine");
+            expected.add("C++Machine");
+            assert (mutableBuffer.containsAll(expected));
+        });
+    }   //$..SpecialEditions[?(@.Price)].Title -> checked
+
+    @Test
+    public void ExtractEverywhereArrayWithElem() {
+        String expression = "SpecialEditions[@Price]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(edition1.encodeToBarray());
+        expected.add(edition2.encodeToBarray());
+        expected.add(edition3.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$..SpecialEditions[?(@.Price)] -> checked
+
+    @Test
+    public void ExtractEverywhereArrayPos() {
+        String expression = "SpecialEditions[0]";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        future1.join();
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(edition1.encodeToBarray());
+        expected.add(edition2.encodeToBarray());
+        expected.add(edition3.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }   //$..SpecialEditions[0] -> checked
+
+    @Test
+    public void ExtractEverywhereHalfKeyV1() {
+        String expression = "*tle";
+        CompletableFuture<String> future1 = new CompletableFuture<>();
+        ArrayList<String> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (String out) -> {
+            mutableBuffer.add(out);
+            future1.complete(out);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        future1.thenRun(() -> {
+            List<String> expected = new ArrayList<>();
+            expected.add("Java");
+            expected.add("JavaMachine");
+            expected.add("Scala");
+            expected.add("ScalaMachine");
+            expected.add("C++");
+            expected.add("C++Machine");
+            assert (mutableBuffer.containsAll(expected));
+        });
+    }
+
+    @Test
+    public void ExtractEverywhereHalfKeyV2() {
+        String expression = "B*k";
+        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+
+        List<byte[]> expected = new ArrayList<>();
+        expected.add(books.encodeToBarray());
+
+        assert (mutableBuffer.size() == expected.size());
+        for (int i = 0; i < mutableBuffer.size(); i++) {
+            assertTrue(Arrays.equals(mutableBuffer.get(i), expected.get(i)));
+        }
+    }
+
+    @Test
+    public void ExtractEverywhereHalfKeyV3() {
+        String expression = "Pri*";
+        CompletableFuture<Object> future1 = new CompletableFuture<>();
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object byteArr) -> {
+            mutableBuffer.add(byteArr);
+            future1.complete(byteArr);
+        });
+        boson.go(bson.encodeToBarray());
+        future1.join();
+        future1.thenRun(() -> {
+            List<Number> expected = new ArrayList<>();
+            expected.add(15.5);
+            expected.add(39);
+            expected.add(21.5);
+            expected.add(40);
+            expected.add(12.6);
+            expected.add(38);
+            expected.add(48);
+            expected.add(35);
+            expected.add(38);
+            assert (mutableBuffer.containsAll(expected));
+        });
+    }
 //
 //    @Test
 //    public void ExtractHalfKeyArrayWithElem2Times() {
@@ -1804,53 +1878,54 @@ public class APItests {
         Object result = future1.join();
         assertEquals(result, 30L);
     }
-/*
-    @Test
-    public void ExtractWhenKeyIsInsideKey_V5() {
-        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
-        BsonArray arr2 = new BsonArray().add(obj3);
-        BsonObject obj2 = new BsonObject().put("NotStore", arr2);
-        BsonArray arr1 = new BsonArray().add(obj2);
-        BsonObject obj1 = new BsonObject().put("Store", arr1);
-        String expression = "..Store[@Store]";
-        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
-        boson.go(obj1.encodeToBarray());
 
-        Seq<byte[]> res = future1.join();
-        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-        List<byte[]> expected = new ArrayList<>();
+    /*
+        @Test
+        public void ExtractWhenKeyIsInsideKey_V5() {
+            BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
+            BsonArray arr2 = new BsonArray().add(obj3);
+            BsonObject obj2 = new BsonObject().put("NotStore", arr2);
+            BsonArray arr1 = new BsonArray().add(obj2);
+            BsonObject obj1 = new BsonObject().put("Store", arr1);
+            String expression = "..Store[@Store]";
+            CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
+            Boson boson = Boson.extractor(expression, future1::complete);
+            boson.go(obj1.encodeToBarray());
 
-        assert (result.size() == expected.size());
-        for (int i = 0; i < result.size(); i++) {
-            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
+            Seq<byte[]> res = future1.join();
+            List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
+            List<byte[]> expected = new ArrayList<>();
+
+            assert (result.size() == expected.size());
+            for (int i = 0; i < result.size(); i++) {
+                assertTrue(Arrays.equals(result.get(i), expected.get(i)));
+            }
+    //        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
         }
-//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-    }
 
-    @Test
-    public void ExtractWhenKeyIsInsideKey_V6() {
-        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
-        BsonArray arr2 = new BsonArray().add(obj3);
-        BsonObject obj2 = new BsonObject().put("NotStore", arr2);
-        BsonArray arr1 = new BsonArray().add(obj2);
-        BsonObject obj1 = new BsonObject().put("Store", arr1);
-        String expression = ".Store[@Store]";
-        CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
-        Boson boson = Boson.extractor(expression, future1::complete);
-        boson.go(obj1.encodeToBarray());
+        @Test
+        public void ExtractWhenKeyIsInsideKey_V6() {
+            BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
+            BsonArray arr2 = new BsonArray().add(obj3);
+            BsonObject obj2 = new BsonObject().put("NotStore", arr2);
+            BsonArray arr1 = new BsonArray().add(obj2);
+            BsonObject obj1 = new BsonObject().put("Store", arr1);
+            String expression = ".Store[@Store]";
+            CompletableFuture<Seq<byte[]>> future1 = new CompletableFuture<>();
+            Boson boson = Boson.extractor(expression, future1::complete);
+            boson.go(obj1.encodeToBarray());
 
-        Seq<byte[]> res = future1.join();
-        List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
-        List<byte[]> expected = new ArrayList<>();
+            Seq<byte[]> res = future1.join();
+            List<byte[]> result = scala.collection.JavaConverters.seqAsJavaList(res);
+            List<byte[]> expected = new ArrayList<>();
 
-        assert (result.size() == expected.size());
-        for (int i = 0; i < result.size(); i++) {
-            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
+            assert (result.size() == expected.size());
+            for (int i = 0; i < result.size(); i++) {
+                assertTrue(Arrays.equals(result.get(i), expected.get(i)));
+            }
+    //        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
         }
-//        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-    }
-*/
+    */
     @Test
     public void TypeInferenceExample() {
 
@@ -1867,7 +1942,7 @@ public class APItests {
 
     @Test
     public void Extract_Obj_As_Class() {
-        BsonObject title1 = new BsonObject().put("Title","Scala").put("Price",15.6);
+        BsonObject title1 = new BsonObject().put("Title", "Scala").put("Price", 15.6);
         BsonArray books = new BsonArray().add(title1);
 
         String expression = ".[0]";
@@ -1877,16 +1952,16 @@ public class APItests {
         });
         boson.go(books.encodeToBarray());
         Book result = future1.join();
-        Book expected = new Book("Scala",15.6);
-        Assert.assertTrue(EqualsBuilder.reflectionEquals(expected,result));
+        Book expected = new Book("Scala", 15.6);
+        Assert.assertTrue(EqualsBuilder.reflectionEquals(expected, result));
 
     }
 
     @Test
     public void Extract_Obj_As_Class_With_Nested_Class() {
 
-        BsonObject sEdition1 = new BsonObject().put("Title","ScalaMachine").put("Price",39);
-        BsonObject title1 = new BsonObject().put("Title","Scala").put("Price",15.6).put("SpecialEditions",sEdition1);
+        BsonObject sEdition1 = new BsonObject().put("Title", "ScalaMachine").put("Price", 39);
+        BsonObject title1 = new BsonObject().put("Title", "Scala").put("Price", 15.6).put("SpecialEditions", sEdition1);
         BsonArray books = new BsonArray().add(title1);
 
         String expression = ".[0]";
@@ -1899,10 +1974,10 @@ public class APItests {
         Book1 result = future1.join();
 
         SpecialEditions sEdtn = new SpecialEditions("ScalaMachine", 39);
-        Book1 expected = new Book1("Scala",15.6, sEdtn);
+        Book1 expected = new Book1("Scala", 15.6, sEdtn);
 
-        Assert.assertTrue(result.title.equals(expected.title) );
-        Assert.assertTrue(result.price.equals(expected.price) );
+        Assert.assertTrue(result.title.equals(expected.title));
+        Assert.assertTrue(result.price.equals(expected.price));
         Assert.assertTrue(result.specialEditions.title.equals(expected.specialEditions.title));
         Assert.assertTrue(result.specialEditions.price == expected.specialEditions.price);
 
@@ -3575,6 +3650,7 @@ public class APItests {
 class Book {
     private String title;
     private Double price;
+
     public Book(String _title, Double _price) {
         this.title = _title;
         this.price = _price;
@@ -3585,6 +3661,7 @@ class Book1 {
     public String title;
     public Double price;
     public SpecialEditions specialEditions;
+
     public Book1(String _title, Double _price, SpecialEditions _sEditions) {
         this.title = _title;
         this.price = _price;
@@ -3597,6 +3674,7 @@ class Book1 {
 class SpecialEditions {
     public String title;
     public Integer price;
+
     public SpecialEditions(String _title, Integer _price) {
         this.title = _title;
         this.price = _price;
