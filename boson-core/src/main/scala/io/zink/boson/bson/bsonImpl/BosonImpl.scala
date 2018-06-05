@@ -17,23 +17,9 @@ case class CustomException(smth: String) extends RuntimeException {
   override def getMessage: String = smth
 }
 
-//abstract class experience extends ByteBuf {
-//  override def copy(index: Int, length: Int): ByteBuf
-//}
-//object experience {
-//  def copy(source: ByteBuf,index: Int, length: Int): ByteBuf = {
-//    val b = Unpooled.buffer()
-//
-//    System.arraycopy(source, index, b.array(), 0, length)
-//    b
-//  }
-//}
+
 /**
   * Class with all operations to be applied on a Netty ByteBuffer or a Json encoded String
-  *
-  * @param byteArray   to be removed
-  * @param javaByteBuf to be removed
-  * @param stringJson  to be removed
   */
 class BosonImpl(
                  byteArray: Option[Array[Byte]] = None,
@@ -1070,7 +1056,7 @@ class BosonImpl(
 
   /**
     * Starter method for the injection process, this method will pattern match the statements in the statements list
-    * and will delegate to other helper methods
+    * and delegate to other helper methods
     *
     * @param dataStructure - The data structure in which to perform the injection process (either a ByteBuf or a String)
     * @param statements    - The statements with information regarding where to perform the injection
@@ -1141,6 +1127,7 @@ class BosonImpl(
   }
 
   /**
+    * Function that recursively searches for the keys that are of interest to the injection
     *
     * @param statementsList - A list with pairs that contains the key of interest and the type of operation
     * @param codec          - Structure from which we are reading the old values
@@ -1154,7 +1141,7 @@ class BosonImpl(
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
-      * @param currentCodec - the codec to be modified
+      * @param currentCodec - the codec to write the modified information into
       * @param startReader  - the initial reader index of the codec passed in modifyAll
       * @param originalSize - the original size of the codec passed in modifyAll
       * @return A Codec containing the alterations made
@@ -1281,8 +1268,8 @@ class BosonImpl(
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
-      * @param writableCodec - the codec to be modified
-      * @return A modified codec
+      * @param writableCodec - the codec to write the modified information into
+      * @return A Codec containing the alterations made
       */
     def iterateDataStructure(writableCodec: Codec): Codec = {
       if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
@@ -1344,8 +1331,8 @@ class BosonImpl(
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
-      * @param writableCodec - the codec to be modified
-      * @return A modified codec
+      * @param writableCodec - the codec to write the information into
+      * @return A codec containing the alterations made
       */
     def iterateDataStructure(writableCodec: Codec): Codec = {
       if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
@@ -1533,6 +1520,8 @@ class BosonImpl(
   }
 
   /**
+    * Fucntion used to process all the values inside Arrays that are not of interest to the injection and copies them
+    * to the current result Codec
     *
     * @param dataType        - Type of the value found and processing
     * @param codec           - Structure from which we are reading the values
@@ -1567,6 +1556,7 @@ class BosonImpl(
   }
 
   /**
+    * Function used to perform the injection of the new values
     *
     * @param codec           - Structure from which we are reading the values
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
@@ -1653,6 +1643,7 @@ class BosonImpl(
   }
 
   /**
+    * Function used to perform the injection on the last ocurrence of a field
     *
     * @param codec        - Structure from which we are reading the values
     * @param dataType     - Type of the value found and processing
@@ -1764,6 +1755,8 @@ class BosonImpl(
   }
 
   /**
+    * Function that processes the types of all the information that is not relevant for the injection and copies it to
+    * the current resulting Codec
     *
     * @param statementsList  - A list with pairs that contains the key of interest and the type of operation
     * @param seqType         - Type of the value found and processing
@@ -1810,7 +1803,7 @@ class BosonImpl(
   }
 
   /**
-    * Verifies if Key given by user is HalfWord and if it matches with the one extracted.
+    * Verifies if Key given by user is a HalfWord and if it matches with the one extracted.
     *
     * @param fieldID   - Key given by User.
     * @param extracted - Key extracted.
@@ -1889,6 +1882,7 @@ class BosonImpl(
   }
 
   /**
+    * Function that handles the type of injection into an Array and calls the modifiers accordingly
     *
     * @param statementsList - A list with pairs that contains the key of interest and the type of operation
     * @param codec          - Structure from which we are reading the values
@@ -1923,11 +1917,13 @@ class BosonImpl(
   }
 
   /**
+    * This function iterates through the all the positions of an array to find the relevant elements to be changed
+    * in the injection
     *
     * @param statementsList - A list with pairs that contains the key of interest and the type of operation
     * @param codec          - Structure from which we are reading the values
     * @param injFunction    - Function given by the user to alter specific values
-    * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param condition      - Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
     * @param from           - Represent the inferior limit of a given range
     * @param to             - Represent the superior limit of a given range
     * @tparam T - Type of the value being injected
@@ -1940,10 +1936,10 @@ class BosonImpl(
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
-      * @param currentCodec     - The codec to be modified
+      * @param currentCodec     - The codec where we right the values of the processed data
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
-      * @param exceptions       - An Int that represents how many exceptions have occurred
-      * @return a modified codec pair and the amount of axceptions
+      * @param exceptions       - An Int that represents how many exceptions have occurred (This value is used to detirmine if the range inserted is a TO_RANGE or UNTIL_RANGE)
+      * @return a codec pair with the modifications made and the amount of exceptions that occured
       */
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec, exceptions: Int): (Codec, Codec, Int) = {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize && exceptions < 2)
@@ -2349,6 +2345,8 @@ class BosonImpl(
   }
 
   /**
+    * This function processes the types not relevant to the injection of an Array and copies them to the resulting
+    * codec with the processed information up until this point
     *
     * @param statementList   - A list with pairs that contains the key of interest and the type of operation
     * @param fieldID         - Name of the field of interest
@@ -2426,14 +2424,12 @@ class BosonImpl(
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
-    val emptyDataStructure: Codec = createEmptyCodec(codec)
-
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
-      * @param currentCodec     - The codec to be modified
+      * @param currentCodec     - a codec to write the modified information into
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
-      * @return a modified codec
+      * @return a codec containig the modifications made
       */
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): (Codec, Codec) = {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
@@ -2444,9 +2440,6 @@ class BosonImpl(
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
           case _ =>
-//            val (resCodec, key): (Codec, String) = writeKeyAndByte(codec, codecWithDataType)
-//            val resCodecCopy = resCodec.duplicate//This is wrong
-
             val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
               case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
@@ -2525,7 +2518,6 @@ class BosonImpl(
             }
         }
       }
-//      iterateDataStructure(emptyDataStructure, emptyDataStructure.duplicate)
     }
 
     val emptyCodec = createEmptyCodec(codec)

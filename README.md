@@ -135,6 +135,8 @@ val result: Future[Array[Byte]] = boson.go(validBsonArray)
 <div id='id-bosonFuseScala'>  
 
 #### Fusion  
+**Note: Fusion in Boson is not implemented efficiently yet.**
+
 Fusion requires a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
 which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.  
 
@@ -217,6 +219,8 @@ byte[] result = boson.go(validatedByteArray).join();
 <div id='id-bosonFuseJava'/>  
 
 #### Fusion
+**Note: Fusion in Boson is not implemented efficiently yet.**
+
 Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a 
 [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in 
 which fuse is applied is left to the discretion of the user. This fusion is executed 

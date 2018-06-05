@@ -268,6 +268,10 @@ class Interpreter[T](boson: BosonImpl,
       }
   }
 
+  /**
+    *
+    * @param typesNvalues
+    */
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
     typesNvalues.head._2 match {
       case oneString(value) =>
@@ -294,6 +298,13 @@ class Interpreter[T](boson: BosonImpl,
 
   def isJson(str: String): Boolean = if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) true else false
 
+  /**
+    *
+    * @param result
+    * @param typeClass
+    * @param returnInsideSeqFlag
+    * @return
+    */
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
     tCase.isDefined match { //TODO MAYBE HERE INSTEAD OF PASSING THE ENTIRE SEQ WHEN returnInsideSeqFlag IS TRUE WE CAN ITERATE OVER THEM AND APPLY THE FUNCTION FOR EACH OF THE ELEM
       case true if typeClass.isDefined =>
@@ -347,12 +358,23 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
 
+  /**
+    *
+    * @param bsonEncoded
+    * @return
+    */
   private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
     println(zipped)
     executeMultipleKeysInjector(zipped, bsonEncoded)
   }
 
+  /**
+    *
+    * @param statements
+    * @param bsonEncoded
+    * @return
+    */
   // TODO: replace Statement -> Statement, etc..
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val input: Either[ByteBuf, String] = bsonEncoded match {
