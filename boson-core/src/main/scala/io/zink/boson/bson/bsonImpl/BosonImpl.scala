@@ -51,7 +51,7 @@ class BosonImpl() {
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
-  def extract[T](netty1: Either[ByteBuf, String], keyList: List[(String, String)],
+  def extract[T](netty1: DataStructure, keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
 
     val nettyC: Codec = netty1 match {
@@ -1014,12 +1014,11 @@ class BosonImpl() {
       case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
+            case (i, o1, o2) if o1.isDefined && o2.isDefined =>
+              (EMPTY_KEY, i, o1.get.value, o2.get)
 
-            case (i, o1, o2) if midArg.isDefined && rightArg.isDefined =>
-              (EMPTY_KEY, leftArg, midArg.get.value, rightArg.get)
-
-            case (i, o1, o2) if midArg.isEmpty && rightArg.isEmpty =>
-              (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
+            case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (EMPTY_KEY, i, TO_RANGE, i)
 
             case (0, str, None) =>
               str.get.value match {
@@ -1274,7 +1273,7 @@ class BosonImpl() {
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ =>
-            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
+            val (codecWithKey, _) = writeKeyAndByte(codec, codecWithDataType)
             dataType match {
               case D_BSONOBJECT =>
                 val bsonSize = codec.getSize
@@ -1306,7 +1305,7 @@ class BosonImpl() {
 
                     if (statementsList.head._2.contains(C_DOUBLEDOT)) {
 
-                      val dataStruct: Either[ByteBuf, String] = codec.getToken(SonString(CS_ARRAY)) match {
+                      val dataStruct: DataStructure = codec.getToken(SonString(CS_ARRAY)) match {
                         case SonString(_, data) => data match {
                           case byteBuf: ByteBuf => Left(byteBuf)
                           case jsonString: String => Right(jsonString)
@@ -1357,7 +1356,7 @@ class BosonImpl() {
       dataType match {
         case 0 => //TODO what do we do in this case
         case _ =>
-          val key: String = codec.readToken(SonString(CS_NAME)) match {
+          val key: String = codec.readToken(SonString(CS_NAME)) match { //TODO - Check
             case SonString(_, keyString) => keyString.asInstanceOf[String]
           }
           dataType match {
@@ -1745,7 +1744,7 @@ class BosonImpl() {
     if (fieldID.contains(STAR) & extracted.nonEmpty) {
       val list: Array[String] = fieldID.split(STAR_CHAR)
       (extracted, list.length) match {
-        case (x, 0) =>
+        case (_, 0) =>
           true
         case (x, 1) if x.startsWith(list.head) =>
           true
@@ -1910,7 +1909,7 @@ class BosonImpl() {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
+                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
                           case SonArray(_, value) => value match {
                             case byteBuf: ByteBuf => Left(byteBuf)
                             case jsonString: String => Right(jsonString)
@@ -1932,7 +1931,7 @@ class BosonImpl() {
                           Try(modifierEnd(partialCodec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
                             case Success(tuple) =>
                               (tuple, 0)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
                           }
                         (codecTuple, exceptionsReturn)
@@ -1941,7 +1940,7 @@ class BosonImpl() {
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
                             case Success(tuple) => (tuple, 0)
-                            case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
+                            case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
                           }
                         (codecTuple, exceptionsReturn)
                     }
@@ -1949,7 +1948,7 @@ class BosonImpl() {
                     val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                       Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
                         case Success(tuple) => (tuple, 0)
-                        case Failure(e) => ((codecWithKey, codecWithKeyCopy), 1)
+                        case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
                       }
                     (codecTuple, exceptionsReturn)
                   }
@@ -1957,8 +1956,8 @@ class BosonImpl() {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
-                        val partialData: Either[ByteBuf, String] = codec.readToken(SonArray(CS_ARRAY)) match {
-                          case SonArray(_, value) => value.asInstanceOf[Either[ByteBuf, String]]
+                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[DataStructure]
                         }
 
                         val codecData =
@@ -1974,7 +1973,7 @@ class BosonImpl() {
 
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try(inject(codecData, statementsList.drop(1), injFunction)) match {
                           case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
-                          case Failure(e) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
+                          case Failure(_) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
                         }
                         (codecTuple, exceptionsReturn)
                       case _ =>
@@ -1987,14 +1986,14 @@ class BosonImpl() {
                         val newCodec: Codec = codecWithKeyCopy.duplicate
                         Try(inject(codec.getCodecData, statementsList.drop(1), injFunction)) match {
                           case Success(c) => ((c, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-                          case Failure(e) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
                         }
                       case _ =>
                         ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                     }
                   }
                 }
-              case (x, _, C_END) if isArray && from.toInt <= key.toInt =>
+              case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
                 if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     dataType match {
@@ -2013,7 +2012,7 @@ class BosonImpl() {
                             Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
                               case Success(tuple) =>
                                 ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
-                              case Failure(e) =>
+                              case Failure(_) =>
                                 ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
                             }
                           (codecTuple, exceptionsReturn)
@@ -2025,7 +2024,7 @@ class BosonImpl() {
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
                             case Success(tuple) =>
                               (tuple, exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((codecWithKey, newCodecCopy), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2036,7 +2035,7 @@ class BosonImpl() {
                       Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
                         case Success(tuple) =>
                           (tuple, exceptions)
-                        case Failure(e) =>
+                        case Failure(_) =>
                           ((codecWithKey, newCodecCopy), exceptions + 1)
                       }
                     } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2057,7 +2056,7 @@ class BosonImpl() {
                           Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
                               ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2073,7 +2072,7 @@ class BosonImpl() {
                           Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
                               ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((codecWithKey, newCodecCopy), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2082,7 +2081,7 @@ class BosonImpl() {
                     }
                   }
                 }
-              case (x, _, C_END) if isArray && from.toInt > key.toInt =>
+              case (x, _, C_END) if isArray && from.toInt > x.toInt =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                   dataType match {
                     case D_BSONOBJECT | D_BSONARRAY =>
@@ -2121,7 +2120,7 @@ class BosonImpl() {
                           Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
                             case Success(tuple) =>
                               ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2131,7 +2130,7 @@ class BosonImpl() {
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
                             case Success(tuple) =>
                               (tuple, exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((codecWithKey, newCodecCopy), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2142,7 +2141,7 @@ class BosonImpl() {
                       Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
                         case Success(tuple) =>
                           (tuple, exceptions)
-                        case Failure(e) =>
+                        case Failure(_) =>
                           ((codecWithKey, newCodecCopy), exceptions + 1)
                       }
                     } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2163,7 +2162,7 @@ class BosonImpl() {
                           Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
                               ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2180,7 +2179,7 @@ class BosonImpl() {
                           Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
                               ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
-                            case Failure(e) =>
+                            case Failure(_) =>
                               ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -2293,7 +2292,7 @@ class BosonImpl() {
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made and an Auxiliary Codec
     */
-  private def processTypesArrayEnd[T](statementList: List[(Statement, String)], fieldID: String, dataType: Int, codec: Codec, injFunction: T => T, condition: String, from: String = C_ZERO, to: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
+  private def processTypesArrayEnd[T](statementList: StatementsList, fieldID: String, dataType: Int, codec: Codec, injFunction: T => T, condition: String, from: String = C_ZERO, to: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
     dataType match {
 
       case D_FLOAT_DOUBLE =>
@@ -2469,7 +2468,7 @@ class BosonImpl() {
     codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
     codecWithSize.removeEmptySpace
 
-    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy))
     codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
     codecWithSizeCopy.removeEmptySpace
 
