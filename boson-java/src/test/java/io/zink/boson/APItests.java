@@ -240,18 +240,17 @@ public class APItests {
         String expression = "Book..Price";
         ArrayList<Object> mutableBuffer = new ArrayList<>();
         Boson boson = Boson.extractor(expression, (Object out) -> {
-            mutableBuffer.add(out);
+            if (out != null)
+                mutableBuffer.add(out);
         });
         boson.go(bson.encodeToBarray()).thenRun(() -> {
+            System.out.println(mutableBuffer);
             List<Number> expected = new ArrayList<>();
             expected.add(15.5);
             expected.add(39);
             expected.add(21.5);
             expected.add(40);
             expected.add(12.6);
-            expected.add(38);
-            expected.add(48);
-            expected.add(35);
             expected.add(38);
             assert (mutableBuffer.containsAll(expected));
         }).join();
@@ -797,7 +796,7 @@ public class APItests {
                 mutableBuffer.add(obj);
         });
         boson.go(arr1.encodeToBarray()).thenRun(() -> {
-            assert (mutableBuffer.isEmpty());
+            assert (mutableBuffer.get(0).equals("Null"));
         }).join();
     }
 
@@ -838,7 +837,7 @@ public class APItests {
                 mutableBuffer.add(obj);
         });
         boson.go(arr1.encodeToBarray()).thenRun(() -> {
-            assert (mutableBuffer.get(0).equals(500));
+            assert (mutableBuffer.get(0).equals(500L));
         }).join();
     }
 
@@ -917,7 +916,7 @@ public class APItests {
                 mutableBuffer.add(obj);
         });
         boson.go(bE.encodeToBarray()).thenRun(() -> {
-            assert (mutableBuffer.get(0));
+            assert (!mutableBuffer.get(0));
         }).join();
     }
 

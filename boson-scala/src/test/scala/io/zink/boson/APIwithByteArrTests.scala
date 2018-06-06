@@ -23,17 +23,17 @@ class APIwithByteArrTests extends FunSuite {
   val validatedByteArray: Array[Byte] = arr.encodeToBarray()
   val validatedByteArrayObj: Array[Byte] = bsonEvent.encodeToBarray()
 
-  test("extract PosV1 w/ key") {
-    val expression: String = "[1 until 3]"
-    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => future.complete(in))
-    boson.go(validatedByteArray)
-
-    val expected: Seq[Array[Byte]] = Seq(arr.getBsonObject(1).encodeToBarray(),arr.getBsonObject(2).encodeToBarray())
-    val result = future.join()
-    assert(expected.size === result.size)
-    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-  }
+//  test("extract PosV1 w/ key") {
+//    val expression: String = "[1 until 3]"
+//    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
+//    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => future.complete(in))
+//    boson.go(validatedByteArray)
+//
+//    val expected: Seq[Array[Byte]] = Seq(arr.getBsonObject(1).encodeToBarray(),arr.getBsonObject(2).encodeToBarray())
+//    val result = future.join()
+//    assert(expected.size === result.size)
+//    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
+//  }
 /*
   test("extract PosV2 w/ key") {
     val expression: String = "[1 to 2]"
