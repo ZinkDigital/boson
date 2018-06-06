@@ -391,7 +391,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
-    * Method that reads a specified length and returns a new codec with that information
+    * Method that reads a specific length and returns a new codec with that information
     */
   override def readSpecificSize(size: Int): Codec = {
     val buf1 = buff.readBytes(size)

@@ -1,10 +1,10 @@
 package io.zink.boson
 
-import java.util.concurrent.{CompletableFuture, CountDownLatch}
+import java.util.concurrent.CompletableFuture
 
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.{assertEquals, assertTrue}
+import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -34,7 +34,7 @@ class APIwithByteArrTests extends FunSuite {
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
   }
-
+/*
   test("extract PosV2 w/ key") {
     val expression: String = "[1 to 2]"
     val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
@@ -322,6 +322,6 @@ class APIwithByteArrTests extends FunSuite {
       arr.add(range)
       boson.go(arr.encodeToBarray())
     }
-  }
+  }*/
 
 }
