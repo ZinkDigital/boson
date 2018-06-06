@@ -16,7 +16,6 @@ case class CustomException(smth: String) extends RuntimeException {
   override def getMessage: String = smth
 }
 
-
 /**
   * Class with all operations to be applied on a Netty ByteBuffer or a Json encoded String
   */
@@ -24,7 +23,6 @@ class BosonImpl() {
 
   type DataStructure = Either[ByteBuf, String]
   type StatementsList = List[(Statement, String)]
-
 
   /**
     * Set of conditions to extract primitive types while traversing an Object.
@@ -101,17 +99,6 @@ class BosonImpl() {
                     nettyC.release()
                     Nil
                 }
-              /*
-              case _ if keyList.head._2.equals(C_BUILD)=>
-                Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
-                  case Success(v)=>
-                    nettyC.release()
-                    v
-                  case Failure(_)=>
-                    nettyC.release()
-                    Nil
-                }
-              */
               case _ =>
                 Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList)) match {
                   case Success(v) =>
@@ -203,7 +190,7 @@ class BosonImpl() {
                 codec.setReaderIndex(bFnshRdrIndex)
                 Nil
               case _ =>
-                // Truque: Esta função nao faz nada no CodecBson mas no CodecJson avança o readerindex em uma unidade
+                //Trick: This function does nothing in CodecBson but in CodecJson advances the readerIndex by a unit
                 codec.downOneLevel
                 extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
             }
@@ -540,13 +527,6 @@ class BosonImpl() {
                     val res = extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
-                    /*
-                    codec.setReader(bsonFinish)
-                    codec.getDataType
-                      case codec.setReader(bsonStart)
-
-
-                     */
                     codec.setReaderIndex(bsonFinishReaderIndex)
                     codec.getDataType match {
                       case 0 =>
@@ -559,7 +539,6 @@ class BosonImpl() {
                         Nil
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
-                    //println(s"found obj, in pos: $iter")
                     val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                     List(buf)
                   case Some(_) if keyList.head._2.equals(C_LIMIT) =>
@@ -1109,6 +1088,7 @@ class BosonImpl() {
                         codec.setReaderIndex(codec.getReaderIndex + partialCodec.getSize + 1) //Skip the bytes that the subcodec already read
                         modifierAll(codec, mergedCodecs, dataType, injFunction)
                       //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
+                      //TODO - Maybe not because those bytes are the partialData read from codec
                       case _ =>
                         modifierAll(codec, codecWithKey, dataType, injFunction)
                     }
@@ -1133,7 +1113,6 @@ class BosonImpl() {
                         val modifiedPartialCodec = inject(partialData, statementsList.drop(1), injFunction)
                         inject((codecWithKey + modifiedPartialCodec).getCodecData, statementsList, injFunction)
                       //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
-
                       case _ =>
                         processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
                     }
@@ -1883,25 +1862,25 @@ class BosonImpl() {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
           case _ =>
 
-            val (codecWithKey,key) = writeKeyAndByte(codec, codecWithDataType)
-//            val (codecWithKeyCopy, _) = writeKeyAndByte(codec, codecWithDataTypeCopy)
-            val codecWithKeyCopy = codecWithKey.duplicate
+            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
+            //            val (codecWithKeyCopy, _) = writeKeyAndByte(codec, codecWithDataTypeCopy)
+            val codecWithKeyCopy = codecWithKey.duplicate //TODO - On Hold
 
             val isArray = key.forall(b => b.isDigit)
 
-//            val (isArray, key, byte): (Boolean, String, Int) = {
-//              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
-//                case SonString(_, keyString) => keyString.asInstanceOf[String]
-//              }
-//              val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
-//                case SonBoolean(_, result) => result.asInstanceOf[Byte]
-//              }
-//              (key.forall(b => b.isDigit), key, byte)
-//            }
-//            val codecWithKey1 = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-//            val codecWithKey = codec.writeToken(codecWithKey1, SonNumber(CS_BYTE, byte))
-//            val codecWithKeyCopy1 = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-//            val codecWithKeyCopy = codec.writeToken(codecWithKeyCopy1, SonNumber(CS_BYTE, byte))
+            //            val (isArray, key, byte): (Boolean, String, Int) = {
+            //              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+            //                case SonString(_, keyString) => keyString.asInstanceOf[String]
+            //              }
+            //              val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
+            //                case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            //              }
+            //              (key.forall(b => b.isDigit), key, byte)
+            //            }
+            //            val codecWithKey1 = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            //            val codecWithKey = codec.writeToken(codecWithKey1, SonNumber(CS_BYTE, byte))
+            //            val codecWithKeyCopy1 = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            //            val codecWithKeyCopy = codec.writeToken(codecWithKeyCopy1, SonNumber(CS_BYTE, byte))
 
             val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
@@ -2384,22 +2363,22 @@ class BosonImpl() {
             val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
             val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b))
 
-//            val (key, byte): (String, Byte) = {
-//              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
-//                case SonString(_, keyString) => keyString.asInstanceOf[String]
-//              }
-//              val token = codec.readToken(SonBoolean(C_ZERO))
-//              val byte: Byte = token match {
-//                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
-//              }
-//              (key, byte)
-//            }
-//            // writeKeyandByte
-//            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-//            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-//
-//            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
-//            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+            //            val (key, byte): (String, Byte) = {
+            //              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+            //                case SonString(_, keyString) => keyString.asInstanceOf[String]
+            //              }
+            //              val token = codec.readToken(SonBoolean(C_ZERO))
+            //              val byte: Byte = token match {
+            //                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
+            //              }
+            //              (key, byte)
+            //            }
+            //            // writeKeyandByte
+            //            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            //            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            //
+            //            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
+            //            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
 
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
