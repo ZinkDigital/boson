@@ -11,7 +11,7 @@ import org.scalatest.junit.JUnitRunner
   * Created by Tiago Filipe on 26/09/2017.
   */
 @RunWith(classOf[JUnitRunner])
-class BuffersTest extends FunSuite {
+class BuffersTest extends FunSuite {  //TODO SHOULD THIS BE REMOVED ?
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val bsonEvent: BsonObject = new BsonObject().put("kitchen", "dirty".getBytes).put("Grade", 'C').put("CharSequence", "It WORKS!!!")
 

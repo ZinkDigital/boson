@@ -2,31 +2,16 @@ package io.zink.boson;
 
 import bsonLib.BsonArray;
 import bsonLib.BsonObject;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import com.sun.xml.internal.ws.util.CompletedFuture;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
-import scala.AnyVal;
-import scala.Byte;
-import scala.Int;
-import scala.collection.immutable.*;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-
 
 import static org.junit.Assert.*;
 
