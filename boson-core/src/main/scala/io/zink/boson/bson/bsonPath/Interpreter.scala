@@ -39,7 +39,6 @@ class Interpreter[T](boson: BosonImpl,
     strgs.nonEmpty && ((returnInsideSeqFlag && tCase.get.unapply(strgs).isEmpty) || (!returnInsideSeqFlag && tCase.get.unapply(strgs.head).isEmpty)) && (strgs.head.startsWith("{") || strgs.head.startsWith("["))
   }
 
-
   /**
     * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
     *
@@ -268,10 +267,6 @@ class Interpreter[T](boson: BosonImpl,
       }
   }
 
-  /**
-    *
-    * @param typesNvalues
-    */
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
     typesNvalues.head._2 match {
       case oneString(value) =>
@@ -296,15 +291,14 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
 
+  /**
+    * Function used to determine if an input string is a Json string
+    *
+    * @param str - the input string
+    * @return a boolean containing the information wether the string is a Json(true) string or not(false)
+    */
   def isJson(str: String): Boolean = if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) true else false
 
-  /**
-    *
-    * @param result
-    * @param typeClass
-    * @param returnInsideSeqFlag
-    * @return
-    */
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
     tCase.isDefined match { //TODO MAYBE HERE INSTEAD OF PASSING THE ENTIRE SEQ WHEN returnInsideSeqFlag IS TRUE WE CAN ITERATE OVER THEM AND APPLY THE FUNCTION FOR EACH OF THE ELEM
       case true if typeClass.isDefined =>
@@ -359,9 +353,10 @@ class Interpreter[T](boson: BosonImpl,
   }
 
   /**
+    * Method that initiates the process of injection based on a Statement list provided by the parser
     *
     * @param bsonEncoded
-    * @return
+    * @return Either an Array of Byte or a String containing the resulting structure of the injection
     */
   private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
@@ -370,10 +365,11 @@ class Interpreter[T](boson: BosonImpl,
   }
 
   /**
+    * Function that handles the injection
     *
-    * @param statements
-    * @param bsonEncoded
-    * @return
+    * @param statements  - List of statements provided by the parser
+    * @param bsonEncoded - encoded structured to be modified
+    * @return a structure with the result of the injection
     */
   // TODO: replace Statement -> Statement, etc..
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
@@ -383,11 +379,6 @@ class Interpreter[T](boson: BosonImpl,
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
-
-    //    input match {
-    //      case Left(bb) => println("Input was : " + new String(bb.array()))
-    //      case Right(str) => println("Input was : " + str)
-    //    }
 
     val result: Either[Array[Byte], String] = {
       val x = boson.inject(input, statements, fInj.get)
