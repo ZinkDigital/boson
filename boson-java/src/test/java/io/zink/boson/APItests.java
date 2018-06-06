@@ -1252,277 +1252,204 @@ public class APItests {
     }
 
 
-//    //---------------------------------------------------------------------------------------
-//    //HorribleTests
-//    private ByteBuffer buffer = ByteBuffer.allocate(0);
-//    private byte[] byteArr = new byte[10];
-//
-//    @Test
-//    public void ExtractWithWrongKeyV1() {
-//        String expression = ".Something";
-//        CompletableFuture<Object> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bE.encodeToBarray());
-//        Object result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List()",
-//                result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractWithWrongKeyV2() {
-//        String expression = ".Something[0]";
-//        CompletableFuture<Object> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bE.encodeToBarray());
-//        Object result = future1.join();
-//        System.out.println(result);
-//
-//        assertEquals(
-//                "List()",
-//                result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractFromEmptyByteBufferZeroAllocate() {
-//        String expression = "Price";
-//        CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(buffer);
-//        Seq<Object> result = future1.join();
-//        assertTrue(result == null);
-//    }
-//
-//    @Test
-//    public void ExtractFromByteBufferSomeAllocate() {
-//        ByteBuffer buf = ByteBuffer.allocate(10);
-//        buf.put("hi".getBytes());
-//        String expression = "Price";
-//        CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(buf);
-//        Seq<Object> result = future1.join();
-//        assertEquals("List()", result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractFromEmptyByteArray() {
-//        String expression = "Price";
-//        CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(byteArr);
-//        Seq<Object> result = future1.join();
-//        assertEquals("List()", result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractArrayWhenDontMatch() {
-//        String expression = ".Book";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(bson.encodeToBarray());
-//        Seq<byte[]> result = future1.join();
-//        assertEquals("List()", result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractArrayWithLimitWhenDontMatch() {
-//        String expression = ".Book[0]";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(bson.encodeToBarray());
-//        Seq<byte[]> result = future1.join();
-//        assertEquals("List()", result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractWhenKeyIsInsideKey_V1() {
-//        BsonObject obj2 = new BsonObject().put("Store", 1000L);
-//        BsonObject obj1 = new BsonObject().put("Store", obj2);
-//        String expression = "..Store";
-//        CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(obj1.encodeToBarray());
-//
-//        Seq<Object> res = future1.join();
-//        List<Object> result = scala.collection.JavaConverters.seqAsJavaList(res);
-//        List<Object> expected = new ArrayList<>();
-//        expected.add(obj2.encodeToBarray());
-//        expected.add(1000L);
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            if (result.get(i) instanceof byte[] && expected.get(i) instanceof byte[])
-//                assertTrue(Arrays.equals((byte[]) result.get(i), (byte[]) expected.get(i)));
-//            else if (result.get(i) instanceof Double && expected.get(i) instanceof Double)
-//                assertTrue((double) result.get(i) == (double) expected.get(i));
-//            else {
-//                assertTrue(result.get(i).equals(expected.get(i)));
-//            }
-//        }
-////        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractKeyOfAllElemOfArrayWithLimits() {
-//        String expression = "..Book[0].*.Title";
-//        CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(bson.encodeToBarray());
-//        Seq<Object> result = future1.join();
-//        assertEquals("List()", result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractKeyofAllElemsOfArrayRootWithLimitAndDontMatch() {
-//        String expression = ".[0 to 7].*.Nothing";
-//        CompletableFuture<Seq<Object>> future1 = new CompletableFuture<>();
-//        Boson boson = Boson.extractor(expression, future1::complete);
-//        boson.go(arr1.encodeToBarray());
-//        Seq<Object> result = future1.join();
-//
-//        assertEquals(
-//                "List()",
-//                result.toList().toString());
-//    }
-//
-//    @Test
-//    public void ExtractWhenKeyIsInsideKey_V2() {
-//        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
-//        BsonArray arr2 = new BsonArray().add(obj3);
-//        BsonObject obj2 = new BsonObject().put("Store", arr2);
-//        BsonArray arr1 = new BsonArray().add(obj2);
-//        BsonObject obj1 = new BsonObject().put("Store", arr1);
-//        String expression = "..Store[@Store]";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(obj1.encodeToBarray());
-//
-//        future1.join();
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(obj2.encodeToBarray());
-//        expected.add(obj3.encodeToBarray());
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-//        // assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractWhenKeyIsInsideKey_V3() {
-//        BsonArray arr = new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("This", new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()))));
-//        BsonObject obj = new BsonObject().put("This", arr);
-//        String expression = "This[@some]";
-//        System.out.println(obj);
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(obj.encodeToBarray());
-//
-//        future1.join();
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(new BsonObject().put("some", new BsonObject()).put("This", new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()))).encodeToBarray());
-//        expected.add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()).encodeToBarray());
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-////        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractWhenKeyIsInsideKey_V4() {
-//        BsonArray arr = new BsonArray().add(new BsonObject().put("Inside", new BsonObject()).put("This", new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()))));
-//        BsonObject obj = new BsonObject().put("This", arr);
-//        String expression = "This[@some]";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(obj.encodeToBarray());
-//
-//        future1.join();
-//        List<byte[]> expected = new ArrayList<>();
-//        expected.add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()).encodeToBarray());
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-////        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractWhenKeyIsInsideKey_V5() {
-//        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
-//        BsonArray arr2 = new BsonArray().add(obj3);
-//        BsonObject obj2 = new BsonObject().put("NotStore", arr2);
-//        BsonArray arr1 = new BsonArray().add(obj2);
-//        BsonObject obj1 = new BsonObject().put("Store", arr1);
-//        String expression = "..Store[@Store]";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(obj1.encodeToBarray());
-//
-//        future1.join();
-//        List<byte[]> expected = new ArrayList<>();
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-////        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-//    }
-//
-//    @Test
-//    public void ExtractWhenKeyIsInsideKey_V6() {
-//        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
-//        BsonArray arr2 = new BsonArray().add(obj3);
-//        BsonObject obj2 = new BsonObject().put("NotStore", arr2);
-//        BsonArray arr1 = new BsonArray().add(obj2);
-//        BsonObject obj1 = new BsonObject().put("Store", arr1);
-//        String expression = ".Store[@Store]";
-//        CompletableFuture<byte[]> future1 = new CompletableFuture<>();
-//        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
-//        Boson boson = Boson.extractor(expression, (byte[] out) -> {
-//            mutableBuffer.add(out);
-//            future1.complete(out);
-//        });
-//        boson.go(obj1.encodeToBarray());
-//
-//        future1.join();
-//        List<byte[]> expected = new ArrayList<>();
-//
-//        assert (result.size() == expected.size());
-//        for (int i = 0; i < result.size(); i++) {
-//            assertTrue(Arrays.equals(result.get(i), expected.get(i)));
-//        }
-////        assertEquals("List(Map(Store -> 1000), 1000)", result.toString());
-//    }
+    //---------------------------------------------------------------------------------------
+    //HorribleTests
+    private ByteBuffer buffer = ByteBuffer.allocate(0);
+    private byte[] byteArr = new byte[10];
+
+    @Test
+    public void ExtractWithWrongKeyV1() {
+        String expression = ".Something";
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object obj) -> {
+            if (obj != null)
+                mutableBuffer.add(obj);
+        });
+        boson.go(bE.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWithWrongKeyV2() {
+        String expression = ".Something[0]";
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object obj) -> {
+            if (obj != null)
+                mutableBuffer.add(obj);
+        });
+        boson.go(bE.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractFromEmptyByteArray() {
+        String expression = "Price";
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object obj) -> {
+            if (obj != null)
+                mutableBuffer.add(obj);
+        });
+        boson.go(byteArr).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractArrayWhenDontMatch() {
+        String expression = ".Book";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(bson.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractArrayWithLimitWhenDontMatch() {
+        String expression = ".Book[0]";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(bson.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWhenKeyIsInsideKey_V1() {
+        BsonObject obj2 = new BsonObject().put("Store", 1000L);
+        BsonObject obj1 = new BsonObject().put("Store", obj2);
+        String expression = "..Store";
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object obj) -> {
+            if (obj != null)
+                mutableBuffer.add(obj);
+        });
+        boson.go(obj1.encodeToBarray()).thenRun(() -> {
+            List<Object> expected = new ArrayList<>();
+            expected.add(obj2.encodeToBarray());
+            expected.add(1000L);
+            assertArrayEquals(mutableBuffer.toArray(), expected.toArray());
+        }).join();
+    }
+
+    @Test
+    public void ExtractKeyOfAllElemOfArrayWithLimits() {
+        String expression = "..Book[0].*.Title";
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object obj) -> {
+            if (obj != null)
+                mutableBuffer.add(obj);
+        });
+        boson.go(bson.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractKeyofAllElemsOfArrayRootWithLimitAndDontMatch() {
+        String expression = ".[0 to 7].*.Nothing";
+        ArrayList<Object> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (Object obj) -> {
+            if (obj != null)
+                mutableBuffer.add(obj);
+        });
+        boson.go(arr1.encodeToBarray()).thenRun(() -> {
+            assertTrue(mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWhenKeyIsInsideKey_V2() {
+        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
+        BsonArray arr2 = new BsonArray().add(obj3);
+        BsonObject obj2 = new BsonObject().put("Store", arr2);
+        BsonArray arr1 = new BsonArray().add(obj2);
+        BsonObject obj1 = new BsonObject().put("Store", arr1);
+        String expression = "..Store[@Store]";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(obj1.encodeToBarray()).thenRun(() -> {
+            List<byte[]> expected = new ArrayList<>();
+            expected.add(obj2.encodeToBarray());
+            expected.add(obj3.encodeToBarray());
+            assertArrayEquals(mutableBuffer.toArray(), expected.toArray());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWhenKeyIsInsideKey_V3() {
+        BsonArray arr = new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("This", new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()))));
+        BsonObject obj = new BsonObject().put("This", arr);
+        String expression = "This[@some]";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(obj.encodeToBarray()).thenRun(() -> {
+            List<byte[]> expected = new ArrayList<>();
+            expected.add(new BsonObject().put("some", new BsonObject()).put("This", new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()))).encodeToBarray());
+            expected.add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()).encodeToBarray());
+            assertArrayEquals(mutableBuffer.toArray(), expected.toArray());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWhenKeyIsInsideKey_V4() {
+        BsonArray arr = new BsonArray().add(new BsonObject().put("Inside", new BsonObject()).put("This", new BsonArray().add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()))));
+        BsonObject obj = new BsonObject().put("This", arr);
+        String expression = "This[@some]";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(obj.encodeToBarray()).thenRun(() -> {
+            List<byte[]> expected = new ArrayList<>();
+            expected.add(new BsonObject().put("some", new BsonObject()).put("thing", new BsonArray()).encodeToBarray());
+            assertArrayEquals(mutableBuffer.toArray(), expected.toArray());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWhenKeyIsInsideKey_V5() {
+        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
+        BsonArray arr2 = new BsonArray().add(obj3);
+        BsonObject obj2 = new BsonObject().put("NotStore", arr2);
+        BsonArray arr1 = new BsonArray().add(obj2);
+        BsonObject obj1 = new BsonObject().put("Store", arr1);
+        String expression = "..Store[@Store]";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(obj1.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
+
+    @Test
+    public void ExtractWhenKeyIsInsideKey_V6() {
+        BsonObject obj3 = new BsonObject().put("Store", new BsonArray());
+        BsonArray arr2 = new BsonArray().add(obj3);
+        BsonObject obj2 = new BsonObject().put("NotStore", arr2);
+        BsonArray arr1 = new BsonArray().add(obj2);
+        BsonObject obj1 = new BsonObject().put("Store", arr1);
+        String expression = ".Store[@Store]";
+        ArrayList<byte[]> mutableBuffer = new ArrayList<>();
+        Boson boson = Boson.extractor(expression, (byte[] out) -> {
+            mutableBuffer.add(out);
+        });
+        boson.go(obj1.encodeToBarray()).thenRun(() -> {
+            assert (mutableBuffer.isEmpty());
+        }).join();
+    }
 
     private <T> void completeFuture(CompletableFuture future, T extractedValue) {
         System.out.println("APPLIED");
