@@ -1,16 +1,17 @@
 package io.zink.boson
 
-import java.util.concurrent.CompletableFuture
-
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
-import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FunSuite, Matchers}
+
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
-class APIwithByteArrTests extends FunSuite {
+class APIwithByteArrTests extends FunSuite  with  Matchers{
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val obj1: BsonObject = new BsonObject().put("fridgeTemp", 5.2f).put("fanVelocity", 20.5).put("doorOpen", false)
   val obj2: BsonObject = new BsonObject().put("fridgeTemp", 5.0f).put("fanVelocity", 20.6).put("doorOpen", false)
@@ -23,17 +24,26 @@ class APIwithByteArrTests extends FunSuite {
   val validatedByteArray: Array[Byte] = arr.encodeToBarray()
   val validatedByteArrayObj: Array[Byte] = bsonEvent.encodeToBarray()
 
-//  test("extract PosV1 w/ key") {
-//    val expression: String = "[1 until 3]"
+  test("extract PosV1 w/ key") {
+    val expression: String = "[1 until 3]"
 //    val future: CompletableFuture[Seq[Array[Byte]]] = new CompletableFuture[Seq[Array[Byte]]]()
-//    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => future.complete(in))
-//    boson.go(validatedByteArray)
-//
+    val x: ArrayBuffer[Array[Byte]] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      x += in
+    })
+    val fut =  boson.go(validatedByteArray)
+    Await.result(fut, Duration.Inf)
+    val expected: List[Array[Byte]] = List(arr.getBsonObject(1).encodeToBarray(),arr.getBsonObject(2).encodeToBarray())
+
+    expected.zip(x).foreach(ex => println(ex._1.equals(ex._2)))
+
+    expected should equal(x.toList)
+
 //    val expected: Seq[Array[Byte]] = Seq(arr.getBsonObject(1).encodeToBarray(),arr.getBsonObject(2).encodeToBarray())
 //    val result = future.join()
 //    assert(expected.size === result.size)
 //    assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
-//  }
+  }
 /*
   test("extract PosV2 w/ key") {
     val expression: String = "[1 to 2]"
