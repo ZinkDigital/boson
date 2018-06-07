@@ -117,7 +117,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val valueLength: Int = buff.getIntLE(buff.readerIndex())
           SonString(x, buff.readBytes(valueLength))
       }
-    case SonNumber(x, y) =>
+    case SonNumber(x, _) =>
       x match {
         case CS_DOUBLE =>
           SonNumber(x, buff.getDoubleLE(buff.readerIndex()))
@@ -126,7 +126,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         case CS_LONG =>
           SonNumber(x, buff.getLongLE(buff.readerIndex()))
       }
-    case SonNull(x, y) =>
+    case SonNull(x, _) =>
       x match {
         case CS_NULL =>
           SonNull(x, V_NULL)
@@ -134,11 +134,10 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
-    * getArrayPosition is used to get the actual array position, without consuming the value from stream //TODO - Correct Docs
+    * readToken is used to obtain a value correponding to the SonNamedType request, consuming the value from the stream
     *
-    * @return this method doesn't return anything because this data is not usefull for extraction
-    *         however, in the future when dealing with injection, we may have the need to work with this value
-    *         (this is why there is a commented function with the same but returning a Int)
+    * @param tkn is a value from out DSL trait representing the requested type
+    * @return returns the same SonNamedType request with the value obtained.
     */
   override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
     case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
@@ -534,6 +533,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   override def +(sumCodec: Codec): Codec = {
     val duplicated = copyByteBuf
     duplicated.writerIndex(buff.writerIndex())
+    println(duplicated.writerIndex())
     sumCodec.getCodecData match {
       case Left(x) => duplicated.writeBytes(x) //TODO This moves the reader index from sumCodec's ByteBuf, this might be problematic
     }

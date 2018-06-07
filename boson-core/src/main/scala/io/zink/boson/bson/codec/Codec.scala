@@ -220,9 +220,10 @@ trait Codec {
   def getCodecData: Either[ByteBuf, String]
 
   /**
+    * Method that adds 2 codecs and returns the reslut codec
     *
-    * @param sumCodec
-    * @return
+    * @param sumCodec - Codec to be added to the first
+    * @return a codec with the added information of the other 2
     */
   def +(sumCodec: Codec): Codec
 
@@ -230,8 +231,6 @@ trait Codec {
     * This method will remove the empty space in this codec.
     *
     * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
-    *
-    * @return
     */
   def removeEmptySpace: Unit
 }

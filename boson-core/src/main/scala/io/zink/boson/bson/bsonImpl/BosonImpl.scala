@@ -388,6 +388,7 @@ class BosonImpl() {
   }
 
   /**
+    * Function that compares 2 keys to check if they match
     *
     * @param codec Abstraction of Encoded Document.
     * @param key   given by user.
@@ -1574,6 +1575,7 @@ class BosonImpl() {
           val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1))
           codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
       }
+      //TODO - I was here!
       val resCodecCopy = codec.writeToken(codecResCopy, SonString(CS_STRING, value0)) + codecResCopy.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
       (resCodec, resCodecCopy)
 
@@ -1862,9 +1864,18 @@ class BosonImpl() {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
           case _ =>
 
-            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
-            //            val (codecWithKeyCopy, _) = writeKeyAndByte(codec, codecWithDataTypeCopy)
-            val codecWithKeyCopy = codecWithKey.duplicate //TODO - On Hold
+            val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+              case SonString(_, keyString) => keyString.asInstanceOf[String]
+            }
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+              case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            }
+
+            val codecWithoutKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b))
+
+            val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
 
             val isArray = key.forall(b => b.isDigit)
 
