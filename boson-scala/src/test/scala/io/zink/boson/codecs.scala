@@ -36,6 +36,7 @@ class codecs extends FunSuite {
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
   }
+  
   test("BsonObject Extract . JSON") {
     val jsonStr: String = """{"Epoch":3}"""
     val jsonObj: JsonObject = new JsonObject(jsonStr)
@@ -2313,23 +2314,18 @@ class codecs extends FunSuite {
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
   }
-//  test("BsonObject Extract doubledot array JSON") { //TODO FIX THIS TEST
-//    val bytes = new JsonArray().add(3).add("three")
-//    val jsonObj: JsonObject = new JsonObject().put("field", new JsonObject().put("Epoch", new JsonArray().add(3).add("three")))
-//    val json: String = jsonObj.encode()
-//
-//    val expression: String = "..Epoch"
-//    val result: ArrayBuffer[String] = ArrayBuffer()
-//    val joson = Boson.extractor(expression, (in: String) =>{
-//
-//      println(in)
-//      result += in
-//    }
-//    )
-//    val res = joson.go(json)
-//    Await.result(res, Duration.Inf)
-//    assertEquals(bytes.encode(), result.head)
-//  }
+  test("BsonObject Extract doubledot array JSON") { //TODO FIX THIS TEST
+    val bytes = new JsonArray().add(3).add("three")
+    val jsonObj: JsonObject = new JsonObject().put("field", new JsonObject().put("Epoch", new JsonArray().add(3).add("three")))
+    val json: String = jsonObj.encode()
+
+    val expression: String = "..Epoch"
+    val result: ArrayBuffer[Any] = ArrayBuffer()
+    val joson = Boson.extractor(expression, (in: Any) => result += in)
+    val res = joson.go(json)
+    Await.result(res, Duration.Inf)
+    assertEquals(bytes.encode(), result.head)
+  }
 
   // testes de arrays
   test("Arrays Extract [0 to 2] BSON") {
