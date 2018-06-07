@@ -48,7 +48,7 @@ In the following points we show how to use Boson in both Scala and Java in a Qui
 ## QuickStart Guide  
   
 Boson is available through the Central Maven Repository.  
-To include Boson in your projects you need to had the dependencies listed bellow.
+To include Boson in your projects you need to add the dependencies listed bellow.
 
 For SBT users, add the following to your build.sbt: 
 ```scala
@@ -248,7 +248,7 @@ final byte[] result = fused.go(validatedByteArray).join();
 # Documentation  
 ## BsonPath  
   
-BsonPath expressions target a Bson structure with the same logic JsonPath expressions target a JSON structure and XPath targeted an XML document. Unlike in JsonPath, there is no reference of a "root member object", instead if you want to specify a path starting from the root the expression must begin with a dot (example: `.key`).
+BosonPath expressions target a Bson structure with the same logic JsonPath expressions target a JSON structure and XPath target an XML document. Unlike in JsonPath, there is no reference of a "root member object", instead if you want to specify a path starting from the root the expression must begin with a dot (example: `.key`).
   
 BsonPath expressions use the dot-notation: `key1.key2[0].key3`.  
   
