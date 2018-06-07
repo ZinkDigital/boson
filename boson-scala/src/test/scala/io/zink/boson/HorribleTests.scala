@@ -1,12 +1,15 @@
 package io.zink.boson
 
 import java.nio.ByteBuffer
+
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.util.ResourceLeakDetector
 import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -183,16 +186,18 @@ class HorribleTests extends FunSuite {
 
   test("array prob 1") {
     val expression: String = "José[0    to   end]"
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
-      //println(s"out -> $out")
-      val expected: Seq[Any] = Seq("Tarantula", "Aracnídius", br4.encodeToBarray(), "Spider", "Fly")
-      assertTrue(expected.zip(out).forall {
-        case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-        case (e, r) => e.equals(r)
-      })
+    val expected: Seq[Any] = Seq("Tarantula", "Aracnídius", br4.encodeToBarray(), "Spider", "Fly")
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Any) => {
+      mutableBuffer += out
     })
     val res = boson.go(bsonEvent1.encode.getBytes)
     Await.result(res, Duration.Inf)
+    val equals = expected.zip(mutableBuffer).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    }
+    assert(equals && expected.size == mutableBuffer.size)
   }
 
   test("array prob 2") {
@@ -210,15 +215,17 @@ class HorribleTests extends FunSuite {
         "Fly",
         br4.encodeToBarray(),
         "Insecticida")
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
-      assert(expected.size === out.size)
-      assertTrue(expected.zip(out).forall {
-        case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
-        case (e, r) => e.equals(r)
-      })
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Any) => {
+      mutableBuffer += out
     })
     val res = boson.go(arr11.encode.getBytes)
     Await.result(res, Duration.Inf)
+    val equals = expected.zip(mutableBuffer).forall {
+      case (e: Array[Byte], r: Array[Byte]) => e.sameElements(r)
+      case (e, r) => e.equals(r)
+    }
+    assert(equals && expected.size == mutableBuffer.size)
   }
 
   test("array prob 5") {
@@ -263,23 +270,27 @@ class HorribleTests extends FunSuite {
   test("1stKey exists many times") {
     val expression: String = "arr[2]"
     val expected: Seq[Array[Byte]] = Vector(a1.getBsonObject(2).encodeToBarray(), a1.getBsonObject(2).encodeToBarray(), a1.getBsonObject(2).encodeToBarray())
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Array[Byte]]) => {
-      assert(expected.size === out.size)
-      assertTrue(expected.zip(out).forall(b => b._1.sameElements(b._2)))
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => {
+      mutableBuffer += out
     })
     val res = boson.go(a2.encode.getBytes)
     Await.result(res, Duration.Inf)
+    val equals = expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2))
+    assert(equals && expected.size == mutableBuffer.size)
   }
 
   test("1stKey exists many times, looking for another key") {
     val expression: String = "arr[2].two"
     val expected: Seq[Double] = Seq(2.2,2.2,2.2)
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => {
-      assert(expected.size === out.size)
-      assertTrue(expected.zip(out).forall(b => b._1.equals(b._2)))
+    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Double) => {
+      mutableBuffer += out
     })
     val res = boson.go(a2.encode.getBytes)
     Await.result(res, Duration.Inf)
+    val equals = expected.zip(mutableBuffer).forall(b => b._1.equals(b._2))
+    assert(equals && expected.size == mutableBuffer.size)
   }
 
   test("1stKey matches, 2ndKey doen't exists") {
@@ -308,12 +319,14 @@ class HorribleTests extends FunSuite {
     val array: BsonArray = new BsonArray().add(1.1).add(2.2).add(3.3).add(4.4)
     val expression: String = "[1 until end]"
     val expected = Seq(2.2,3.3)
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => {
-      assert(expected.size === out.size)
-      assertTrue(expected.zip(out).forall(b => b._1.equals(b._2)))
+    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Double) => {
+      mutableBuffer += out
     })
     val res = boson.go(array.encode.getBytes)
     Await.result(res, Duration.Inf)
+    val equals = expected.zip(mutableBuffer).forall(b => b._1.equals(b._2))
+    assert(equals && expected.size == mutableBuffer.size)
   }
 
   test("try extract obj with certain elem, but isn't obj") {
@@ -389,12 +402,14 @@ class HorribleTests extends FunSuite {
 
     val expression: String = "..Quantity"
     val expected: Seq[Any] = Seq(10.2f,500L)
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
-      assert(expected.size === out.size)
-      assertTrue(expected.zip(out).forall(b => b._1==b._2))
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Any) => {
+      mutableBuffer += out
     })
     val res = boson.go(bsonEvent.encode.getBytes)
     Await.result(res, Duration.Inf)
+    val equals = expected.zip(mutableBuffer).forall(b => b._1==b._2)
+    assert(equals && expected.size == mutableBuffer.size)
   }
 
   test(".*..key, root Bsonarray and key doesn't match") {
