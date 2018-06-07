@@ -209,60 +209,60 @@ class NewInjectorsTests extends FunSuite {
     println(bson.encodeToBarray().mkString(", "))
   }*/
 
-  test("Key with Array Exp [0 until 1] modification - Single Dots") { //TODO - On Stand By
-    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
-    val bson = new BsonObject().put("person", bsonArray)
-    val expression = ".person[0 until 1]"
-    val bsonInj = Boson.injector(expression, (in: String) => {
-      in.toUpperCase
-    })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) =>
-        println("After: " + resultValue.mkString(", "))
-        val string = new String(resultValue)
-        println(resultValue.size)
-        assert((string contains "PERSON1") && (string contains "person2"))
-      case Failure(e) =>
-        println(e)
-        fail
-    }
-    Await.result(future, Duration.Inf)
-    println("Before: " + bson.encodeToBarray().mkString(", "))
-  }
-  /*
-  test("Nested key injection - Multiple Layers- Double dots") {
-    val person = new BsonObject().put("name", "john doe")
+//  test("Key with Array Exp [0 until 1] modification - Single Dots") { //TODO - On Stand By
+//    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
+//    val bson = new BsonObject().put("person", bsonArray)
+//    val expression = ".person[0 until 1]"
+//    val bsonInj = Boson.injector(expression, (in: String) => {
+//      in.toUpperCase
+//    })
+//    val future = bsonInj.go(bson.encodeToBarray())
+//    future onComplete {
+//      case Success(resultValue) =>
+//        println("After: " + resultValue.mkString(", "))
+//        val string = new String(resultValue)
+//        println(resultValue.size)
+//        assert((string contains "PERSON1") && (string contains "person2"))
+//      case Failure(e) =>
+//        println(e)
+//        fail
+//    }
+//    Await.result(future, Duration.Inf)
+//    println("Before: " + bson.encodeToBarray().mkString(", "))
+//  }
+//
+//  test("Nested key injection - Multiple Layers- Double dots") {
+//    val person = new BsonObject().put("name", "john doe")
+//    val client = new BsonObject().put("person", person)
+//    val bson = new BsonObject().put("client", client)
+//
+//    val ex = "..name"
+//    val bsonInj = Boson.injector(ex, (in: String) => {
+//      in.toUpperCase()
+//    })
+//    val future = bsonInj.go(bson.encodeToBarray())
+//    future onComplete {
+//      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE");
+//      case Failure(e) => println(e); fail
+//    }
+//    Await.result(future, Duration.Inf)
+//  }
+
+  test("Nested key injection - Multiple Layers- Double dots") { //TODO FIX
+    val person = new BsonObject().put("name", "john doe").put("age", 21)
     val client = new BsonObject().put("person", person)
     val bson = new BsonObject().put("client", client)
 
-    val ex = "..name"
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase()
+    val ex = "..age"
+    val bsonInj = Boson.injector(ex, (in: Int) => {
+      in + 20
     })
     val future = bsonInj.go(bson.encodeToBarray())
     future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE");
+      case Success(resultValue) => println(resultValue.mkString(" "));
       case Failure(e) => println(e); fail
     }
     Await.result(future, Duration.Inf)
   }
 
-  //  test("Nested key injection - Multiple Layers- Double dots") { //TODO FIX
-  //    val person = new BsonObject().put("name", "john doe").put("age", 21)
-  //    val client = new BsonObject().put("person", person)
-  //    val bson = new BsonObject().put("client", client)
-  //
-  //    val ex = "..age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
-  //      in + 20
-  //    })
-  //    val future = bsonInj.go(bson.encodeToBarray())
-  //    future onComplete {
-  //      case Success(resultValue) => println(resultValue.mkString(" "));
-  //      case Failure(e) => println(e); fail
-  //    }
-  //    Await.result(future, Duration.Inf)
-  //  }
-  */
 }

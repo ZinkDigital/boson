@@ -20,29 +20,14 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
   private val boson: BosonImpl = new BosonImpl()
   private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fInj = Some(injectFunction))
 
-  //  val boson: BosonImpl = new BosonImpl()
-  //
-  //  val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
-  //    case Success(result) => result
-  //    case Failure(excp) => throw excp
-  //  }
-  //
-  //
-  //  /**
-  //    * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
-  //    * statements used to instantiate the Interpreter.
-  //    * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
-  //    */
-  //  // byteArr as argument to go to interpreter, Either[byte[],String]
-
   /**
-    * This is new Code!!!
+    * Methon that delegates the injection process to Interperter passing to it the data structure to be used (either a byte array or a String)
     *
-    * @param bsonEncoded - ???
+    * @param bsonEncoded - Data structure to be used in the injection process
     */
-  private def runInterpreter(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
+  private def runInterpreter(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] =
     interpreter.run(bsonEncoded).asInstanceOf[Either[Array[Byte], String]]
-  }
+
 
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] = Future {

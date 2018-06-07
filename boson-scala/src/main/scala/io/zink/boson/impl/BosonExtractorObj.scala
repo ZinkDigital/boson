@@ -32,25 +32,6 @@ class BosonExtractorObj[T, R <: HList](expression: String,
   private val boson: BosonImpl = new BosonImpl()
 
   private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fExt = extractFunction)
-
-  //  private def runInterpreter2(bsonEncoded: Seq[ByteBuf]): Any = {
-  //    val midRes =
-  //      bsonEncoded.par.map { elem =>
-  //        interpreter.runExtractors(Left(elem), interpreter.keyList, interpreter.limitList)
-  //      }.seq.flatten.toList
-  //    val seqTuples = TypeCase[Seq[List[(String,Any)]]]
-  //    val result: Seq[T] =
-  //      midRes match {
-  //        case seqTuples(vs) =>
-  //          vs.par.map{ elem =>
-  //            extractLabels.to[T].from[gen.Repr](elem)
-  //          }.seq.collect { case v if v.nonEmpty => v.get }
-  //        case _ => Seq.empty[T]
-  //      }
-  //    if(extractSeqFunction.isDefined)  extractSeqFunction.get(result) else result.foreach( elem => extractFunction.get(elem))
-  //
-  //  }
-
   /**
     * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
     * statements used to instantiate the Interpreter.
@@ -87,15 +68,6 @@ class BosonExtractorObj[T, R <: HList](expression: String,
     }
     future
   }
-
-  //  def go2(encodedStructures: Seq[ByteBuf]): Future[Seq[ByteBuf]] = {
-  //    val future: Future[Seq[ByteBuf]] =
-  //      Future {
-  //        runInterpreter2(encodedStructures)
-  //        encodedStructures
-  //      }
-  //    future
-  //  }
 
   override def go(bsonByteEncoding: String): Future[String] = {
     val future: Future[String] =
