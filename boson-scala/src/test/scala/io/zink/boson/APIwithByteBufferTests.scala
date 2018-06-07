@@ -41,6 +41,7 @@ class APIwithByteBufferTests extends FunSuite{
     val expected: Seq[Array[Byte]] = Seq(br4.encodeToBarray(),obj2.encodeToBarray(),obj3.encodeToBarray())
     val result = future.join()
     println(result)
+
     result.head.foreach(b =>print(s"$b"))
     println()
     println(new String(result.head))
