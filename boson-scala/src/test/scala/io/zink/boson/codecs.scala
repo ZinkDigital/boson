@@ -2313,7 +2313,7 @@ class codecs extends FunSuite {
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
   }
-//  test("BsonObject Extract doubledot array JSON") {
+//  test("BsonObject Extract doubledot array JSON") { //TODO FIX THIS TEST
 //    val bytes = new JsonArray().add(3).add("three")
 //    val jsonObj: JsonObject = new JsonObject().put("field", new JsonObject().put("Epoch", new JsonArray().add(3).add("three")))
 //    val json: String = jsonObj.encode()
