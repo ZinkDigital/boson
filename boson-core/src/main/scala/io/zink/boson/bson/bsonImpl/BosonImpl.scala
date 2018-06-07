@@ -1131,7 +1131,6 @@ class BosonImpl() {
               case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   val partialCodec = processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
-                  codec.setReaderIndex(codec.getReaderIndex + 1) //partial codec reads a byte that codec is not expecting it to read, skip it, it's already read
                   partialCodec
                 } else processTypesArray(dataType, codec, codecWithKey)
             }
