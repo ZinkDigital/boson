@@ -1,4 +1,3 @@
-
 package io.zink.boson
 
 import bsonLib.{BsonArray, BsonObject}
@@ -156,6 +155,7 @@ class NewInjectorsTests extends FunSuite {
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
     assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
+
   test("Nested key injection - Double dots") {
     val person = new BsonObject().put("name", "john doe")
     val bson = new BsonObject().put("person", person)
@@ -206,6 +206,31 @@ class NewInjectorsTests extends FunSuite {
     }
     Await.result(future, Duration.Inf)
     println("Before: " + bson.encodeToBarray().mkString(", "))
+  }
+
+  test("Key withArray Exp [1 until end] toUpperCase - Single Dots") {
+    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
+    val bson = new BsonObject().put("person", bsonArray)
+    val ex = ".person[1 until end]"
+    val bsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val future = bsonInj.go(bson.encodeToBarray())
+    future onComplete {
+      case Success(resultValue) =>
+        println(resultValue.mkString(", "))
+        val string = new String(resultValue)
+        assert((string contains "PERSON2") && (string contains "person3") && (resultValue.length == bson.encodeToBarray.length))
+      case Failure(e) =>
+        println(e)
+        fail
+    }
+    Await.result(future, Duration.Inf)
+    println(bson.encodeToBarray().mkString(", "))
+  }
+
+  test("Key with Array Exp[all] toUpperCase - Single Dots"){
+    ???
   }
 
   test("Nested key injection - Multiple Layers- Double dots") {
