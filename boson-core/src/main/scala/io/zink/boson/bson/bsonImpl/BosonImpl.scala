@@ -1141,7 +1141,7 @@ class BosonImpl() {
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
-    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) {  //If there's only one last byte to read (the closing 0 byte)
+    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) { //If there's only one last byte to read (the closing 0 byte)
       codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
     } else codecWithoutSize
 
@@ -1373,7 +1373,7 @@ class BosonImpl() {
         We first cast the result of applyFunction as String because when we input a byte array we apply the injFunction to it
         as a String. We return that modified String and convert it back to a byte array in order to create a ByteBuf from it
        */
-      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[String].getBytes()
+      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes, fromRoot = true).asInstanceOf[Array[Byte]]
         val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
         CodecObject.toCodec(newBuf)
 
@@ -1761,7 +1761,7 @@ class BosonImpl() {
     * @tparam T - The type of the value
     * @return A modified value in which the injector function was applied
     */
-  private def applyFunction[T](injFunction: T => T, value: Any): T = {
+  private def applyFunction[T](injFunction: T => T, value: Any, fromRoot: Boolean = false): T = {
 
     Try(injFunction(value.asInstanceOf[T])) match {
       case Success(modifiedValue) =>
@@ -1775,7 +1775,15 @@ class BosonImpl() {
             case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
           }
 
-        case byteArr: Array[Byte] =>
+        case byteArr: Array[Byte] if fromRoot => //In case the User passed in the root
+          Try(injFunction(byteArr.asInstanceOf[T])) match {
+            case Success(modifiedValue) =>
+              modifiedValue.asInstanceOf[T]
+
+            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+          }
+
+        case byteArr: Array[Byte] => //TODO PREVENT USER FROM PASSING THE ROOT AND REPLACING IT WITH A STRING OR AN INSTANT ??
           Try(injFunction(new String(byteArr).asInstanceOf[T])) match { //try with the value being a Array[Byte]
             case Success(modifiedValue) => //TODO should we always try to transform the byte arr to a string ? our injFunction could receive a Array[Byte] as input/output?
               modifiedValue.asInstanceOf[T]
@@ -2021,7 +2029,7 @@ class BosonImpl() {
                     }
                   } else {
                     if (exceptions == 0) {
-//                      val newCodecCopy = codecWithKey.duplicate // Here!
+                      //                      val newCodecCopy = codecWithKey.duplicate // Here!
                       Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
                         case Success(tuple) =>
                           (tuple, exceptions)

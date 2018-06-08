@@ -17,8 +17,8 @@ class NewInjectorsTests extends FunSuite {
   test("Root modification") {
     val bson = new BsonObject().put("name", "john doe")
     val ex = "."
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase()
+    val bsonInj = Boson.injector(ex, (in: Array[Byte]) => {
+      new String(in).toUpperCase.getBytes
     })
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
@@ -26,16 +26,15 @@ class NewInjectorsTests extends FunSuite {
     assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
-  test("Root Injection") { //TODO Fixing
+  test("Root Injection") {
     val bson = new BsonObject().put("name", "john doe")
     val ex = "."
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      "Jane Doe"
+    val bsonInj = Boson.injector(ex, (in: Array[Byte]) => {
+      new String(in).replace("john doe", "Jane Doe").getBytes
     })
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(resultValue.mkString(" "))
     assert((new String(resultValue) contains "Jane Doe") && resultValue.length == bsonEncoded.length)
   }
 
@@ -229,7 +228,7 @@ class NewInjectorsTests extends FunSuite {
     println(bson.encodeToBarray().mkString(", "))
   }
 
-  test("Key with Array Exp[all] toUpperCase - Single Dots"){
+  test("Key with Array Exp[all] toUpperCase - Single Dots") {
     ???
   }
 

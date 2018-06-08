@@ -239,6 +239,13 @@ object Boson {
           new BosonInjector[Seq[Array[Byte]]](expression, injectFunction)
       }
 
+    implicit val byteArr: injector[Array[Byte]] =
+      new injector[Array[Byte]] {
+        implicit val typeCase: Option[TypeCase[Array[Byte]]] = None
+        override def inject(expression: String, injectFunction: Array[Byte] => Array[Byte]): Boson =
+          new BosonInjector[Array[Byte]](expression, injectFunction)
+      }
+
     implicit val double: injector[Double] =
       new injector[Double]{
         implicit val typeCase: Option[TypeCase[Double]] = Some(TypeCase[Double])
