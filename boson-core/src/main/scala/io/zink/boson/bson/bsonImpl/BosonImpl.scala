@@ -2024,12 +2024,12 @@ class BosonImpl() {
                     }
                   } else {
                     if (exceptions == 0) {
-                      val newCodecCopy = codecWithKey.duplicate
-                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+//                      val newCodecCopy = codecWithKey.duplicate // Here!
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
                         case Success(tuple) =>
                           (tuple, exceptions)
                         case Failure(_) =>
-                          ((codecWithKey, newCodecCopy), exceptions + 1)
+                          ((codecWithKey, codecWithKey), exceptions + 1)
                       }
                     } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                   }
