@@ -1448,9 +1448,13 @@ class BosonImpl() {
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
       case D_BSONOBJECT =>
-        codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT_INJ)))
+        val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match {
+          case SonObject(_,byteBuf) => byteBuf.asInstanceOf[ByteBuf]
+        }
+        codec.writeToken(currentResCodec, SonObject(CS_OBJECT,value0.array))
+//        codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT_INJ)))//TODO - HERE
       case D_BSONARRAY =>
-        codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY)))
+        codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY)))//TODO - HERE
       case D_NULL =>
         currentResCodec
       case D_INT =>
