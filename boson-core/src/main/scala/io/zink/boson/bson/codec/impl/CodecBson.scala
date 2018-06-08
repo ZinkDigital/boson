@@ -533,7 +533,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   override def +(sumCodec: Codec): Codec = {
     val duplicated = copyByteBuf
     duplicated.writerIndex(buff.writerIndex())
-    println(duplicated.writerIndex())
     sumCodec.getCodecData match {
       case Left(x) => duplicated.writeBytes(x) //TODO This moves the reader index from sumCodec's ByteBuf, this might be problematic
     }

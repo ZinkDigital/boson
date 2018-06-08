@@ -1,3 +1,4 @@
+
 package io.zink.boson
 
 import bsonLib.{BsonArray, BsonObject}
@@ -13,32 +14,30 @@ import scala.util.{Failure, Success}
 
 @RunWith(classOf[JUnitRunner])
 class NewInjectorsTests extends FunSuite {
-  /*
+
   test("Root modification") {
     val bson = new BsonObject().put("name", "john doe")
     val ex = "."
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase()
     })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE") //TODO maybe get rid of overhead information
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
-  test("Root Injection") {
+  test("Root Injection") { //TODO Fixing
     val bson = new BsonObject().put("name", "john doe")
     val ex = "."
     val bsonInj = Boson.injector(ex, (in: String) => {
       "Jane Doe"
     })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "Jane Doe")
-      case Failure(e) => println(e); fail
-    }
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    println(resultValue.mkString(" "))
+    assert((new String(resultValue) contains "Jane Doe") && resultValue.length == bsonEncoded.length)
   }
 
   test("Top level key modification") {
@@ -47,12 +46,11 @@ class NewInjectorsTests extends FunSuite {
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
     })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE")
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    println(resultValue.mkString(" ") + "\n" + bsonEncoded.mkString(" "))
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
   test("Nested key modification - Single Dots") {
@@ -62,12 +60,10 @@ class NewInjectorsTests extends FunSuite {
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
     })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE")
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
   test("Nested key modification - Single Dots - Multiple layers") {
@@ -78,12 +74,10 @@ class NewInjectorsTests extends FunSuite {
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
     })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE")
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
   test("Nested key modification, two fields - Single Dots - Multiple layers") {
@@ -94,12 +88,10 @@ class NewInjectorsTests extends FunSuite {
     val bsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => assert(resultValue containsSlice Array(41, 0, 0, 0))
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   }
 
   test("Top level halfkey modification - Single Dots") {
@@ -118,26 +110,22 @@ class NewInjectorsTests extends FunSuite {
       in + " Hello"
     })
 
-    val future1 = bsonInj1.go(bson.encodeToBarray())
-    future1 onComplete {
-      case Success(resultValue) =>
-        assert(new String(resultValue) contains "JOHN DOE")
+    val bsonEncoded = bson.encodeToBarray()
 
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future1, Duration.Inf)
-    val future2 = bsonInj2.go(bson.encodeToBarray())
-    future2 onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "john doe")
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future2, Duration.Inf)
-    val future3 = bsonInj3.go(bson.encodeToBarray())
-    future3 onComplete {
-      case Success(resultValue) => assert(new String(resultValue) contains "John Doe Hello")
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future3, Duration.Inf)
+    val future1 = bsonInj1.go(bsonEncoded)
+    val resultValue1: Array[Byte] = Await.result(future1, Duration.Inf)
+
+    val future2 = bsonInj2.go(bsonEncoded)
+    val resultValue2: Array[Byte] = Await.result(future2, Duration.Inf)
+
+    val future3 = bsonInj3.go(bsonEncoded)
+    val resultValue3: Array[Byte] = Await.result(future3, Duration.Inf)
+
+    assert(
+      ((new String(resultValue1) contains "JOHN DOE") && resultValue1.length == bsonEncoded.length) &&
+        ((new String(resultValue2) contains "john doe") && resultValue2.length == bsonEncoded.length) &&
+        (new String(resultValue3) contains "John Doe Hello")
+    )
   }
 
   //  test("HasElem injection test") {  //TODO Correct this test
@@ -161,6 +149,72 @@ class NewInjectorsTests extends FunSuite {
     val bson = new BsonObject().put("name", "John Doe")
     val ex = "..name"
     val bsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+  }
+  test("Nested key injection - Double dots") {
+    val person = new BsonObject().put("name", "john doe")
+    val bson = new BsonObject().put("person", person)
+    //    val bson = new BsonObject().put("client", client)
+
+    val ex = "..name"
+    val bsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    println(bsonEncoded.mkString(" ") + "\n" + resultValue.mkString(" "))
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+  }
+
+  test("Key with Array Exp [0 to 1] modification toUpperCase - Single Dots") {
+    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
+    val bson = new BsonObject().put("person", bsonArray)
+    val ex = ".person[0 to 1]"
+    val bsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    val str = new String(resultValue)
+    assert((str contains "PERSON1") && (str contains "PERSON2") && (resultValue.length == bsonEncoded.length))
+  }
+
+  test("Key with Array Exp [0 until 1] modification - Single Dots") { //TODO - On Stand By
+    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
+    val bson = new BsonObject().put("person", bsonArray)
+    val expression = ".person[0 until 1]"
+    val bsonInj = Boson.injector(expression, (in: String) => {
+      in.toUpperCase
+    })
+    val future = bsonInj.go(bson.encodeToBarray())
+    future onComplete {
+      case Success(resultValue) =>
+        println("After: " + resultValue.mkString(", "))
+        val string = new String(resultValue)
+        println(resultValue.size)
+        assert((string contains "PERSON1") && (string contains "person2"))
+      case Failure(e) =>
+        println(e)
+        fail
+    }
+    Await.result(future, Duration.Inf)
+    println("Before: " + bson.encodeToBarray().mkString(", "))
+  }
+
+  test("Nested key injection - Multiple Layers- Double dots") {
+    val person = new BsonObject().put("name", "john doe")
+    val client = new BsonObject().put("person", person)
+    val bson = new BsonObject().put("client", client)
+
+    val ex = "..name"
+    val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase()
     })
     val future = bsonInj.go(bson.encodeToBarray())
@@ -171,89 +225,27 @@ class NewInjectorsTests extends FunSuite {
     Await.result(future, Duration.Inf)
   }
 
-  test("Nested key injection - Double dots") {
-    val person = new BsonObject().put("name", "john doe")
-    val bson = new BsonObject().put("person", person)
-    //    val bson = new BsonObject().put("client", client)
-
-    val ex = "..name"
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase()
-    })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) => println("Here, result was this: " + new String(resultValue));
-      case Failure(e) => println(e); fail
-    }
-    Await.result(future, Duration.Inf)
-  }
-
-  test("Key with Array Exp [0 to 1] modification toUpperCase - Single Dots") {
-    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
-    val bson = new BsonObject().put("person", bsonArray)
-    val ex = ".person[0 to 1]"
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase
-    })
-    val future = bsonInj.go(bson.encodeToBarray())
-    future onComplete {
-      case Success(resultValue) =>
-        println(resultValue.mkString(", "))
-        val string = new String(resultValue)
-        assert((string contains "PERSON1") && (string contains "PERSON2") && (resultValue.length == bson.encodeToBarray.length))
-      case Failure(e) =>
-        println(e)
-        fail
-    }
-    Await.result(future, Duration.Inf)
-    println(bson.encodeToBarray().mkString(", "))
-  }*/
-
-//  test("Key with Array Exp [0 until 1] modification - Single Dots") { //TODO - On Stand By
-//    val bsonArray = new BsonArray().add("person1").add("person2").add("person3")
-//    val bson = new BsonObject().put("person", bsonArray)
-//    val expression = ".person[0 until 1]"
-//    val bsonInj = Boson.injector(expression, (in: String) => {
-//      in.toUpperCase
-//    })
-//    val future = bsonInj.go(bson.encodeToBarray())
-//    future onComplete {
-//      case Success(resultValue) =>
-//        println("After: " + resultValue.mkString(", "))
-//        val string = new String(resultValue)
-//        println(resultValue.size)
-//        assert((string contains "PERSON1") && (string contains "person2"))
-//      case Failure(e) =>
-//        println(e)
-//        fail
-//    }
-//    Await.result(future, Duration.Inf)
-//    println("Before: " + bson.encodeToBarray().mkString(", "))
-//  }
-//
-//  test("Nested key injection - Multiple Layers- Double dots") {
-//    val person = new BsonObject().put("name", "john doe")
-//    val client = new BsonObject().put("person", person)
-//    val bson = new BsonObject().put("client", client)
-//
-//    val ex = "..name"
-//    val bsonInj = Boson.injector(ex, (in: String) => {
-//      in.toUpperCase()
-//    })
-//    val future = bsonInj.go(bson.encodeToBarray())
-//    future onComplete {
-//      case Success(resultValue) => assert(new String(resultValue) contains "JOHN DOE");
-//      case Failure(e) => println(e); fail
-//    }
-//    Await.result(future, Duration.Inf)
-//  }
-
-  test("Nested key injection - Multiple Layers- Double dots") { //TODO FIX
+  test("Nested key injection - Multiple Layers- Double dots - Second argument") {
     val person = new BsonObject().put("name", "john doe").put("age", 21)
     val client = new BsonObject().put("person", person)
     val bson = new BsonObject().put("client", client)
 
     val ex = "..age"
+    val bsonInj = Boson.injector(ex, (in: Int) => {
+      in + 20
+    })
+    val bsonEncoded = bson.encodeToBarray
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+  }
+
+  test("Nested key injection - Multiple Layers- Single then Double dots") { //TODO FIX
+    val person = new BsonObject().put("name", "john doe").put("age", 21)
+    val client = new BsonObject().put("person", person)
+    val bson = new BsonObject().put("client", client)
+
+    val ex = ".client..age"
     val bsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })

@@ -1088,8 +1088,6 @@ class BosonImpl() {
                         val mergedCodecs = codecWithKey + partialCodec
                         codec.setReaderIndex(codec.getReaderIndex + partialCodec.getSize + 1) //Skip the bytes that the subcodec already read
                         modifierAll(codec, mergedCodecs, dataType, injFunction)
-                      //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
-                      //TODO - Maybe not because those bytes are the partialData read from codec
                       case _ =>
                         modifierAll(codec, codecWithKey, dataType, injFunction)
                     }
@@ -1129,10 +1127,9 @@ class BosonImpl() {
                   }
                 }
               case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
-                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  val partialCodec = processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
-                  partialCodec
-                } else processTypesArray(dataType, codec, codecWithKey)
+                if (statementsList.head._2.contains(C_DOUBLEDOT))
+                  processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                else processTypesArray(dataType, codec, codecWithKey)
             }
         }
         writeCodec(newCodec, startReader, originalSize)
@@ -1144,7 +1141,7 @@ class BosonImpl() {
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
-    val codecWithLastByte = if (codec.getReaderIndex == originalSize) {
+    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) {  //If there's only one last byte to read (the closing 0 byte)
       codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
     } else codecWithoutSize
 
@@ -1492,7 +1489,7 @@ class BosonImpl() {
         applyFunction(injFunction, value0) match {
           case value: String =>
             val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1))
-            codec.writeToken(strSizeCodec, SonString(CS_STRING, value))
+            codec.writeToken(strSizeCodec, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
         }
 
       case D_BSONOBJECT =>
@@ -2293,8 +2290,18 @@ class BosonImpl() {
         (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val token = codec.readToken(SonString(CS_STRING))
-        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+        //        val token = codec.readToken(SonString(CS_STRING))
+        //
+        //        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        val strSizeCodec = codec.writeToken(resultCodec, SonNumber(CS_INTEGER, value0.length + 1))
+        val strSizeCodecCopy = codec.writeToken(resultCodecCopy, SonNumber(CS_INTEGER, value0.length + 1))
+        val codecWithLastByte = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+        val codecWithLastByteCopy = codec.writeToken(strSizeCodecCopy, SonString(CS_STRING, value0)) + strSizeCodecCopy.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+        (codecWithLastByte, codecWithLastByteCopy)
 
       case D_BSONOBJECT =>
         val codecObj = codec.readToken(SonObject(CS_OBJECT)) match {
