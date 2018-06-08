@@ -1574,8 +1574,8 @@ class BosonImpl() {
           val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1))
           codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
       }
-      //TODO - I was here!
-      val resCodecCopy = codec.writeToken(codecResCopy, SonString(CS_STRING, value0)) + codecResCopy.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+      val strSizeCodec = codec.writeToken(codecResCopy, SonNumber(CS_INTEGER, value0.length + 1))
+      val resCodecCopy = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
       (resCodec, resCodecCopy)
 
     case D_BSONOBJECT =>
@@ -2110,7 +2110,7 @@ class BosonImpl() {
                           val emptyCodec: Codec = createEmptyCodec(codec)
                           val newCodecCopy = codecWithKey.duplicate
                           val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
-                          Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
+                          Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match { //emptyCodec.duplicate
                             case Success(tuple) =>
                               ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
                             case Failure(_) =>
@@ -2131,7 +2131,7 @@ class BosonImpl() {
                   } else {
                     if (exceptions == 0) {
                       val newCodecCopy = codecWithKey.duplicate
-                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
                         case Success(tuple) =>
                           (tuple, exceptions)
                         case Failure(_) =>
@@ -2293,8 +2293,19 @@ class BosonImpl() {
         (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val token = codec.readToken(SonString(CS_STRING))
-        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+        /*
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
+        codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+        */
+        val token = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        val strSizeCodec = codec.writeToken(resultCodec, SonNumber(CS_INTEGER, token.length + 1))
+        val strSizeCodecCopy = codec.writeToken(resultCodecCopy, SonNumber(CS_INTEGER, token.length + 1))
+        (codec.writeToken(strSizeCodec, SonString(CS_STRING, token)), codec.writeToken(strSizeCodecCopy, SonString(CS_STRING, token)))
 
       case D_BSONOBJECT =>
         val codecObj = codec.readToken(SonObject(CS_OBJECT)) match {
@@ -2446,7 +2457,7 @@ class BosonImpl() {
 
     val emptyCodec = createEmptyCodec(codec)
 
-    val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(emptyCodec, emptyCodec.duplicate)
+    val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(emptyCodec, createEmptyCodec(codec))
 
     val finalSize = codecWithoutSize.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
