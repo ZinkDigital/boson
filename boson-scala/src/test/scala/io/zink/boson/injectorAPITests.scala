@@ -346,9 +346,9 @@ class injectorAPITests extends FunSuite {
 //      val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
 //      assertEquals(Vector(2, 3, 2, 3), a)
 //  }
-
-
-//  test("ProgStatement 4 bson11.array21[0 until 2]"){
+//
+//
+//  test("MoreKeys 4 bson11.array21[0 until 2]"){
 //
 //    val bsonObjectLvl31: BsonObject = new BsonObject().put("field1", 0)
 //    val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -382,8 +382,8 @@ class injectorAPITests extends FunSuite {
 //
 //
 //  }
-
-//  test("ProgStatement 3 bson11.array21[@i*nt].int"){
+//
+//  test("MoreKeys 3 bson11.array21[@i*nt].int"){
 //
 //    val bsonObjectLvl31: BsonObject = new BsonObject().put("int", 0)
 //    val bsonObjectLvl32: BsonObject = new BsonObject().put("int1", 1)
@@ -412,8 +412,8 @@ class injectorAPITests extends FunSuite {
 //    assertEquals(Vector(2, 0),a  )
 //
 //  }
-
-//  test("ProgStatement 2 array[0].damnnn[1].google"){
+//
+//  test("MoreKeys 2 array[0].damnnn[1].google"){
 //    val bAux2: BsonObject = new BsonObject().put("google", "DAMMN")
 //    val bsonArrayEvent1: BsonArray = new BsonArray().add(bAux2).add(bAux2)//.add(bAux2)
 //    val bAux1: BsonObject = new BsonObject().put("creep", bAux2)
@@ -625,8 +625,8 @@ class injectorAPITests extends FunSuite {
 //    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
 //    assertEquals(Vector(14.5) ,future.join().getValue  )
 //  }
-
-}
-
-
-
+//
+//}
+//
+//
+//

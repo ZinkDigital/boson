@@ -9,7 +9,7 @@ import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class APIwithByteBufferTests extends FunSuite{
+class APIwithByteBufferTests extends FunSuite {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val br4: BsonArray = new BsonArray().add("Insecticida")
   val br1: BsonArray = new BsonArray().add("Tarantula").add("Aracnídius").add(br4)

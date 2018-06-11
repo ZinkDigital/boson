@@ -1,0 +1,147 @@
+[0m[[0minfo[0m] [0m[32mjpPlusPlusTests:[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.key2[@elem1].key3[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.key2[@elem1].key3[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.key2[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.key2[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.key2[# to end].key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.key2[# to end].key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.key2[@elem].key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.key2[@elem].key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.key2[#].key3[@elem].k*y[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.key2[#].key3[@elem].k*y[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key V2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key V2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[# to end].key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[# to end].key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key[@elem].key[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key[@elem].key[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key[#] V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key[#] V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key[#] V2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key[#] V2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..*y1[@elem1].key2[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..*y1[@elem1].key2[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..*y1[@elem1].key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..*y1[@elem1].key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1..key2[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1..key2[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1..key2[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1..key2[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1..key2[#]..key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1..key2[#]..key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1..key2[#]..key3[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1..key2[#]..key3[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .*y1..*y2[#]..*y3..key4[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .*y1..*y2[#]..*y3..key4[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1..key2[@elem1]..key3[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1..key2[@elem1]..key3[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#]..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#]..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[@elem]..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[@elem]..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1..*ey2..*ey3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1..*ey2..*ey3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.key2..key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.key2..key3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key[#].*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key[#].*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.*.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.*.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.*..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.*..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*.key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.*.key2[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.*.key2[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key[@elem].*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key[@elem].*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*.key2[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*.key2[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.*.[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.*.[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*.[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*.[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*..[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*..[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*..[#]..k*y2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*..[#]..k*y2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*.[#].key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*.[#].key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[#].*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[#].*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1.*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1.*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .key1.*.*.*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .key1.*.*.*.*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj .*[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..* V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..* V2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..* V3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key, but multiple keys with same name[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key, but multiple keys with same name V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key, but multiple keys with same name V2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Inj ..key1[@elem1][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex ..key1[@elem1]..key2[@elem2][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex '.' BsonObject Root[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex '.' BsonArray Root[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex .[first][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex key1.key2[all][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex key[end] V1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [end][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [end]..[end][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [end]..Key1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [end]..[end].Key[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [#to end]..[end]..*[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [#to#]..[end]..*[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [end]..[end]..*[@elem][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [# to end]..Key1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex key1[end]..key2 END has Obj[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex [end]..key2 END has Arr[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage all types inside Array[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression key[@elem] case 1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression key[@elem] case 2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression key[@elem] case 3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression key[@elem] case 4[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex..key1[#]..key2[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex..key1[end]..key2[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex..key1[#]..key2[end][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex..key1[all]..key2[end]..key3[@elem]..key4[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression [#]..[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 2[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 3[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 4[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 5[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 6[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 7[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 8[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 9[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 10[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 11[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 12[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression .* on Arrays case 13[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression [end] on Arrays case 1[0m[0m
+[0m[[0minfo[0m] [0m[32m- Ex Coverage of expression [end] on Arrays case 2[0m[0m

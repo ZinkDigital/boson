@@ -1,0 +1,4 @@
+[0m[[0mdebug[0m] [0mCopy resource mappings: [0m
+[0m[[0mdebug[0m] [0m	(/Users/Nige/ZinkWorkspace/boson/boson-scala/src/test/resources/JsonGrammar.antlr,/Users/Nige/ZinkWorkspace/boson/boson-scala/target/test-classes/JsonGrammar.antlr)[0m
+[0m[[0mdebug[0m] [0m	(/Users/Nige/ZinkWorkspace/boson/boson-scala/src/test/resources/jsonOutput.txt,/Users/Nige/ZinkWorkspace/boson/boson-scala/target/test-classes/jsonOutput.txt)[0m
+[0m[[0mdebug[0m] [0m	(/Users/Nige/ZinkWorkspace/boson/boson-scala/src/test/resources/longJsonString.txt,/Users/Nige/ZinkWorkspace/boson/boson-scala/target/test-classes/longJsonString.txt)[0m
