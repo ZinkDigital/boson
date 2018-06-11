@@ -1,10 +1,7 @@
 package io.zink.boson
 
-import java.util.concurrent.CompletableFuture
-
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -39,7 +36,7 @@ class injectorAPITests extends FunSuite {
   val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
 //  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
 
-  test("simple test"){
+  /*test("simple test"){
     val book1 = new BsonObject().put("Title", "Scala")
     val store = new BsonObject().put("Book", book1)
     val bson = new BsonObject().put("Store", store)
@@ -624,7 +621,7 @@ class injectorAPITests extends FunSuite {
 //
 //    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
 //    assertEquals(Vector(14.5) ,future.join().getValue  )
-//  }
+//  }*/
 
 }
 
