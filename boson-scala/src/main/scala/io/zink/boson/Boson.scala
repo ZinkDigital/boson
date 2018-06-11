@@ -59,9 +59,8 @@ object Boson {
       new extractor[A] {
 
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
-        //println("implicit caseClass")
         def extract(expression: String, extractFunction: A => Unit): Boson =
-          new BosonExtractorObj[A, L](expression, extractFunction = Option(extractFunction))(f,ext,typeCase)
+          new BosonExtractorObj[A, L](expression, extractFunction = Some(extractFunction))(f,ext,typeCase)
       }
 
     /**
@@ -81,7 +80,7 @@ object Boson {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
         //println("implicit seqCaseClass")
         def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
-          new BosonExtractorObj[A, L](expression, extractSeqFunction = Option(extractFunction))(f, ext,typeCase)
+          new BosonExtractorObj[A, L](expression, extractSeqFunction = Some(extractFunction))(f, ext,typeCase)
 
       }
     }
@@ -238,6 +237,13 @@ object Boson {
         implicit val typeCase: Option[TypeCase[Seq[Array[Byte]]]] = None
         override def inject(expression: String, injectFunction: Seq[Array[Byte]] => Seq[Array[Byte]]): Boson =
           new BosonInjector[Seq[Array[Byte]]](expression, injectFunction)
+      }
+
+    implicit val byteArr: injector[Array[Byte]] =
+      new injector[Array[Byte]] {
+        implicit val typeCase: Option[TypeCase[Array[Byte]]] = None
+        override def inject(expression: String, injectFunction: Array[Byte] => Array[Byte]): Boson =
+          new BosonInjector[Array[Byte]](expression, injectFunction)
       }
 
     implicit val double: injector[Double] =

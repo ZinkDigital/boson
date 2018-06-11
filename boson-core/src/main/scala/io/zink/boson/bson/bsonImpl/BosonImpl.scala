@@ -1,6 +1,5 @@
 package io.zink.boson.bson.bsonImpl
 
-import java.nio.ByteBuffer
 import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
@@ -8,7 +7,6 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 
-import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -18,70 +16,13 @@ case class CustomException(smth: String) extends RuntimeException {
   override def getMessage: String = smth
 }
 
-//abstract class experience extends ByteBuf {
-//  override def copy(index: Int, length: Int): ByteBuf
-//}
-//object experience {
-//  def copy(source: ByteBuf,index: Int, length: Int): ByteBuf = {
-//    val b = Unpooled.buffer()
-//
-//    System.arraycopy(source, index, b.array(), 0, length)
-//    b
-//  }
-//}
 /**
   * Class with all operations to be applied on a Netty ByteBuffer or a Json encoded String
-  *
-  * @param byteArray  to be removed
-  * @param javaByteBuf  to be removed
-  * @param stringJson to be removed
   */
-class BosonImpl(
-                 byteArray: Option[Array[Byte]] = None,
-                 javaByteBuf: Option[ByteBuffer] = None,
-                 stringJson: Option[String] = None
-               ) {
+class BosonImpl() {
 
-  /**
-    * Deprecated, used on previous implementations of Boson to verify which input was given by the user.
-    */
-  @deprecated
-  private val valueOfArgument: String =
-  if (javaByteBuf.isDefined) {
-    javaByteBuf.get.getClass.getSimpleName
-  } else if (byteArray.isDefined) {
-    byteArray.get.getClass.getSimpleName
-  }else if (stringJson.isDefined) {
-    stringJson.get.getClass.getSimpleName
-  } else EMPTY_CONSTRUCTOR
-
-  /**
-    * Deprecated for the same reason as the previous one.
-    */
-  @deprecated
-  private val nettyBuffer: (Either[ByteBuf, String]) = valueOfArgument match {
-    case ARRAY_BYTE =>
-      val b: ByteBuf = Unpooled.copiedBuffer(byteArray.get)
-      Left(b)
-    case JAVA_BYTEBUFFER =>
-      val buff: ByteBuffer = javaByteBuf.get
-      if (buff.position() != 0) {
-        buff.position(0)
-        val b: ByteBuf = Unpooled.copiedBuffer(buff)
-        buff.clear()
-        Left(b)
-      } else {
-        val b: ByteBuf = Unpooled.copiedBuffer(buff)
-        buff.clear()
-        Left(b)
-      }
-    case STRING =>
-      val b:String = stringJson.get
-      Right(b)
-    case EMPTY_CONSTRUCTOR =>
-      Unpooled.buffer()
-      Left(Unpooled.buffer())
-  }
+  type DataStructure = Either[ByteBuf, String]
+  type StatementsList = List[(Statement, String)]
 
   /**
     * Set of conditions to extract primitive types while traversing an Object.
@@ -102,14 +43,13 @@ class BosonImpl(
   /**
     * Public method to trigger extraction.
     *
-    * @param netty1 Encoded document.
-    * @param keyList  set of keys.
-    * @param limitList  limits of arrays.
+    * @param netty1    Encoded document.
+    * @param keyList   set of keys.
+    * @param limitList limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
-  //TODO param [T] - To be removed
-  def extract[T](netty1: Either[ByteBuf, String], keyList: List[(String, String)],
+  def extract[T](netty1: DataStructure, keyList: List[(String, String)],
                  limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
 
     val nettyC: Codec = netty1 match {
@@ -117,65 +57,54 @@ class BosonImpl(
       case Left(x) => CodecObject.toCodec(x)
     }
 
-    val startReaderIndexCodec:Int = nettyC.getReaderIndex
+    val startReaderIndexCodec: Int = nettyC.getReaderIndex
     Try(nettyC.readSize) match {
       case Success(value) =>
         val size: Int = value
         val seqTypeCodec: SonNamedType = nettyC.rootType
         seqTypeCodec match {
           case SonZero => Nil
-          case SonArray(_,_) =>
+          case SonArray(_, _) =>
             val arrayFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
               case C_DOT if keyList.lengthCompare(1) == 0 =>
-                Try(nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].result) match{
-                  case Success(v)=>
+                Try(nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].info) match {
+                  case Success(v) =>
                     nettyC.release()
                     List(v)
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
               case _ =>
-                Try(extractFromBsonArray(nettyC, size, arrayFinishReaderIndex, keyList, limitList))match{
+                Try(extractFromBsonArray(nettyC, size, arrayFinishReaderIndex, keyList, limitList)) match {
                   case Success(v) =>
                     nettyC.release()
                     v
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
             }
-          case SonObject(_,_) =>
+          case SonObject(_, _) =>
             val bsonFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
               case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => Nil
               case C_DOT if keyList.lengthCompare(1) == 0 =>
-                Try(nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].result) match{
-                  case Success(v)=>
+                Try(nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].info) match {
+                  case Success(v) =>
                     nettyC.release()
                     List(v)
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
-              /*
-              case _ if keyList.head._2.equals(C_BUILD)=>
-                Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
-                  case Success(v)=>
-                    nettyC.release()
-                    v
-                  case Failure(_)=>
-                    nettyC.release()
-                    Nil
-                }
-              */
               case _ =>
-                Try( extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList))match{
-                  case Success(v)=>
+                Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList)) match {
+                  case Success(v) =>
                     nettyC.release()
                     v
-                  case Failure(_)=>
+                  case Failure(_) =>
                     nettyC.release()
                     Nil
 
@@ -190,21 +119,20 @@ class BosonImpl(
   /**
     * Structure, types, and rules when traversing an Object.
     * Structure:
-    *   Total Length -> 4 bytes
-    *   Type of next Item -> 1 byte
-    *   Key bytes -> unknown length, ends with 0.
-    *   Value -> Number of bytes depends on type.
+    * Total Length -> 4 bytes
+    * Type of next Item -> 1 byte
+    * Key bytes -> unknown length, ends with 0.
+    * Value -> Number of bytes depends on type.
     * Types:
-    *   Consult Dictionary Object under ENCODING CONSTANTS.
+    * Consult Dictionary Object under ENCODING CONSTANTS.
     *
-    * @param codec  Abstraction of Encoded Document.
-    * @param keyList  set of keys.
-    * @param bsonFinishReaderIndex  last index of Object.
-    * @param limitList  limits of arrays.
+    * @param codec                 Abstraction of Encoded Document.
+    * @param keyList               set of keys.
+    * @param bsonFinishReaderIndex last index of Object.
+    * @param limitList             limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
     */
-  //TODO [T] - To be Removed
   private def extractFromBsonObj[T](codec: Codec, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
     val seqTypeCodec: Int = codec.readDataType
     val finalValue: List[Any] =
@@ -212,7 +140,7 @@ class BosonImpl(
         case D_FLOAT_DOUBLE =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjPrimitiveConditions(keyList)) {
-            val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+            val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
@@ -224,7 +152,7 @@ class BosonImpl(
         case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjPrimitiveConditions(keyList)) {
-            val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result.asInstanceOf[String]
+            val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
@@ -234,80 +162,80 @@ class BosonImpl(
             Nil
           }
         case D_BSONOBJECT =>
-          val (matched: Boolean, key: String) = compareKeys(codec,keyList.head._1)
+          val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjConditions(keyList)) {
             val bsonStartReaderIndex: Int = codec.getReaderIndex
-            val valueTotalLength: Int =codec.readSize
+            val valueTotalLength: Int = codec.readSize
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case C_ALLNEXT | C_ALLDOTS =>
-                val value0 = codec.getToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                val value0 = codec.getToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                 codec.downOneLevel
                 List(List(value0), extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)).flatten
               case C_BUILD =>
                 codec.downOneLevel
                 val res = extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
-                List((key.toLowerCase,res))
+                List((key.toLowerCase, res))
               case _ =>
-                val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                val value0 = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                 List(value0)
 
             }
           } else {
             val bsonStartReaderIndex: Int = codec.getReaderIndex
-            val valueTotalLength: Int =codec.readSize
+            val valueTotalLength: Int = codec.readSize
             val bFnshRdrIndex: Int = bsonStartReaderIndex + valueTotalLength
             keyList.head._2 match {
               case C_LEVEL | C_LIMITLEVEL | C_NEXT =>
                 codec.setReaderIndex(bFnshRdrIndex)
                 Nil
               case _ =>
-                // Truque: Esta função nao faz nada no CodecBson mas no CodecJson avança o readerindex em uma unidade
+                //Trick: This function does nothing in CodecBson but in CodecJson advances the readerIndex by a unit
                 codec.downOneLevel
                 extractFromBsonObj(codec, keyList, bFnshRdrIndex, limitList)
             }
           }
         case D_BSONARRAY =>
-          val (matched: Boolean, key: String) = compareKeys(codec,keyList.head._1)
+          val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched) {
             val arrayStartReaderIndex: Int = codec.getReaderIndex
-            val valueLength: Int =codec.readSize
+            val valueLength: Int = codec.readSize
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
               case C_BUILD =>
                 codec.downOneLevel
-                val res = extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY,C_BUILD)), List((None,None,EMPTY_RANGE)))
-                List((key.toLowerCase,res))
+                val res = extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, List((EMPTY_KEY, C_BUILD)), List((None, None, EMPTY_RANGE)))
+                List((key.toLowerCase, res))
               case C_ALLNEXT | C_ALLDOTS =>
-                val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                val value0 = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                 codec.downOneLevel
                 val res = extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
                 List(List(value0), res).flatten
               case C_LIMIT | C_LIMITLEVEL =>
                 codec.downOneLevel
-                traverseBsonArray( codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
+                traverseBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
               case _ =>
-                val value0 = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                val value0 = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                 List(value0)
             }
           } else {
             val arrayStartReaderIndex: Int = codec.getReaderIndex
-            val valueLength: Int =codec.readSize
+            val valueLength: Int = codec.readSize
             val arrayFinishReaderIndex: Int = arrayStartReaderIndex + valueLength
             keyList.head._2 match {
-              case C_LEVEL | C_LIMITLEVEL | C_NEXT=>
+              case C_LEVEL | C_LIMITLEVEL | C_NEXT =>
                 codec.setReaderIndex(arrayFinishReaderIndex)
                 Nil
               case _ =>
                 codec.downOneLevel
-                extractFromBsonArray( codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
+                extractFromBsonArray(codec, valueLength, arrayFinishReaderIndex, keyList, limitList)
 
             }
           }
         case D_BOOLEAN =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjPrimitiveConditions(keyList)) {
-            val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+            val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0 == 1))
               case _ => List(value0 == 1)
@@ -319,7 +247,7 @@ class BosonImpl(
         case D_NULL =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjPrimitiveConditions(keyList)) {
-            val value0 = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result.asInstanceOf[String]
+            val value0 = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].info.asInstanceOf[String]
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
@@ -330,8 +258,8 @@ class BosonImpl(
           }
         case D_INT =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
-          if (matched && eObjPrimitiveConditions(keyList)){
-            val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+          if (matched && eObjPrimitiveConditions(keyList)) {
+            val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
@@ -343,7 +271,7 @@ class BosonImpl(
         case D_LONG =>
           val (matched: Boolean, key: String) = compareKeys(codec, keyList.head._1)
           if (matched && eObjPrimitiveConditions(keyList)) {
-            val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+            val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info
             keyList.head._2 match {
               case C_BUILD => List((key.toLowerCase, value0))
               case _ => List(value0)
@@ -381,16 +309,17 @@ class BosonImpl(
   /**
     * Structure, types, and rules when traversing an Object.
     * Structure:
-    *   Total Length -> 4 bytes
-    *   Type of next Item -> 1 byte
-    *   Position bytes -> unknown length, ends with 0.
-    *   Value -> Number of bytes depends on type.
+    * Total Length -> 4 bytes
+    * Type of next Item -> 1 byte
+    * Position bytes -> unknown length, ends with 0.
+    * Value -> Number of bytes depends on type.
     * Types:
-    *   Consult Dictionary Object under ENCODING CONSTANTS.
-    * @param codec  Abstraction of Encoded Document.
-    * @param length Size of Array Object.
+    * Consult Dictionary Object under ENCODING CONSTANTS.
+    *
+    * @param codec      Abstraction of Encoded Document.
+    * @param length     Size of Array Object.
     * @param arrayFRIdx last index of Array Object.
-    * @param keyList  set of keys.
+    * @param keyList    set of keys.
     * @param limitList  limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
@@ -426,7 +355,7 @@ class BosonImpl(
               val valueLength2: Int = codec.readSize
               val finishReaderIndex: Int = startReaderIndex + valueLength2
               codec.downOneLevel
-              extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
+              extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
             case D_BOOLEAN =>
               codec.consumeValue(seqType2)
               Nil
@@ -443,15 +372,15 @@ class BosonImpl(
               Nil
           }
         val actualPos2: Int = arrayFRIdx - codec.getReaderIndex
-        if(finalValue.isEmpty) {
+        if (finalValue.isEmpty) {
           actualPos2 match {
-            case x if x > 0 => extractFromBsonArray(codec,  length, arrayFRIdx, keyList, limitList)
+            case x if x > 0 => extractFromBsonArray(codec, length, arrayFRIdx, keyList, limitList)
             case 0 => Nil
           }
         } else {
           actualPos2 match {
             case x if x > 0 =>
-              finalValue ++ extractFromBsonArray(codec,  length, arrayFRIdx, keyList, limitList)
+              finalValue ++ extractFromBsonArray(codec, length, arrayFRIdx, keyList, limitList)
             case 0 => finalValue
           }
         }
@@ -459,24 +388,25 @@ class BosonImpl(
   }
 
   /**
+    * Function that compares 2 keys to check if they match
     *
-    * @param codec  Abstraction of Encoded Document.
-    * @param key  given by user.
+    * @param codec Abstraction of Encoded Document.
+    * @param key   given by user.
     * @return Tuple of Boolean and String, Boolean representing if keys match, String is the key.
     */
   private def compareKeys(codec: Codec, key: String): (Boolean, String) = {
-    val key0 = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].result.asInstanceOf[String]
-    (key.toCharArray.deep == key0.toCharArray.deep | isHalfword(key, key0),key0)
+    val key0 = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].info.asInstanceOf[String]
+    (key.toCharArray.deep == key0.toCharArray.deep | isHalfword(key, key0), key0)
   }
 
 
   /**
     * Traverse an array taking account the limits given.
     *
-    * @param codec  Abstraction of Encoded Document.
-    * @param length Size of Array Object.
+    * @param codec      Abstraction of Encoded Document.
+    * @param length     Size of Array Object.
     * @param arrayFRIdx last index of Array Object.
-    * @param keyList  set of keys.
+    * @param keyList    set of keys.
     * @param limitList  limits of arrays.
     * @tparam T type to be extracted.
     * @return List with extraction result.
@@ -505,7 +435,7 @@ class BosonImpl(
           case D_FLOAT_DOUBLE =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
-                val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info
                 List(value)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -513,7 +443,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
-                    val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                    val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info
                     List(value)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -521,10 +451,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                        val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info
                         List(value)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].result
+                        val value = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info
                         List(value)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -536,7 +466,7 @@ class BosonImpl(
           case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
-                val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info
                 List(value0)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -544,7 +474,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
-                    val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                    val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info
                     List(value0)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -552,10 +482,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info
                         List(value0)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].result
+                        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info
                         List(value0)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -570,10 +500,10 @@ class BosonImpl(
             val bsonFinishReaderIndex: Int = bsonStartReaderIndex + valueTotalLength
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.head._2.equals(C_LIMIT) =>
-                val buf = codec.getToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                val buf = codec.getToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                 List(List(buf), extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)).flatten
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                 List(buf)
               case Some(_) if keyList.head._2.equals(C_LIMIT) =>
                 val res: List[Any] = extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)
@@ -589,34 +519,28 @@ class BosonImpl(
                       case 0 =>
                         codec.setReaderIndex(bsonStartReaderIndex)
                         codec.readSize
-                        val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                        val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                         List(List(buf), res).flatten
                       case _ => res
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
-                    val buf = codec.getToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                    val buf = codec.getToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                     val res = extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
-                    /*
-                    codec.setReader(bsonFinish)
-                    codec.getDataType
-                      case codec.setReader(bsonStart)
-                     */
                     codec.setReaderIndex(bsonFinishReaderIndex)
                     codec.getDataType match {
                       case 0 =>
                         codec.setReaderIndex(bsonStartReaderIndex)
                         codec.readSize
-                        val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                        val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                         List(buf)
                       case _ =>
                         //codec.setReaderIndex(bsonFinishReaderIndex)
                         Nil
                     }
                   case Some(_) if iter >= limitList.head._1.get =>
-                    //println(s"found obj, in pos: $iter")
-                    val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                    val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                     List(buf)
                   case Some(_) if keyList.head._2.equals(C_LIMIT) =>
                     val res: List[Any] = extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)
@@ -628,7 +552,7 @@ class BosonImpl(
                     keyList.head._2 match {
                       case C_LIMIT | C_LIMITLEVEL if keyList.lengthCompare(1) > 0 && keyList.drop(1).head._2.equals(C_FILTER) =>
                         val copyCodec1: Codec = codec.duplicate
-                        val midResult = findElements(copyCodec1,keyList,limitList,bsonStartReaderIndex,bsonFinishReaderIndex)
+                        val midResult = findElements(copyCodec1, keyList, limitList, bsonStartReaderIndex, bsonFinishReaderIndex)
                         copyCodec1.release()
                         if (midResult.isEmpty) {
                           codec.setReaderIndex(bsonFinishReaderIndex)
@@ -642,7 +566,7 @@ class BosonImpl(
                         val res = extractFromBsonObj(codec, List((STAR, C_BUILD)), bsonFinishReaderIndex, List((None, None, EMPTY_RANGE)))
                         List(res)
                       case _ =>
-                        val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                        val buf = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                         List(buf)
 
                     }
@@ -654,10 +578,10 @@ class BosonImpl(
             val finishReaderIndex: Int = startReaderIndex + valueLength2
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.head._2.equals(C_LIMIT) =>
-                val buf = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                val buf = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                 List(List(buf), extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)).flatten
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                 List(buf)
               case Some(_) if keyList.head._2.equals(C_LIMIT) =>
                 val res: List[Any] = extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
@@ -668,18 +592,18 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) && limitList.head._3.equals(C_END) =>
-                    val res = extractFromBsonArray(codec,  valueLength2, finishReaderIndex, keyList, limitList)
+                    val res = extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
                     codec.getDataType match {
                       case 0 =>
                         codec.setReaderIndex(startReaderIndex)
                         codec.readSize
-                        val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                        val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                         List(List(buf), res).flatten
                       case _ => res
                     }
                   case Some(_) if iter >= limitList.head._1.get && keyList.head._2.equals(C_LIMIT) =>
-                    val buf = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
-                    val res = extractFromBsonArray( codec, valueLength2, finishReaderIndex, keyList, limitList)
+                    val buf = codec.getToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
+                    val res = extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
                     List(List(buf), res).flatten
                   case Some(_) if iter >= limitList.head._1.get && limitList.head._3.equals(C_END) =>
                     codec.setReaderIndex(finishReaderIndex)
@@ -687,7 +611,7 @@ class BosonImpl(
                       case 0 =>
                         codec.setReaderIndex(startReaderIndex)
                         codec.readSize
-                        val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                        val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                         List(buf)
                       case _ =>
                         Nil
@@ -695,7 +619,7 @@ class BosonImpl(
                   case Some(_) if iter >= limitList.head._1.get =>
                     codec.setReaderIndex(startReaderIndex)
                     codec.readSize
-                    val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                    val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                     List(buf)
                   case Some(_) if keyList.head._2.equals(C_LIMIT) =>
                     val res: List[Any] = extractFromBsonArray(codec, valueLength2, finishReaderIndex, keyList, limitList)
@@ -714,7 +638,7 @@ class BosonImpl(
                       case _ =>
                         codec.setReaderIndex(startReaderIndex)
                         codec.readSize
-                        val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].result
+                        val buf = codec.readToken(SonArray(CS_ARRAY)).asInstanceOf[SonArray].info
                         List(buf)
                     }
                 }
@@ -722,7 +646,7 @@ class BosonImpl(
           case D_BOOLEAN =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
-                val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info
                 List(value == 1)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -730,7 +654,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
-                    val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                    val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info
                     List(value == 1)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -738,10 +662,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                        val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info
                         List(value == 1)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value= codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].result
+                        val value = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info
                         List(value == 1)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -753,7 +677,7 @@ class BosonImpl(
           case D_NULL =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get =>
-                val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].info
                 List(value)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -761,7 +685,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get =>
-                    val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                    val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].info
                     List(value)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -769,10 +693,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                        val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].info
                         List(value)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].result
+                        val value = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].info
                         List(value)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -784,7 +708,7 @@ class BosonImpl(
           case D_INT =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
-                val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info
                 List(value0)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -792,7 +716,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
-                    val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                    val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info
                     List(value0)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -800,10 +724,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info
                         List(value0)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].result
+                        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info
                         List(value0)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -815,7 +739,7 @@ class BosonImpl(
           case D_LONG =>
             limitList.head._2 match {
               case Some(_) if iter >= limitList.head._1.get && iter <= limitList.head._2.get && keyList.lengthCompare(1) == 0 =>
-                val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info
                 List(value)
               case Some(_) =>
                 codec.consumeValue(seqTypeCodec)
@@ -823,7 +747,7 @@ class BosonImpl(
               case None =>
                 limitList.head._1 match {
                   case Some(_) if iter >= limitList.head._1.get && keyList.lengthCompare(1) == 0 =>
-                    val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                    val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info
                     List(value)
                   case Some(_) =>
                     codec.consumeValue(seqTypeCodec)
@@ -831,10 +755,10 @@ class BosonImpl(
                   case None =>
                     keyList.head._2 match {
                       case C_BUILD =>
-                        val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                        val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info
                         List(value)
                       case _ if keyList.head._1.equals(STAR) =>
-                        val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].result
+                        val value = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info
                         List(value)
                       case _ =>
                         codec.consumeValue(seqTypeCodec)
@@ -846,7 +770,7 @@ class BosonImpl(
           case D_ZERO_BYTE =>
             Nil
         }
-      val actualPos2: Int = arrayFRIdx - codec.getReaderIndex//netty.readerIndex()
+      val actualPos2: Int = arrayFRIdx - codec.getReaderIndex //netty.readerIndex()
       actualPos2 match {
         case x if x > 0 =>
           newSeq ++ constructWithLimits(iter + 1)
@@ -866,14 +790,14 @@ class BosonImpl(
     * Used to traverse an Object when Condition HasElem is required.
     * It searches for an element on a sub-copy of the encoded document, limited to the object to be traversed.
     *
-    * @param codec  Abstraction of Encoded sub-copy Document.
-    * @param keyList  set of keys.
+    * @param codec     Abstraction of Encoded sub-copy Document.
+    * @param keyList   set of keys.
     * @param limitList limits of arrays.
-    * @param start first index of Object.
-    * @param finish last index of Object.
+    * @param start     first index of Object.
+    * @param finish    last index of Object.
     * @return List with extraction result.
     */
-  private def findElements(codec: Codec, keyList: List[(String,String)], limitList: List[(Option[Int], Option[Int], String)],start: Int, finish: Int): List[Any] = {
+  private def findElements(codec: Codec, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], start: Int, finish: Int): List[Any] = {
     val seqType: Int = codec.readDataType
     val finalValue: List[Any] =
       seqType match {
@@ -883,7 +807,6 @@ class BosonImpl(
             val value0 = codec.readToken(SonNumber(CS_DOUBLE))
             List(C_MATCH)
           } else {
-            //val value0 = codec.readToken(SonNumber(CS_DOUBLE))
             codec.consumeValue(seqType)
             Nil
           }
@@ -893,7 +816,6 @@ class BosonImpl(
             val value0 = codec.readToken(SonString(CS_STRING))
             List(C_MATCH)
           } else {
-            // val value0 =  codec.readToken(SonString(CS_STRING))
             codec.consumeValue(seqType)
             Nil
           }
@@ -910,12 +832,12 @@ class BosonImpl(
               case C_LIMIT =>
                 codec.setReaderIndex(start)
                 codec.readSize
-                extractFromBsonObj(codec,keyList,finish,limitList) match {
+                extractFromBsonObj(codec, keyList, finish, limitList) match {
                   case value if value.isEmpty => List(C_MATCH)
                   case value =>
                     codec.setReaderIndex(start)
                     codec.readSize
-                    val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                    val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                     List(List(arr), value).flatten
 
                 }
@@ -929,7 +851,7 @@ class BosonImpl(
                 codec.setReaderIndex(bsonFinishReaderIndex)
                 Nil
               case C_LIMIT =>
-                extractFromBsonObj(codec,keyList,bsonFinishReaderIndex,limitList)
+                extractFromBsonObj(codec, keyList, bsonFinishReaderIndex, limitList)
 
             }
           }
@@ -946,13 +868,13 @@ class BosonImpl(
               case C_LIMIT =>
                 codec.setReaderIndex(start)
                 codec.readSize
-                extractFromBsonObj(codec,keyList,finish,limitList) match {
+                extractFromBsonObj(codec, keyList, finish, limitList) match {
                   case value if value.isEmpty =>
                     List(C_MATCH)
                   case value =>
                     codec.setReaderIndex(start)
                     codec.readSize
-                    val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+                    val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
                     List(List(arr), value).flatten
 
                 }
@@ -968,7 +890,7 @@ class BosonImpl(
               case C_LIMIT =>
                 codec.setReaderIndex(start)
                 codec.readSize
-                extractFromBsonObj(codec,keyList,finish,limitList) match {
+                extractFromBsonObj(codec, keyList, finish, limitList) match {
                   case value if value.isEmpty =>
                     codec.setReaderIndex(arrayFinishReaderIndex)
                     Nil
@@ -985,7 +907,6 @@ class BosonImpl(
             val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
             List(C_MATCH)
           } else {
-            // val value0 = codec.readToken(SonBoolean(CS_BOOLEAN))
             codec.consumeValue(seqType)
             Nil
           }
@@ -994,8 +915,7 @@ class BosonImpl(
           if (matched) {
             val value0 = codec.readToken(SonNull(CS_NULL))
             List(C_MATCH)
-          } else{
-            //val value0 = codec.readToken(SonNull(CS_NULL))
+          } else {
             codec.consumeValue(seqType)
             Nil
           }
@@ -1005,17 +925,15 @@ class BosonImpl(
             val value0 = codec.readToken(SonNumber(CS_INTEGER))
             List(C_MATCH)
           } else {
-            //val value0 = codec.readToken(SonNumber(CS_INTEGER))
             codec.consumeValue(seqType)
             Nil
           }
         case D_LONG =>
           val (matched: Boolean, _: String) = compareKeys(codec, keyList.drop(1).head._1)
           if (matched) {
-            val value0 =  codec.readToken(SonNumber(CS_LONG))
+            val value0 = codec.readToken(SonNumber(CS_LONG))
             List(C_MATCH)
           } else {
-            //val value0 =  codec.readToken(SonNumber(CS_LONG))
             codec.consumeValue(seqType)
             Nil
           }
@@ -1027,49 +945,795 @@ class BosonImpl(
         val riAuz = codec.getReaderIndex
         codec.setReaderIndex(start)
         codec.readSize
-        val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+        val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
         codec.setReaderIndex(riAuz)
-        List(arr) ++ findElements(codec,  keyList, limitList, start, finish)
+        List(arr) ++ findElements(codec, keyList, limitList, start, finish)
       case 0 if finalValue.nonEmpty && finalValue.head.equals(C_MATCH) =>
         codec.setReaderIndex(start)
         codec.readSize
-        val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].result
+        val arr = codec.readToken(SonObject(CS_OBJECT)).asInstanceOf[SonObject].info
         List(arr)
       case x if x > 0 && finalValue.nonEmpty && keyList.head._2.equals(C_LIMIT) =>
-        finalValue ++ findElements(codec,  keyList,limitList,start,finish)
+        finalValue ++ findElements(codec, keyList, limitList, start, finish)
       case 0 if finalValue.nonEmpty && keyList.head._2.equals(C_LIMIT) => finalValue
       case _ if finalValue.nonEmpty => finalValue
       case x if x > 0 && finalValue.isEmpty =>
-        findElements(codec,  keyList,limitList,start,finish)
+        findElements(codec, keyList, limitList, start, finish)
       case 0 if finalValue.isEmpty =>
         Nil
     }
   }
 
+  //----------------------------------------------------- INJECTORS ----------------------------------------------------
+
   /**
-    * Function used to create a duplicate BosonImpl
-    * @return A new Copy of BosonImpl
+    * Starter method for the injection process, this method will pattern match the statements in the statements list
+    * and delegate to other helper methods
+    *
+    * @param dataStructure - The data structure in which to perform the injection process (either a ByteBuf or a String)
+    * @param statements    - The statements with information regarding where to perform the injection
+    * @param injFunction   - The injection function to be applied
+    * @tparam T - The type of the input and output of the injection function
+    * @return a new codec with the changes applied to it
     */
-  @deprecated
-  def duplicate: BosonImpl = nettyBuffer match{
-    case Right(x) => new BosonImpl(stringJson = Option(x))
-    case Left(x) => new BosonImpl(byteArray = Option(x.array))
+  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T): Codec = {
+    val codec: Codec = dataStructure match {
+      case Right(jsonString) => CodecObject.toCodec(jsonString)
+      case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+    }
+
+    statements.head._1 match {
+      case ROOT => rootInjection(codec, injFunction)
+
+      case Key(key: String) => modifyAll(statements, codec, key, injFunction)
+
+      case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
+
+      case HasElem(key: String, elem: String) => modifyHasElem(statements, codec, key, elem, injFunction)
+
+      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        val input: (String, Int, String, Any) =
+          (leftArg, midArg, rightArg) match {
+            case (i, o1, o2) if o1.isDefined && o2.isDefined =>
+              (EMPTY_KEY, i, o1.get.value, o2.get)
+
+            case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (EMPTY_KEY, i, TO_RANGE, i)
+
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
+                case C_END => (EMPTY_KEY, 0, C_END, None)
+                case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
+              }
+          }
+        val modified = arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
+        codec + modified
+
+      case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
+        val input: (String, Int, String, Any) =
+          (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
+
+            case (_, o1, o2) if o1.isDefined && o2.isDefined =>
+              (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
+
+            case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg) //User sent, for example, Key[1] translates to - Key[1 TO 1]
+
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST =>
+                  (key, 0, TO_RANGE, 0) //User sent Key[first] , translates to - Key[0 TO 0]
+                case C_END =>
+                  (key, 0, C_END, None)
+                case C_ALL =>
+                  (key, 0, TO_RANGE, C_END) //user sent Key[all], translates to - Key[0 TO END]
+              }
+          }
+        arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
+
+      case _ =>
+        throw CustomException("Wrong Statements, Bad Expression.")
+    }
   }
 
   /**
-    * Access to Encoded Document.
-    * @return Either[ByteBuf, String]
+    * Function that recursively searches for the keys that are of interest to the injection
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the old values
+    * @param fieldID        - Name of the field of interest
+    * @param injFunction    - The injection function to be applied
+    * @tparam T - The type of input and output of the injection function
+    * @return A Codec containing the alterations made
     */
-  @deprecated
-  def getByteBuf: Either[ByteBuf, String] = this.nettyBuffer
+  private def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T): Codec = {
+
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param currentCodec - the codec to write the modified information into
+      * @param startReader  - the initial reader index of the codec passed in modifyAll
+      * @param originalSize - the original size of the codec passed in modifyAll
+      * @return A Codec containing the alterations made
+      */
+    def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
+      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
+        val newCodec = dataType match {
+          case 0 => writeCodec(codecWithDataType, startReader, originalSize) // This is the end
+          case _ =>
+            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
+
+            key match {
+              case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT) else SonArray(CS_ARRAY)
+                        val partialData = codec.readToken(token) match {
+                          case SonObject(_, result) => result match {
+                            case byteBuf: ByteBuf => Left(byteBuf)
+                            case string: String => Right(string)
+                          }
+                          case SonArray(_, result) => result match {
+                            case byteBuf: ByteBuf => Left(byteBuf)
+                            case string: String => Right(string)
+                          }
+                        }
+                        val partialCodec = inject(partialData, statementsList, injFunction)
+                        val mergedCodecs = codecWithKey + partialCodec
+                        codec.setReaderIndex(codec.getReaderIndex + partialCodec.getSize + 1) //Skip the bytes that the subcodec already read
+                        modifierAll(codec, mergedCodecs, dataType, injFunction)
+                      case _ =>
+                        modifierAll(codec, codecWithKey, dataType, injFunction)
+                    }
+                  } else {
+                    modifierAll(codec, codecWithKey, dataType, injFunction)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+                        val partialData = codec.readToken(token) match { //TODO Failing here
+                          case SonObject(_, result) => result match {
+                            case byteBuf: ByteBuf => Left(byteBuf)
+                            case string: String => Right(string)
+                          }
+                          case SonArray(_, result) => result match {
+                            case byteBuf: ByteBuf => Left(byteBuf)
+                            case string: String => Right(string)
+                          }
+                        }
+                        val modifiedSubCodec = inject(partialData, statementsList.drop(1), injFunction)
+                        val subCodec = inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
+                        codecWithKey + subCodec //merge the two subcodes
+
+                      case _ =>
+                        processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                    }
+                  } else {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val subCodec = inject(codec.getCodecData, statementsList.drop(1), injFunction)
+                        val mergedCodecs = codecWithKey + subCodec
+                        codec.setReaderIndex(codec.getReaderIndex + subCodec.getSize + 1) //Skip the bytes that the subcodec already read
+                        mergedCodecs
+                      case _ => processTypesArray(dataType, codec, codecWithKey)
+                    }
+                  }
+                }
+              case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT))
+                  processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                else processTypesArray(dataType, codec, codecWithKey)
+            }
+        }
+        writeCodec(newCodec, startReader, originalSize)
+      }
+    }
+
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+    val emptyCodec: Codec = createEmptyCodec(codec)
+
+    val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
+    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) { //If there's only one last byte to read (the closing 0 byte)
+      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+    } else codecWithoutSize
+
+    val finalSize = codecWithLastByte.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithLastByte.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSize.removeEmptySpace
+    codecWithSize + codecWithLastByte
+  }
 
   /**
-    * Verifies if Key given by user is HalfWord and if it matches with the one extracted.
-    * @param fieldID  Key given by User.
-    * @param extracted  Key extracted.
-    * @return
+    * Function used to search for a element within an object
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the old values
+    * @param fieldID        - Name of the field of interest
+    * @param elem           - Name of the element to look for inside the objects inside an Array
+    * @param injFunction    - The injection function to be applied
+    * @tparam T - The type of input and output of the injection function
+    * @return a modified Codec where the injection function may have been applied to the desired element (if it exists)
     */
-  def isHalfword(fieldID: String, extracted: String): Boolean = {
+  private def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T): Codec = {
+
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+    val emptyDataStructure: Codec = createEmptyCodec(codec)
+
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param writableCodec - the codec to write the modified information into
+      * @return A Codec containing the alterations made
+      */
+    def iterateDataStructure(writableCodec: Codec): Codec = {
+      if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte)) //write the read byte to a Codec
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType)
+          case _ => //In case its not the end
+
+            val (codecWithKeyByte, key) = writeKeyAndByte(codec, codecWithDataType)
+
+            //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
+            //or they're halfword's
+            //in all other cases we just want to copy the data from one codec to the other (using "process" like functions)
+            key match {
+              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
+                //the key is a halfword and matches with the extracted key, dataType is an array
+                val modifiedCodec: Codec = searchAndModify(statementsList, codec, fieldID, injFunction, codecWithKeyByte)
+                iterateDataStructure(modifiedCodec)
+
+              case _ =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  val processedCodec: Codec = processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction)
+                  iterateDataStructure(processedCodec)
+                } else {
+                  val processedCodec: Codec = processTypesArray(dataType, codec, codecWithKeyByte)
+                  iterateDataStructure(processedCodec)
+                }
+            }
+        }
+      }
+    }
+
+    val codecWithoutSize = iterateDataStructure(emptyDataStructure) //Initiate recursion with an empty data structure
+    val size = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
+
+    emptyDataStructure.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, size)) + codecWithoutSize
+  }
+
+  /**
+    * Function used to search for an element inside an object inside an array after finding the key of interest
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the old values
+    * @param fieldID        - Name of the field of interest
+    * @param injFunction    - The injection function to be applied
+    * @param writableCodec  - Structure to where we write the values
+    * @tparam T - The type of input and output of the injection function
+    * @return a new Codec with the value injected
+    */
+  private def searchAndModify[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, writableCodec: Codec): Codec = {
+    val startReader: Int = codec.getReaderIndex
+    val originalSize: Int = codec.readSize
+
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param writableCodec - the codec to write the information into
+      * @return A codec containing the alterations made
+      */
+    def iterateDataStructure(writableCodec: Codec): Codec = {
+      if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
+      else {
+        val dataType = codec.readDataType
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte)) //write the read byte to a Codec
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType)
+          case _ =>
+            val (codecWithKey, _) = writeKeyAndByte(codec, codecWithDataType)
+            dataType match {
+              case D_BSONOBJECT =>
+                val bsonSize = codec.getSize
+                val partialCodec: Codec = codec.getToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
+                  case SonObject(_, dataStruct) => dataStruct match {
+                    case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                    case jsonString: String => CodecObject.toCodec(jsonString)
+                  }
+                } //Obtain only the size and the object itself of this BsonObject
+                if (hasElem(partialCodec.duplicate, fieldID)) {
+
+                  if (statementsList.size == 1) {
+
+                    val codecWithObj: Codec = codec.readSpecificSize(bsonSize)
+                    val byteArr: Array[Byte] = codecWithObj.getCodecData match {
+                      case Left(byteBuff) => byteBuff.array
+                      case Right(jsonString) => jsonString.getBytes
+                    }
+                    val newArray: Array[Byte] = applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]
+                    val codecFromByteArr = codec.fromByteArray(newArray)
+                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                      val newCodec = inject(codec.getCodecData, statementsList, injFunction)
+                      iterateDataStructure(codecWithKey + newCodec)
+                    } else {
+                      iterateDataStructure(codecWithKey + codecFromByteArr)
+                    }
+
+                  } else {
+
+                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+
+                      val dataStruct: DataStructure = codec.getToken(SonString(CS_ARRAY)) match {
+                        case SonString(_, data) => data match {
+                          case byteBuf: ByteBuf => Left(byteBuf)
+                          case jsonString: String => Right(jsonString)
+                        }
+                      }
+                      val newCodec = inject(dataStruct, statementsList.drop(1), injFunction)
+                      val modifiedCodec = inject(newCodec.duplicate.getCodecData, statementsList, injFunction)
+                      iterateDataStructure(codecWithKey + modifiedCodec)
+
+                    } else {
+
+                      codec.readSpecificSize(bsonSize) //read the size of the object
+                      val newCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
+                      iterateDataStructure(codecWithKey + newCodec)
+
+                    }
+                  }
+
+                } else {
+                  val newCodec = codec.readSpecificSize(bsonSize) //read the size of the object
+                  iterateDataStructure(codecWithKey + newCodec)
+                }
+
+              case _ => processTypesArray(dataType, codec, writableCodec)
+            }
+        }
+      }
+      //TODO maybe do something more here ?
+    }
+
+    iterateDataStructure(writableCodec)
+  }
+
+  /**
+    * Method used to see if an object contains a certain element inside it
+    *
+    * @param codec - The structure in which to look for the element
+    * @param elem  - The name of the element to look for
+    * @return A boolean value saying if the given element is present in that object
+    */
+  private def hasElem(codec: Codec, elem: String): Boolean = {
+    val size: Int = codec.readSize
+    var key: String = ""
+    //Iterate through all of the keys from the dataStructure in order to see if it contains the elem
+    while (codec.getReaderIndex < size && (!elem.equals(key) && !isHalfword(elem, key))) {
+      key = "" //clear the key
+      val dataType = codec.readDataType
+      dataType match {
+        case 0 => //TODO what do we do in this case
+        case _ =>
+          val key: String = codec.readToken(SonString(CS_NAME)) match { //TODO - Check
+            case SonString(_, keyString) => keyString.asInstanceOf[String]
+          }
+          dataType match {
+            case D_ZERO_BYTE => //TODO what do we do in this case
+
+            case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE))
+
+            case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_ARRAY))
+
+            case D_BSONOBJECT | D_BSONARRAY => codec.getToken(SonString(CS_ARRAY))
+
+            case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN))
+
+            case D_NULL => //TODO what do we do in this case
+
+            case D_INT => codec.readToken(SonNumber(CS_INTEGER))
+
+            case D_LONG => codec.readToken(SonNumber(CS_LONG))
+          }
+      }
+    }
+    key.toCharArray.deep == elem.toCharArray.deep || isHalfword(elem, key)
+  }
+
+  /**
+    * Method that will perform the injection in the root of the data structure
+    *
+    * @param codec       - Codec encapsulating the data structure to inject in
+    * @param injFunction - The injection function to be applied
+    * @tparam T - The type of elements the injection function receives
+    * @return - A new codec with the injFunction applied to it
+    */
+  private def rootInjection[T](codec: Codec, injFunction: T => T): Codec = {
+    codec.getCodecData match {
+      case Left(byteBuf) =>
+        val bsonBytes: Array[Byte] = byteBuf.array() //extract the bytes from the bytebuf
+      /*
+        We first cast the result of applyFunction as String because when we input a byte array we apply the injFunction to it
+        as a String. We return that modified String and convert it back to a byte array in order to create a ByteBuf from it
+       */
+      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes, fromRoot = true).asInstanceOf[Array[Byte]]
+        val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
+        CodecObject.toCodec(newBuf)
+
+      case Right(jsonString) => //TODO not sure if this is correct for CodecJson
+        val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
+        CodecObject.toCodec(modifiedString)
+    }
+  }
+
+  /**
+    * Function used to copy values that aren't of interest while searching for a element inside a object inside a array
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param dataType       - Type of the value found
+    * @param fieldID        - Name of the field of interest
+    * @param elem           - Name of the element to search inside the objects inside an Array
+    * @param codec          - Structure from which we are reading the old values
+    * @param resultCodec    - Structure to where we write the values
+    * @param injFunction    - Injection function to be applied
+    * @tparam T - The type of input and output of the injection function
+    * @return a new Codec with the copied information
+    */
+  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T): Codec = dataType match {
+    case D_BSONOBJECT =>
+      val bsonObjectCodec: Codec = codec.getToken(SonString(CS_ARRAY)) match {
+        case SonString(_, data) => data match {
+          case byteBuff: ByteBuf => CodecObject.toCodec(byteBuff)
+          case jsonString: String => CodecObject.toCodec(jsonString)
+        }
+      }
+      val modifiedCodec: Codec = modifyHasElem(statementsList, bsonObjectCodec, fieldID, elem, injFunction)
+      resultCodec + modifiedCodec
+
+    case D_BSONARRAY =>
+      val length = codec.getSize
+      val partialCodec: Codec = codec.readSlice(length)
+      val modifiedCodec: Codec = modifyHasElem(statementsList, partialCodec, fieldID, elem, injFunction)
+      resultCodec + modifiedCodec
+
+    case D_FLOAT_DOUBLE => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.writeToken(resultCodec, SonString(CS_ARRAY_WITH_SIZE))
+
+    case D_INT => codec.writeToken(resultCodec, SonNumber(CS_INTEGER))
+
+    case D_LONG => codec.writeToken(resultCodec, SonNumber(CS_LONG))
+
+    case D_BOOLEAN => codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN))
+
+    case D_NULL => resultCodec //TODO what do we do in this case
+  }
+
+  /**
+    * Fucntion used to process all the values inside Arrays that are not of interest to the injection and copies them
+    * to the current result Codec
+    *
+    * @param dataType        - Type of the value found and processing
+    * @param codec           - Structure from which we are reading the values
+    * @param currentResCodec - Structure that contains the information already processed and where we write the values
+    * @return A Codec containing the alterations made
+    */
+  private def processTypesArray(dataType: Int, codec: Codec, currentResCodec: Codec): Codec = {
+    dataType match {
+      case D_ZERO_BYTE =>
+        currentResCodec
+      case D_FLOAT_DOUBLE =>
+        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
+        codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+      case D_BSONOBJECT =>
+        val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match {
+          case SonObject(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
+        }
+        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.writerIndex))
+        codec.writeToken(strSizeCodec, SonObject(CS_OBJECT,value0.array))
+      case D_BSONARRAY =>
+        val value0 = codec.readToken(SonArray(CS_ARRAY)) match {
+          case SonArray(_, array) => array.asInstanceOf[ByteBuf]
+        }
+        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.writerIndex))
+        codec.writeToken(strSizeCodec, SonArray(CS_ARRAY, value0.array))
+      case D_NULL =>
+        currentResCodec
+      case D_INT =>
+        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+      case D_LONG =>
+        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+      case D_BOOLEAN =>
+        codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+    }
+  }
+
+  /**
+    * Function used to perform the injection of the new values
+    *
+    * @param codec           - Structure from which we are reading the values
+    * @param currentResCodec - Structure that contains the information already processed and where we write the values
+    * @param seqType         - Type of the value found and processing
+    * @param injFunction     - Function given by the user with the new value
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made
+    */
+  private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T): Codec = {
+    seqType match {
+      case D_FLOAT_DOUBLE =>
+        val value0 = codec.readToken(SonNumber(CS_DOUBLE)) match {
+          case SonNumber(_, data) => data.asInstanceOf[Double]
+        }
+        applyFunction(injFunction, value0) match {
+          case value: Double => codec.writeToken(currentResCodec, SonNumber(CS_DOUBLE, value))
+        }
+
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        applyFunction(injFunction, value0) match {
+          case value: String =>
+            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1))
+            codec.writeToken(strSizeCodec, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+        }
+
+      case D_BSONOBJECT =>
+        codec.readToken(SonObject(CS_OBJECT)) match {
+          case SonObject(_, data) => data match {
+            case byteBuf: ByteBuf =>
+              applyFunction(injFunction, byteBuf.array()) match {
+                case arr: Array[Byte] => codec.writeToken(currentResCodec, SonArray(CS_ARRAY, arr))
+              }
+            case str: String =>
+              applyFunction(injFunction, str) match {
+                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING, resString))
+              }
+          }
+        }
+
+      case D_BSONARRAY =>
+        codec.readToken(SonArray(CS_ARRAY)) match {
+          case SonArray(_, data) => data match {
+            case byteBuf: ByteBuf =>
+              applyFunction(injFunction, byteBuf.array()) match {
+                case arr: Array[Byte] => codec.writeToken(currentResCodec, SonArray(CS_ARRAY, arr))
+              }
+            case str: String =>
+              applyFunction(injFunction, str) match {
+                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING, resString))
+              }
+          }
+        }
+
+      case D_BOOLEAN =>
+        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)) match {
+          case SonBoolean(_, data) => data.asInstanceOf[Boolean]
+        }
+        applyFunction(injFunction, value0) match {
+          case value: Boolean => codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value))
+        }
+
+      case D_NULL =>
+        throw CustomException(s"NULL field. Can not be changed")
+
+      case D_INT =>
+        val value0 = codec.readToken(SonNumber(CS_INTEGER)) match {
+          case SonNumber(_, data) => data.asInstanceOf[Int]
+        }
+        applyFunction(injFunction, value0) match {
+          case value: Int => codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value))
+        }
+
+      case D_LONG =>
+        val value0 = codec.readToken(SonNumber(CS_LONG)) match {
+          case SonNumber(_, data) => data.asInstanceOf[Long]
+        }
+        applyFunction(injFunction, value0) match {
+          case value: Long => codec.writeToken(currentResCodec, SonNumber(CS_LONG, value))
+        }
+    }
+  }
+
+  /**
+    * Function used to perform the injection on the last ocurrence of a field
+    *
+    * @param codec        - Structure from which we are reading the values
+    * @param dataType     - Type of the value found and processing
+    * @param injFunction  - Function given by the user with the new value
+    * @param codecRes     - Structure that contains the information already processed and where we write the values
+    * @param codecResCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made and an Auxiliary Codec
+    */
+  private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec): (Codec, Codec) = dataType match {
+
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+      val value0 = codec.readToken(SonString(CS_STRING)) match {
+        case SonString(_, data) => data.asInstanceOf[String]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case str: String =>
+          val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1))
+          codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+      }
+      val strSizeCodec = codec.writeToken(codecResCopy, SonNumber(CS_INTEGER, value0.length + 1))
+      val resCodecCopy = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+      (resCodec, resCodecCopy)
+
+    case D_BSONOBJECT =>
+      val token = codec.readToken(SonObject(CS_OBJECT))
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      token match {
+        case SonObject(_, data) => data match {
+          case byteBuf: ByteBuf =>
+            val resCodec = applyFunction(injFunction, byteBuf.array()) match {
+              case arr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, arr))
+            }
+            (resCodec, resCodecCopy)
+
+          case str: String =>
+            val resCodec = applyFunction(injFunction, str) match {
+              case resString: String => codec.writeToken(codecRes, SonString(CS_STRING, resString))
+            }
+            (resCodec, resCodecCopy)
+        }
+      }
+
+    case D_BSONARRAY =>
+      val token = codec.readToken(SonArray(CS_ARRAY))
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      token match {
+        case SonArray(_, data) => data match {
+          case byteArr: Array[Byte] =>
+            val resCodec = applyFunction(injFunction, byteArr) match {
+              case resByteArr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, resByteArr))
+            }
+            (resCodec, resCodecCopy)
+
+          case jsonString: String =>
+            val resCodec = applyFunction(injFunction, jsonString) match {
+              case resString: String => codec.writeToken(codecRes, SonString(CS_STRING, resString))
+            }
+            (resCodec, resCodecCopy)
+        }
+      }
+
+    case D_BOOLEAN =>
+      val token = codec.readToken(SonBoolean(CS_BOOLEAN))
+      val value0: Boolean = token match {
+        case SonBoolean(_, data) => data.asInstanceOf[Boolean]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Boolean => codec.writeToken(codecRes, SonBoolean(CS_BOOLEAN, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_FLOAT_DOUBLE =>
+      val token = codec.readToken(SonNumber(CS_DOUBLE))
+      val value0: Double = token match {
+        case SonNumber(_, data) => data.asInstanceOf[Double]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Double => codec.writeToken(codecRes, SonNumber(CS_DOUBLE, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_INT =>
+      val token = codec.readToken(SonNumber(CS_INTEGER))
+      val value0: Int = token match {
+        case SonNumber(_, data) => data.asInstanceOf[Int]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Int => codec.writeToken(codecRes, SonNumber(CS_INTEGER, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_LONG =>
+
+      val token = codec.readToken(SonNumber(CS_LONG))
+      val value0: Long = token match {
+        case SonNumber(_, data) => data.asInstanceOf[Long]
+      }
+      val resCodec = applyFunction(injFunction, value0) match {
+        case tkn: Long => codec.writeToken(codecRes, SonNumber(CS_LONG, tkn))
+      }
+      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      (resCodec, resCodecCopy)
+
+    case D_NULL =>
+      throw CustomException(s"NULL field. Can not be changed")
+  }
+
+  /**
+    * Function that processes the types of all the information that is not relevant for the injection and copies it to
+    * the current resulting Codec
+    *
+    * @param statementsList  - A list with pairs that contains the key of interest and the type of operation
+    * @param seqType         - Type of the value found and processing
+    * @param codec           - Structure from which we are reading the values
+    * @param currentResCodec - Structure that contains the information already processed and where we write the values
+    * @param fieldID         - name of the field we are searching
+    * @param injFunction     - Function given by the user with the new value
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made
+    */
+  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T): Codec = {
+    seqType match {
+      case D_FLOAT_DOUBLE =>
+        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
+        codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+
+      case D_BSONOBJECT =>
+        val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
+          case SonObject(_, result) => result match {
+            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+            case jsonString: String => CodecObject.toCodec(jsonString)
+          }
+        }
+        val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
+        currentResCodec + codecAux
+
+      case D_BSONARRAY =>
+        val partialCodec: Codec = codec.readToken(SonArray(CS_ARRAY)) match {
+          case SonArray(_, result) => result match {
+            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+            case jsonString: String => CodecObject.toCodec(jsonString)
+          }
+        }
+        val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
+        currentResCodec + codecAux
+
+      case D_NULL => currentResCodec
+
+      case D_INT => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+
+      case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+
+      case D_BOOLEAN => codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+    }
+  }
+
+  /**
+    * Verifies if Key given by user is a HalfWord and if it matches with the one extracted.
+    *
+    * @param fieldID   - Key given by User.
+    * @param extracted - Key extracted.
+    * @return A boolean that is true if it's a HalWord or false or if it's not
+    */
+  private def isHalfword(fieldID: String, extracted: String): Boolean = {
     if (fieldID.contains(STAR) & extracted.nonEmpty) {
       val list: Array[String] = fieldID.split(STAR_CHAR)
       (extracted, list.length) match {
@@ -1102,1484 +1766,779 @@ class BosonImpl(
   }
 
   /**
-    * Function used to apply the final function given bbyb the used
-    * @param f Fucntion to be applied when the final value is extracted or when the position to inject has been found
-    * @param value Value on which the function is applied to
-    * @tparam T Type of the value to be extracted of injected
-    * @return Returns the value resulting from applying the value to the function
+    * Method that tries to apply the given injector function to a given value
+    *
+    * @param injFunction - The injector function to be applied
+    * @param value       - The value to apply the injector function to
+    * @tparam T - The type of the value
+    * @return A modified value in which the injector function was applied
     */
-  private def applyFunction[T](f: T => T, value: Any): T = {
-    Try(f(value.asInstanceOf[T])) match {
-      case Success(v) =>
-        v.asInstanceOf[T]
-      case Failure(e) =>
-        value match {
-          case x: Double =>
-            Try(f(x.toFloat.asInstanceOf[T])) match {
-              case Success(v) =>
-                v.asInstanceOf[T]
-              case Failure(e1) =>
-                throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
-            }
-          case x: Array[Byte] =>
-            Try(f(new String(x).asInstanceOf[T])) match {
-              case Success(v) =>
-                v.asInstanceOf[T]
-              case Failure(e1) =>
-                Try(f(Instant.parse(new String(x)).asInstanceOf[T])) match {
-                  case Success(v) =>
-                    v.asInstanceOf[T]
-                  case Failure(e2) =>
-                    throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
-                }
-            }
-          case _ =>
-            throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
-        }
-    }
-  }
-  // Injector Starts here
+  private def applyFunction[T](injFunction: T => T, value: Any, fromRoot: Boolean = false): T = {
 
-  /**
-    * Function used to search for keys of interest recursively
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buffer Structure that contains the user input
-    * @param fieldID Key of interest
-    * @param f Function used to inject a new value in the structure
-    * @param result Auxiliary structure used to update the resulting value
-    * @tparam T Type of value to be injected
-    * @return ByteBuf containing the new value injected
-    */
-  @deprecated
-  def modifyAll[T](list: List[(Statement, String)], buffer: ByteBuf, fieldID: String, f: T => T, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
-    /*
-    * If fieldID is empty, it returns the original ByteBuf
-    */
-    val startReader: Int = buffer.readerIndex()
-    val originalSize: Int = buffer.readIntLE()
-    while ((buffer.readerIndex() - startReader) < originalSize) {
-      val dataType: Int = buffer.readByte().toInt
-      dataType match {
-        case 0 => // Final
-          result.writeByte(dataType)//TODO - Do before
-        case _ =>
-          result.writeByte(dataType)//TODO - Idem
-        val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-          val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buffer.getByte(buffer.readerIndex()) != 0 || key.lengthCompare(1) < 0) {
-            val b: Byte = buffer.readByte()
-            key.append(b)
+    Try(injFunction(value.asInstanceOf[T])) match {
+      case Success(modifiedValue) =>
+        modifiedValue
+
+      case Failure(_) => value match {
+        case double: Double =>
+          Try(injFunction(double.toFloat.asInstanceOf[T])) match { //try with the value being a Double
+            case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
+
+            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
           }
-          val b: Byte = buffer.readByte()
-          (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-        }
-          result.writeBytes(key).writeByte(b)
-          new String(key) match {
-            case x if fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x) =>
-              /*
-              * Found a field equal to key
-              * Perform Injection
-              * */
-              if (list.lengthCompare(1) == 0) {
-                if (list.head._2.contains(C_DOUBLEDOT)) {
-                  dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val size: Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.readRetainedSlice(size)
-                      val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                      buf1.release()
-                      val buf3: ByteBuf = Unpooled.buffer()
-                      modifierAll(buf2, dataType, f, buf3)
-                      buf2.release()
-                      buf3.capacity(buf3.writerIndex())
-                      result.writeBytes(buf3)
-                      buf3.release()
-                    case _ =>
-                      modifierAll(buffer, dataType, f, result)
-                  }
-                } else {
-                  modifierAll(buffer, dataType, f, result)
-                }
-              } else {
-                if (list.head._2.contains(C_DOUBLEDOT)) {
-                  dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val size: Int = buffer.getIntLE(buffer.readerIndex())
-                      val buf1: ByteBuf = buffer.readBytes(size)
-                      val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
-                      buf1.release()
-                      val buf3: ByteBuf = execStatementPatternMatch(buf2, list, f)
-                      buf2.release()
-                      result.writeBytes(buf3)
-                      buf3.release()
-                    case _ =>
-                      processTypesAll(list, dataType, buffer, result, fieldID, f)
-                  }
-                } else {
-                  dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      val res: ByteBuf = execStatementPatternMatch(buffer, list.drop(1), f)
-                      result.writeBytes(res)
-                      res.release()
-                    case _ =>
-                      processTypesArray(dataType, buffer, result)
-                  }
-                }
+
+        case byteArr: Array[Byte] if fromRoot => //In case the User passed in the root
+          Try(injFunction(byteArr.asInstanceOf[T])) match {
+            case Success(modifiedValue) =>
+              modifiedValue.asInstanceOf[T]
+
+            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+          }
+
+        case byteArr: Array[Byte] => //TODO PREVENT USER FROM PASSING THE ROOT AND REPLACING IT WITH A STRING OR AN INSTANT ??
+          Try(injFunction(new String(byteArr).asInstanceOf[T])) match { //try with the value being a Array[Byte]
+            case Success(modifiedValue) => //TODO should we always try to transform the byte arr to a string ? our injFunction could receive a Array[Byte] as input/output?
+              modifiedValue.asInstanceOf[T]
+
+            case Failure(_) =>
+              Try(injFunction(Instant.parse(new String(byteArr)).asInstanceOf[T])) match { //try with the value being an Instant
+                case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
+
+                case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
               }
-            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
-              /*
-              * Didn't found a field equal to key
-              * Consume value and check deeper Levels
-              * */
-              if (list.head._2.contains(C_DOUBLEDOT))
-                processTypesAll(list, dataType, buffer, result, fieldID, f)
-              else
-                processTypesArray(dataType, buffer, result)
           }
       }
-    }
-    result.capacity(result.writerIndex())
-    val finalResult: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
-    result.release()
-    finalResult
-  }
 
-  /**
-    * Function used to copied the values inside arrays that aren´t of interest to the resulting structure
-    * @param dataType The type on the value we are reading and writting on the new structure
-    * @param buffer Structure from where we read the values
-    * @param result Structure to where we write the values
-    * @return Doesn't return anything because the changes are reflected in the result structure
-    */
-  @deprecated
-  private def processTypesArray(dataType: Int, buffer: ByteBuf, result: ByteBuf) = {
-    dataType match {
-      case D_ZERO_BYTE =>
-      case D_FLOAT_DOUBLE =>
-        result.writeDoubleLE(buffer.readDoubleLE())
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val valueLength: Int = buffer.readIntLE()
-        result.writeIntLE(valueLength)
-        result.writeCharSequence(buffer.readCharSequence(valueLength, charset), charset)
-      case D_BSONOBJECT =>
-        val length: Int = buffer.getIntLE(buffer.readerIndex())
-        val bsonBuf: ByteBuf = buffer.readBytes(length)
-        result.writeBytes(bsonBuf)
-        bsonBuf.release()
-      case D_BSONARRAY =>
-        val length: Int = buffer.getIntLE(buffer.readerIndex())
-        val bsonBuf: ByteBuf = buffer.readBytes(length)
-        result.writeBytes(bsonBuf)
-        bsonBuf.release()
-      case D_NULL =>
-      case D_INT =>
-        result.writeIntLE(buffer.readIntLE())
-      case D_LONG =>
-        result.writeLongLE(buffer.readLongLE())
-      case D_BOOLEAN =>
-        result.writeBoolean(buffer.readBoolean())
-      //case _ =>
+      case _ => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
     }
   }
 
   /**
-    * Function used to perform injection of the new values
-    * @param buffer Structure from which we are reading the old values
-    * @param seqType Type of the value found and processing
-    * @param f Function given by the user with the new value
-    * @param result Structure used to write the new values
-    * @tparam T Type of the value being injected
+    * Function that handles the type of injection into an Array and calls the modifiers accordingly
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the values
+    * @param currentCodec   - Structure that contains the information already processed and where we write the values
+    * @param injFunction    - Function given by the user to alter specific values
+    * @param key            - Name of value to be used in search (can be empty)
+    * @param left           - Left argument of the array conditions
+    * @param mid            - Middle argument of the array conditions
+    * @param right          - Right argument of the array conditions
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made
     */
-  @deprecated
-  private def modifierAll[T](buffer: ByteBuf, seqType: Int, f: T => T, result: ByteBuf): Unit = {
-    seqType match {
-      case D_FLOAT_DOUBLE =>
-        val value0: Any = buffer.readDoubleLE()
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Float) =>
-            result.writeDoubleLE(n.toDouble)
-          case Some(n: Double) =>
-            result.writeDoubleLE(n)
-          case _ =>
-        }
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val length: Int = buffer.readIntLE()
-        val array: ByteBuf = Unpooled.buffer(length - 1).writeBytes(buffer.readCharSequence(length - 1, charset).toString.getBytes)
-        buffer.readByte()
-        val value: Any = applyFunction(f, array.array())
-        array.release()
-        Option(value) match {
-          case Some(n: Array[Byte]) =>
-            result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
-          case Some(n: String) =>
-            val aux: Array[Byte] = n.getBytes()
-            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-          case Some(n: Instant) =>
-            val aux: Array[Byte] = n.toString.getBytes()
-            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-          case _ =>
-        }
-      case D_BSONOBJECT =>
-        val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
-        val bson: ByteBuf = buffer.readBytes(valueLength)
-        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-        val arrayBytes: Array[Byte] = buf.array()
-        buf.release()
-        val bsonBytes: Array[Byte] = arrayBytes
-        bson.release()
-        val newValue: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-        (result.writeBytes(newValue), newValue.length - valueLength)
-      case D_BSONARRAY =>
-        val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
-        val bson: ByteBuf = buffer.readBytes(valueLength)
-        val buf: ByteBuf = Unpooled.buffer(bson.capacity()).writeBytes(bson)
-        val arrayBytes: Array[Byte] = buf.array()
-        buf.release()
-        val bsonBytes: Array[Byte] = arrayBytes
-        bson.release()
-        val value: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-        (result.writeBytes(value), value.length - valueLength)
-      case D_BOOLEAN =>
-        val value0: Boolean = buffer.readBoolean()
-        val value: Any = applyFunction(f, value0)
-        result.writeBoolean(value.asInstanceOf[Boolean])
-      case D_NULL =>
-        throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
-      case D_INT =>
-        val value0: Any = buffer.readIntLE()
-        val value: Any = applyFunction(f, value0)
-        result.writeIntLE(value.asInstanceOf[Int])
-      case D_LONG =>
-        val value0: Any = buffer.readLongLE()
-        val value: Any = applyFunction(f, value0)
-        result.writeLongLE(value.asInstanceOf[Long])
-    }
-  }
+  private def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any): Codec = {
 
-  /**
-    * Function used to copy the values inside objects that aren't of interest to the resulting structure
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param seqType Type of the value found and processing
-    * @param buffer Structure from which we are reading the old values
-    * @param result Structure to where we write the values
-    * @param fieldID name of the field we are searching
-    * @param f Function given by the user with the new value
-    * @tparam T Type of the value being injected
-    */
-  @deprecated
-  private def processTypesAll[T](list: List[(Statement, String)], seqType: Int, buffer: ByteBuf, result: ByteBuf, fieldID: String, f: T => T): Unit = {
-    seqType match {
-      case D_FLOAT_DOUBLE =>
-        result.writeDoubleLE(buffer.readDoubleLE())
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val valueLength: Int = buffer.readIntLE()
-        result.writeIntLE(valueLength)
-        val buf: ByteBuf = buffer.readBytes(valueLength)
-        result.writeBytes(buf)
-        buf.release()
-      case D_BSONOBJECT =>
-        val length: Int = buffer.getIntLE(buffer.readerIndex())
-        val bsonBuf: ByteBuf = buffer.readBytes(length)
-        val resultAux: ByteBuf = modifyAll(list, bsonBuf, fieldID, f)
-        bsonBuf.release()
-        result.writeBytes(resultAux)
-        resultAux.release()
-      case D_BSONARRAY =>
-        val length: Int = buffer.getIntLE(buffer.readerIndex())
-        val bsonBuf: ByteBuf = buffer.readBytes(length)
-        val resultAux: ByteBuf = modifyAll(list, bsonBuf, fieldID, f)
-        bsonBuf.release()
-        result.writeBytes(resultAux)
-        resultAux.release()
-      case D_NULL =>
-      case D_INT =>
-        result.writeIntLE(buffer.readIntLE())
-      case D_LONG =>
-        result.writeLongLE(buffer.readLongLE())
-      case D_BOOLEAN =>
-        result.writeBoolean(buffer.readBoolean())
-    }
-  }
-
-  /**
-    * Function used to perform the injection on the last ocurrence of a field
-    * @param buffer Structure from which we are reading the old values
-    * @param seqType Type of the value found and processing
-    * @param f Function given by the user with the new value
-    * @param result Structure to where we write the values
-    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
-    * @tparam T Type of the value being injected
-    */
-  @deprecated
-  private def modifierEnd[T](buffer: ByteBuf, seqType: Int, f: T => T, result: ByteBuf, resultCopy: ByteBuf): Unit = {
-    seqType match {
-      case D_FLOAT_DOUBLE =>
-        val value0: Double = buffer.readDoubleLE()
-        resultCopy.writeDoubleLE(value0)
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Float) =>
-            result.writeDoubleLE(n.toDouble)
-          case Some(n: Double) =>
-            result.writeDoubleLE(n)
-          case _ =>
-        }
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val length: Int = buffer.readIntLE()
-        val value0: Array[Byte] = Unpooled.buffer(length - 1).writeBytes(buffer.readBytes(length - 1)).array()
-        resultCopy.writeIntLE(length).writeBytes(value0)
-        buffer.readByte()
-        val value: Any = applyFunction(f, value0)
-        Option(value) match {
-          case Some(n: Array[Byte]) =>
-            result.writeIntLE(n.length + 1).writeBytes(n).writeZero(1)
-          case Some(n: String) =>
-            val aux: Array[Byte] = n.getBytes()
-            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-          case Some(n: Instant) =>
-            val aux: Array[Byte] = n.toString.getBytes()
-            result.writeIntLE(aux.length + 1).writeBytes(aux).writeZero(1)
-          case _ =>
-        }
-      case D_BSONOBJECT =>
-        val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
-        val bsonObj: ByteBuf = buffer.readBytes(valueLength)
-        resultCopy.writeBytes(bsonObj.duplicate())
-        val buf: ByteBuf = Unpooled.buffer(bsonObj.capacity()).writeBytes(bsonObj)
-        val arrayBytes: Array[Byte] = buf.array()
-        buf.release()
-        val bsonBytes: Array[Byte] = arrayBytes
-        bsonObj.release()
-        val newValue: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-        result.writeBytes(newValue)
-      case D_BSONARRAY =>
-        val valueLength: Int = buffer.getIntLE(buffer.readerIndex())
-        val bsonArray: ByteBuf = buffer.readBytes(valueLength)
-        resultCopy.writeBytes(bsonArray.duplicate())
-        val buf: ByteBuf = Unpooled.buffer(bsonArray.capacity()).writeBytes(bsonArray)
-        val arrayBytes: Array[Byte] = buf.array()
-        buf.release()
-        val bsonBytes: Array[Byte] = arrayBytes
-        bsonArray.release()
-        val value: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-        result.writeBytes(value)
-      case D_BOOLEAN =>
-        val value0: Boolean = buffer.readBoolean()
-        resultCopy.writeBoolean(value0)
-        val value: Boolean = applyFunction(f, value0).asInstanceOf[Boolean]
-        result.writeBoolean(value)
-      case D_NULL =>
-        throw CustomException(s"NULL field. Can not be changed") //  returns empty buffer
-      case D_INT =>
-        val value0: Int = buffer.readIntLE()
-        resultCopy.writeIntLE(value0)
-        val value: Int = applyFunction(f, value0).asInstanceOf[Int]
-        result.writeIntLE(value)
-      case D_LONG =>
-        val value0: Long = buffer.readLongLE()
-        resultCopy.writeLongLE(value0)
-        val value: Long = applyFunction(f, value0).asInstanceOf[Long]
-        result.writeLongLE(value)
-    }
-  }
-
-  /**
-    * Function used to perform the search on the last element of an array
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buffer Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf Represent the inferior limit when a range is given
-    * @param limitSup Represent the superior limit when a range is given
-    * @param result Structure to where we write the values
-    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
-    * @tparam T  Type of the value being injected
-    * @return A new bosonImpl with the new values injected
-    */
-  @deprecated
-  def modifyArrayEnd[T](list: List[(Statement, String)], buffer: ByteBuf, f: T => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf = Unpooled.buffer(), resultCopy: ByteBuf = Unpooled.buffer()): BosonImpl = {
-    /*
-    * If fieldID is empty returns the Original BosomImpl
-    * */
-    val startReaderIndex: Int = buffer.readerIndex()
-    val originalSize: Int = buffer.readIntLE()
-    val exceptions: ListBuffer[Throwable] = new ListBuffer[Throwable]
-    while ((buffer.readerIndex() - startReaderIndex) < originalSize && exceptions.size < 2) {
-      val dataType: Int = buffer.readByte().toInt
-      result.writeByte(dataType)
-      resultCopy.writeByte(dataType)
-      dataType match {
-        case 0 =>
-        case _ =>
-          val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buffer.getByte(buffer.readerIndex()) != 0 || key.length < 1) {
-              val b: Byte = buffer.readByte()
-              key.append(b)
-            }
-            val b: Byte = buffer.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-          }
-          result.writeBytes(key).writeByte(b)
-          resultCopy.writeBytes(key).writeByte(b)
-          val keyString: String = new String(key)
-          (keyString, condition, limitSup) match {
-            case (x, C_END, _) if isArray =>
-              exceptions.clear()
-              if (list.size == 1) {
-                if (list.head._2.contains(C_DOUBLEDOT)) {
-                  dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      if (exceptions.isEmpty) {
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
-                        val bufRes: ByteBuf = Unpooled.buffer()
-                        val bufResCopy: ByteBuf = Unpooled.buffer()
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        val buf3: ByteBuf =
-                          if (list.head._1.isInstanceOf[ArrExpr])
-                            execStatementPatternMatch(buf1, list, f)
-                          else
-                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
-
-
-                        Try(modifierEnd(buf3.duplicate(), dataType, f, bufRes, bufResCopy)) match {
-                          case Success(_) =>
-                          case Failure(e) =>
-                            exceptions.append(e)
-                        }
-                        result.writeBytes(bufRes)
-                        resultCopy.writeBytes(bufResCopy)
-                        buf1.release()
-                        bufRes.release()
-                        bufResCopy.release()
-                        buf3.release()
-                      }
-                    case _ =>
-                      if (exceptions.isEmpty) {
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                          case Success(_) =>
-                          case Failure(e) =>
-                            exceptions.append(e)
-                        }
-                      }
-                  }
-                } else {
-                  if (exceptions.isEmpty) {
-                    result.clear().writeBytes(resultCopy.duplicate())
-                    Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                      case Success(_) =>
-                      case Failure(e) =>
-                        exceptions.append(e)
-                    }
-                  }
-                }
-              } else {
-                if (list.head._2.contains(C_DOUBLEDOT) /*&& list.head._1.isInstanceOf[ArrExpr]*/ ) {
-                  dataType match {
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      if (exceptions.isEmpty) {
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
-                        // val buf2: ByteBuf = execStatementPatternMatch(buf1.duplicate(), list, f)
-                        val buf2: ByteBuf =
-                          if (list.head._1.isInstanceOf[ArrExpr])
-                            execStatementPatternMatch(buf1.duplicate(), list, f)
-                          else
-                            Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
-                        //val buf3: ByteBuf =
-                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
-                          case Success(v) =>
-                            result.writeBytes(v)
-                            v.release()
-                            resultCopy.writeBytes(buf2)
-                          case Failure(e) =>
-                            result.writeBytes(buf2.duplicate())
-                            resultCopy.writeBytes(buf2)
-                            exceptions.append(e)
-                        }
-
-                        //processTypesArray(dataType, buffer, resultCopy)
-                        buf1.release()
-                        buf2.release()
-                        //buf3.release()
-                      }
-                    case _ =>
-                      processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
-                  }
-                } else {
-                  dataType match {
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      if (exceptions.isEmpty) {
-                        result.clear().writeBytes(resultCopy.duplicate())
-                        // val res: ByteBuf =
-                        Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
-                          case Success(v) =>
-                            result.writeBytes(v)
-                            v.release()
-                            processTypesArray(dataType, buffer, resultCopy)
-                          case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            exceptions.append(e)
-                        }
-                      }
-                    case _ =>
-                      processTypesArray(dataType, buffer.duplicate(), result)
-                      processTypesArray(dataType, buffer, resultCopy)
-                  }
-                }
-              }
-            case (x, _, C_END) if isArray && limitInf.toInt <= keyString.toInt =>
-              if (list.size == 1) {
-                if (list.head._2.contains(C_DOUBLEDOT) /*&& !list.head._1.isInstanceOf[KeyWithArrExpr]*/ ) {
-                  dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      if (exceptions.isEmpty) {
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
-                        val bufRes: ByteBuf = Unpooled.buffer()
-                        val bufResCopy: ByteBuf = Unpooled.buffer()
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        val buf3: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                        Try(modifierEnd(buf3.duplicate(), dataType, f, bufRes, bufResCopy)) match {
-                          case Success(_) =>
-                          case Failure(e) =>
-                            exceptions.append(e)
-                        }
-                        result.writeBytes(bufRes)
-                        resultCopy.writeBytes(bufResCopy)
-                        buf1.release()
-                        bufRes.release()
-                        bufResCopy.release()
-                        buf3.release()
-                      } else
-                        exceptions.append(exceptions.head)
-                    case _ =>
-                      if (exceptions.isEmpty) {
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                          case Success(_) =>
-                          case Failure(e) =>
-                            exceptions.append(e)
-                        }
-                      } else
-                        exceptions.append(exceptions.head)
-                  }
-                } else {
-                  if (exceptions.isEmpty) {
-                    resultCopy.clear().writeBytes(result.duplicate())
-                    Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                      case Success(_) =>
-                      case Failure(e) =>
-                        exceptions.append(e)
-                    }
-                  } else
-                    exceptions.append(exceptions.head)
-                }
-              } else {
-                if (list.head._2.contains(C_DOUBLEDOT) /*&& list.head._1.isInstanceOf[ArrExpr]*/ ) {
-                  dataType match {
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      if (exceptions.isEmpty) {
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.duplicate().readRetainedSlice(size)
-                        val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                        buf1.release()
-                        // val buf3: ByteBuf =
-                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
-                          case Success(v) =>
-                            buf2.release()
-                            result.writeBytes(v)
-                            v.release()
-                            processTypesArray(dataType, buffer, resultCopy)
-                          case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            exceptions.append(e)
-                        }
-                      } else {
-                        exceptions.append(exceptions.head)
-                      }
-
-                    case _ =>
-                      processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
-                  }
-                } else {
-                  dataType match {
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      if (exceptions.isEmpty) {
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        //val res: ByteBuf =
-                        Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
-                          case Success(v) =>
-                            result.writeBytes(v)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            v.release()
-                          case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            exceptions.append(e)
-                        }
-                      } else
-                        exceptions.append(exceptions.head)
-                    case _ =>
-                      processTypesArray(dataType, buffer.duplicate(), result)
-                      processTypesArray(dataType, buffer, resultCopy)
-                  }
-                }
-              }
-            case (x, _, C_END) if isArray && limitInf.toInt > keyString.toInt =>
-              if (list.head._2.contains(C_DOUBLEDOT) /*&& list.head._1.isInstanceOf[ArrExpr]*/ )
-                dataType match {
-                  case (D_BSONOBJECT | D_BSONARRAY) =>
-                    val size: Int = buffer.getIntLE(buffer.readerIndex())
-                    val buf1: ByteBuf = buffer.readBytes(size)
-                    val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                    result.writeBytes(buf2.duplicate())
-                    resultCopy.writeBytes(buf2.duplicate())
-                    buf1.release()
-                    buf2.release()
-                  case _ =>
-                    processTypesArray(dataType, buffer.duplicate(), result)
-                    processTypesArray(dataType, buffer, resultCopy)
-                }
-              else {
-                processTypesArray(dataType, buffer.duplicate(), result)
-                processTypesArray(dataType, buffer, resultCopy)
-              }
-            case (x, _, l) if isArray && (limitInf.toInt <= x.toInt && l.toInt >= x.toInt) =>
-              if (list.lengthCompare(1) == 0) {
-                if (list.head._2.contains(C_DOUBLEDOT)) {
-                  dataType match {
-                    case (D_BSONOBJECT | D_BSONARRAY) =>
-                      if (exceptions.isEmpty) {
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.readBytes(size)
-                        val bufRes: ByteBuf = Unpooled.buffer()
-                        val bufResCopy: ByteBuf = Unpooled.buffer()
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        val buf3: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                        Try(modifierEnd(buf3.duplicate(), dataType, f, bufRes, bufResCopy)) match {
-                          case Success(_) =>
-                          case Failure(e) =>
-                            exceptions.append(e)
-                        }
-                        result.writeBytes(bufRes)
-                        resultCopy.writeBytes(bufResCopy)
-                        buf1.release()
-                        bufRes.release()
-                        bufResCopy.release()
-                        buf3.release()
-                      } else
-                        exceptions.append(exceptions.head)
-                    case _ =>
-                      if (exceptions.isEmpty) {
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                          case Success(_) =>
-                          case Failure(e) =>
-                            exceptions.append(e)
-                        }
-                      } else
-                        exceptions.append(exceptions.head)
-
-                  }
-                } else {
-                  if (exceptions.isEmpty) {
-                    resultCopy.clear().writeBytes(result.duplicate())
-                    Try(modifierEnd(buffer, dataType, f, result, resultCopy)) match {
-                      case Success(_) =>
-                      case Failure(e) =>
-                        exceptions.append(e)
-                    }
-                  } else
-                    exceptions.append(exceptions.head)
-                }
-              } else {
-                if (list.head._2.contains(C_DOUBLEDOT) /*&& list.head._1.isInstanceOf[ArrExpr]*/ ) {
-                  dataType match {
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      if (exceptions.isEmpty) {
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        val size: Int = buffer.getIntLE(buffer.readerIndex())
-                        val buf1: ByteBuf = buffer.duplicate().readBytes(size)
-                        val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                        buf1.release()
-                        Try(execStatementPatternMatch(buf2.duplicate(), list.drop(1), f)) match {
-                          case Success(v) =>
-                            result.writeBytes(v)
-                            v.release()
-                            processTypesArray(dataType, buffer, resultCopy)
-                          case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            exceptions.append(e)
-                        }
-                        buf2.release()
-                      } else
-                        exceptions.append(exceptions.head)
-                    case _ =>
-                      processTypesArrayEnd(list, EMPTY_KEY, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
-                  }
-                } else {
-                  dataType match {
-                    case (D_BSONARRAY | D_BSONOBJECT) =>
-                      if (exceptions.isEmpty) {
-                        resultCopy.clear().writeBytes(result.duplicate())
-                        Try(execStatementPatternMatch(buffer.duplicate(), list.drop(1), f)) match {
-                          case Success(v) =>
-                            result.writeBytes(v)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            v.release()
-                          case Failure(e) =>
-                            processTypesArray(dataType, buffer.duplicate(), result)
-                            processTypesArray(dataType, buffer, resultCopy)
-                            exceptions.append(e)
-                        }
-                      } else
-                        exceptions.append(exceptions.head)
-                    case _ =>
-                      processTypesArray(dataType, buffer.duplicate(), result)
-                      processTypesArray(dataType, buffer, resultCopy)
-                  }
-                }
-              }
-            case (x, _, l) if isArray && (limitInf.toInt > x.toInt || l.toInt < x.toInt) =>
-              if (list.head._2.contains(C_DOUBLEDOT))
-                dataType match {
-                  case (D_BSONOBJECT | D_BSONARRAY) =>
-                    val size: Int = buffer.getIntLE(buffer.readerIndex())
-                    val buf1: ByteBuf = buffer.readBytes(size)
-                    val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                    result.writeBytes(buf2.duplicate())
-                    resultCopy.writeBytes(buf2.duplicate())
-                    buf1.release()
-                    buf2.release()
-                  case _ =>
-                    processTypesArray(dataType, buffer.duplicate(), result)
-                    processTypesArray(dataType, buffer, resultCopy)
-                }
-              else {
-                processTypesArray(dataType, buffer.duplicate(), result)
-                processTypesArray(dataType, buffer, resultCopy)
-              }
-            case (x, _, l) if !isArray =>
-              if (list.head._2.contains(C_DOUBLEDOT)) {
-                dataType match {
-                  case (D_BSONOBJECT | D_BSONARRAY) =>
-                    val size: Int = buffer.getIntLE(buffer.readerIndex())
-                    val buf1: ByteBuf = buffer.readBytes(size)
-                    val buf2: ByteBuf = execStatementPatternMatch(buf1, list, f)
-                    result.writeBytes(buf2.duplicate())
-                    resultCopy.writeBytes(buf2.duplicate())
-                    buf1.release()
-                    buf2.release()
-                  case _ =>
-                    processTypesArray(dataType, buffer.duplicate(), result)
-                    processTypesArray(dataType, buffer, resultCopy)
-                }
-              } else throw CustomException("*ModifyArrayEnd* Not a Array")
-          }
+    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+      case SonArray(_, data) => data match {
+        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+        case jsonString: String => CodecObject.toCodec(jsonString)
       }
     }
-    result.capacity(result.writerIndex())
-    resultCopy.capacity(resultCopy.writerIndex())
-    val a: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
-    val b: ByteBuf = Unpooled.buffer(resultCopy.capacity() + 4).writeIntLE(resultCopy.capacity() + 4).writeBytes(resultCopy)
-    result.release()
-    resultCopy.release()
-    if (condition.equals(TO_RANGE))
-      if (exceptions.isEmpty) {
-        val bson: BosonImpl = new BosonImpl(byteArray = Option(a.array()))
-        a.release()
-        b.release()
-        bson
-      } else
-        throw exceptions.head
-    else if (condition.equals(UNTIL_RANGE)) {
+    val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
+      case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString)
+      case (EMPTY_KEY, from, expr, _) =>
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString)
+      case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] =>
+        modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString, to.toString)
+      case (nonEmptyKey, from, expr, _) =>
+        modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString)
+    }
+    codecArrayEnd
+  }
 
-      if (exceptions.length <= 1) {
-        val bson: BosonImpl = new BosonImpl(byteArray = Option(b.array()))
-        a.release()
-        b.release()
-        bson
-      } else
-        throw exceptions.head
-    } else {
+  /**
+    * This function iterates through the all the positions of an array to find the relevant elements to be changed
+    * in the injection
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the values
+    * @param injFunction    - Function given by the user to alter specific values
+    * @param condition      - Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
+    * @param from           - Represent the inferior limit of a given range
+    * @param to             - Represent the superior limit of a given range
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made
+    */
+  private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
+    val startReaderIndex = codec.getReaderIndex
+    val originalSize = codec.readSize
 
-      if (exceptions.isEmpty) {
-        val bson: BosonImpl = new BosonImpl(byteArray = Option(a.array()))
-        a.release()
-        b.release()
-        bson
-      } else
-        throw exceptions.head
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param currentCodec     - The codec where we right the values of the processed data
+      * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
+      * @param exceptions       - An Int that represents how many exceptions have occurred (This value is used to detirmine if the range inserted is a TO_RANGE or UNTIL_RANGE)
+      * @return a codec pair with the modifications made and the amount of exceptions that occured
+      */
+    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec, exceptions: Int): (Codec, Codec, Int) = {
+      if ((codec.getReaderIndex - startReaderIndex) >= originalSize && exceptions < 2)
+        (currentCodec, currentCodecCopy, exceptions)
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte)) //Verify
+        val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
+          case _ =>
+
+            val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+              case SonString(_, keyString) => keyString.asInstanceOf[String]
+            }
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+              case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            }
+
+            val codecWithoutKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b))
+
+            val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
+
+            val isArray = key.forall(b => b.isDigit)
+
+            //            val (isArray, key, byte): (Boolean, String, Int) = {
+            //              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+            //                case SonString(_, keyString) => keyString.asInstanceOf[String]
+            //              }
+            //              val byte: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
+            //                case SonBoolean(_, result) => result.asInstanceOf[Byte]
+            //              }
+            //              (key.forall(b => b.isDigit), key, byte)
+            //            }
+            //            val codecWithKey1 = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            //            val codecWithKey = codec.writeToken(codecWithKey1, SonNumber(CS_BYTE, byte))
+            //            val codecWithKeyCopy1 = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            //            val codecWithKeyCopy = codec.writeToken(codecWithKeyCopy1, SonNumber(CS_BYTE, byte))
+
+            val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
+              case (x, C_END, _) if isArray =>
+                if (statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value match {
+                            case byteBuf: ByteBuf => Left(byteBuf)
+                            case jsonString: String => Right(jsonString)
+                          }
+                        }
+
+                        val partialCodec = {
+                          if (statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(partialData, statementsList, injFunction)
+                          else {
+                            partialData match {
+                              case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+                              case Right(jsonString) => CodecObject.toCodec(jsonString)
+                            }
+                          }
+                        }
+
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                          Try(modifierEnd(partialCodec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                            case Success(tuple) =>
+                              (tuple, 0)
+                            case Failure(_) =>
+                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
+                          }
+                        (codecTuple, exceptionsReturn)
+
+                      case _ =>
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                            case Success(tuple) => (tuple, 0)
+                            case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
+                          }
+                        (codecTuple, exceptionsReturn)
+                    }
+                  } else {
+                    val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                        case Success(tuple) => (tuple, 0)
+                        case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
+                      }
+                    (codecTuple, exceptionsReturn)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
+                          case SonArray(_, value) => value.asInstanceOf[DataStructure]
+                        }
+
+                        val codecData =
+                          if (statementsList.head._1.isInstanceOf[ArrExpr])
+                            inject(partialData, statementsList, injFunction).getCodecData
+                          else
+                            partialData
+
+                        val partialCodec = partialData match {
+                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+                          case Right(jsonString) => CodecObject.toCodec(jsonString)
+                        }
+
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try(inject(codecData, statementsList.drop(1), injFunction)) match {
+                          case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
+                          case Failure(_) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
+                        }
+                        (codecTuple, exceptionsReturn)
+                      case _ =>
+                        val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
+                        (codecTuple, exceptions)
+                    }
+                  } else {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        val newCodec: Codec = codecWithKeyCopy.duplicate
+                        Try(inject(codec.getCodecData, statementsList.drop(1), injFunction)) match {
+                          case Success(c) => ((c, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                        }
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                    }
+                  }
+                }
+              case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
+                if (statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        if (exceptions == 0) {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val emptyCodec: Codec = createEmptyCodec(codec)
+                          val newCodecCopy = codecWithKey.duplicate
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                          val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                            Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
+                              case Success(tuple) =>
+                                ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
+                              case Failure(_) =>
+                                ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
+                            }
+                          (codecTuple, exceptionsReturn)
+                        } else
+                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                            case Success(tuple) =>
+                              (tuple, exceptions)
+                            case Failure(_) =>
+                              ((codecWithKey, newCodecCopy), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                    }
+                  } else {
+                    if (exceptions == 0) {
+                      //                      val newCodecCopy = codecWithKey.duplicate // Here!
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                        case Success(tuple) =>
+                          (tuple, exceptions)
+                        case Failure(_) =>
+                          ((codecWithKey, codecWithKey), exceptions + 1)
+                      }
+                    } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
+                          Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+                            case Success(c) =>
+                              ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                            case Failure(_) =>
+                              ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
+                        (codecTuple, exceptions)
+                    }
+                  } else {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
+                            case Success(c) =>
+                              ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                            case Failure(_) =>
+                              ((codecWithKey, newCodecCopy), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                    }
+                  }
+                }
+              case (x, _, C_END) if isArray && from.toInt > x.toInt =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                  dataType match {
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                        case SonArray(_, value) => value match {
+                          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                          case string: String => CodecObject.toCodec(string)
+                        }
+                      }
+                      val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                      val newCodecResult = codecWithKey + modifiedPartialCodec
+                      val newCodecResultCopy = codecWithKeyCopy + modifiedPartialCodec
+                      ((newCodecResult, newCodecResultCopy), exceptions)
+                    case _ =>
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                  }
+                } else {
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                }
+
+              case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        if (exceptions == 0) {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val emptyCodec: Codec = createEmptyCodec(codec)
+                          val newCodecCopy = codecWithKey.duplicate
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                          Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match { //emptyCodec.duplicate
+                            case Success(tuple) =>
+                              ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
+                            case Failure(_) =>
+                              ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                            case Success(tuple) =>
+                              (tuple, exceptions)
+                            case Failure(_) =>
+                              ((codecWithKey, newCodecCopy), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                    }
+                  } else {
+                    if (exceptions == 0) {
+                      val newCodecCopy = codecWithKey.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                        case Success(tuple) =>
+                          (tuple, exceptions)
+                        case Failure(_) =>
+                          ((codecWithKey, newCodecCopy), exceptions + 1)
+                      }
+                    } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                          Try(inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+                            case Success(c) =>
+                              ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                            case Failure(_) =>
+                              ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
+                        (codecTuple, exceptions)
+
+                    }
+                  } else {
+                    dataType match {
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        if (exceptions == 0) {
+                          val newCodecCopy = codecWithKey.duplicate
+                          Try(inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
+                            case Success(c) =>
+                              ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                            case Failure(_) =>
+                              ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
+                          }
+                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                    }
+                  }
+                }
+              case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  dataType match {
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                        case SonArray(_, value) => value match {
+                          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                          case string: String => CodecObject.toCodec(string)
+                        }
+                      }
+                      val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                      ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
+
+                    case _ =>
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                  }
+                } else {
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions) // Exceptions
+                }
+              case (x, _, l) if !isArray =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  dataType match {
+                    case D_BSONOBJECT | D_BSONARRAY =>
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                        case SonArray(_, value) => value match {
+                          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                          case string: String => CodecObject.toCodec(string)
+                        }
+                      }
+                      val modifiedPartialCodec = inject(partialCodec.getCodecData, statementsList, injFunction)
+                      ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
+                    case _ =>
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                  }
+                } else
+                  throw new Exception
+            }
+            iterateDataStructure(codecResult, codecResultCopy, exceptionsResult)
+        }
+      }
+    }
+
+    val emptyCodec: Codec = createEmptyCodec(codec)
+
+    val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, emptyCodec.duplicate, 0)
+
+    val finalSize = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
+
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSize.removeEmptySpace
+
+    val codecFinal = codecWithSize + codecWithoutSize
+
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
+
+    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy))
+    codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSizeCopy.removeEmptySpace
+
+    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
+
+    condition match {
+      case TO_RANGE =>
+        if (exceptions == 0)
+          codecFinal
+        else
+          throw new Exception
+      case UNTIL_RANGE =>
+        if (exceptions <= 1)
+          codecFinalCopy
+        else
+          throw new Exception
+      case _ =>
+        if (exceptions == 0)
+          codecFinal
+        else
+          throw new Exception
     }
   }
 
   /**
-    * Function used to copy the values of an array that aren't of interest while searching for the last element
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param fieldID Name of the field of interest
-    * @param dataType Type of the value found and processing
-    * @param buf Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf Represent the inferior limit when a range is given
-    * @param limitSup Represent the superior limit when a range is given
-    * @param result Structure to where we write the values
-    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
-    * @tparam T Type of the value being injected
+    * This function processes the types not relevant to the injection of an Array and copies them to the resulting
+    * codec with the processed information up until this point
+    *
+    * @param statementList   - A list with pairs that contains the key of interest and the type of operation
+    * @param fieldID         - Name of the field of interest
+    * @param dataType        - Type of the value found and processing
+    * @param codec           - Structure from which we are reading the values
+    * @param injFunction     - Function given by the user with the new value
+    * @param condition       - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param from            - Represent the inferior limit when a range is given
+    * @param to              - Represent the superior limit when a range is given
+    * @param resultCodec     - Structure that contains the information already processed and where we write the values
+    * @param resultCodecCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made and an Auxiliary Codec
     */
-  @deprecated
-  private def processTypesArrayEnd[T](list: List[(Statement, String)], fieldID: String, dataType: Int, buf: ByteBuf, f: (T) => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf, resultCopy: ByteBuf): Unit = {
+  private def processTypesArrayEnd[T](statementList: StatementsList, fieldID: String, dataType: Int, codec: Codec, injFunction: T => T, condition: String, from: String = C_ZERO, to: String = C_END, resultCodec: Codec, resultCodecCopy: Codec): (Codec, Codec) = {
     dataType match {
-      case D_FLOAT_DOUBLE =>
-        val value0: Double = buf.readDoubleLE()
-        result.writeDoubleLE(value0)
-        resultCopy.writeDoubleLE(value0)
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val valueLength: Int = buf.readIntLE()
-        val bytes: ByteBuf = buf.readBytes(valueLength)
-        result.writeIntLE(valueLength)
-        result.writeBytes(bytes.duplicate())
-        resultCopy.writeIntLE(valueLength)
-        resultCopy.writeBytes(bytes.duplicate())
-        bytes.release()
-      case D_BSONOBJECT =>
-        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
-      //        if (condition.equals(TO_RANGE)) // || condition.equals(C_END))
-      //          //result.writeBytes(res.getByteBuf)
-      //        else if (condition.equals(C_END))
-      //         // result.writeBytes(res.getByteBuf)
-      //        else
-      // resultCopy.writeBytes(res.getByteBuf)
-      // res.getByteBuf.release()
-      case D_BSONARRAY =>
-        val res: BosonImpl = modifyArrayEndWithKey(list, buf, fieldID, f, condition, limitInf, limitSup)
-      //        if (condition.equals(TO_RANGE))
-      //       //   result.writeBytes(res.getByteBuf)
-      //        else if (condition.equals(C_END))
-      //       //   result.writeBytes(res.getByteBuf)
-      //        else
-      //    resultCopy.writeBytes(res.getByteBuf)
 
-      //  res.getByteBuf.release()
-      case D_NULL =>
-        None
+      case D_FLOAT_DOUBLE =>
+        val token = codec.readToken(SonNumber(CS_DOUBLE))
+        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        //        val token = codec.readToken(SonString(CS_STRING))
+        //
+        //        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
+          case SonString(_, data) => data.asInstanceOf[String]
+        }
+        val strSizeCodec = codec.writeToken(resultCodec, SonNumber(CS_INTEGER, value0.length + 1))
+        val strSizeCodecCopy = codec.writeToken(resultCodecCopy, SonNumber(CS_INTEGER, value0.length + 1))
+        val codecWithLastByte = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+        val codecWithLastByteCopy = codec.writeToken(strSizeCodecCopy, SonString(CS_STRING, value0)) + strSizeCodecCopy.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+        (codecWithLastByte, codecWithLastByteCopy)
+
+      case D_BSONOBJECT =>
+        val codecObj = codec.readToken(SonObject(CS_OBJECT)) match {
+          case SonObject(_, data) => data match {
+            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+            case jsonString: String => CodecObject.toCodec(jsonString)
+          }
+        }
+        val auxCodec = modifyArrayEndWithKey(statementList, codecObj, fieldID, injFunction, condition, from, to)
+        (resultCodec + auxCodec, resultCodecCopy + auxCodec)
+      case D_BSONARRAY =>
+        val codecArr = codec.readToken(SonArray(CS_ARRAY)) match {
+          case SonArray(_, data) => data match {
+            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+            case jsonString: String => CodecObject.toCodec(jsonString)
+          }
+        }
+        val auxCodec = modifyArrayEndWithKey(statementList, codecArr, fieldID, injFunction, condition, from, to)
+        (resultCodec + auxCodec, resultCodecCopy + auxCodec)
+
+      case D_NULL => (resultCodec, resultCodecCopy)
+
       case D_INT =>
-        val value0: Int = buf.readIntLE()
-        result.writeIntLE(value0)
-        resultCopy.writeIntLE(value0)
-        None
+        val token = codec.readToken(SonNumber(CS_INTEGER))
+        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+
       case D_LONG =>
-        val value0: Long = buf.readLongLE()
-        result.writeLongLE(value0)
-        resultCopy.writeLongLE(value0)
-        None
+        val token = codec.readToken(SonNumber(CS_LONG))
+        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+
       case D_BOOLEAN =>
-        val value0: Boolean = buf.readBoolean()
-        result.writeBoolean(value0)
-        resultCopy.writeBoolean(value0)
-        None
+        val token = codec.readToken(SonBoolean(CS_BOOLEAN))
+        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
     }
   }
 
   /**
     * Function used to search for the last element of an array that corresponds to field with name fieldID
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buffer Structure from which we are reading the old values
-    * @param fieldID Name of the field of interest
-    * @param f Function given by the user with the new value
-    * @param condition Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
-    * @param limitInf Represent the inferior limit when a range is given
-    * @param limitSup Represent the superior limit when a range is given
-    * @param result Structure to where we write the values
-    * @param resultCopy Auxiliar structure to where we write the values in case the previous cycle was the last one
-    * @tparam T Type of the value being injected
-    * @return a new BosonImpl with the new value injected
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the values
+    * @param fieldID        - Name of the field of interest
+    * @param injFunction    - Function given by the user with the new value
+    * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param from           - Represent the inferior limit when a range is given
+    * @param to             - Represent the superior limit when a range is given
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made
     */
-  @deprecated
-  def modifyArrayEndWithKey[T](list: List[(Statement, String)], buffer: ByteBuf, fieldID: String, f: T => T, condition: String, limitInf: String = C_ZERO, limitSup: String = C_END, result: ByteBuf = Unpooled.buffer(), resultCopy: ByteBuf = Unpooled.buffer()): BosonImpl = {
-    /*
-    * Se fieldID for vazia, então deve ser chamada a funcao modifyArrayEnd to work on Root
-    *ByteBuf tem de ser duplicado no input
-    * */
-    val startReaderIndex: Int = buffer.readerIndex()
-    val originalSize: Int = buffer.readIntLE()
-    while ((buffer.readerIndex() - startReaderIndex) < originalSize) {
-      val dataType: Int = buffer.readByte().toInt
-      result.writeByte(dataType)
-      resultCopy.writeByte(dataType)
-      dataType match {
-        case 0 =>
-        case _ =>
-          val (isArray, key, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buffer.getByte(buffer.readerIndex()) != 0 || key.length < 1) {
-              val b: Byte = buffer.readByte()
-              key.append(b)
+  private def modifyArrayEndWithKey[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, condition: String, from: String, to: String = C_END): Codec = {
+    val startReaderIndex = codec.getReaderIndex
+    val originalSize = codec.readSize
+
+    /**
+      * Recursive function to iterate through the given data structure and return the modified codec
+      *
+      * @param currentCodec     - a codec to write the modified information into
+      * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
+      * @return a codec containig the modifications made
+      */
+    def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): (Codec, Codec) = {
+      if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
+      else {
+        val dataType: Int = codec.readDataType
+        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
+        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
+        dataType match {
+          case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
+          case _ =>
+            val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+              case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
-            val b: Byte = buffer.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-          }
-          result.writeBytes(key).writeByte(b)
-          resultCopy.writeBytes(key).writeByte(b)
-          val keyString: String = new String(key)
-          keyString match {
-            case x if (fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x)) && dataType == D_BSONARRAY =>
-              /*
-              * Found a field equal to key
-              * Perform Injection
-              * */
-              if (list.size == 1) {
-                if (list.head._2.contains(C_DOUBLEDOT)) {
-                  val size: Int = buffer.getIntLE(buffer.readerIndex())
-                  val buf1: ByteBuf = buffer.readBytes(size)
-                  val res: BosonImpl = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup)
-                  //val buf2: ByteBuf = execStatementPatternMatch(res.getByteBuf.duplicate(), list, f)
-
-                  //                  if (condition.equals(TO_RANGE))
-                  //                  //  result.writeBytes(buf2)
-                  //                  else if (condition.equals(UNTIL_RANGE))
-                  //                  //  resultCopy.writeBytes(buf2)
-                  //                  else {
-                  // //////println("condition END")
-                  //   result.writeBytes(buf2)
-                  //resultCopy.writeBytes(res.getByteBuf)
-                  // }
-
-                  buf1.release()
-                  //buf2.release()
-                  // res.getByteBuf.release()
-                } else {
-                  val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
-                  //                  if (condition.equals(TO_RANGE))
-                  //                 //   result.writeBytes(res.getByteBuf)
-                  //                  else if (condition.equals(UNTIL_RANGE))
-                  //                 //   resultCopy.writeBytes(res.getByteBuf)
-                  //                  else {
-                  //                 //   result.writeBytes(res.getByteBuf)
-                  //                  }
-                  //                 // res.getByteBuf.release()
-                }
-              } else {
-                if (list.head._2.contains(C_DOUBLEDOT)) {
-
-                  val size: Int = buffer.getIntLE(buffer.readerIndex())
-                  val buf1: ByteBuf = buffer.readRetainedSlice(size)
-                  // val buf2: ByteBuf = modifyArrayEnd(list, buf1, f, condition, limitInf, limitSup).getByteBuf
-                  buf1.release()
-                  //                  if (condition.equals(TO_RANGE))
-                  //                  //  result.writeBytes(buf2)
-                  //                  else if (condition.equals(UNTIL_RANGE))
-                  //                 //   resultCopy.writeBytes(buf2)
-                  //                  else {
-                  //                 //   result.writeBytes(buf2)
-                  //                  }
-                  /// buf2.release()
-
-                } else {
-                  val res: BosonImpl = modifyArrayEnd(list, buffer, f, condition, limitInf, limitSup)
-                  //                  if (condition.equals(TO_RANGE))
-                  //                //    result.writeBytes(res.getByteBuf)
-                  //                  else if (condition.equals(UNTIL_RANGE))
-                  //                 //   resultCopy.writeBytes(res.getByteBuf)
-                  //                  else {
-                  //                 //   result.writeBytes(res.getByteBuf)
-                  //                  }
-                  //                //  res.getByteBuf.release()
-                }
-              }
-            case x if (fieldID.toCharArray.deep == x.toCharArray.deep || isHalfword(fieldID, x)) && dataType != D_BSONARRAY =>
-              if (list.head._2.contains(C_DOUBLEDOT) && list.head._1.isInstanceOf[KeyWithArrExpr])
-                processTypesArrayEnd(list, fieldID, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
-              else {
-                processTypesArray(dataType, buffer.duplicate(), result)
-                processTypesArray(dataType, buffer, resultCopy)
-              }
-            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
-              /*
-              * Didn't found a field equal to key
-              * Consume value and check deeper Levels
-              * */
-              if (list.head._2.contains(C_DOUBLEDOT) && list.head._1.isInstanceOf[KeyWithArrExpr]) {
-                processTypesArrayEnd(list, fieldID, dataType, buffer, f, condition, limitInf, limitSup, result, resultCopy)
-              } else {
-                processTypesArray(dataType, buffer.duplicate(), result)
-                processTypesArray(dataType, buffer, resultCopy)
-              }
-          }
-      }
-    }
-    result.capacity(result.writerIndex())
-    resultCopy.capacity(resultCopy.writerIndex())
-    val a: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
-    val b: ByteBuf = Unpooled.buffer(resultCopy.capacity() + 4).writeIntLE(resultCopy.capacity() + 4).writeBytes(resultCopy)
-    result.release()
-    resultCopy.release()
-    if (condition.equals(TO_RANGE))
-      new BosonImpl(byteArray = Option(a.array()))
-    else if (condition.equals(UNTIL_RANGE))
-      new BosonImpl(byteArray = Option(b.array()))
-    else {
-      // //////println("condition END")
-      new BosonImpl(byteArray = Option(a.array()))
-    }
-  }
-
-  /**
-    * Function used to search for a element within another element
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buf Structure from which we are reading the old values
-    * @param key Name of the field of interest
-    * @param elem Name of elements to search inside the obejcts inside an Array
-    * @param f Function given by the user with the new value
-    * @param result Structure to where we write the values
-    * @tparam T Type of the value being injected
-    * @return A structure with the new element injected
-    */
-  @deprecated
-  def modifyHasElem[T](list: List[(Statement, String)], buf: ByteBuf, key: String, elem: String, f: Function[T, T], result: ByteBuf = Unpooled.buffer()): ByteBuf = {
-    val startReader: Int = buf.readerIndex()
-    val size: Int = buf.readIntLE()
-    while ((buf.readerIndex() - startReader) < size) {
-      val dataType: Int = buf.readByte().toInt
-      result.writeByte(dataType)
-      dataType match {
-        case 0 =>
-        case _ =>
-          val (isArray, k, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buf.getByte(buf.readerIndex()) != 0 || key.length < 1) {
-              val b: Byte = buf.readByte()
-              key.append(b)
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+              case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
-            val b: Byte = buf.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-          }
-          result.writeBytes(k).writeByte(b)
-          val keyString: String = new String(k)
-          keyString match {
-            case x if (key.toCharArray.deep == x.toCharArray.deep || isHalfword(key, x)) && dataType == D_BSONARRAY =>
-            // val newBuf: ByteBuf = searchAndModify(list, buf, elem, f).getByteBuf
-            // result.writeBytes(newBuf)
-            // newBuf.release()
-            case x if (key.toCharArray.deep == x.toCharArray.deep || isHalfword(key, x)) && (dataType != D_BSONARRAY) =>
-              if (list.head._2.contains(C_DOUBLEDOT))
-                processTypesHasElem(list, dataType, key, elem, buf, f, result)
-              else
-                processTypesArray(dataType, buf, result)
-            case x if key.toCharArray.deep != x.toCharArray.deep && !isHalfword(key, x) =>
-              if (list.head._2.contains(C_DOUBLEDOT))
-                processTypesHasElem(list, dataType, key, elem, buf, f, result)
-              else
-                processTypesArray(dataType, buf, result)
-          }
-      }
-    }
-    result.capacity(result.writerIndex())
-    val finalResult: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
-    result.release()
-    finalResult
-  }
 
-  /**
-    * Function used to copy values that aren't of interest while searching for a element inside a object inside a array
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param dataType Type of the value found and processing
-    * @param key Name of the field of interest
-    * @param elem Name of elements to search inside the objects inside an Array
-    * @param buf Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param result Structure to where we write the values
-    * @tparam T Type of the value being injected
-    */
-  @deprecated
-  private def processTypesHasElem[T](list: List[(Statement, String)], dataType: Int, key: String, elem: String, buf: ByteBuf, f: (T) => T, result: ByteBuf):Unit = {
-    dataType match {
-      case D_FLOAT_DOUBLE =>
-        val value0: Double = buf.readDoubleLE()
-        result.writeDoubleLE(value0)
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val valueLength: Int = buf.readIntLE()
-        val bytes: ByteBuf = buf.readBytes(valueLength)
-        result.writeIntLE(valueLength)
-        result.writeBytes(bytes)
-        bytes.release()
-      case D_BSONOBJECT =>
-        val length: Int = buf.getIntLE(buf.readerIndex())
-        val bsonBuf: ByteBuf = buf.readBytes(length)
-        val newBsonBuf: ByteBuf = modifyHasElem(list, bsonBuf, key, elem, f)
-        bsonBuf.release()
-        result.writeBytes(newBsonBuf)
-        newBsonBuf.release()
-      case D_BSONARRAY =>
-        val length: Int = buf.getIntLE(buf.readerIndex())
-        val bsonBuf: ByteBuf = buf.readRetainedSlice(length)
-        val newBsonBuf: ByteBuf = modifyHasElem(list, bsonBuf, key, elem, f)
-        bsonBuf.release()
-        result.writeBytes(newBsonBuf)
-        newBsonBuf.release()
-      case D_NULL =>
-      case D_INT =>
-        val value0: Int = buf.readIntLE()
-        result.writeIntLE(value0)
-      case D_LONG =>
-        val value0: Long = buf.readLongLE()
-        result.writeLongLE(value0)
-      case D_BOOLEAN =>
-        val value0: Boolean = buf.readBoolean()
-        result.writeBoolean(value0)
-    }
-  }
+            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            val resCodec = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b))
 
-  /**
-    * Fucntion used to search for an element inside a object inside a array after finding the key of interest
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buf Structure from which we are reading the old values
-    * @param elem Name of elements to search inside the objects inside an Array
-    * @param f Function given by the user with the new value
-    * @param result Structure to where we write the values
-    * @tparam T Type of the value being injected
-    * @return a new BosonImpl with the new value injected
-    */
-  @deprecated
-  private def searchAndModify[T](list: List[(Statement, String)], buf: ByteBuf, elem: String, f: Function[T, T], result: ByteBuf = Unpooled.buffer()): BosonImpl = {
-    val startReader: Int = buf.readerIndex()
-    val size: Int = buf.readIntLE()
-    while ((buf.readerIndex() - startReader) < size) {
-      val dataType: Int = buf.readByte().toInt
-      result.writeByte(dataType)
-      dataType match {
-        case 0 =>
-        case _ =>
-          val (isArray, k, b): (Boolean, Array[Byte], Byte) = {
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            while (buf.getByte(buf.readerIndex()) != 0 || key.length < 1) {
-              val b: Byte = buf.readByte()
-              key.append(b)
-            }
-            val b: Byte = buf.readByte()
-            (key.forall(byte => byte.toChar.isDigit), key.toArray, b)
-          }
-          result.writeBytes(k).writeByte(b)
-          val keyString: String = new String(k)
-          dataType match {
-            case D_BSONOBJECT =>
-              val bsonSize: Int = buf.getIntLE(buf.readerIndex())
-              val bsonBuf: ByteBuf = Unpooled.buffer(bsonSize)
-              buf.getBytes(buf.readerIndex(), bsonBuf, bsonSize)
-              val hasElem: Boolean = hasElement(bsonBuf.duplicate(), elem)
-              if (hasElem) {
-                if (list.size == 1) {
-                  if (list.head._2.contains(C_DOUBLEDOT)) {
-                    val buf1: ByteBuf = buf.readBytes(bsonSize)
-                    val buf2: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
-                    buf1.release()
-                    val bsonBytes: Array[Byte] = buf2.array()
-                    buf2.release()
-                    val newArray: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-                    val newbuf: ByteBuf = Unpooled.buffer(newArray.length).writeBytes(newArray)
-                    val buf3: ByteBuf = execStatementPatternMatch(newbuf, list, f)
-                    newbuf.release()
-                    result.writeBytes(buf3)
-                    buf3.release()
-                    bsonBuf.release()
+            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b))
+
+            //            val (key, byte): (String, Byte) = {
+            //              val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+            //                case SonString(_, keyString) => keyString.asInstanceOf[String]
+            //              }
+            //              val token = codec.readToken(SonBoolean(C_ZERO))
+            //              val byte: Byte = token match {
+            //                case SonBoolean(_, byteBooelan) => byteBooelan.asInstanceOf[Byte]
+            //              }
+            //              (key, byte)
+            //            }
+            //            // writeKeyandByte
+            //            val modResultCodec = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
+            //            val modResultCodecCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
+            //
+            //            val resCodec = codec.writeToken(modResultCodec, SonString(CS_STRING, byte))
+            //            val resCodecCopy = codec.writeToken(modResultCodecCopy, SonString(CS_STRING, byte))
+
+            key match {
+              //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
+              //datatype is a BsonArray
+              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
+                if (statementsList.size == 1) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                      case SonArray(_, result) => result match {
+                        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                        case jsonString: String => CodecObject.toCodec(jsonString)
+                      }
+                    }
+                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to)
+                    val newInjectCodec = inject(newCodec.getCodecData, statementsList, injFunction)
+                    iterateDataStructure(resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
-                    val buf1: ByteBuf = buf.readBytes(bsonSize)
-                    val buf2: ByteBuf = Unpooled.buffer(buf1.capacity()).writeBytes(buf1)
-                    val array: Array[Byte] = buf2.array()
-                    buf2.release()
-                    val bsonBytes: Array[Byte] = array
-                    buf1.release()
-                    val value1: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-                    result.writeBytes(value1)
-                    bsonBuf.release()
+                    val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
                 } else {
-                  if (list.head._2.contains(C_DOUBLEDOT)) {
-                    val size: Int = buf.getIntLE(buf.readerIndex())
-                    val buf1: ByteBuf = buf.readBytes(size)
-                    val buf2: ByteBuf = execStatementPatternMatch(buf1, list.drop(1), f)
-                    val buf3: ByteBuf = execStatementPatternMatch(buf2.duplicate(), list, f)
-                    result.writeBytes(buf3)
-                    buf1.release()
-                    buf2.release()
-                    buf3.release()
-                    bsonBuf.release()
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                      case SonArray(_, result) => result match {
+                        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                        case jsonString: String => CodecObject.toCodec(jsonString)
+                      }
+                    }
+                    val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   } else {
-                    val buf1: ByteBuf = buf.readBytes(bsonSize)
-                    result.writeBytes(execStatementPatternMatch(bsonBuf, list.drop(1), f))
-                    buf1.release()
-                    bsonBuf.release()
+                    val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to)
+                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
+
                 }
-              } else {
-                val buf1: ByteBuf = buf.readBytes(bsonSize)
-                result.writeBytes(buf1)
-                buf1.release()
-              }
-            case _ =>
-              processTypesArray(dataType, buf, result)
-          }
+              //If we found the desired elem but the dataType is not an array, or if we didn't find the desired elem
+              case _ =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                  iterateDataStructure(processedCodec, processedCodecCopy)
+                } else {
+                  val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
+                  val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)
+                  iterateDataStructure(codecIterate, codecIterateCopy)
+                }
+            }
+        }
       }
     }
-    result.capacity(result.writerIndex())
-    val finalResult: ByteBuf = Unpooled.buffer(result.capacity() + 4).writeIntLE(result.capacity() + 4).writeBytes(result)
-    result.release()
-    new BosonImpl(byteArray = Option(finalResult.array()))
-  }
 
-  /**
-    * Function used to see if an object contains a certain elem inside
-    * @param buf Structure from which we are reading the old values
-    * @param elem Name of element to search inside the objects inside an Array
-    * @return A boolean meaning if the element has been found or not
-    */
-  @deprecated
-  def hasElement(buf: ByteBuf, elem: String): Boolean = {
-    val size: Int = buf.readIntLE()
-    val key: ListBuffer[Byte] = new ListBuffer[Byte]
-    while (buf.readerIndex() < size && (!elem.equals(new String(key.toArray)) && !isHalfword(elem, new String(key.toArray)))) {
-      key.clear()
-      val dataType: Int = buf.readByte()
-      dataType match {
-        case 0 =>
-        case _ =>
-          while (buf.getByte(buf.readerIndex()) != 0 || key.length < 1) {
-            val b: Byte = buf.readByte()
-            key.append(b)
-          }
-          buf.readByte()
-          dataType match {
-            case D_ZERO_BYTE =>
-            case D_FLOAT_DOUBLE =>
-              buf.readDoubleLE()
-            case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-              val valueLength: Int = buf.readIntLE()
-              buf.readBytes(valueLength).release()
-            case D_BSONOBJECT =>
-              val valueLength: Int = buf.getIntLE(buf.readerIndex())
-              buf.readBytes(valueLength).release()
-            case D_BSONARRAY =>
-              val valueLength: Int = buf.getIntLE(buf.readerIndex())
-              buf.readBytes(valueLength).release()
-            case D_BOOLEAN =>
-              buf.readByte()
-            case D_NULL =>
-            case D_INT =>
-              buf.readIntLE()
-            case D_LONG =>
-              buf.readLongLE()
-            //case _ =>
-          }
-      }
+    val emptyCodec = createEmptyCodec(codec)
+
+    val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(emptyCodec, createEmptyCodec(codec))
+
+    val finalSize = codecWithoutSize.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
     }
-    new String(key.toArray).toCharArray.deep == elem.toCharArray.deep || isHalfword(elem, new String(key.toArray))
-  }
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+      case Left(byteBuf) => byteBuf.writerIndex + 4
+      case Right(string) => string.length + 4
+    }
 
-  /**
-    * Function used to perform the search process recursively, performing the search key by key, separeted by '.' or '..' and performing the injection when the final key is reached
-    * @param buf Structure from which we are reading the old values
-    * @param statements A list with pairs that contains the key of interest and the type of operation
-    * @param f Function given by the user with the new value
-    * @tparam T Type of the value being injected
-    * @return A new structure with the final value injected
-    */
-  @deprecated
-  def execStatementPatternMatch[T](buf: ByteBuf, statements: List[(Statement, String)], f: Function[T, T]): ByteBuf = {
-    val result: ByteBuf = Unpooled.buffer()
-    val statement: Statement = statements.head._1
-    val newStatementList: List[(Statement, String)] = statements
-    statement match {
-      case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
-        val input: (String, Int, String, Any) =
-          (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
-            case (i, o1, o2) if o1.isDefined && o2.isDefined =>
-              (key, arrEx.leftArg, o1.get.value, o2.get)
-            case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
-              (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg)
-            case (0, str, None) =>
-              str.get.value match {
-                case C_FIRST =>
-                  (key, 0, TO_RANGE, 0)
-                case C_END =>
-                  (key, 0, C_END, None)
-                case C_ALL =>
-                  (key, 0, TO_RANGE, C_END)
-              }
-          }
-        val res: ByteBuf = execArrayFunction(newStatementList, buf, f, input._1, input._2, input._3, input._4)
-        val finalResult: ByteBuf = result.writeBytes(res)
-        res.release()
-        finalResult.capacity(finalResult.writerIndex())
-      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
-        val input: (String, Int, String, Any) =
-          (leftArg, midArg, rightArg) match {
-            case (i, o1, o2) if midArg.isDefined && rightArg.isDefined =>
-              (EMPTY_KEY, leftArg, midArg.get.value, rightArg.get)
-            case (i, o1, o2) if midArg.isEmpty && rightArg.isEmpty =>
-              (EMPTY_KEY, leftArg, TO_RANGE, leftArg)
-            case (0, str, None) =>
-              str.get.value match {
-                case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
-                case C_END => (EMPTY_KEY, 0, C_END, None)
-                case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
-              }
-          }
-        val res: ByteBuf = execArrayFunction(newStatementList, buf, f, input._1, input._2, input._3, input._4)
-        val finalResult: ByteBuf = result.writeBytes(res).capacity(result.writerIndex())
-        res.release()
-        finalResult
-      case HalfName(half: String) =>
-        val res: ByteBuf = modifyAll(newStatementList, buf, half, f)
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case HasElem(key: String, elem: String) =>
-        val res: ByteBuf = modifyHasElem(newStatementList, buf, key, elem, f)
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case Key(key: String) =>
-        val res: ByteBuf = modifyAll(newStatementList, buf, key, f)
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case ROOT =>
-        val res: ByteBuf = execRootInjection(buf, f)
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case _ => throw CustomException("Wrong Statements, Bad Expression.")
-      // Never Gets Here
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSize.removeEmptySpace
 
+    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy))
+    codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
+    codecWithSizeCopy.removeEmptySpace
+
+    val finalCodec = codecWithSize + codecWithoutSize
+    val finalCodecCopy = codecWithSizeCopy + codecWithoutSizeCopy
+
+    condition match {
+      case TO_RANGE =>
+        finalCodec
+      case UNTIL_RANGE =>
+        finalCodecCopy
+      case _ =>
+        finalCodec
     }
   }
 
   /**
-    * Function used with 'execStatementPatternMatch' to perform the process of recursive search while dealing with arrays
-    * @param list A list with pairs that contains the key of interest and the type of operation
-    * @param buf Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @param key Name of value to be used in search (can be empty)
-    * @param left Left argument of the array conditions
-    * @param mid Middle argument of the array conditions
-    * @param right Right argument of array conditions
-    * @param result Structure to where we write the values
-    * @tparam T Type of the value being injected
-    * @return A new structure with the final value injected
-    **/
-  @deprecated
-  def execArrayFunction[T](list: List[(Statement, String)], buf: ByteBuf, f: Function[T, T], key: String, left: Int, mid: String, right: Any, result: ByteBuf = Unpooled.buffer()): ByteBuf = {
-    (key, left, mid.toLowerCase(), right) match {
-      case (EMPTY_KEY, 0, C_END, None) =>
-        val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readBytes(size)
-        val res: ByteBuf = ??? //modifyArrayEnd(list, buf1, f, C_END, 0.toString).getByteBuf
-        result.writeBytes(res)
-        res.release()
-        buf1.release()
-        result.capacity(result.writerIndex())
-      case (EMPTY_KEY, a, UNTIL_RANGE, C_END) =>
-        val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readBytes(size)
-        val res: ByteBuf = ??? //modifyArrayEnd(list, buf1, f, UNTIL_RANGE, a.toString).getByteBuf
-        result.writeBytes(res)
-        res.release()
-        buf1.release()
-        result.capacity(result.writerIndex())
-      case (EMPTY_KEY, a, TO_RANGE, C_END) => // "[# .. end]"
-        val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readRetainedSlice(size)
-        val res: ByteBuf = ??? //modifyArrayEnd(list, buf1, f, TO_RANGE, a.toString).getByteBuf
-        buf1.release()
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case (EMPTY_KEY, a, expr, b) if b.isInstanceOf[Int] =>
-        expr match {
-          case TO_RANGE =>
-            val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readRetainedSlice(size)
-            val res: ByteBuf = ??? // modifyArrayEnd(list, buf1, f, TO_RANGE, a.toString, b.toString).getByteBuf
-            buf1.release()
-            result.writeBytes(res)
-            res.release()
-            result.capacity(result.writerIndex())
-          case UNTIL_RANGE =>
-            val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readRetainedSlice(size)
-            val res: ByteBuf = ??? //modifyArrayEnd(list, buf1, f, UNTIL_RANGE, a.toString, b.toString).getByteBuf
-            buf1.release()
-            result.writeBytes(res)
-            res.release()
-            result.capacity(result.writerIndex())
-        }
-      case (k, 0, C_END, None) =>
-        val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readBytes(size)
-        val res: ByteBuf = ??? // modifyArrayEndWithKey(list, buf1, k, f, C_END, 0.toString).getByteBuf
-        result.writeBytes(res)
-        res.release()
-        buf1.release()
-        result.capacity(result.writerIndex())
-
-      case (k, a, UNTIL_RANGE, C_END) =>
-        val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readRetainedSlice(size)
-        val res: ByteBuf = ??? //modifyArrayEndWithKey(list, buf1, k, f, UNTIL_RANGE, a.toString).getByteBuf
-        buf1.release()
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case (k, a, TO_RANGE, C_END) =>
-        val size: Int = buf.getIntLE(buf.readerIndex())
-        val buf1: ByteBuf = buf.readRetainedSlice(size)
-        val res: ByteBuf = ??? //modifyArrayEndWithKey(list, buf1, k, f, TO_RANGE, a.toString).getByteBuf
-        buf1.release()
-        result.writeBytes(res)
-        res.release()
-        result.capacity(result.writerIndex())
-      case (k, a, expr, b) if b.isInstanceOf[Int] =>
-        expr match {
-          case TO_RANGE =>
-            val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readRetainedSlice(size)
-            val res: ByteBuf = ??? //modifyArrayEndWithKey(list, buf1, k, f, TO_RANGE, a.toString, b.toString).getByteBuf
-            buf1.release()
-            result.writeBytes(res)
-            res.release()
-            result.capacity(result.writerIndex())
-          case UNTIL_RANGE =>
-            val size: Int = buf.getIntLE(buf.readerIndex())
-            val buf1: ByteBuf = buf.readRetainedSlice(size)
-            val res: ByteBuf = ??? //modifyArrayEndWithKey(list, buf1, k, f, UNTIL_RANGE, a.toString, b.toString).getByteBuf
-            buf1.release()
-            result.writeBytes(res)
-            res.release()
-            result.capacity(result.writerIndex())
-        }
+    * Helper function to retrieve a codec with the key information written in it , and the key that was written
+    *
+    * @param codec         - Structure from which we are reading the values
+    * @param writableCodec - Structure that contains the information already processed and where we write the values
+    * @return
+    */
+  private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
+    val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
+      case SonString(_, keyString) => keyString.asInstanceOf[String]
     }
+    val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+      case SonBoolean(_, result) => result.asInstanceOf[Byte]
+    }
+
+    val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key))
+    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b)), key)
   }
 
   /**
-    * Function used when the injection is done at Root level
-    * @param buffer Structure from which we are reading the old values
-    * @param f Function given by the user with the new value
-    * @tparam T Type of the value being injected
-    * @return A new structure with the final value injected
+    * Method that creates a Codec with an empty data structure inside it.
+    *
+    * For CodecBson it creates a ByteBuf with capacity 256.
+    * For CodecJson it creates an empty String
+    *
+    * @param inputCodec - a codec in order to determine which codec to create
+    * @return a Codec with an empty data structure inside it
     */
-  @deprecated
-  def execRootInjection[T](buffer: ByteBuf, f: Function[T, T]): ByteBuf = {
-    val bsonBytes: Array[Byte] = buffer.array()
-    val newBson: Array[Byte] = applyFunction(f, bsonBytes).asInstanceOf[Array[Byte]]
-    Unpooled.buffer(newBson.length).writeBytes(newBson)
+  private def createEmptyCodec(inputCodec: Codec): Codec = {
+    val emptyCodec = inputCodec.getCodecData match {
+      case Left(_) => CodecObject.toCodec(Unpooled.buffer()) //Creates a CodecBson with an empty ByteBuf with capacity 256
+      case Right(_) => CodecObject.toCodec("") //Creates a CodecJson with an empty String
+    }
+    emptyCodec.setWriterIndex(0) //Sets the writerIndex of the newly created codec to 0 (Initialy it starts at 256 for CodecBson, so we need o reset it)
+    emptyCodec
   }
 }

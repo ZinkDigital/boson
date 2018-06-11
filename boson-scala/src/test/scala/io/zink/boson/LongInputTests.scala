@@ -4,10 +4,12 @@ import bsonLib.BsonObject
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
 import io.zink.boson.bson.bsonImpl.BosonImpl
-import org.junit.Assert.assertTrue
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
+import org.junit.Assert._
+
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.io.Source
@@ -26,7 +28,7 @@ class LongInputTests extends FunSuite {
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
 
-  val boson: BosonImpl = new BosonImpl(byteArray = Option(bson.encode().getBytes))
+  val boson: BosonImpl = new BosonImpl()
 
   test("extract top field") {
     val expression: String = ".Epoch"
@@ -39,42 +41,46 @@ class LongInputTests extends FunSuite {
 
   test("extract bottom field") {
     val expression: String = "SSLNLastName"
-    val expected: Seq[String] = Seq("de Huanuco")
-    val boson: Boson = Boson.extractor(expression, (out: Seq[String]) => {
+    val expected: String = "de Huanuco"
+    val boson: Boson = Boson.extractor(expression, (out: String) => {
       assertTrue(expected.zip(out).forall(e => e._1.equals(e._2)))
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
   }
 
-//  test("extract all occurrences of Key") {
-//    val result: BsValue = callParse(boson.duplicate, "Tags")
-//    println(result.asInstanceOf[BsSeq].value)
-//    val t: Boolean = true
-//    assert(t)
-//  }
-//
-//  test("extract positions of an Array") {
-//    val result: BsValue = callParse(boson.duplicate, "Markets[3 to 5]")
-//    println(result.asInstanceOf[BsSeq].getValue)
-//    val t: Boolean = true
-//    assert(t)
-//  }
-//
-//  test("extract further positions of an Array") {
-//    val result: BsValue = callParse(boson.duplicate, "Markets[50 to 55]")
-//    println(result.asInstanceOf[BsSeq].getValue.head)
-//    val t: Boolean = true
-//    assert(t)
-//  }
-
-  test("size of all occurrences of Key") {
-    val expression: String = "Price"
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Double]) => {
-      assertTrue(195 == out.size)
+  test("extract positions of an Array") {
+    val expression: String = "Markets[3 to 5]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => {
+      mutableBuffer += out
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    println()
+    assertEquals(3, mutableBuffer.size)
+  }
+
+  test("extract further positions of an Array") {
+    val expression: String = "Markets[50 to 55]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Array[Byte]) => {
+      mutableBuffer += out
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+    assertEquals(6, mutableBuffer.size)
+  }
+
+  test("size of all occurrences of Key") {
+    val expression: String = "Price"
+    val mutableBuffer: ArrayBuffer[Float] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (out: Float) => {
+      mutableBuffer += out
+    })
+    val res = boson.go(bson.encode.getBytes)
+    Await.result(res, Duration.Inf)
+    assertEquals(195, mutableBuffer.size)
   }
 
 }

@@ -1,7 +1,6 @@
 package io.zink.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
-import java.time.Instant
 import java.util
 
 import shapeless.TypeCase
@@ -46,7 +45,7 @@ object Dictionary {
   val C_END: String = "end"
   val C_DOT: String = "."
   val C_DOUBLEDOT: String = ".."
-  val C_LAST: String = "last"  // "end" should be used to maintain consistency
+  val C_LAST: String = "last" // "end" should be used to maintain consistency
   val C_RANDOM: String = "random"
   val C_BUILD: String = "build"
   val C_ZERO: String = "0"
@@ -81,16 +80,23 @@ object Dictionary {
 
   val seqString: TypeCase[Seq[String]] = TypeCase[Seq[String]]
   //val seqTuples = TypeCase[Seq[List[Any]]] -> used in toTuples
-  val tuples = TypeCase[List[(String,Any)]]
+  val tuples = TypeCase[List[(String, Any)]]
   val listTuples = TypeCase[List[Any]]
 
   //CODECS CONSTANTS
   val CS_OBJECT: String = "Object"
+  val CS_OBJECT_INJ: String = "ObjectInj"
+  val CS_OBJECT_WITH_SIZE: String = "ObjectWithSize"
   val CS_ARRAY: String = "Array"
+  val CS_ARRAY_WITH_SIZE: String = "ArrayWithSize"
+  val CS_ARRAY_INJ: String = "ArrayInj"
   val CS_NAME: String = "Name"
+  val CS_NAME_NO_LAST_BYTE: String = "NameNoLastByte"
   val CS_STRING: String = STRING
   val CS_INTEGER: String = INTEGER
   val CS_DOUBLE: String = DOUBLE
+  val CS_FLOAT: String = FLOAT
+  val CS_BYTE: String = "byte"
   val CS_LONG: String = LONG
   val CS_BOOLEAN: String = BOOLEAN
   val CS_NULL: String = V_NULL
@@ -127,7 +133,6 @@ object Dictionary {
   TYPES_LIST.add("Boolean")
   TYPES_LIST.add("Null")
   TYPES_LIST.add("CharSequence")
-
 
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")

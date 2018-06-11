@@ -50,7 +50,7 @@ public class BosonExtractor<T> implements Boson {
         };
         Option<Class<T>> retainedClassOpt = retainConsumerType(_extractFunction);
 
-        BosonImpl boson = new BosonImpl(Option.empty(), Option.empty(), Option.empty());
+        BosonImpl boson = new BosonImpl();
         if (retainedClassOpt.isDefined()) {
             this.clazz = retainedClassOpt.get();
             int counter = 0;

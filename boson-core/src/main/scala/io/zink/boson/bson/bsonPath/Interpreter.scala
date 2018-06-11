@@ -7,7 +7,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -30,7 +30,6 @@ class Interpreter[T](boson: BosonImpl,
     case Failure(excp) => throw excp
   }
 
-
   val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) =
     buildExtractors(parsedStatements.statementList.head, parsedStatements.statementList.tail, parsedStatements.dotsList)
 
@@ -39,7 +38,6 @@ class Interpreter[T](boson: BosonImpl,
   private val isJsonObjOrArrExtraction = (strgs: List[String], returnInsideSeqFlag: Boolean, tCase: Option[TypeCase[T]]) => {
     strgs.nonEmpty && ((returnInsideSeqFlag && tCase.get.unapply(strgs).isEmpty) || (!returnInsideSeqFlag && tCase.get.unapply(strgs.head).isEmpty)) && (strgs.head.startsWith("{") || strgs.head.startsWith("["))
   }
-
 
   /**
     * BuildExtractors takes a statementList provided by the parser and transforms it into two lists used to extract.
@@ -94,8 +92,6 @@ class Interpreter[T](boson: BosonImpl,
         }
       val secondList: List[(String, String)] = firstList ++ forList.flatMap(_._1)
       val limitList2: List[(Option[Int], Option[Int], String)] = limitList1 ++ forList.flatMap(_._2)
-      //println(s"secondList -> $secondList")
-      //println(s"limitList2 -> $limitList2")
 
       statementList.last match {
         case HalfName(halfName) if !halfName.equals(STAR) && dotsList.last.equals(C_DOT) => (secondList.take(secondList.size - 1) ++ List((halfName, C_LEVEL)), limitList2)
@@ -166,19 +162,14 @@ class Interpreter[T](boson: BosonImpl,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(bsonEncoded: Either[Array[Byte], String]): Any = {
-//    if (fInj.isDefined) startInjector(bsonEncoded) //TODO implement new startInjector
-//    else
-      start(bsonEncoded)
-  }
+  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
 
   /**
-    * Method that initiates the proccess of extraction based on a Statement list provided by the parser.
+    * Method that initiates the process of extraction based on a Statement list provided by the parser.
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
   private def start(bsonEncoded: Either[Array[Byte], String]): Any = {
-    //instead boson.get.. as argument replace with Either[..]
     bsonEncoded match {
       case Left(byteArr) =>
         val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
@@ -196,41 +187,35 @@ class Interpreter[T](boson: BosonImpl,
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
   private def constructObj(encodedEither: Either[List[ByteBuf], List[String]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
-
-    val res: Seq[List[(String, Any)]] =
-      encodedEither match {
-        case Left(bufList) => bufList.par.map { encoded =>
-          val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
-          res match {
-            case tuples(list) => list
-            case _ => //TODO: throw error perhaps
-              throw CustomException("Error building tuples to fulfill case class.")
-          }
-        }.seq
-        case Right(stringList) => stringList.par.map { encoded =>
-          //          println(s"Right(encoded) -> $encoded")
-          val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
-          //          println(s"Right(encoded) Result -> $res")
-          res match {
-            case tuples(list) => list
-            case _ => //TODO: throw error perhaps
-              throw CustomException("Error building tuples to fulfill case class.")
-          }
-        }.seq
-      }
-    res
+    encodedEither match {
+      case Left(bufList) => bufList.par.map { encoded =>
+        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
+        res match {
+          case tuples(list) => list
+          case _ => //TODO: throw error perhaps
+            throw CustomException("Error building tuples to fulfill case class.")
+        }
+      }.seq
+      case Right(stringList) => stringList.par.map { encoded =>
+        val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
+        res match {
+          case tuples(list) => list
+          case _ => //TODO: throw error perhaps
+            throw CustomException("Error building tuples to fulfill case class.")
+        }
+      }.seq
+    }
   }
 
   /**
     * Extract is the method which puts together the process of extraction and applies the function provided by the User
     * or, in case of Object extraction, provides a list of pairs (Key,Value) extracted from the desired Object.
     *
-    * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
+    * @param encodedStructure data structure that encodes the event
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
   private def extract(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Any = {
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
-    //    println(s"result -> $result")
     val typeClass: Option[String] =
       result.size match {
         case 0 => None
@@ -239,8 +224,6 @@ class Interpreter[T](boson: BosonImpl,
           if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
           else Some(ANY)
       }
-    //    println(s"typeClass: $typeClass")
-    //    println(s"tCase: $tCase")
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -248,39 +231,33 @@ class Interpreter[T](boson: BosonImpl,
     * RunExtractors is the method that iterates over KeyList, LimitList and encodedStructure doing the bridge
     * between Interpreter with BosonImpl.
     *
-    * @param encodedStructure ByteBuf wrapping an Array[Byte] encoded representing the Event.
+    * @param encodedStructure data structure that encodes the event.
     * @param keyList          List of pairs (Key,Condition) used to perform extraction according to the User.
     * @param limitList        List of Tuple3 (Range,Range,Condition) used to perform extraction according to the User.
     * @return Extracted result.
     */
-  def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
-    val value: List[Any] =
-      keyList.size match {
-        case 1 =>
-          boson.extract(encodedStructure, keyList, limitList)
-        case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
-          boson.extract(encodedStructure, keyList, limitList)
+  def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = keyList.size match {
+    case 1 =>
+      boson.extract(encodedStructure, keyList, limitList)
+
+    case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
+      boson.extract(encodedStructure, keyList, limitList)
+
+    case _ =>
+      val filtered: Seq[Either[ByteBuf, String]] =
+        boson.extract(encodedStructure, keyList, limitList) collect {
+          case buf: ByteBuf => Left(buf)
+          case str: String if isJson(str) => Right(str)
+        }
+
+      filtered.size match {
+        case 0 => Nil
         case _ =>
-          val res: List[Any] = boson.extract(encodedStructure, keyList, limitList)
-          val filtered: Seq[Either[ByteBuf, String]] =
-            res.collect {
-              case buf: ByteBuf => Left(buf)
-              //case buf: Array[Byte] => Left(buf)
-              case str: String if isJson(str) => Right(str)
-            }
-          //println(s"filtered -> $filtered")
-          filtered.size match {
-            case 0 => Nil //throw CustomException("The given path doesn't correspond with the event structure.")
-            case _ =>
-              val result: List[List[Any]] =
-                filtered.par.map { elem =>
-                  if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
-                  else runExtractors(elem, keyList.drop(1), limitList.drop(1))
-                }.seq.toList
-              result.flatten //.reduce(_ ++ _)
-          }
+          filtered.par.flatMap { elem =>
+            if (keyList.drop(1).head._2.equals(C_FILTER)) runExtractors(elem, keyList.drop(2), limitList.drop(2))
+            else runExtractors(elem, keyList.drop(1), limitList.drop(1))
+          }.toList
       }
-    value
   }
 
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
@@ -306,78 +283,108 @@ class Interpreter[T](boson: BosonImpl,
     }
   }
 
+  /**
+    * Function used to determine if an input string is a Json string
+    *
+    * @param str - the input string
+    * @return a boolean containing the information wether the string is a Json(true) string or not(false)
+    */
   def isJson(str: String): Boolean = if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) true else false
 
   private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
     tCase.isDefined match {
       case true if typeClass.isDefined =>
         typeClass.get match {
+
           case STRING =>
             val str: List[String] = result.asInstanceOf[List[String]]
-            if (isJsonObjOrArrExtraction(str, returnInsideSeqFlag, tCase)) {
-              //println("validateTypes, isJsonObjOrArrExtraction, calling constructObj!")
+            if (isJsonObjOrArrExtraction(str, returnInsideSeqFlag, tCase))
               constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
-            } else {
-              if (returnInsideSeqFlag) applyFunction(List((STRING, str), (INSTANT, str))) else applyFunction(List((STRING, str.head), (INSTANT, str.head)))
-            }
-          case INTEGER => if (returnInsideSeqFlag) applyFunction(List((INTEGER, result))) else applyFunction(List((INTEGER, result.head)))
+            else
+              str.foreach(res => applyFunction(List((STRING, res), (INSTANT, res))))
+
+
+          case INTEGER => result.foreach(res => applyFunction(List((INTEGER, res))))
+
           case DOUBLE =>
             val res = result.asInstanceOf[List[Double]]
-            if (returnInsideSeqFlag) applyFunction(List((DOUBLE, res), (FLOAT, res.map(_.toFloat)))) else applyFunction(List((DOUBLE, res.head), (FLOAT, res.head.toFloat)))
-          case LONG => if (returnInsideSeqFlag) applyFunction(List((LONG, result))) else applyFunction(List((LONG, result.head)))
-          case BOOLEAN => if (returnInsideSeqFlag) applyFunction(List((BOOLEAN, result))) else applyFunction(List((BOOLEAN, result.head)))
+            res.foreach(num => applyFunction(List((DOUBLE, num), (FLOAT, num.toFloat))))
+
+          case LONG => result.foreach(res => applyFunction(List((LONG, res))))
+
+          case BOOLEAN => result.foreach(res => applyFunction(List((BOOLEAN, res))))
+
           case ANY =>
             val res = result.map {
               case buf: ByteBuf => buf.array
               case elem => elem
             }
-            if (returnInsideSeqFlag) applyFunction(List((ANY, res))) else applyFunction(List((ANY, res.head)))
-          case COPY_BYTEBUF => constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+            res.foreach(obj => applyFunction(List((ANY, obj))))
+
+          case COPY_BYTEBUF => constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE))) //TODO check this case
+
         }
       case false if typeClass.isDefined =>
         typeClass.get match {
           case COPY_BYTEBUF if fExt.isDefined =>
             val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
-            if (returnInsideSeqFlag) fExt.get(res.asInstanceOf[T]) else fExt.get(res.head.asInstanceOf[T])
+            res.foreach(byteArr => fExt.get(byteArr.asInstanceOf[T]))
           case STRING =>
 
-            val arrB = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
-            if (returnInsideSeqFlag) fExt.get(arrB.asInstanceOf[T]) else fExt.get(arrB.head.asInstanceOf[T])
+            val res = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
+            res.foreach(byteArr => fExt.get(byteArr.asInstanceOf[T]))
         }
 
-
-      case _ => fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
+      case _ => //fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
     }
   }
 
-//  private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
-//    val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
-//    executeMultipleKeysInjector(zipped, bsonEncoded)
-//  }
-//
-//  // TODO: replace Statement -> Statement, etc..
-//  private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
-//    val input: Either[ByteBuf, String] = bsonEncoded match {
-//      case Left(barArray) =>
-//        val buf: ByteBuf = Unpooled.copiedBuffer(barArray)
-//        Left(buf)
-//
-//      case Right(jsString) => Right(jsString)
-//    }
-//
-//    val result: Either[Array[Byte], String] =
-//      Try(boson.execStatementPatternMatch(input, statements, fInj.get)) match {
-//        case Success(v) =>
-//          v match {
-//            case Left(byteBuf) => Left(byteBuf.array)
-//            case Right(string) => Right(string)
-//          }
-//
-//        case Failure(e) =>
-//          throw CustomException(e.getMessage)
-//      }
-//    result
-//  }
+  /**
+    * Method that initiates the process of injection based on a Statement list provided by the parser
+    *
+    * @param bsonEncoded - encoded structured to be modified
+    * @return Either an Array of Byte or a String containing the resulting structure of the injection
+    */
+  private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
+    val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
+    executeMultipleKeysInjector(zipped, bsonEncoded)
+  }
+
+  /**
+    * Function that handles the injection
+    *
+    * @param statements  - List of statements provided by the parser
+    * @param bsonEncoded - encoded structured to be modified
+    * @return a structure with the result of the injection
+    */
+  private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
+    val input: Either[ByteBuf, String] = bsonEncoded match {
+      case Left(byteArr) =>
+        val buf: ByteBuf = Unpooled.buffer(byteArr.length).writeBytes(byteArr)
+        Left(buf)
+      case Right(jsString) => Right(jsString)
+    }
+
+    val result: Either[Array[Byte], String] = {
+      val x = boson.inject(input, statements, fInj.get)
+      x.getCodecData match {
+        case Left(byteBuf) => Left(byteBuf.array())
+        case Right(string) => Right(string)
+      }
+    }
+    //      Try(boson.inject(input, statements, fInj.get)) match { //TODO WHEN INJECTORS ARE WORKING, REPLACE ABOVE CODE WITH THIS
+    //        case Success(resultCodec) => resultCodec.getCodecData match {
+    //          case Left(byteBuf) => Left(byteBuf.array())
+    //          case Right(string) => Right(string)
+    //        }
+    //        case Failure(e) => throw CustomException(e.getMessage)
+    //      }
+    result match {
+      case Left(bb) => println("Result was : " + new String(bb))
+      case Right(str) => println("Result was : " + str)
+    }
+    result
+  }
 
 }
 
