@@ -1,10 +1,7 @@
 package io.zink.boson
 
-import java.util.concurrent.CompletableFuture
-
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.util.ResourceLeakDetector
-import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
@@ -13,21 +10,21 @@ import org.scalatest.junit.JUnitRunner
 class injectorAPITests extends FunSuite {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
 
-  val b11: BsonObject = new BsonObject().put("Title","C++Machine").put("Price", 38)
+  val b11: BsonObject = new BsonObject().put("Title", "C++Machine").put("Price", 38)
   val br5: BsonArray = new BsonArray().add(b11)
-  val b10: BsonObject = new BsonObject().put("Title","JavaMachine").put("Price", 39)
+  val b10: BsonObject = new BsonObject().put("Title", "JavaMachine").put("Price", 39)
   val br4: BsonArray = new BsonArray().add(b10)
-  val b9: BsonObject = new BsonObject().put("Title","ScalaMachine").put("Price", 40)
+  val b9: BsonObject = new BsonObject().put("Title", "ScalaMachine").put("Price", 40)
   val br3: BsonArray = new BsonArray().add(b9)
   val b7: BsonObject = new BsonObject().put("Color", "Blue").put("Price", 38)
   val b6: BsonObject = new BsonObject().put("Color", "White").put("Price", 35)
   val b5: BsonObject = new BsonObject().put("Color", "Red").put("Price", 48)
   val br2: BsonArray = new BsonArray().add(b5).add(b6).add(b7)
-  val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions",br3)
-  val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions",br4)
-  val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions",br5)
+  val b4: BsonObject = new BsonObject().put("Title", "Scala").put("Pri", 21.5).put("SpecialEditions", br3)
+  val b3: BsonObject = new BsonObject().put("Title", "Java").put("Price", 15.5).put("SpecialEditions", br4)
+  val b8: BsonObject = new BsonObject().put("Title", "C++").put("Price", 12.6).put("SpecialEditions", br5)
   val br1: BsonArray = new BsonArray().add(b3).add(b4).add(b8)
-  val b2: BsonObject = new BsonObject().put("Book", br1).put("Hat",br2)
+  val b2: BsonObject = new BsonObject().put("Book", br1).put("Hat", br2)
   val bsonEvent: BsonObject = new BsonObject().put("Store", b2)
 
   val validatedByteArr: Array[Byte] = bsonEvent.encodeToBarray()
@@ -37,9 +34,10 @@ class injectorAPITests extends FunSuite {
   val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
   val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux)
   val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
+
 //  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
 
-  test("simple test"){
+  /*test("simple test"){
     val book1 = new BsonObject().put("Title", "Scala")
     val store = new BsonObject().put("Book", book1)
     val bson = new BsonObject().put("Store", store)
@@ -625,8 +623,5 @@ class injectorAPITests extends FunSuite {
 //    val a: Vector[String] = future.join().getValue.asInstanceOf[Vector[String]]
 //    assertEquals(Vector(14.5) ,future.join().getValue  )
 //  }
-//
-//}
-//
-//
-//
+*/
+}

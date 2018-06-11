@@ -4,10 +4,10 @@
 	<info
 		organisation="io.zink"
 		module="bosonscala$sources"
-		revision="0.5.0"
+		revision="0.6.0"
 		conf="pom"
 		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, sources, docs, pom, scala-tool"
-		date="20180524130955"/>
+		date="20180611152533"/>
 	<dependencies>
 	</dependencies>
 </ivy-report>
