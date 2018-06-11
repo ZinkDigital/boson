@@ -1098,8 +1098,8 @@ class BosonImpl() {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT) else SonArray(CS_ARRAY)
-                        val partialData = codec.readToken(token) match {
+                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+                        val partialData = codec.readToken(token) match { //TODO Failing here
                           case SonObject(_, result) => result match {
                             case byteBuf: ByteBuf => Left(byteBuf)
                             case string: String => Right(string)
@@ -1109,9 +1109,10 @@ class BosonImpl() {
                             case string: String => Right(string)
                           }
                         }
-                        val modifiedPartialCodec = inject(partialData, statementsList.drop(1), injFunction)
-                        inject((codecWithKey + modifiedPartialCodec).getCodecData, statementsList, injFunction)
-                      //TODO PROBABLY WE WILL NEED TO SET THE READER INDEX TO SKIP THE BYTES THE SUBCODEC ALREADY READ
+                        val modifiedSubCodec = inject(partialData, statementsList.drop(1), injFunction)
+                        val subCodec = inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
+                        codecWithKey + subCodec //merge the two subcodes
+
                       case _ =>
                         processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
                     }
@@ -1679,12 +1680,14 @@ class BosonImpl() {
     seqType match {
       case D_FLOAT_DOUBLE =>
         codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)) match {
           case SonString(_, data) => data.asInstanceOf[String]
         }
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+
       case D_BSONOBJECT =>
         val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
           case SonObject(_, result) => result match {
@@ -1694,6 +1697,7 @@ class BosonImpl() {
         }
         val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
         currentResCodec + codecAux
+
       case D_BSONARRAY =>
         val partialCodec: Codec = codec.readToken(SonArray(CS_ARRAY)) match {
           case SonArray(_, result) => result match {
@@ -1703,14 +1707,14 @@ class BosonImpl() {
         }
         val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
         currentResCodec + codecAux
-      case D_NULL =>
-        currentResCodec
-      case D_INT =>
-        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
-      case D_LONG =>
-        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
-      case D_BOOLEAN =>
-        codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+
+      case D_NULL => currentResCodec
+
+      case D_INT => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+
+      case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+
+      case D_BOOLEAN => codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
     }
   }
 

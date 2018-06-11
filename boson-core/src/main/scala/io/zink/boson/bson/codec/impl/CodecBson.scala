@@ -147,12 +147,21 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val b: ByteBuf = buff.copy(0, buff.capacity)
           buff.readerIndex(buff.capacity) //TODO: probably isn't needed
           SonArray(x, b)
+
         case CS_ARRAY =>
           val size = buff.getIntLE(buff.readerIndex - 4)
           val endIndex = buff.readerIndex - 4 + size
           val b = buff.copy(buff.readerIndex - 4, size)
           buff.readerIndex(endIndex)
           SonArray(x, b)
+
+        case CS_ARRAY_WITH_SIZE =>
+          val size = buff.getIntLE(buff.readerIndex)
+          val endIndex = buff.readerIndex + size
+          val newBuff = buff.copy(buff.readerIndex, size)
+          buff.readerIndex(endIndex)
+          SonArray(x, newBuff)
+
         case CS_ARRAY_INJ =>
           val size = buff.getIntLE(buff.readerIndex)
           val endIndex = buff.readerIndex + size
@@ -166,6 +175,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val b: ByteBuf = buff.copy(0, buff.capacity)
           buff.readerIndex(buff.capacity)
           SonObject(x, b)
+
         case CS_OBJECT =>
           val size = buff.getIntLE(buff.readerIndex - 4)
           val endIndex = buff.readerIndex - 4 + size
@@ -175,7 +185,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
-        val endIndex = buff.readerIndex + size
+          val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
