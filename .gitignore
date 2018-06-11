@@ -4,3 +4,7 @@
 project/project/
 project/target/
 /.idea/
+boson-core/target/
+boson-java/target/
+boson-scala/target/
+target/

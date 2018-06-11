@@ -83,7 +83,7 @@ class ExtractorTests extends FunSuite {
     val bosonBson: BosonImpl = new BosonImpl()
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(globalObj.encodeToBarray()))
     assert("Be the best".getBytes === java.util.Base64.getMimeDecoder
-      .decode(bosonBson.extract(either, List(("FavoriteSentence","allDots")), List((None,None,"")))
+      .decode(bosonBson.extract(either, List(("FavoriteSentence", "allDots")), List((None, None, "")))
         .head.asInstanceOf[String]))
   }
 

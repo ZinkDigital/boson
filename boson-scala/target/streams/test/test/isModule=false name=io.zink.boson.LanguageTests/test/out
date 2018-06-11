@@ -1,0 +1,21 @@
+[0m[[0minfo[0m] [0m[32mLanguageTests:[0m[0m
+[0m[[0minfo[0m] [0m[32m- All[0m[0m
+[0m[[0minfo[0m] [0m[32m- [# .. end][0m[0m
+[0m[[0minfo[0m] [0m[32m- [# to #](all Pos)[0m[0m
+[0m[[0minfo[0m] [0m[32m- all Pos without limits[0m[0m
+[0m[[0minfo[0m] [0m[32m- last Pos with limits[0m[0m
+[0m[[0minfo[0m] [0m[32m- .key[#]..key2[0m[0m
+[0m[[0minfo[0m] [0m[32m- ..key[@elem], matches the elem[0m[0m
+[0m[[0minfo[0m] [0m[32m- ..key[@elem], doesn't match the elem[0m[0m
+[0m[[0minfo[0m] [0m[32m- ..key[@elem], elem match with bool[0m[0m
+[0m[[0minfo[0m] [0m[32m- ..key[@elem], elem match with Long[0m[0m
+[0m[[0minfo[0m] [0m[32m- ..key[@elem], elem match with Null[0m[0m
+[0m[[0minfo[0m] [0m[32m- .[#to#].[#].[#] No Output[0m[0m
+[0m[[0minfo[0m] [0m[32m- .[#to#].[#].[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- .[#toend].[#].[#][0m[0m
+[0m[[0minfo[0m] [0m[32m- .key..key2, key matches with array[0m[0m
+[0m[[0minfo[0m] [0m[32m- [# to #][0m[0m
+[0m[[0minfo[0m] [0m[32m- [# until #][0m[0m
+[0m[[0minfo[0m] [0m[32m- [# .. end] w/key[0m[0m
+[0m[[0minfo[0m] [0m[32m- [# to #] w/key[0m[0m
+[0m[[0minfo[0m] [0m[32m- [# until #] w/key[0m[0m
