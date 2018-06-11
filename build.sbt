@@ -61,7 +61,7 @@ scmInfo := Some(
 credentials += Credentials(Path.userHome /".sbt" /".credentials"),
 
   //pgpPassphrase := Some("boson0000".toArray),
-  pgpSecretRing := file("/Users/Margarida Reis/.sbt/gpg/secring.gpg"),
+  pgpSecretRing := file("/Users/Margarida Reis/.sbt/gpg/secring.asc"),
   publishMavenStyle := true,
 
   publishTo := {

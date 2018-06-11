@@ -1,4 +1,4 @@
-[0m[[0minfo[0m] [0m:: delivering :: io.zink#bosonscala;0.5.0 :: 0.5.0 :: release :: Thu May 10 08:50:56 BST 2018[0m
-[0m[[0mdebug[0m] [0m	options = status=release pubdate=Thu May 10 08:50:56 BST 2018 validate=true resolveDynamicRevisions=true merge=true resolveId=null pubBranch=null[0m
-[0m[[0minfo[0m] [0m	delivering ivy file to /Users/Nige/ZinkWorkspace/boson/boson-scala/target/ivy-0.5.0.xml[0m
-[0m[[0mdebug[0m] [0m	deliver done (26ms)[0m
+[0m[[0minfo[0m] [0m:: delivering :: io.zink#bosonscala;0.6.0 :: 0.6.0 :: release :: Mon Jun 11 17:17:38 BST 2018[0m
+[0m[[0mdebug[0m] [0m	options = status=release pubdate=Mon Jun 11 17:17:38 BST 2018 validate=true resolveDynamicRevisions=true merge=true resolveId=null pubBranch=null[0m
+[0m[[0minfo[0m] [0m	delivering ivy file to C:\Users\Margarida Reis\Documents\boson\boson-scala\target\ivy-0.6.0.xml[0m
+[0m[[0mdebug[0m] [0m	deliver done (91ms)[0m

@@ -284,7 +284,7 @@ class NewInjectorsTests extends FunSuite {
     //    val expectedBson = new BsonObject().put("person", bsonHuman).put("alien", "ET")
     //    val expectedEncoded = expectedBson.encodeToBarray
     println(bsonSpeciesEncoded.mkString(", "))
-    println(new String(bsonSpeciesEncoded))
+    //println(new String(bsonSpeciesEncoded))
     val bsonInj = Boson.injector(expr, (in: String) => {
       in.toUpperCase
     })
