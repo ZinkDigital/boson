@@ -1099,7 +1099,7 @@ class BosonImpl() {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
-                        val partialData = codec.readToken(token) match { //TODO Failing here
+                        val partialData = codec.readToken(token) match {
                           case SonObject(_, result) => result match {
                             case byteBuf: ByteBuf => Left(byteBuf)
                             case string: String => Right(string)
@@ -1453,13 +1453,9 @@ class BosonImpl() {
           case SonObject(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
         }
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.writerIndex))
-        codec.writeToken(strSizeCodec, SonObject(CS_OBJECT,value0.array))
+        codec.writeToken(strSizeCodec, SonObject(CS_OBJECT, value0.array))
       case D_BSONARRAY =>
-        val value0 = codec.readToken(SonArray(CS_ARRAY)) match {
-          case SonArray(_, array) => array.asInstanceOf[ByteBuf]
-        }
-        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.writerIndex))
-        codec.writeToken(strSizeCodec, SonArray(CS_ARRAY, value0.array))
+        codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY))) //TODO - HERE
       case D_NULL =>
         currentResCodec
       case D_INT =>
@@ -2118,7 +2114,7 @@ class BosonImpl() {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         if (exceptions == 0) {
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                               case string: String => CodecObject.toCodec(string)
@@ -2162,7 +2158,8 @@ class BosonImpl() {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         if (exceptions == 0) {
                           val newCodecCopy = codecWithKey.duplicate
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match { //SOMEWHERE OVER HERE WE NEED TO JOIN THIS ITERATION WITH THE NEXT
+                            //ITS ONLY RETAINING THE LAST INJECTION FUNCTION
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                               case string: String => CodecObject.toCodec(string)
@@ -2202,7 +2199,7 @@ class BosonImpl() {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
                     case D_BSONOBJECT | D_BSONARRAY =>
-                      val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                      val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                         case SonArray(_, value) => value match {
                           case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                           case string: String => CodecObject.toCodec(string)
@@ -2250,12 +2247,10 @@ class BosonImpl() {
     }
 
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
-    codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
-    codecWithSize.removeEmptySpace
 
     val codecFinal = codecWithSize + codecWithoutSize
 
-    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match { //TODO this might be wrong, size is giving 330
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
@@ -2271,7 +2266,7 @@ class BosonImpl() {
         if (exceptions == 0)
           codecFinal
         else
-          throw new Exception
+          throw new Exception //TODO throwing exception here
       case UNTIL_RANGE =>
         if (exceptions <= 1)
           codecFinalCopy
@@ -2324,7 +2319,7 @@ class BosonImpl() {
         (codecWithLastByte, codecWithLastByteCopy)
 
       case D_BSONOBJECT =>
-        val codecObj = codec.readToken(SonObject(CS_OBJECT)) match {
+        val codecObj = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
           case SonObject(_, data) => data match {
             case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
             case jsonString: String => CodecObject.toCodec(jsonString)
@@ -2376,7 +2371,7 @@ class BosonImpl() {
     val originalSize = codec.readSize
 
     /**
-      * Recursive function to iterate through the given data structure and return the modified codec
+      * Recursive function to iterate through the given data structure and  return the modified codec
       *
       * @param currentCodec     - a codec to write the modified information into
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
@@ -2442,7 +2437,7 @@ class BosonImpl() {
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                    val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                    val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                       case SonArray(_, result) => result match {
                         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                         case jsonString: String => CodecObject.toCodec(jsonString)
