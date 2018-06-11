@@ -47,7 +47,7 @@ In the following points we show how to use Boson in both Scala and Java in a Qui
 
 ## QuickStart Guide  
 
-Boson is available through the Central Maven Repository.  
+Boson is available through the Central Maven Repository, divided into 3 parts, [BosonScala](https://mvnrepository.com/artifact/io.zink/bosonscala), [BosonJava](https://mvnrepository.com/artifact/io.zink/bosonjava) and [BosonCore](https://mvnrepository.com/artifact/io.zink/bosoncore).  
 To include Boson in your projects you need to add the dependencies listed bellow.
 
 For SBT users, add the following to your build.sbt:
