@@ -1,5 +1,6 @@
 package io.zink.boson.bson.codec.impl
 
+import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.bsonImpl.Dictionary._
 
@@ -109,6 +110,8 @@ class CodecJson(str: String) extends Codec {
           val subSize = endIndex + 2
           val subStr1 = input.substring(rI, rI + subSize)
           SonString(request, subStr1.substring(1, subSize - 1))
+
+        case _ => ??? //TODO Implement cases where it is not a String
       }
     case SonNumber(request, _) =>
       request match {
@@ -577,9 +580,63 @@ class CodecJson(str: String) extends Codec {
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
   }
-//
-//  //-------------------------------------Injector functions--------------------------
-//
-//  override def writeByte(byte: Int): Codec = ???
+
+  /**
+    * Method that reads a specified length and returns a new codec with that information
+    */
+  override def readSpecificSize(size: Int): Codec = ???
+
+  /**
+    * Method that retains only a slice, of a specified length, of the data structure.
+    * Returns a new codec containing that slice
+    *
+    * @param length - The length of the slice to retain
+    * @return - a new codec containing only a slice of the old codec's dataStructure
+    */
+  override def readSlice(length: Int): Codec = ???
+
+  /**
+    * Create a new codec from an Array of Bytes
+    *
+    * @param byteArray - The Array of Bytes from which to create the codec
+    * @return a new codec with the information present in the array of byte
+    */
+  def fromByteArray(byteArray: Array[Byte]): Codec = new CodecJson(new String(byteArray))
+
+  //
+  //-------------------------------------Injector functions--------------------------
+
+  /**
+    * Method that duplicates the current codec, writes the information to the duplicated codec and returns it
+    *
+    * @param token - the token to write to the codec
+    * @return a duplicated codec from the current codec, but with the new information
+    */
+  override def writeToken(outCodec: Codec, token: SonNamedType): Codec = ???
+
+  /**
+    * Method that returns a duplicate of the codec's data structure
+    *
+    * @return a duplicate of the codec's data structure
+    */
+  override def getCodecData: Either[ByteBuf, String] = {
+    val duplicate = str
+    Right(duplicate)
+  }
+
+  /**
+    *
+    * @param sumCodec
+    * @return
+    */
+  override def +(sumCodec: Codec): Codec = ???
+
+  /**
+    * This method will remove the empty space in this codec.
+    *
+    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
+    *
+    */
+  def removeEmptySpace: Unit = ???
 }
 

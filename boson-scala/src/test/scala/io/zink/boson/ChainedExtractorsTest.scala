@@ -11,6 +11,7 @@ import org.scalatest.junit.JUnitRunner
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
+import scala.collection.mutable.ArrayBuffer
 
 
 case class Book(price: Double, title: String, edition: Int, forSale: Boolean, nPages: Long)
@@ -62,12 +63,15 @@ class ChainedExtractorsTest extends FunSuite {
     val bson = new BsonObject().put("Store", store)
 
     val expression: String = ".Store.Book[0 to 1]"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Book1]) => {
-      assertEquals(Seq(Book1("Java", 15.5), Book1("Scala", 21.5)), in)
+    val mutableBuffer: ArrayBuffer[Book1] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Book1) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(Book1("Java", 15.5), Book1("Scala", 21.5)), mutableBuffer)
+
   }
 
   test("Extract Seq[Type class Book] as Seq[byte[]]") {
@@ -80,14 +84,15 @@ class ChainedExtractorsTest extends FunSuite {
     val bson = new BsonObject().put("Store", store)
 
     val expression: String = ".Store.Book[0 to 1]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(), title2.encodeToBarray())
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assert(expected.size === in.size)
-      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(expected.size == mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
   test("Extract Embedded a Case Class") {
@@ -212,64 +217,71 @@ class ChainedExtractorsTest extends FunSuite {
     Await.result(res, Duration.Inf)
   }
 
-  test("Extract simple Seq[Boolean]") {
+  test("Iterate simple Seq[Boolean]") {
     val arr = new BsonArray().add(true).add(true).add(false)
 
     val expression: String = ".[all]"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Boolean]) => {
-      assertEquals(Seq(true, true, false), in)
+    val mutableBuffer: ArrayBuffer[Boolean] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(arr.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(true, true, false)))
   }
 
-  test("Extract simple Seq[Int]") {
+  test("Iterate simple Seq[Int]") {
     val arr = new BsonArray().add(1).add(2).add(3)
-
     val expression: String = ".[all]"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
-      assertEquals(Seq(1, 2, 3), in)
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(arr.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(1, 2, 3)))
   }
 
-  test("Extract simple Seq[String]") {
+  test("Iterate simple Seq[String]") {
     val arr = new BsonArray().add("one").add("two").add("three")
-
     val expression: String = ".[all]"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
-      assertEquals(Seq("one", "two", "three"), in)
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(arr.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq("one", "two", "three")))
   }
 
-  test("Extract simple Seq[Long]") {
+  test("Iterate simple Seq[Long]") {
     val arr = new BsonArray().add(1000L).add(1001L).add(1002L)
-
     val expression: String = ".[all]"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Long]) => {
-      assertEquals(Seq(1000L, 1001L, 1002L), in)
+    val mutableBuffer: ArrayBuffer[Long] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Long) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(arr.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(1000L, 1001L, 1002L)))
   }
 
-  test("Extract simple Seq[Double]") {
+  test("Iterate simple Seq[Double]") {
     val arr = new BsonArray().add(1.1).add(2.2).add(3.3)
-
     val expression: String = ".[all]"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => {
-      assertEquals(Seq(1.1, 2.2, 3.3), in)
+    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(arr.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(1.1, 2.2, 3.3)))
+
   }
 
   private val hat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
@@ -289,54 +301,64 @@ class ChainedExtractorsTest extends FunSuite {
   private val store = new BsonObject().put("Book", books).put("Hatk", hats)
   private val bson = new BsonObject().put("Store", store)
 
-  test("Extract key.* V1") {
+  test("Iterate through a key.* V1") {
     val expression: String = ".Store.Book[0].SpecialEditions[0].*"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
-      assertEquals(Seq("JavaMachine", 39), in)
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq("JavaMachine", 39), mutableBuffer)
   }
 
-  test("Extract key.* V2") {
+  test("Iterate through a key.* V2") {
     val expression: String = ".Store.Book.*"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(Seq(title1.encodeToBarray, title2.encodeToBarray, title3.encodeToBarray).zip(in).forall(e => e._1.sameElements(e._2)))
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(Seq(title1.encodeToBarray, title2.encodeToBarray, title3.encodeToBarray).zip(mutableBuffer).forall(e => e._1.sameElements(e._2)))
   }
 
-  test("Extract complex Seq[String]") {
+  test("Iterate through a complex Seq[String]") {
     val expression: String = ".Store.Book[1 to end].Title"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
-      assertEquals(Seq("Scala", "C++"), in)
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq("Scala", "C++"), mutableBuffer)
   }
 
-  test("Extract complex Seq[Int]") {
+  test("Iterate through a complex Seq[Int]") {
     val expression: String = ".Store.Book[0 until end].SpecialEditions[all].Price"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
-      assertEquals(Seq(39, 40), in)
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(39, 40), mutableBuffer)
   }
 
-  test("Extract complex Seq[Double]") {
+  test("Iterate through a complex Seq[Double]") {
     val expression: String = ".Store.Book[1 to 3].Price"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Double]) => {
-      assertEquals(Seq(12.6), in)
+    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
+      mutableBuffer += in
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(12.6), mutableBuffer)
   }
 
   test("Extract Root") {
@@ -350,156 +372,173 @@ class ChainedExtractorsTest extends FunSuite {
     Await.result(res, Duration.Inf)
   }
 
-  test("Extract ..Key, Seq[String]") {
+  test("Iterate through ..Key, Seq[String]") {
     val expression: String = "..Title"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
-      assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), in)
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
   }
 
-  test("Extract ..Key, Seq[Any]") {
+  test("Iterate through ..Key, Seq[Any]") {
     val expression: String = "..Price"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
-      assertEquals(Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38), in)
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38), mutableBuffer)
   }
-
 
   //TODO:
   //    val doc: Any = Configuration.defaultConfiguration().jsonProvider().parse(bson.asJson().toString)
   //    val list: java.util.List[String] = JsonPath.read(doc, "$..Title")
   //    println(list)
 
-  test("Extract ..*y[#]..[#], Seq[Array[Byte]]") {
+  test("Iterate through ..*y[#]..[#], Seq[Array[Byte]]") {
     val expression: String = "..*k[all]..[0]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] = Seq(edition1.encodeToBarray, edition2.encodeToBarray, edition3.encodeToBarray)
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
-  test("Extract ..*y[#]..Key2, Seq[Array[Byte]]") {
+  test("Iterate through ..*y[#]..Key2, Seq[Array[Byte]]") {
     val expression: String = "..*k[all]..Price"
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
     val expected: Seq[Any] = Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38)
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
-      assertTrue(expected === in)
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected === mutableBuffer)
   }
 
-  test("Extract ..*y[#], Seq[Array[Byte]]") {
+  test("Iterate through ..*y[#], Seq[Array[Byte]]") {
     val expression: String = "..*k[all]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(), title2.encodeToBarray(), title3.encodeToBarray(), hat1.encodeToBarray, hat2.encodeToBarray, hat3.encodeToBarray)
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
-  test("Extract ..Key[#], Seq[Array[Byte]] V1") {
+  test("Iterate through ..Key[#], Seq[Array[Byte]] V1") {
     val expression: String = "..Book[all]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(), title2.encodeToBarray(), title3.encodeToBarray())
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
-  test("Extract ..[#], Seq[Array[Byte]] V1") {
+  test("Iterate through ..[#], Seq[Array[Byte]] V1") {
     val expression: String = "..[all]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] =
       Seq(title1.encodeToBarray, edition1.encodeToBarray, title2.encodeToBarray, edition2.encodeToBarray, title3.encodeToBarray, edition3.encodeToBarray, hat1.encodeToBarray, hat2.encodeToBarray, hat3.encodeToBarray)
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
-  test("Extract .key..[#], Seq[Array[Byte]]") {
+  test("Iterate through .key..[#], Seq[Array[Byte]]") {
     val expression: String = ".Store..[0]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] =
       Seq(title1.encodeToBarray, edition1.encodeToBarray, edition2.encodeToBarray, edition3.encodeToBarray, hat1.encodeToBarray)
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall(b => b._1.sameElements(b._2)))
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
-  test("Extract ..Key1..Key2, Seq[Any] V1") { //TODO:implement search inside match
+  test("Iterate through ..Key1..Key2, Seq[Any] V1") { //TODO:implement search inside match
     val expression: String = "..Book..Price"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Any]) => {
-      assertEquals(Seq(15.5, 39, 40, 12.6, 38), in)
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(15.5, 39, 40, 12.6, 38), mutableBuffer)
   }
 
-  test("Extract .Key1.Key2..Key3, Seq[String]") {
+  test("Iterate through .Key1.Key2..Key3, Seq[String]") {
     val expression: String = ".Store.Book..Title"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
-      assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), in)
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
   }
 
-  test("Extract .Key1.Key2..Key3, Seq[Int]") { //TODO:implement the applyFunc
-    println(bson)
+  test("Iterate through .Key1.Key2..Key3, Seq[Int]") { //TODO:implement the applyFunc
     val expression: String = ".Store.SpecialEditions..Price"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
-      assertEquals(Seq(), in)
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(), mutableBuffer)
   }
 
   test("Extract .Key1..Key2..Key3, Seq[Int]") {
     val expression: String = ".Store..SpecialEditions..Price"
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Int]) => {
-      assertEquals(Seq(39, 40, 38), in)
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertEquals(Seq(39, 40, 38), mutableBuffer)
   }
 
   private val xHat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
@@ -524,38 +563,39 @@ class ChainedExtractorsTest extends FunSuite {
   test("Extract ..[#], Seq[Array[Byte]] V2") {
     val expression: String = "..[all]"
 
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] =
       Seq(xBooks.encodeToBarray, xTitle1.encodeToBarray, xEdition1.encodeToBarray, xTitle2.encodeToBarray, xEdition2.encodeToBarray, xTitle3.encodeToBarray,
         xEdition3.encodeToBarray, books.encodeToBarray, title1.encodeToBarray, edition1.encodeToBarray, title2.encodeToBarray, edition2.encodeToBarray, title3.encodeToBarray,
         edition3.encodeToBarray, xHats.encodeToBarray, xHat1.encodeToBarray, xHat2.encodeToBarray, xHat3.encodeToBarray,
         hats.encodeToBarray, hat1.encodeToBarray, hat2.encodeToBarray, hat3.encodeToBarray)
 
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall { b => b._1.sameElements(b._2) })
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
 
     val res = boson.go(xBson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall { b => b._1.sameElements(b._2) })
   }
 
   test("Extract ..*y[#], Seq[Array[Byte]] V2") {
     val expression: String = "..*k[all]"
-
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val expected: Seq[Array[Byte]] =
       Seq(xBooks.encodeToBarray, xEdition1.encodeToBarray, books.encodeToBarray, xHats.encodeToBarray, hats.encodeToBarray)
 
-    val boson: Boson = Boson.extractor(expression, (in: Seq[Array[Byte]]) => {
-      assertTrue(expected.size === in.size)
-      assertTrue(expected.zip(in).forall { b => b._1.sameElements(b._2) })
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
 
     val res = boson.go(xBson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall { b => b._1.sameElements(b._2) })
   }
 
   test("Extract ..key1..key2, Seq[String] V2") {
@@ -564,13 +604,15 @@ class ChainedExtractorsTest extends FunSuite {
     val expected: Seq[String] =
       Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "JavaMachine")
 
-    val boson: Boson = Boson.extractor(expression, (in: Seq[String]) => {
-      assert(expected === in)
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
       println(s"in: $in")
       println("APPLIED")
     })
 
     val res = boson.go(xBson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    assert(expected === mutableBuffer)
   }
 }

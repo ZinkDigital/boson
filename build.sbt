@@ -5,7 +5,7 @@ val basicSettings = Seq(
 
 organization:="io.zink",
 
-version := "0.5.0",
+version := "0.6.0",
 
 scalaVersion := "2.12.3",
 
@@ -61,7 +61,7 @@ scmInfo := Some(
 credentials += Credentials(Path.userHome /".sbt" /".credentials"),
 
   //pgpPassphrase := Some("boson0000".toArray),
-  pgpSecretRing := file("/Users/ricardomartins/.gnupg/secring.gpg"),
+  pgpSecretRing := file("/Users/Margarida Reis/.sbt/gpg/secring.gpg"),
   publishMavenStyle := true,
 
   publishTo := {
@@ -132,7 +132,8 @@ val testLibraries = Seq(
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",
   "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
-  "com.storm-enroute" %% "scalameter" % "0.8.2"
+  "com.storm-enroute" %% "scalameter" % "0.8.2",
+  "de.undercouch" % "bson4jackson" % "2.7.0"
 )
 
 
