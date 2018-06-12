@@ -1452,8 +1452,7 @@ class BosonImpl() {
         val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match { //TODO What about JSON case ???
           case SonObject(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
         }
-        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.writerIndex))
-        codec.writeToken(strSizeCodec, SonObject(CS_OBJECT, value0.array))
+        codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0.array))
       case D_BSONARRAY =>
         codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY))) //TODO - HERE
       case D_NULL =>
@@ -2381,8 +2380,8 @@ class BosonImpl() {
         val dataType: Int = codec.readDataType
         val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
         val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
-        dataType match {
-          case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy)
+        val (codecTo, codecUntil): (Codec, Codec) = dataType match {
+          case 0 => (codecWithDataType, codecWithDataTypeCopy)
           case _ =>
             val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
               case SonString(_, keyString) => keyString.asInstanceOf[String]
@@ -2396,6 +2395,7 @@ class BosonImpl() {
 
             val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
             val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b))
+
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
               //datatype is a BsonArray
@@ -2410,10 +2410,10 @@ class BosonImpl() {
                     }
                     val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to)
                     val newInjectCodec = inject(newCodec.getCodecData, statementsList, injFunction)
-                    iterateDataStructure(resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
+                    (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
                     val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to)
-                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
+                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -2424,25 +2424,36 @@ class BosonImpl() {
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to, fullStatementsList = Some(statementsList))
-                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
+                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   } else {
                     val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to, fullStatementsList = Some(statementsList))
-                    iterateDataStructure(resCodec + newCodec, resCodecCopy + newCodec.duplicate)
+                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
 
                 }
-              //If we found the desired elem but the dataType is not an array, or if we didn't find the desired elem
-              case _ =>
+              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType != D_BSONARRAY =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                   val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
-                  iterateDataStructure(processedCodec, processedCodecCopy)
+                  (processedCodec, processedCodecCopy)
                 } else {
                   val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
                   val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)
-                  iterateDataStructure(codecIterate, codecIterateCopy)
+                  (codecIterate, codecIterateCopy)
                 }
+
+              case extracted if fieldID.toCharArray.deep != extracted.toCharArray.deep && !isHalfword(fieldID, extracted) =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
+                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                  (processedCodec, processedCodecCopy)
+                } else {
+                  val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
+                  val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)
+                  (codecIterate, codecIterateCopy)
+                }
+              //If we found the desired elem but the dataType is not an array, or if we didn't find the desired elem
             }
         }
+        iterateDataStructure(codecTo, codecUntil)
       }
     }
 
