@@ -185,7 +185,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
-          val endIndex = buff.readerIndex + size
+        val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
@@ -500,15 +500,24 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
       case SonArray(_, info) =>
         //      val duplicated = outCodec.copyByteBuf
-        val writableByteSeq = info.asInstanceOf[Array[Byte]]
+        val writableByteSeq = info.asInstanceOf[Array[Byte]] //TODO exactly the same as bellow
         duplicated.writeBytes(writableByteSeq)
         new CodecBson(arg, Some(duplicated))
 
-      case SonObject(_, info) =>
-        val writableByteSeq = info.asInstanceOf[Array[Byte]] // TODO - Breaking Here
-        duplicated.writeBytes(writableByteSeq)
-        new CodecBson(arg, Some(duplicated))
+      case SonObject(dataType, info) =>
+        dataType match {
 
+          case CS_OBJECT_WITH_SIZE =>
+            val writableByteBuf = info.asInstanceOf[ByteBuf]
+            val writableByteSeq = writableByteBuf.array()
+            duplicated.writeBytes(writableByteSeq)
+            new CodecBson(arg, Some(duplicated))
+
+          case _ =>
+            val writableByteSeq = info.asInstanceOf[Array[Byte]]
+            duplicated.writeBytes(writableByteSeq)
+            new CodecBson(arg, Some(duplicated))
+        }
     }
   }
 
@@ -541,6 +550,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a codec with the added information of the other 2
     */
   override def +(sumCodec: Codec): Codec = {
+    sumCodec.setReaderIndex(0)
     val duplicated = copyByteBuf
     duplicated.writerIndex(buff.writerIndex())
     sumCodec.getCodecData match {
