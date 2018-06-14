@@ -7,15 +7,15 @@
 		revision="0.6.0"
 		conf="runtime-internal"
 		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, sources, docs, pom, scala-tool"
-		date="20180611173730"/>
+		date="20180612085506"/>
 	<dependencies>
 		<module organisation="org.scala-lang.modules" name="scala-java8-compat_2.12">
 			<revision name="0.8.0" status="release" pubdate="20161029231227" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="76">
 				<license name="BSD 3-clause" url="http://opensource.org/licenses/BSD-3-Clause"/>
-				<metadata-artifact status="no" details="" size="3072" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang.modules\scala-java8-compat_2.12\ivy-0.8.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/0.8.0/scala-java8-compat_2.12-0.8.0.pom"/>
+				<metadata-artifact status="no" details="" size="3072" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang.modules\scala-java8-compat_2.12\ivy-0.8.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/0.8.0/scala-java8-compat_2.12-0.8.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="0.8.0" rev-constraint-default="0.8.0" rev-constraint-dynamic="0.8.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="scala-java8-compat_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="63853" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang.modules\scala-java8-compat_2.12\srcs\scala-java8-compat_2.12-0.8.0-sources.jar">
+					<artifact name="scala-java8-compat_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="63853" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang.modules\scala-java8-compat_2.12\srcs\scala-java8-compat_2.12-0.8.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/0.8.0/scala-java8-compat_2.12-0.8.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -24,10 +24,10 @@
 		<module organisation="org.glassfish" name="javax.json">
 			<revision name="1.1" status="release" pubdate="20170518234302" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://javaee.github.io/jsonp" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="72">
 				<license name="                 Dual license consisting of the CDDL v1.1 and GPL v2             " url="https://oss.oracle.com/licenses/CDDL+GPL-1.1"/>
-				<metadata-artifact status="no" details="" size="5516" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.glassfish\javax.json\ivy-1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/glassfish/javax.json/1.1/javax.json-1.1.pom"/>
+				<metadata-artifact status="no" details="" size="5516" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.glassfish\javax.json\ivy-1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/glassfish/javax.json/1.1/javax.json-1.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.1" rev-constraint-default="1.1" rev-constraint-dynamic="1.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="javax.json" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="146967" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.glassfish\javax.json\srcs\javax.json-1.1-sources.jar">
+					<artifact name="javax.json" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="146967" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.glassfish\javax.json\srcs\javax.json-1.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/glassfish/javax.json/1.1/javax.json-1.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -36,10 +36,10 @@
 		<module organisation="com.squareup.okhttp3" name="mockwebserver">
 			<revision name="3.9.1" status="release" pubdate="20171118194008" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="69">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="6205" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.squareup.okhttp3\mockwebserver\ivy-3.9.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/mockwebserver/3.9.1/mockwebserver-3.9.1.pom"/>
+				<metadata-artifact status="no" details="" size="6205" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.squareup.okhttp3\mockwebserver\ivy-3.9.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/mockwebserver/3.9.1/mockwebserver-3.9.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.9.1" rev-constraint-default="3.9.1" rev-constraint-dynamic="3.9.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="mockwebserver" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="26444" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.squareup.okhttp3\mockwebserver\srcs\mockwebserver-3.9.1-sources.jar">
+					<artifact name="mockwebserver" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="26444" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.squareup.okhttp3\mockwebserver\srcs\mockwebserver-3.9.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/squareup/okhttp3/mockwebserver/3.9.1/mockwebserver-3.9.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -48,10 +48,10 @@
 		<module organisation="org.bouncycastle" name="bcprov-jdk15on">
 			<revision name="1.50" status="release" pubdate="20131203095449" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.bouncycastle.org/java.html" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="75">
 				<license name="Bouncy Castle Licence" url="http://www.bouncycastle.org/licence.html"/>
-				<metadata-artifact status="no" details="" size="2706" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.bouncycastle\bcprov-jdk15on\ivy-1.50.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.50/bcprov-jdk15on-1.50.pom"/>
+				<metadata-artifact status="no" details="" size="2706" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.bouncycastle\bcprov-jdk15on\ivy-1.50.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.50/bcprov-jdk15on-1.50.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.50" rev-constraint-default="1.50" rev-constraint-dynamic="1.50" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="bcprov-jdk15on" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="2238935" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.bouncycastle\bcprov-jdk15on\srcs\bcprov-jdk15on-1.50-sources.jar">
+					<artifact name="bcprov-jdk15on" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="2238935" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.bouncycastle\bcprov-jdk15on\srcs\bcprov-jdk15on-1.50-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.50/bcprov-jdk15on-1.50-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -60,10 +60,10 @@
 		<module organisation="org.ow2.asm" name="asm-analysis">
 			<revision name="5.2" status="release" pubdate="20161223094311" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="66">
 				<license name="BSD" url="http://asm.objectweb.org/license.html"/>
-				<metadata-artifact status="no" details="" size="4168" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm-analysis\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm-analysis/5.2/asm-analysis-5.2.pom"/>
+				<metadata-artifact status="no" details="" size="4168" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm-analysis\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm-analysis/5.2/asm-analysis-5.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="5.2" rev-constraint-default="5.2" rev-constraint-dynamic="5.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="asm-analysis" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm-analysis\srcs\asm-analysis-5.2-sources.jar">
+					<artifact name="asm-analysis" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm-analysis\srcs\asm-analysis-5.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/ow2/asm/asm-analysis/5.2/asm-analysis-5.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -72,10 +72,10 @@
 		<module organisation="com.jayway.jsonpath" name="json-path">
 			<revision name="2.4.0" status="release" pubdate="20170705093607" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/jayway/JsonPath" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="44">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3519" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.jayway.jsonpath\json-path\ivy-2.4.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.4.0/json-path-2.4.0.pom"/>
+				<metadata-artifact status="no" details="" size="3519" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.jayway.jsonpath\json-path\ivy-2.4.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.4.0/json-path-2.4.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.4.0" rev-constraint-default="2.4.0" rev-constraint-dynamic="2.4.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="json-path" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="113794" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.jayway.jsonpath\json-path\srcs\json-path-2.4.0-sources.jar">
+					<artifact name="json-path" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="113794" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.jayway.jsonpath\json-path\srcs\json-path-2.4.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/jayway/jsonpath/json-path/2.4.0/json-path-2.4.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -84,10 +84,10 @@
 		<module organisation="de.undercouch" name="bson4jackson">
 			<revision name="2.7.0" status="release" pubdate="20160126055049" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.michel-kraemer.com" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="43">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3101" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\de.undercouch\bson4jackson\ivy-2.7.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/de/undercouch/bson4jackson/2.7.0/bson4jackson-2.7.0.pom"/>
+				<metadata-artifact status="no" details="" size="3101" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\de.undercouch\bson4jackson\ivy-2.7.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/de/undercouch/bson4jackson/2.7.0/bson4jackson-2.7.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.7.0" rev-constraint-default="2.7.0" rev-constraint-dynamic="2.7.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="bson4jackson" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="50713" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\de.undercouch\bson4jackson\srcs\bson4jackson-2.7.0-sources.jar">
+					<artifact name="bson4jackson" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="50713" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\de.undercouch\bson4jackson\srcs\bson4jackson-2.7.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/de/undercouch/bson4jackson/2.7.0/bson4jackson-2.7.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -97,10 +97,10 @@
 			<revision name="3.5.0" status="release" pubdate="20171017145027" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="40">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
 				<license name="Eclipse Public License - v 1.0" url="http://www.eclipse.org/legal/epl-v10.html"/>
-				<metadata-artifact status="no" details="" size="26438" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.vertx\vertx-core\ivy-3.5.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/vertx/vertx-core/3.5.0/vertx-core-3.5.0.pom"/>
+				<metadata-artifact status="no" details="" size="26438" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.vertx\vertx-core\ivy-3.5.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/vertx/vertx-core/3.5.0/vertx-core-3.5.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.5.0" rev-constraint-default="3.5.0" rev-constraint-dynamic="3.5.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="vertx-core" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="820910" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.vertx\vertx-core\srcs\vertx-core-3.5.0-sources.jar">
+					<artifact name="vertx-core" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="820910" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.vertx\vertx-core\srcs\vertx-core-3.5.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/vertx/vertx-core/3.5.0/vertx-core-3.5.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -109,10 +109,10 @@
 		<module organisation="com.fasterxml.jackson.core" name="jackson-databind">
 			<revision name="2.9.0" status="release" pubdate="20170730052229" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/FasterXML/jackson" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="48">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="19270" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.core\jackson-databind\ivy-2.9.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.0/jackson-databind-2.9.0.pom"/>
+				<metadata-artifact status="no" details="" size="19270" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.core\jackson-databind\ivy-2.9.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.0/jackson-databind-2.9.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.9.0" rev-constraint-default="2.9.0" rev-constraint-dynamic="2.9.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="jackson-databind" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="978645" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.core\jackson-databind\srcs\jackson-databind-2.9.0-sources.jar">
+					<artifact name="jackson-databind" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="978645" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.core\jackson-databind\srcs\jackson-databind-2.9.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.0/jackson-databind-2.9.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -121,10 +121,10 @@
 		<module organisation="io.netty" name="netty-resolver-dns">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824163118" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="61">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="17421" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-resolver-dns\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.15.Final/netty-resolver-dns-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="17421" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-resolver-dns\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.15.Final/netty-resolver-dns-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-resolver-dns" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="66139" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-resolver-dns\srcs\netty-resolver-dns-4.1.15.Final-sources.jar">
+					<artifact name="netty-resolver-dns" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="66139" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-resolver-dns\srcs\netty-resolver-dns-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.15.Final/netty-resolver-dns-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -133,10 +133,10 @@
 		<module organisation="com.fasterxml.jackson.core" name="jackson-annotations">
 			<revision name="2.9.0" status="release" pubdate="20170730045340" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/FasterXML/jackson" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="37">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="7030" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.core\jackson-annotations\ivy-2.9.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.9.0/jackson-annotations-2.9.0.pom"/>
+				<metadata-artifact status="no" details="" size="7030" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.core\jackson-annotations\ivy-2.9.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.9.0/jackson-annotations-2.9.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.9.0" rev-constraint-default="2.9.0" rev-constraint-dynamic="2.9.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="jackson-annotations" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="68177" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.core\jackson-annotations\srcs\jackson-annotations-2.9.0-sources.jar">
+					<artifact name="jackson-annotations" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="68177" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.core\jackson-annotations\srcs\jackson-annotations-2.9.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.9.0/jackson-annotations-2.9.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -145,10 +145,10 @@
 		<module organisation="net.minidev" name="json-smart">
 			<revision name="2.3" status="release" pubdate="20170326085657" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.minidev.net/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="34">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="4979" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\net.minidev\json-smart\ivy-2.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/minidev/json-smart/2.3/json-smart-2.3.pom"/>
+				<metadata-artifact status="no" details="" size="4979" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\net.minidev\json-smart\ivy-2.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/minidev/json-smart/2.3/json-smart-2.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.3" rev-constraint-default="2.3" rev-constraint-dynamic="2.3" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="json-smart" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="56217" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\net.minidev\json-smart\srcs\json-smart-2.3-sources.jar">
+					<artifact name="json-smart" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="56217" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\net.minidev\json-smart\srcs\json-smart-2.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/net/minidev/json-smart/2.3/json-smart-2.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -157,10 +157,10 @@
 		<module organisation="net.minidev" name="accessors-smart">
 			<revision name="1.2" status="release" pubdate="20170326085643" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.minidev.net/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="50">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3518" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\net.minidev\accessors-smart\ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/minidev/accessors-smart/1.2/accessors-smart-1.2.pom"/>
+				<metadata-artifact status="no" details="" size="3518" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\net.minidev\accessors-smart\ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/minidev/accessors-smart/1.2/accessors-smart-1.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.2" rev-constraint-default="1.2" rev-constraint-dynamic="1.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="accessors-smart" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="16277" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\net.minidev\accessors-smart\srcs\accessors-smart-1.2-sources.jar">
+					<artifact name="accessors-smart" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="16277" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\net.minidev\accessors-smart\srcs\accessors-smart-1.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/net/minidev/accessors-smart/1.2/accessors-smart-1.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -169,10 +169,10 @@
 		<module organisation="io.netty" name="netty-handler-proxy">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824163102" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="29">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="17416" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-handler-proxy\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.15.Final/netty-handler-proxy-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="17416" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-handler-proxy\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.15.Final/netty-handler-proxy-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-handler-proxy" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="14305" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-handler-proxy\srcs\netty-handler-proxy-4.1.15.Final-sources.jar">
+					<artifact name="netty-handler-proxy" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="14305" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-handler-proxy\srcs\netty-handler-proxy-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.15.Final/netty-handler-proxy-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -181,10 +181,10 @@
 		<module organisation="io.netty" name="netty-codec-dns">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824162459" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="28">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="16871" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-dns\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.15.Final/netty-codec-dns-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="16871" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-dns\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.15.Final/netty-codec-dns-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-codec-dns" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="51698" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-dns\srcs\netty-codec-dns-4.1.15.Final-sources.jar">
+					<artifact name="netty-codec-dns" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="51698" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-dns\srcs\netty-codec-dns-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.15.Final/netty-codec-dns-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -193,10 +193,10 @@
 		<module organisation="org.parboiled" name="parboiled_2.12">
 			<revision name="2.1.4" status="release" pubdate="20170124092346" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://parboiled.org" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="27">
 				<license name="Apache-2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3158" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.parboiled\parboiled_2.12\ivy-2.1.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/parboiled/parboiled_2.12/2.1.4/parboiled_2.12-2.1.4.pom"/>
+				<metadata-artifact status="no" details="" size="3158" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.parboiled\parboiled_2.12\ivy-2.1.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/parboiled/parboiled_2.12/2.1.4/parboiled_2.12-2.1.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.1.4" rev-constraint-default="2.1.4" rev-constraint-dynamic="2.1.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="parboiled_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="53480" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.parboiled\parboiled_2.12\srcs\parboiled_2.12-2.1.4-sources.jar">
+					<artifact name="parboiled_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="53480" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.parboiled\parboiled_2.12\srcs\parboiled_2.12-2.1.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/parboiled/parboiled_2.12/2.1.4/parboiled_2.12-2.1.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -205,10 +205,10 @@
 		<module organisation="com.google.code.gson" name="gson">
 			<revision name="2.3.1" status="release" pubdate="20141120094214" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://code.google.com/p/google-gson/" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="26">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3420" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.google.code.gson\gson\ivy-2.3.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/google/code/gson/gson/2.3.1/gson-2.3.1.pom"/>
+				<metadata-artifact status="no" details="" size="3420" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.google.code.gson\gson\ivy-2.3.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/google/code/gson/gson/2.3.1/gson-2.3.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.3.1" rev-constraint-default="2.3.1" rev-constraint-dynamic="2.3.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="gson" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="139924" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.google.code.gson\gson\srcs\gson-2.3.1-sources.jar">
+					<artifact name="gson" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="139924" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.google.code.gson\gson\srcs\gson-2.3.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/google/code/gson/gson/2.3.1/gson-2.3.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -217,10 +217,10 @@
 		<module organisation="net.jodah" name="typetools">
 			<revision name="0.5.0" status="release" pubdate="20170509154904" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/jhalterman/typetools/" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="25">
 				<license name="Apache License, Version 2.0" url="http://apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="3402" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\net.jodah\typetools\ivy-0.5.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/jodah/typetools/0.5.0/typetools-0.5.0.pom"/>
+				<metadata-artifact status="no" details="" size="3402" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\net.jodah\typetools\ivy-0.5.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/net/jodah/typetools/0.5.0/typetools-0.5.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="0.5.0" rev-constraint-default="0.5.0" rev-constraint-dynamic="0.5.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="typetools" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="5619" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\net.jodah\typetools\srcs\typetools-0.5.0-sources.jar">
+					<artifact name="typetools" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="5619" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\net.jodah\typetools\srcs\typetools-0.5.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/net/jodah/typetools/0.5.0/typetools-0.5.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -229,10 +229,10 @@
 		<module organisation="io.netty" name="netty-codec-http2">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824162920" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="22">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="17238" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-http2\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.15.Final/netty-codec-http2-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="17238" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-http2\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.15.Final/netty-codec-http2-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-codec-http2" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="257466" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-http2\srcs\netty-codec-http2-4.1.15.Final-sources.jar">
+					<artifact name="netty-codec-http2" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="257466" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-http2\srcs\netty-codec-http2-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.15.Final/netty-codec-http2-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -241,10 +241,10 @@
 		<module organisation="io.netty" name="netty-codec-http">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824162836" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="42">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="17093" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-http\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.15.Final/netty-codec-http-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="17093" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-http\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.15.Final/netty-codec-http-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-codec-http" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="426146" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-http\srcs\netty-codec-http-4.1.15.Final-sources.jar">
+					<artifact name="netty-codec-http" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="426146" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-http\srcs\netty-codec-http-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.15.Final/netty-codec-http-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -253,10 +253,10 @@
 		<module organisation="io.netty" name="netty-handler">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824162742" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="73">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="18225" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-handler\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-handler/4.1.15.Final/netty-handler-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="18225" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-handler\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-handler/4.1.15.Final/netty-handler-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-handler" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="251076" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-handler\srcs\netty-handler-4.1.15.Final-sources.jar">
+					<artifact name="netty-handler" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="251076" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-handler\srcs\netty-handler-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-handler/4.1.15.Final/netty-handler-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -265,10 +265,10 @@
 		<module organisation="com.chuusai" name="shapeless_2.12">
 			<revision name="2.3.3" status="release" pubdate="20171231145153" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/milessabin/shapeless" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="21">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3267" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.chuusai\shapeless_2.12\ivy-2.3.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.pom"/>
+				<metadata-artifact status="no" details="" size="3267" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.chuusai\shapeless_2.12\ivy-2.3.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.3.3" rev-constraint-default="2.3.3" rev-constraint-dynamic="2.3.3" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="shapeless_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="172402" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.chuusai\shapeless_2.12\srcs\shapeless_2.12-2.3.3-sources.jar">
+					<artifact name="shapeless_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="172402" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.chuusai\shapeless_2.12\srcs\shapeless_2.12-2.3.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -277,10 +277,10 @@
 		<module organisation="org.typelevel" name="macro-compat_2.12">
 			<revision name="1.1.1" status="release" pubdate="20161102084258" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/milessabin/macro-compat" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="47">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="2999" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.typelevel\macro-compat_2.12\ivy-1.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.pom"/>
+				<metadata-artifact status="no" details="" size="2999" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.typelevel\macro-compat_2.12\ivy-1.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.1.1" rev-constraint-default="1.1.1" rev-constraint-dynamic="1.1.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="macro-compat_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1052" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.typelevel\macro-compat_2.12\srcs\macro-compat_2.12-1.1.1-sources.jar">
+					<artifact name="macro-compat_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1052" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.typelevel\macro-compat_2.12\srcs\macro-compat_2.12-1.1.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -289,10 +289,10 @@
 		<module organisation="io.netty" name="netty-all">
 			<revision name="4.1.22.Final" status="release" pubdate="20180221142728" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="20">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="21379" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-all\ivy-4.1.22.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-all/4.1.22.Final/netty-all-4.1.22.Final.pom"/>
+				<metadata-artifact status="no" details="" size="21379" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-all\ivy-4.1.22.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-all/4.1.22.Final/netty-all-4.1.22.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.22.Final" rev-constraint-default="4.1.22.Final" rev-constraint-dynamic="4.1.22.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-all" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="3027427" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-all\srcs\netty-all-4.1.22.Final-sources.jar">
+					<artifact name="netty-all" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="3027427" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-all\srcs\netty-all-4.1.22.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-all/4.1.22.Final/netty-all-4.1.22.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -301,10 +301,10 @@
 		<module organisation="io.netty" name="netty-codec-socks">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824163017" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="18">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="16730" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-socks\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.15.Final/netty-codec-socks-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="16730" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-socks\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.15.Final/netty-codec-socks-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-codec-socks" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="86383" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec-socks\srcs\netty-codec-socks-4.1.15.Final-sources.jar">
+					<artifact name="netty-codec-socks" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="86383" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec-socks\srcs\netty-codec-socks-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.15.Final/netty-codec-socks-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -313,10 +313,10 @@
 		<module organisation="io.netty" name="netty-codec">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824162431" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="41">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="18179" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec/4.1.15.Final/netty-codec-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="18179" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-codec/4.1.15.Final/netty-codec-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-codec" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="257116" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-codec\srcs\netty-codec-4.1.15.Final-sources.jar">
+					<artifact name="netty-codec" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="257116" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-codec\srcs\netty-codec-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-codec/4.1.15.Final/netty-codec-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -325,10 +325,10 @@
 		<module organisation="io.netty" name="netty-transport">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824162157" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="54">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="16996" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-transport\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-transport/4.1.15.Final/netty-transport-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="16996" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-transport\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-transport/4.1.15.Final/netty-transport-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-transport" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="298551" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-transport\srcs\netty-transport-4.1.15.Final-sources.jar">
+					<artifact name="netty-transport" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="298551" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-transport\srcs\netty-transport-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-transport/4.1.15.Final/netty-transport-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -337,10 +337,10 @@
 		<module organisation="io.netty" name="netty-resolver">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824161952" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="65">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="16845" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-resolver\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.15.Final/netty-resolver-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="16845" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-resolver\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.15.Final/netty-resolver-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-resolver" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="24410" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-resolver\srcs\netty-resolver-4.1.15.Final-sources.jar">
+					<artifact name="netty-resolver" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="24410" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-resolver\srcs\netty-resolver-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.15.Final/netty-resolver-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -349,10 +349,10 @@
 		<module organisation="io.netty" name="netty-buffer">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824161745" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="53">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="16841" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-buffer\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.15.Final/netty-buffer-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="16841" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-buffer\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.15.Final/netty-buffer-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-buffer" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="167805" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-buffer\srcs\netty-buffer-4.1.15.Final-sources.jar">
+					<artifact name="netty-buffer" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="167805" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-buffer\srcs\netty-buffer-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.15.Final/netty-buffer-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -361,10 +361,10 @@
 		<module organisation="io.netty" name="netty-common">
 			<revision name="4.1.15.Final" status="release" pubdate="20170824161257" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="38">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0"/>
-				<metadata-artifact status="no" details="" size="19264" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-common\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-common/4.1.15.Final/netty-common-4.1.15.Final.pom"/>
+				<metadata-artifact status="no" details="" size="19264" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-common\ivy-4.1.15.Final.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/netty/netty-common/4.1.15.Final/netty-common-4.1.15.Final.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.1.15.Final" rev-constraint-default="4.1.15.Final" rev-constraint-dynamic="4.1.15.Final" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="netty-common" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="305333" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.netty\netty-common\srcs\netty-common-4.1.15.Final-sources.jar">
+					<artifact name="netty-common" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="305333" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.netty\netty-common\srcs\netty-common-4.1.15.Final-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/netty/netty-common/4.1.15.Final/netty-common-4.1.15.Final-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -373,10 +373,10 @@
 		<module organisation="com.storm-enroute" name="scalameter_2.12">
 			<revision name="0.8.2" status="release" pubdate="20161110072335" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://scalameter.github.io/" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="17">
 				<license name="BSD-style" url="http://opensource.org/licenses/BSD-3-Clause"/>
-				<metadata-artifact status="no" details="" size="4346" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.storm-enroute\scalameter_2.12\ivy-0.8.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/storm-enroute/scalameter_2.12/0.8.2/scalameter_2.12-0.8.2.pom"/>
+				<metadata-artifact status="no" details="" size="4346" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.storm-enroute\scalameter_2.12\ivy-0.8.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/storm-enroute/scalameter_2.12/0.8.2/scalameter_2.12-0.8.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="0.8.2" rev-constraint-default="0.8.2" rev-constraint-dynamic="0.8.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="scalameter_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="285718" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.storm-enroute\scalameter_2.12\srcs\scalameter_2.12-0.8.2-sources.jar">
+					<artifact name="scalameter_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="285718" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.storm-enroute\scalameter_2.12\srcs\scalameter_2.12-0.8.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/storm-enroute/scalameter_2.12/0.8.2/scalameter_2.12-0.8.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -385,10 +385,10 @@
 		<module organisation="io.spray" name="spray-json_2.12">
 			<revision name="1.3.2" status="release" pubdate="20161102133118" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/spray/spray-json" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="19">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3117" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.spray\spray-json_2.12\ivy-1.3.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/spray/spray-json_2.12/1.3.2/spray-json_2.12-1.3.2.pom"/>
+				<metadata-artifact status="no" details="" size="3117" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.spray\spray-json_2.12\ivy-1.3.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/spray/spray-json_2.12/1.3.2/spray-json_2.12-1.3.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.3.2" rev-constraint-default="1.3.2" rev-constraint-dynamic="1.3.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="spray-json_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="22856" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.spray\spray-json_2.12\srcs\spray-json_2.12-1.3.2-sources.jar">
+					<artifact name="spray-json_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="22856" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.spray\spray-json_2.12\srcs\spray-json_2.12-1.3.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/spray/spray-json_2.12/1.3.2/spray-json_2.12-1.3.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -397,10 +397,10 @@
 		<module organisation="com.fasterxml.jackson.module" name="jackson-module-scala_2.12">
 			<revision name="2.8.4" status="release" pubdate="20161110044201" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://wiki.fasterxml.com/JacksonModuleScala" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="67">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="4260" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-scala_2.12\ivy-2.8.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.12/2.8.4/jackson-module-scala_2.12-2.8.4.pom"/>
+				<metadata-artifact status="no" details="" size="4260" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-scala_2.12\ivy-2.8.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.12/2.8.4/jackson-module-scala_2.12-2.8.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.8.4" rev-constraint-default="2.8.4" rev-constraint-dynamic="2.8.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="jackson-module-scala_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="54078" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-scala_2.12\srcs\jackson-module-scala_2.12-2.8.4-sources.jar">
+					<artifact name="jackson-module-scala_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="54078" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-scala_2.12\srcs\jackson-module-scala_2.12-2.8.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.12/2.8.4/jackson-module-scala_2.12-2.8.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -409,22 +409,22 @@
 		<module organisation="com.storm-enroute" name="scalameter-core_2.12">
 			<revision name="0.8.2" status="release" pubdate="20161110072328" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://scalameter.github.io/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="46">
 				<license name="BSD-style" url="http://opensource.org/licenses/BSD-3-Clause"/>
-				<metadata-artifact status="no" details="" size="3857" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.storm-enroute\scalameter-core_2.12\ivy-0.8.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/storm-enroute/scalameter-core_2.12/0.8.2/scalameter-core_2.12-0.8.2.pom"/>
+				<metadata-artifact status="no" details="" size="3857" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.storm-enroute\scalameter-core_2.12\ivy-0.8.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/storm-enroute/scalameter-core_2.12/0.8.2/scalameter-core_2.12-0.8.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="0.8.2" rev-constraint-default="0.8.2" rev-constraint-dynamic="0.8.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="scalameter-core_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="33971" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.storm-enroute\scalameter-core_2.12\srcs\scalameter-core_2.12-0.8.2-sources.jar">
+					<artifact name="scalameter-core_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="33971" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.storm-enroute\scalameter-core_2.12\srcs\scalameter-core_2.12-0.8.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/storm-enroute/scalameter-core_2.12/0.8.2/scalameter-core_2.12-0.8.2-sources.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.scala-lang.modules" name="scala-parser-combinators_2.12">
-			<revision name="1.0.4" status="release" pubdate="20161028191045" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="51">
+			<revision name="1.0.4" status="release" pubdate="20161029001045" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="51">
 				<license name="BSD 3-clause" url="http://opensource.org/licenses/BSD-3-Clause"/>
-				<metadata-artifact status="no" details="" size="2920" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang.modules\scala-parser-combinators_2.12\ivy-1.0.4.xml" searched="false" origin-is-local="false" origin-location="file:/C:/Users/Lucas Fischer/.sbt/preloaded/org.scala-lang.modules/scala-parser-combinators_2.12/1.0.4/ivys/ivy.xml"/>
+				<metadata-artifact status="no" details="" size="2819" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang.modules\scala-parser-combinators_2.12\ivy-1.0.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.0.4/scala-parser-combinators_2.12-1.0.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.0.4" rev-constraint-default="1.0.4" rev-constraint-dynamic="1.0.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="scala-parser-combinators_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="42274" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang.modules\scala-parser-combinators_2.12\srcs\scala-parser-combinators_2.12-1.0.4-sources.jar">
+					<artifact name="scala-parser-combinators_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="42274" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang.modules\scala-parser-combinators_2.12\srcs\scala-parser-combinators_2.12-1.0.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.0.4/scala-parser-combinators_2.12-1.0.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -433,10 +433,10 @@
 		<module organisation="org.scala-lang.modules" name="scala-xml_2.12">
 			<revision name="1.0.5" status="release" pubdate="20161029001007" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="60">
 				<license name="BSD 3-clause" url="http://opensource.org/licenses/BSD-3-Clause"/>
-				<metadata-artifact status="no" details="" size="3175" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang.modules\scala-xml_2.12\ivy-1.0.5.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.5/scala-xml_2.12-1.0.5.pom"/>
+				<metadata-artifact status="no" details="" size="3175" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang.modules\scala-xml_2.12\ivy-1.0.5.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.5/scala-xml_2.12-1.0.5.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.0.5" rev-constraint-default="1.0.5" rev-constraint-dynamic="1.0.5" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="scala-xml_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="109241" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang.modules\scala-xml_2.12\srcs\scala-xml_2.12-1.0.5-sources.jar">
+					<artifact name="scala-xml_2.12" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="109241" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang.modules\scala-xml_2.12\srcs\scala-xml_2.12-1.0.5-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.5/scala-xml_2.12-1.0.5-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -445,22 +445,21 @@
 		<module organisation="org.slf4j" name="slf4j-simple">
 			<revision name="1.7.25" status="release" pubdate="20170316163640" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.slf4j.org" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="16">
 				<license name="MIT License" url="http://www.opensource.org/licenses/mit-license.php"/>
-				<metadata-artifact status="no" details="" size="5412" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.slf4j\slf4j-simple\ivy-1.7.25.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25.pom"/>
+				<metadata-artifact status="no" details="" size="5406" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.slf4j\slf4j-simple\ivy-1.7.25.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.7.25" rev-constraint-default="1.7.25" rev-constraint-dynamic="1.7.25" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="slf4j-simple" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="13815" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.slf4j\slf4j-simple\srcs\slf4j-simple-1.7.25-sources.jar">
+					<artifact name="slf4j-simple" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="13815" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.slf4j\slf4j-simple\srcs\slf4j-simple-1.7.25-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/1.7.25/slf4j-simple-1.7.25-sources.jar"/>
 					</artifact>
 				</artifacts>
 			</revision>
 		</module>
 		<module organisation="org.slf4j" name="slf4j-api">
-			<revision name="1.7.25" status="release" pubdate="20170316123632" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.slf4j.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="36">
-				<license name="MIT License" url="http://www.opensource.org/licenses/mit-license.php"/>
-				<metadata-artifact status="no" details="" size="5190" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.slf4j\slf4j-api\ivy-1.7.25.xml" searched="false" origin-is-local="false" origin-location="file:/C:/Users/Lucas Fischer/.sbt/preloaded/org.slf4j/slf4j-api/1.7.25/ivys/ivy.xml"/>
+			<revision name="1.7.25" status="release" pubdate="20170316163632" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.slf4j.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="36">
+				<metadata-artifact status="no" details="" size="5340" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.slf4j\slf4j-api\ivy-1.7.25.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.7.25" rev-constraint-default="1.7.25" rev-constraint-dynamic="1.7.25" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="slf4j-api" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="55539" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.slf4j\slf4j-api\srcs\slf4j-api-1.7.25-sources.jar">
+					<artifact name="slf4j-api" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="55539" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.slf4j\slf4j-api\srcs\slf4j-api-1.7.25-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -468,10 +467,10 @@
 		</module>
 		<module organisation="org.apache.commons" name="commons-math3">
 			<revision name="3.2" status="release" pubdate="20130402203128" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-math/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="15">
-				<metadata-artifact status="no" details="" size="9650" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.commons\commons-math3\ivy-3.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2.pom"/>
+				<metadata-artifact status="no" details="" size="9650" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.commons\commons-math3\ivy-3.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.2" rev-constraint-default="3.2" rev-constraint-dynamic="3.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="commons-math3" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="2005074" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.commons\commons-math3\srcs\commons-math3-3.2-sources.jar">
+					<artifact name="commons-math3" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="2005074" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.commons\commons-math3\srcs\commons-math3-3.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -480,10 +479,10 @@
 		<module organisation="com.squareup.okhttp3" name="okhttp">
 			<revision name="3.9.1" status="release" pubdate="20171118193940" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="13">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="6077" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.squareup.okhttp3\okhttp\ivy-3.9.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.9.1/okhttp-3.9.1.pom"/>
+				<metadata-artifact status="no" details="" size="6077" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.squareup.okhttp3\okhttp\ivy-3.9.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.9.1/okhttp-3.9.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.9.1" rev-constraint-default="3.9.1" rev-constraint-dynamic="3.9.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="okhttp" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="312476" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.squareup.okhttp3\okhttp\srcs\okhttp-3.9.1-sources.jar">
+					<artifact name="okhttp" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="312476" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.squareup.okhttp3\okhttp\srcs\okhttp-3.9.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.9.1/okhttp-3.9.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -492,10 +491,10 @@
 		<module organisation="com.squareup.okio" name="okio">
 			<revision name="1.13.0" status="release" pubdate="20170512172419" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="63">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="4942" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.squareup.okio\okio\ivy-1.13.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okio/okio/1.13.0/okio-1.13.0.pom"/>
+				<metadata-artifact status="no" details="" size="4942" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.squareup.okio\okio\ivy-1.13.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/squareup/okio/okio/1.13.0/okio-1.13.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.13.0" rev-constraint-default="1.13.0" rev-constraint-dynamic="1.13.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="okio" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="69128" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.squareup.okio\okio\srcs\okio-1.13.0-sources.jar">
+					<artifact name="okio" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="69128" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.squareup.okio\okio\srcs\okio-1.13.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/squareup/okio/okio/1.13.0/okio-1.13.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -504,10 +503,10 @@
 		<module organisation="org.scala-lang" name="scala-reflect">
 			<revision name="2.12.3" status="release" pubdate="20170725114444" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" extra-info.apiURL="http://www.scala-lang.org/api/2.12.3/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="12">
 				<license name="BSD 3-Clause" url="http://www.scala-lang.org/license.html"/>
-				<metadata-artifact status="no" details="" size="2670" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang\scala-reflect\ivy-2.12.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.3/scala-reflect-2.12.3.pom"/>
+				<metadata-artifact status="no" details="" size="2860" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang\scala-reflect\ivy-2.12.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.3/scala-reflect-2.12.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.12.3" rev-constraint-default="2.12.3" rev-constraint-dynamic="2.12.3" callerrev="0.6.0" extra-info.apiURL="http://www.scala-lang.org/api/2.12.3/"/>
 				<artifacts>
-					<artifact name="scala-reflect" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="577394" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang\scala-reflect\srcs\scala-reflect-2.12.3-sources.jar">
+					<artifact name="scala-reflect" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="577394" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang\scala-reflect\srcs\scala-reflect-2.12.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.3/scala-reflect-2.12.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -516,10 +515,10 @@
 		<module organisation="org.scala-lang" name="scala-library">
 			<revision name="2.12.3" status="release" pubdate="20170725114730" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" extra-info.apiURL="http://www.scala-lang.org/api/2.12.3/" downloaded="false" searched="false" default="false" conf="master(*), compile, runtime(*), master(compile), runtime, compile(*), master" position="33">
 				<license name="BSD 3-Clause" url="http://www.scala-lang.org/license.html"/>
-				<metadata-artifact status="no" details="" size="2685" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang\scala-library\ivy-2.12.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.3/scala-library-2.12.3.pom"/>
+				<metadata-artifact status="no" details="" size="2685" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang\scala-library\ivy-2.12.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.3/scala-library-2.12.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.12.3" rev-constraint-default="2.12.3" rev-constraint-dynamic="2.12.3" callerrev="0.6.0" extra-info.apiURL="http://www.scala-lang.org/api/2.12.3/"/>
 				<artifacts>
-					<artifact name="scala-library" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="990602" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.scala-lang\scala-library\srcs\scala-library-2.12.3-sources.jar">
+					<artifact name="scala-library" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="990602" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.scala-lang\scala-library\srcs\scala-library-2.12.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.3/scala-library-2.12.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -528,10 +527,10 @@
 		<module organisation="org.ow2.asm" name="asm-util">
 			<revision name="5.2" status="release" pubdate="20161223094315" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="10">
 				<license name="BSD" url="http://asm.objectweb.org/license.html"/>
-				<metadata-artifact status="no" details="" size="4160" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm-util\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm-util/5.2/asm-util-5.2.pom"/>
+				<metadata-artifact status="no" details="" size="4160" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm-util\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm-util/5.2/asm-util-5.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="5.2" rev-constraint-default="5.2" rev-constraint-dynamic="5.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="asm-util" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm-util\srcs\asm-util-5.2-sources.jar">
+					<artifact name="asm-util" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm-util\srcs\asm-util-5.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/ow2/asm/asm-util/5.2/asm-util-5.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -540,10 +539,10 @@
 		<module organisation="io.rest-assured" name="scala-support">
 			<revision name="3.0.6" status="release" pubdate="20171123054059" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="9">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="6893" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\scala-support\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/scala-support/3.0.6/scala-support-3.0.6.pom"/>
+				<metadata-artifact status="no" details="" size="6893" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\scala-support\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/scala-support/3.0.6/scala-support-3.0.6.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.0.6" rev-constraint-default="3.0.6" rev-constraint-dynamic="3.0.6" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="scala-support" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1810" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\scala-support\srcs\scala-support-3.0.6-sources.jar">
+					<artifact name="scala-support" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1810" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\scala-support\srcs\scala-support-3.0.6-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/rest-assured/scala-support/3.0.6/scala-support-3.0.6-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -552,10 +551,10 @@
 		<module organisation="io.rest-assured" name="rest-assured">
 			<revision name="3.0.6" status="release" pubdate="20171123053950" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://code.google.com/p/rest-assured" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="11">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="8454" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\rest-assured\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/rest-assured/3.0.6/rest-assured-3.0.6.pom"/>
+				<metadata-artifact status="no" details="" size="8454" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\rest-assured\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/rest-assured/3.0.6/rest-assured-3.0.6.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.0.6" rev-constraint-default="3.0.6" rev-constraint-dynamic="3.0.6" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="rest-assured" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="351817" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\rest-assured\srcs\rest-assured-3.0.6-sources.jar">
+					<artifact name="rest-assured" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="351817" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\rest-assured\srcs\rest-assured-3.0.6-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/rest-assured/rest-assured/3.0.6/rest-assured-3.0.6-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -564,10 +563,10 @@
 		<module organisation="io.rest-assured" name="xml-path">
 			<revision name="3.0.6" status="release" pubdate="20171123053834" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="70">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="7018" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\xml-path\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/xml-path/3.0.6/xml-path-3.0.6.pom"/>
+				<metadata-artifact status="no" details="" size="7018" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\xml-path\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/xml-path/3.0.6/xml-path-3.0.6.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.0.6" rev-constraint-default="3.0.6" rev-constraint-dynamic="3.0.6" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="xml-path" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="35651" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\xml-path\srcs\xml-path-3.0.6-sources.jar">
+					<artifact name="xml-path" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="35651" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\xml-path\srcs\xml-path-3.0.6-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/rest-assured/xml-path/3.0.6/xml-path-3.0.6-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -577,10 +576,10 @@
 			<revision name="2.2.12" status="release" pubdate="20141020133424" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://jaxb.java.net/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="62">
 				<license name="CDDL 1.1" url="https://glassfish.java.net/public/CDDL+GPL_1_1.html"/>
 				<license name="GPL2 w/ CPE" url="https://glassfish.java.net/public/CDDL+GPL_1_1.html"/>
-				<metadata-artifact status="no" details="" size="3870" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\javax.xml.bind\jaxb-api\ivy-2.2.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12.pom"/>
+				<metadata-artifact status="no" details="" size="3870" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\javax.xml.bind\jaxb-api\ivy-2.2.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.2.12" rev-constraint-default="2.2.12" rev-constraint-dynamic="2.2.12" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="jaxb-api" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="245023" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\javax.xml.bind\jaxb-api\srcs\jaxb-api-2.2.12-sources.jar">
+					<artifact name="jaxb-api" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="245023" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\javax.xml.bind\jaxb-api\srcs\jaxb-api-2.2.12-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.12/jaxb-api-2.2.12-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -589,10 +588,10 @@
 		<module organisation="io.rest-assured" name="json-path">
 			<revision name="3.0.6" status="release" pubdate="20171123053757" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://maven.apache.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="64">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="7287" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\json-path\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/json-path/3.0.6/json-path-3.0.6.pom"/>
+				<metadata-artifact status="no" details="" size="7287" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\json-path\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/json-path/3.0.6/json-path-3.0.6.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.0.6" rev-constraint-default="3.0.6" rev-constraint-dynamic="3.0.6" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="json-path" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="30292" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\json-path\srcs\json-path-3.0.6-sources.jar">
+					<artifact name="json-path" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="30292" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\json-path\srcs\json-path-3.0.6-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/rest-assured/json-path/3.0.6/json-path-3.0.6-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -601,10 +600,10 @@
 		<module organisation="io.rest-assured" name="rest-assured-common">
 			<revision name="3.0.6" status="release" pubdate="20171123053729" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://maven.apache.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="45">
 				<license name="Apache 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="6224" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\rest-assured-common\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/rest-assured-common/3.0.6/rest-assured-common-3.0.6.pom"/>
+				<metadata-artifact status="no" details="" size="6224" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\rest-assured-common\ivy-3.0.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/io/rest-assured/rest-assured-common/3.0.6/rest-assured-common-3.0.6.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.0.6" rev-constraint-default="3.0.6" rev-constraint-dynamic="3.0.6" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="rest-assured-common" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="18627" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\io.rest-assured\rest-assured-common\srcs\rest-assured-common-3.0.6-sources.jar">
+					<artifact name="rest-assured-common" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="18627" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\io.rest-assured\rest-assured-common\srcs\rest-assured-common-3.0.6-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/io/rest-assured/rest-assured-common/3.0.6/rest-assured-common-3.0.6-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -613,10 +612,10 @@
 		<module organisation="org.ccil.cowan.tagsoup" name="tagsoup">
 			<revision name="1.2.1" status="release" pubdate="20110822180503" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://home.ccil.org/~cowan/XML/tagsoup/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="68">
 				<license name="Apache License 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3081" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ccil.cowan.tagsoup\tagsoup\ivy-1.2.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ccil/cowan/tagsoup/tagsoup/1.2.1/tagsoup-1.2.1.pom"/>
+				<metadata-artifact status="no" details="" size="3081" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ccil.cowan.tagsoup\tagsoup\ivy-1.2.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ccil/cowan/tagsoup/tagsoup/1.2.1/tagsoup-1.2.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.2.1" rev-constraint-default="1.2.1" rev-constraint-dynamic="1.2.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="tagsoup" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="68697" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ccil.cowan.tagsoup\tagsoup\srcs\tagsoup-1.2.1-sources.jar">
+					<artifact name="tagsoup" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="68697" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ccil.cowan.tagsoup\tagsoup\srcs\tagsoup-1.2.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/ccil/cowan/tagsoup/tagsoup/1.2.1/tagsoup-1.2.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -625,10 +624,10 @@
 		<module organisation="org.hamcrest" name="hamcrest-library">
 			<revision name="1.3" status="release" pubdate="20120709220858" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="55">
 				<license name="New BSD License" url="http://www.opensource.org/licenses/bsd-license.php"/>
-				<metadata-artifact status="no" details="" size="2693" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.hamcrest\hamcrest-library\ivy-1.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.pom"/>
+				<metadata-artifact status="no" details="" size="2693" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.hamcrest\hamcrest-library\ivy-1.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.3" rev-constraint-default="1.3" rev-constraint-dynamic="1.3" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="hamcrest-library" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="38886" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.hamcrest\hamcrest-library\srcs\hamcrest-library-1.3-sources.jar">
+					<artifact name="hamcrest-library" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="38886" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.hamcrest\hamcrest-library\srcs\hamcrest-library-1.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -637,10 +636,10 @@
 		<module organisation="org.apache.httpcomponents" name="httpmime">
 			<revision name="4.5.1" status="release" pubdate="20150911135735" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://hc.apache.org/httpcomponents-client" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="31">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="9406" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.httpcomponents\httpmime\ivy-4.5.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.1/httpmime-4.5.1.pom"/>
+				<metadata-artifact status="no" details="" size="9406" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.httpcomponents\httpmime\ivy-4.5.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.1/httpmime-4.5.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.5.1" rev-constraint-default="4.5.1" rev-constraint-dynamic="4.5.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="httpmime" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="38595" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.httpcomponents\httpmime\srcs\httpmime-4.5.1-sources.jar">
+					<artifact name="httpmime" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="38595" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.httpcomponents\httpmime\srcs\httpmime-4.5.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.1/httpmime-4.5.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -649,10 +648,10 @@
 		<module organisation="org.apache.httpcomponents" name="httpclient">
 			<revision name="4.5.3" status="release" pubdate="20170121160023" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://hc.apache.org/httpcomponents-client" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="35">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="9890" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.httpcomponents\httpclient\ivy-4.5.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.3/httpclient-4.5.3.pom"/>
+				<metadata-artifact status="no" details="" size="9890" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.httpcomponents\httpclient\ivy-4.5.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.3/httpclient-4.5.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.5.3" rev-constraint-default="4.5.3" rev-constraint-dynamic="4.5.3" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="httpclient" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="712826" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.httpcomponents\httpclient\srcs\httpclient-4.5.3-sources.jar">
+					<artifact name="httpclient" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="712826" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.httpcomponents\httpclient\srcs\httpclient-4.5.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.3/httpclient-4.5.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -661,10 +660,10 @@
 		<module organisation="org.apache.httpcomponents" name="httpcore">
 			<revision name="4.4.6" status="release" pubdate="20170107135008" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://hc.apache.org/httpcomponents-core-ga" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="71">
 				<license name="Apache License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="8229" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.httpcomponents\httpcore\ivy-4.4.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6.pom"/>
+				<metadata-artifact status="no" details="" size="8229" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.httpcomponents\httpcore\ivy-4.4.6.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.4.6" rev-constraint-default="4.4.6" rev-constraint-dynamic="4.4.6" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="httpcore" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="399237" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.httpcomponents\httpcore\srcs\httpcore-4.4.6-sources.jar">
+					<artifact name="httpcore" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="399237" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.httpcomponents\httpcore\srcs\httpcore-4.4.6-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -672,10 +671,10 @@
 		</module>
 		<module organisation="org.apache.commons" name="commons-lang3">
 			<revision name="3.4" status="release" pubdate="20150403133112" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-lang/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="14">
-				<metadata-artifact status="no" details="" size="11679" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.commons\commons-lang3\ivy-3.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4.pom"/>
+				<metadata-artifact status="no" details="" size="11679" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.commons\commons-lang3\ivy-3.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.4" rev-constraint-default="3.4" rev-constraint-dynamic="3.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="commons-lang3" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="487156" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.apache.commons\commons-lang3\srcs\commons-lang3-3.4-sources.jar">
+					<artifact name="commons-lang3" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="487156" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.apache.commons\commons-lang3\srcs\commons-lang3-3.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.4/commons-lang3-3.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -684,10 +683,10 @@
 		<module organisation="commons-io" name="commons-io">
 			<revision name="2.4" status="release" pubdate="20120612232206" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/io/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="49">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="8783" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\commons-io\commons-io\ivy-2.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.pom"/>
+				<metadata-artifact status="no" details="" size="8783" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\commons-io\commons-io\ivy-2.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.4" rev-constraint-default="2.4" rev-constraint-dynamic="2.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="commons-io" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="246635" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\commons-io\commons-io\srcs\commons-io-2.4-sources.jar">
+					<artifact name="commons-io" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="246635" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\commons-io\commons-io\srcs\commons-io-2.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -696,10 +695,10 @@
 		<module organisation="commons-logging" name="commons-logging">
 			<revision name="1.2" status="release" pubdate="20140705191228" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-logging/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="23">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="11725" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\commons-logging\commons-logging\ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.pom"/>
+				<metadata-artifact status="no" details="" size="11725" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\commons-logging\commons-logging\ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.2" rev-constraint-default="1.2" rev-constraint-dynamic="1.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="commons-logging" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="73295" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\commons-logging\commons-logging\srcs\commons-logging-1.2-sources.jar">
+					<artifact name="commons-logging" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="73295" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\commons-logging\commons-logging\srcs\commons-logging-1.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -708,10 +707,10 @@
 		<module organisation="org.codehaus.groovy" name="groovy-xml">
 			<revision name="2.4.12" status="release" pubdate="20170624125538" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://groovy-lang.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="8">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="2741" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.codehaus.groovy\groovy-xml\ivy-2.4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-xml/2.4.12/groovy-xml-2.4.12.pom"/>
+				<metadata-artifact status="no" details="" size="2741" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.codehaus.groovy\groovy-xml\ivy-2.4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-xml/2.4.12/groovy-xml-2.4.12.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.4.12" rev-constraint-default="2.4.12" rev-constraint-dynamic="2.4.12" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="groovy-xml" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="85843" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.codehaus.groovy\groovy-xml\srcs\groovy-xml-2.4.12-sources.jar">
+					<artifact name="groovy-xml" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="85843" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.codehaus.groovy\groovy-xml\srcs\groovy-xml-2.4.12-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-xml/2.4.12/groovy-xml-2.4.12-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -720,10 +719,10 @@
 		<module organisation="org.mongodb" name="casbah-gridfs_2.12.0-RC1">
 			<revision name="3.1.1" status="release" pubdate="20161017095159" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/mongodb/casbah" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="6">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="2996" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-gridfs_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-gridfs_2.12.0-RC1/3.1.1/casbah-gridfs_2.12.0-RC1-3.1.1.pom"/>
+				<metadata-artifact status="no" details="" size="2996" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-gridfs_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-gridfs_2.12.0-RC1/3.1.1/casbah-gridfs_2.12.0-RC1-3.1.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.1.1" rev-constraint-default="3.1.1" rev-constraint-dynamic="3.1.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="casbah-gridfs_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="7543" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-gridfs_2.12.0-RC1\srcs\casbah-gridfs_2.12.0-RC1-3.1.1-sources.jar">
+					<artifact name="casbah-gridfs_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="7543" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-gridfs_2.12.0-RC1\srcs\casbah-gridfs_2.12.0-RC1-3.1.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/mongodb/casbah-gridfs_2.12.0-RC1/3.1.1/casbah-gridfs_2.12.0-RC1-3.1.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -732,10 +731,10 @@
 		<module organisation="org.mongodb" name="casbah-core_2.12.0-RC1">
 			<revision name="3.1.1" status="release" pubdate="20161017095151" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/mongodb/casbah" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="74">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="3014" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-core_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-core_2.12.0-RC1/3.1.1/casbah-core_2.12.0-RC1-3.1.1.pom"/>
+				<metadata-artifact status="no" details="" size="3014" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-core_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-core_2.12.0-RC1/3.1.1/casbah-core_2.12.0-RC1-3.1.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.1.1" rev-constraint-default="3.1.1" rev-constraint-dynamic="3.1.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="casbah-core_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="47689" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-core_2.12.0-RC1\srcs\casbah-core_2.12.0-RC1-3.1.1-sources.jar">
+					<artifact name="casbah-core_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="47689" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-core_2.12.0-RC1\srcs\casbah-core_2.12.0-RC1-3.1.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/mongodb/casbah-core_2.12.0-RC1/3.1.1/casbah-core_2.12.0-RC1-3.1.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -744,10 +743,10 @@
 		<module organisation="org.mongodb" name="casbah-query_2.12.0-RC1">
 			<revision name="3.1.1" status="release" pubdate="20161017095141" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/mongodb/casbah" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="56">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="2863" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-query_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-query_2.12.0-RC1/3.1.1/casbah-query_2.12.0-RC1-3.1.1.pom"/>
+				<metadata-artifact status="no" details="" size="2863" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-query_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-query_2.12.0-RC1/3.1.1/casbah-query_2.12.0-RC1-3.1.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.1.1" rev-constraint-default="3.1.1" rev-constraint-dynamic="3.1.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="casbah-query_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="11467" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-query_2.12.0-RC1\srcs\casbah-query_2.12.0-RC1-3.1.1-sources.jar">
+					<artifact name="casbah-query_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="11467" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-query_2.12.0-RC1\srcs\casbah-query_2.12.0-RC1-3.1.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/mongodb/casbah-query_2.12.0-RC1/3.1.1/casbah-query_2.12.0-RC1-3.1.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -756,10 +755,10 @@
 		<module organisation="org.mongodb" name="casbah-commons_2.12.0-RC1">
 			<revision name="3.1.1" status="release" pubdate="20161017095148" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/mongodb/casbah" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="24">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.html"/>
-				<metadata-artifact status="no" details="" size="3668" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-commons_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-commons_2.12.0-RC1/3.1.1/casbah-commons_2.12.0-RC1-3.1.1.pom"/>
+				<metadata-artifact status="no" details="" size="3668" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-commons_2.12.0-RC1\ivy-3.1.1.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/casbah-commons_2.12.0-RC1/3.1.1/casbah-commons_2.12.0-RC1-3.1.1.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.1.1" rev-constraint-default="3.1.1" rev-constraint-dynamic="3.1.1" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="casbah-commons_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="13555" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\casbah-commons_2.12.0-RC1\srcs\casbah-commons_2.12.0-RC1-3.1.1-sources.jar">
+					<artifact name="casbah-commons_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="13555" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\casbah-commons_2.12.0-RC1\srcs\casbah-commons_2.12.0-RC1-3.1.1-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/mongodb/casbah-commons_2.12.0-RC1/3.1.1/casbah-commons_2.12.0-RC1-3.1.1-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -768,10 +767,10 @@
 		<module organisation="com.github.nscala-time" name="nscala-time_2.12.0-RC1">
 			<revision name="2.14.0" status="release" pubdate="20160908164750" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/nscala-time/nscala-time" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="30">
 				<license name="Apache" url="http://www.opensource.org/licenses/Apache-2.0"/>
-				<metadata-artifact status="no" details="" size="2998" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.github.nscala-time\nscala-time_2.12.0-RC1\ivy-2.14.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.12.0-RC1/2.14.0/nscala-time_2.12.0-RC1-2.14.0.pom"/>
+				<metadata-artifact status="no" details="" size="2998" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.github.nscala-time\nscala-time_2.12.0-RC1\ivy-2.14.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.12.0-RC1/2.14.0/nscala-time_2.12.0-RC1-2.14.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.14.0" rev-constraint-default="2.14.0" rev-constraint-dynamic="2.14.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="nscala-time_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="40106" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.github.nscala-time\nscala-time_2.12.0-RC1\srcs\nscala-time_2.12.0-RC1-2.14.0-sources.jar">
+					<artifact name="nscala-time_2.12.0-RC1" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="40106" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.github.nscala-time\nscala-time_2.12.0-RC1\srcs\nscala-time_2.12.0-RC1-2.14.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.12.0-RC1/2.14.0/nscala-time_2.12.0-RC1-2.14.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -780,10 +779,10 @@
 		<module organisation="joda-time" name="joda-time">
 			<revision name="2.9.4" status="release" pubdate="20160527102535" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.joda.org/joda-time/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="32">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="6666" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\joda-time\joda-time\ivy-2.9.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/joda-time/joda-time/2.9.4/joda-time-2.9.4.pom"/>
+				<metadata-artifact status="no" details="" size="6666" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\joda-time\joda-time\ivy-2.9.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/joda-time/joda-time/2.9.4/joda-time-2.9.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.9.4" rev-constraint-default="2.9.4" rev-constraint-dynamic="2.9.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="joda-time" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="774317" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\joda-time\joda-time\srcs\joda-time-2.9.4-sources.jar">
+					<artifact name="joda-time" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="774317" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\joda-time\joda-time\srcs\joda-time-2.9.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/joda-time/joda-time/2.9.4/joda-time-2.9.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -792,10 +791,10 @@
 		<module organisation="org.joda" name="joda-convert">
 			<revision name="1.2" status="release" pubdate="20111027205117" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://joda-convert.sourceforge.net" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="39">
 				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3281" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.joda\joda-convert\ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/joda/joda-convert/1.2/joda-convert-1.2.pom"/>
+				<metadata-artifact status="no" details="" size="3281" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.joda\joda-convert\ivy-1.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/joda/joda-convert/1.2/joda-convert-1.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.2" rev-constraint-default="1.2" rev-constraint-dynamic="1.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="joda-convert" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="19105" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.joda\joda-convert\srcs\joda-convert-1.2-sources.jar">
+					<artifact name="joda-convert" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="19105" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.joda\joda-convert\srcs\joda-convert-1.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/joda/joda-convert/1.2/joda-convert-1.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -804,10 +803,10 @@
 		<module organisation="commons-codec" name="commons-codec">
 			<revision name="1.9" status="release" pubdate="20131221035739" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://commons.apache.org/proper/commons-codec/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="5">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="10191" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\commons-codec\commons-codec\ivy-1.9.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/commons-codec/commons-codec/1.9/commons-codec-1.9.pom"/>
+				<metadata-artifact status="no" details="" size="10191" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\commons-codec\commons-codec\ivy-1.9.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/commons-codec/commons-codec/1.9/commons-codec-1.9.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.9" rev-constraint-default="1.9" rev-constraint-dynamic="1.9" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="commons-codec" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="278370" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\commons-codec\commons-codec\srcs\commons-codec-1.9-sources.jar">
+					<artifact name="commons-codec" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="278370" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\commons-codec\commons-codec\srcs\commons-codec-1.9-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/commons-codec/commons-codec/1.9/commons-codec-1.9-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -816,10 +815,10 @@
 		<module organisation="com.fasterxml.jackson.module" name="jackson-module-paranamer">
 			<revision name="2.8.4" status="release" pubdate="20161014045952" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/FasterXML/jackson-modules-base" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="4">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="9705" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-paranamer\ivy-2.8.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.8.4/jackson-module-paranamer-2.8.4.pom"/>
+				<metadata-artifact status="no" details="" size="9705" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-paranamer\ivy-2.8.4.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.8.4/jackson-module-paranamer-2.8.4.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.8.4" rev-constraint-default="2.8.4" rev-constraint-dynamic="2.8.4" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="jackson-module-paranamer" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="7272" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-paranamer\srcs\jackson-module-paranamer-2.8.4-sources.jar">
+					<artifact name="jackson-module-paranamer" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="7272" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.module\jackson-module-paranamer\srcs\jackson-module-paranamer-2.8.4-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.8.4/jackson-module-paranamer-2.8.4-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -828,10 +827,10 @@
 		<module organisation="com.thoughtworks.paranamer" name="paranamer">
 			<revision name="2.8" status="release" pubdate="20150826122928" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="7">
 				<license name="BSD" url="LICENSE.txt"/>
-				<metadata-artifact status="no" details="" size="4296" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.thoughtworks.paranamer\paranamer\ivy-2.8.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.pom"/>
+				<metadata-artifact status="no" details="" size="4296" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.thoughtworks.paranamer\paranamer\ivy-2.8.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.8" rev-constraint-default="2.8" rev-constraint-dynamic="2.8" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="paranamer" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="27125" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.thoughtworks.paranamer\paranamer\srcs\paranamer-2.8-sources.jar">
+					<artifact name="paranamer" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="27125" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.thoughtworks.paranamer\paranamer\srcs\paranamer-2.8-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -840,10 +839,10 @@
 		<module organisation="com.fasterxml.jackson.core" name="jackson-core">
 			<revision name="2.9.0" status="release" pubdate="20170730050335" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://github.com/FasterXML/jackson-core" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="3">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="7501" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.core\jackson-core\ivy-2.9.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.0/jackson-core-2.9.0.pom"/>
+				<metadata-artifact status="no" details="" size="7501" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.core\jackson-core\ivy-2.9.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.0/jackson-core-2.9.0.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.9.0" rev-constraint-default="2.9.0" rev-constraint-dynamic="2.9.0" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="jackson-core" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="331645" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\com.fasterxml.jackson.core\jackson-core\srcs\jackson-core-2.9.0-sources.jar">
+					<artifact name="jackson-core" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="331645" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\com.fasterxml.jackson.core\jackson-core\srcs\jackson-core-2.9.0-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.0/jackson-core-2.9.0-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -852,10 +851,10 @@
 		<module organisation="junit" name="junit">
 			<revision name="4.12" status="release" pubdate="20141204161743" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://junit.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="57">
 				<license name="Eclipse Public License 1.0" url="http://www.eclipse.org/legal/epl-v10.html"/>
-				<metadata-artifact status="no" details="" size="3354" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\junit\junit\ivy-4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.pom"/>
+				<metadata-artifact status="no" details="" size="3354" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\junit\junit\ivy-4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="4.12" rev-constraint-default="4.12" rev-constraint-dynamic="4.12" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="junit" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="200355" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\junit\junit\srcs\junit-4.12-sources.jar">
+					<artifact name="junit" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="200355" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\junit\junit\srcs\junit-4.12-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/junit/junit/4.12/junit-4.12-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -864,10 +863,10 @@
 		<module organisation="org.hamcrest" name="hamcrest-core">
 			<revision name="1.3" status="release" pubdate="20120709220802" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="59">
 				<license name="New BSD License" url="http://www.opensource.org/licenses/bsd-license.php"/>
-				<metadata-artifact status="no" details="" size="2647" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.hamcrest\hamcrest-core\ivy-1.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom"/>
+				<metadata-artifact status="no" details="" size="2647" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.hamcrest\hamcrest-core\ivy-1.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="1.3" rev-constraint-default="1.3" rev-constraint-dynamic="1.3" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="hamcrest-core" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="32624" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.hamcrest\hamcrest-core\srcs\hamcrest-core-1.3-sources.jar">
+					<artifact name="hamcrest-core" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="32624" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.hamcrest\hamcrest-core\srcs\hamcrest-core-1.3-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -876,10 +875,10 @@
 		<module organisation="org.ow2.asm" name="asm-tree">
 			<revision name="5.2" status="release" pubdate="20161223094314" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="2">
 				<license name="BSD" url="http://asm.objectweb.org/license.html"/>
-				<metadata-artifact status="no" details="" size="4155" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm-tree\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm-tree/5.2/asm-tree-5.2.pom"/>
+				<metadata-artifact status="no" details="" size="4155" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm-tree\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm-tree/5.2/asm-tree-5.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="5.2" rev-constraint-default="5.2" rev-constraint-dynamic="5.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="asm-tree" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm-tree\srcs\asm-tree-5.2-sources.jar">
+					<artifact name="asm-tree" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm-tree\srcs\asm-tree-5.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/ow2/asm/asm-tree/5.2/asm-tree-5.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -888,10 +887,10 @@
 		<module organisation="org.ow2.asm" name="asm">
 			<revision name="5.2" status="release" pubdate="20161223094310" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="58">
 				<license name="BSD" url="http://asm.objectweb.org/license.html"/>
-				<metadata-artifact status="no" details="" size="3978" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm/5.2/asm-5.2.pom"/>
+				<metadata-artifact status="no" details="" size="3978" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm\ivy-5.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/ow2/asm/asm/5.2/asm-5.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="5.2" rev-constraint-default="5.2" rev-constraint-dynamic="5.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="asm" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.ow2.asm\asm\srcs\asm-5.2-sources.jar">
+					<artifact name="asm" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1069155" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.ow2.asm\asm\srcs\asm-5.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/ow2/asm/asm/5.2/asm-5.2-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -900,10 +899,10 @@
 		<module organisation="org.codehaus.groovy" name="groovy-json">
 			<revision name="2.4.12" status="release" pubdate="20170624125539" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://groovy-lang.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="1">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="2743" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.codehaus.groovy\groovy-json\ivy-2.4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-json/2.4.12/groovy-json-2.4.12.pom"/>
+				<metadata-artifact status="no" details="" size="2743" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.codehaus.groovy\groovy-json\ivy-2.4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-json/2.4.12/groovy-json-2.4.12.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.4.12" rev-constraint-default="2.4.12" rev-constraint-dynamic="2.4.12" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="groovy-json" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="91127" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.codehaus.groovy\groovy-json\srcs\groovy-json-2.4.12-sources.jar">
+					<artifact name="groovy-json" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="91127" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.codehaus.groovy\groovy-json\srcs\groovy-json-2.4.12-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy-json/2.4.12/groovy-json-2.4.12-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -912,10 +911,10 @@
 		<module organisation="org.codehaus.groovy" name="groovy">
 			<revision name="2.4.12" status="release" pubdate="20170624125539" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://groovy-lang.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="52">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3637" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.codehaus.groovy\groovy\ivy-2.4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.4.12/groovy-2.4.12.pom"/>
+				<metadata-artifact status="no" details="" size="3637" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.codehaus.groovy\groovy\ivy-2.4.12.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.4.12/groovy-2.4.12.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="2.4.12" rev-constraint-default="2.4.12" rev-constraint-dynamic="2.4.12" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="groovy" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="2064652" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.codehaus.groovy\groovy\srcs\groovy-2.4.12-sources.jar">
+					<artifact name="groovy" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="2064652" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.codehaus.groovy\groovy\srcs\groovy-2.4.12-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.4.12/groovy-2.4.12-sources.jar"/>
 					</artifact>
 				</artifacts>
@@ -924,10 +923,10 @@
 		<module organisation="org.mongodb" name="mongo-java-driver">
 			<revision name="3.2.2" status="release" pubdate="20160215162032" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.mongodb.org" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master" position="0">
 				<license name="The Apache Software License, Version 2.0" url="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
-				<metadata-artifact status="no" details="" size="3154" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\mongo-java-driver\ivy-3.2.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/mongo-java-driver/3.2.2/mongo-java-driver-3.2.2.pom"/>
+				<metadata-artifact status="no" details="" size="3154" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\mongo-java-driver\ivy-3.2.2.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/mongodb/mongo-java-driver/3.2.2/mongo-java-driver-3.2.2.pom"/>
 				<caller organisation="io.zink" name="bosonscala$sources" conf="compile, runtime-internal, runtime, optional" rev="3.2.2" rev-constraint-default="3.2.2" rev-constraint-dynamic="3.2.2" callerrev="0.6.0"/>
 				<artifacts>
-					<artifact name="mongo-java-driver" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1046583" time="0" location="C:\Users\Lucas Fischer\.ivy2\cache\org.mongodb\mongo-java-driver\srcs\mongo-java-driver-3.2.2-sources.jar">
+					<artifact name="mongo-java-driver" type="src" ext="jar" extra-classifier="sources" status="no" details="" size="1046583" time="0" location="C:\Users\Margarida Reis\.ivy2\cache\org.mongodb\mongo-java-driver\srcs\mongo-java-driver-3.2.2-sources.jar">
 						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/mongodb/mongo-java-driver/3.2.2/mongo-java-driver-3.2.2-sources.jar"/>
 					</artifact>
 				</artifacts>

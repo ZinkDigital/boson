@@ -190,9 +190,9 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           buff.readerIndex(endIndex)
           SonObject(x, b)
 
-        case CS_OBJECT_INJ => //TODO - Check
-          val size = buff.getIntLE(buff.readerIndex) - 4
-          val endIndex = buff.readerIndex - 4 + size
+        case CS_OBJECT_INJ =>
+          val size = buff.getIntLE(buff.readerIndex)
+          val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
