@@ -1025,7 +1025,7 @@ class BosonImpl() {
                 case C_FIRST =>
                   (key, 0, TO_RANGE, 0) //User sent Key[first] , translates to - Key[0 TO 0]
                 case C_END =>
-                  (key, 0, C_END, None)
+                  (key, 0, C_END, None) //Key[end]
                 case C_ALL =>
                   (key, 0, TO_RANGE, C_END) //user sent Key[all], translates to - Key[0 TO END]
               }
@@ -1454,7 +1454,10 @@ class BosonImpl() {
         }
         codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0.array))
       case D_BSONARRAY =>
-        codec.writeToken(currentResCodec, codec.readToken(SonArray(CS_ARRAY))) //TODO - HERE
+        val value0 = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+          case SonArray(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
+        }
+        codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0.array))
       case D_NULL =>
         currentResCodec
       case D_INT =>
