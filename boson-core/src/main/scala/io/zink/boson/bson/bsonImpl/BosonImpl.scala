@@ -2113,7 +2113,7 @@ class BosonImpl() {
                           //Look inside the curent object for cases that match the user given expression
                           val mergedCodec =
                             if (fullStatementsList.isDefined) //TODO we only want to investigate inside this object if it has the property we're looking for
-                              inject(modifiedPartialCodec.getCodecData, fullStatementsList.get, injFunction)
+                              inject(modifiedPartialCodec.getCodecData, fullStatementsList.get, injFunction) //TODO HERE
                             else
                               modifiedPartialCodec
 
