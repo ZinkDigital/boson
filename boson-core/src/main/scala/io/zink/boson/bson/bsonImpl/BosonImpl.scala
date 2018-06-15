@@ -1025,7 +1025,7 @@ class BosonImpl() {
                 case C_FIRST =>
                   (key, 0, TO_RANGE, 0) //User sent Key[first] , translates to - Key[0 TO 0]
                 case C_END =>
-                  (key, 0, C_END, None) //Key[end]
+                  (key, 0, C_END, None) //User sent Key[end], translates to - Key[0 END None]
                 case C_ALL =>
                   (key, 0, TO_RANGE, C_END) //user sent Key[all], translates to - Key[0 TO END]
               }
@@ -1909,10 +1909,11 @@ class BosonImpl() {
             val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
             val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
 
-            val isArray = key.forall(b => b.isDigit)
+            val isArray = key.forall(b => b.isDigit)//TODO - isArray true if dataType == 4
 
             val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
+                //expections.clear()
                 if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     dataType match {
@@ -1936,7 +1937,7 @@ class BosonImpl() {
                         }
 
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                          Try(modifierEnd(partialCodec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                          Try(modifierEnd(partialCodec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
                             case Success(tuple) =>
                               (tuple, 0)
                             case Failure(_) =>
@@ -1946,7 +1947,7 @@ class BosonImpl() {
 
                       case _ =>
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
                             case Success(tuple) => (tuple, 0)
                             case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
                           }
@@ -1954,7 +1955,7 @@ class BosonImpl() {
                     }
                   } else {
                     val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKeyCopy)) match {
+                      Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
                         case Success(tuple) => (tuple, 0)
                         case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
                       }
@@ -2250,7 +2251,7 @@ class BosonImpl() {
                       ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
                   }
                 } else
-                  throw new Exception
+                  throw CustomException("*modifyArrayEnd* Not a Array")
             }
             iterateDataStructure(codecResult, codecResultCopy, exceptionsResult)
         }
@@ -2259,7 +2260,7 @@ class BosonImpl() {
 
     val emptyCodec: Codec = createEmptyCodec(codec)
 
-    val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, emptyCodec.duplicate, 0)
+    val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, createEmptyCodec(codec), 0)
 
     val finalSize = codecWithoutSize.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
