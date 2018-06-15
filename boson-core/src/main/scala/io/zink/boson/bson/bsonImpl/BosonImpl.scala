@@ -1253,22 +1253,14 @@ class BosonImpl() {
             val (codecWithKey, _) = writeKeyAndByte(codec, codecWithDataType)
             dataType match {
               case D_BSONOBJECT =>
-                val bsonSize = codec.getSize
-                val partialCodec: Codec = codec.getToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
-                  case SonObject(_, dataStruct) => dataStruct match {
+                val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
+                  case SonObject(_, result) => result match {
                     case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                     case jsonString: String => CodecObject.toCodec(jsonString)
                   }
                 } //Obtain only the size and the object itself of this BsonObject
                 if (hasElem(partialCodec.duplicate, elem)) {
                   if (statementsList.size == 1) {
-
-                    val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
-                      case SonObject(_, result) => result match {
-                        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                        case jsonString: String => CodecObject.toCodec(jsonString)
-                      }
-                    }
 
                     val newStatementList: StatementsList = statementsList.map {
                       case (statement, dots) => statement match {
@@ -1285,38 +1277,20 @@ class BosonImpl() {
                     } else iterateDataStructure(codecWithKey + modifiedCodec)
 
                   } else {
+                    val modifiedCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
 
                     if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                      //TODO MODIFY THIS
-                      val dataStruct: DataStructure = codec.getToken(SonString(CS_ARRAY)) match {
-                        case SonString(_, data) => data match {
-                          case byteBuf: ByteBuf => Left(byteBuf)
-                          case jsonString: String => Right(jsonString)
-                        }
-                      }
-                      val newCodec = inject(dataStruct, statementsList.drop(1), injFunction)
-                      val modifiedCodec = inject(newCodec.duplicate.getCodecData, statementsList, injFunction)
-                      iterateDataStructure(codecWithKey + modifiedCodec)
-
-                    } else {
-
-                      codec.readSpecificSize(bsonSize) //read the size of the object
-                      val newCodec = inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
-                      iterateDataStructure(codecWithKey + newCodec)
-
-                    }
+                      val modifiedSubCodec = inject(modifiedCodec.getCodecData, statementsList, injFunction)
+                      iterateDataStructure(codecWithKey + modifiedSubCodec)
+                    } else iterateDataStructure(codecWithKey + modifiedCodec)
                   }
 
-                } else {
-                  val newCodec = codec.readSpecificSize(bsonSize) //read the size of the object
-                  iterateDataStructure(codecWithKey + newCodec)
-                }
+                } else iterateDataStructure(codecWithKey + partialCodec)
 
-              case _ => processTypesArray(dataType, codec, writableCodec)
+              case _ => processTypesArray(dataType, codec, writableCodec) //If its not an object then it will not have the elemnt we're looking for inside it
             }
         }
       }
-      //TODO maybe do something more here ?
     }
 
     val modifiedSubCodec = iterateDataStructure(createEmptyCodec(codec)) //Search for the element of interest it and try to apply the injection function to it
@@ -1908,7 +1882,7 @@ class BosonImpl() {
             val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
             val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
 
-            val isArray = key.forall(b => b.isDigit)//TODO - isArray true if dataType == 4
+            val isArray = key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
 
             val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
