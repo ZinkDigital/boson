@@ -240,7 +240,106 @@ class NewInjectorsTests extends FunSuite {
   //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
   //    assert(equals)
   //  }
+
+  //  test("Key with Array Exp .Key[0 until 1] modification - Single Dots") {
+  //    val expr = ".person[0 until 1]"
+  //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
   //
+  //  test("Key with Array Exp .Key[1 to end] toUpperCase - Single Dots") {
+  //    val expr = ".person[1 to end]"
+  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
+  //
+  //  test("Key with Array Exp .Key[1 until end] toUpperCase - Single Dots") {
+  //    val expr = ".person[1 until end]"
+  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
+
+  //  test("Key with Array Exp .Key[end] toUpperCase - Single Dots") {
+  //    val bsonArrayExpected = new BsonArray().add("person1").add("person2").add("PERSON3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val expr = ".person[end]"
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
+
+
+  //  test("Key with Array Exp .Key[all] toUpperCase - Single Dots") {
+  //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val expr = ".person[all]"
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
+  //
+  //  test("Key with Array Exp .Key[first] toUpperCase - Single Dots") {
+  //    val expr = ".person[first]"
+  //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
+  //
+  //  test("Key with Array Exp .Key[1] toUpperCase - Single Dots") {
+  //    val expr = ".person[1]"
+  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToBarray
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonObjArrayEncoded)
+  //    val result: Array[Byte] = Await.result(future, Duration.Inf)
+  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+  //    assert(equals)
+  //  }
+
   //  test("Key with Array Exp .[0 to 1] modification toUpperCase - Single Dots") {
   //    val expr = ".[0 to 1]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3")
@@ -345,105 +444,6 @@ class NewInjectorsTests extends FunSuite {
   //    assert(equals)
   //  }
 
-  //  test("Key with Array Exp .Key[0 until 1] modification - Single Dots") {
-  //    val expr = ".person[0 until 1]"
-  //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-  //
-  //  test("Key with Array Exp .Key[1 to end] toUpperCase - Single Dots") {
-  //    val expr = ".person[1 to end]"
-  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-  //
-  //  test("Key with Array Exp .Key[1 until end] toUpperCase - Single Dots") {
-  //    val expr = ".person[1 until end]"
-  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-
-  //  test("Key with Array Exp .Key[end] toUpperCase - Single Dots") {
-  //    val bsonArrayExpected = new BsonArray().add("person1").add("person2").add("PERSON3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val expr = ".person[end]"
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-
-
-  //  test("Key with Array Exp .Key[all] toUpperCase - Single Dots") {
-  //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val expr = ".person[all]"
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-  //
-  //  test("Key with Array Exp .Key[first] toUpperCase - Single Dots") {
-  //    val expr = ".person[first]"
-  //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-  //
-  //  test("Key with Array Exp .Key[1] toUpperCase - Single Dots") {
-  //    val expr = ".person[1]"
-  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
-  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-  //    val expectedEncoded = expectedBson.encodeToBarray
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val future = bsonInj.go(bsonObjArrayEncoded)
-  //    val result: Array[Byte] = Await.result(future, Duration.Inf)
-  //    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-  //    assert(equals)
-  //  }
-
   //    test("Key with Array Expr .species.person[0] toUpperCase - No/Double Dots") {
   //      val expr = ".species.person[0]"
   //      val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
@@ -541,6 +541,22 @@ class NewInjectorsTests extends FunSuite {
   //    val equals = expectedEncoded.zip(result).forall(ex => ex._1 == ex._2)
   //    assert(equals)
   //  }
+
+  test("Key with Array Expr .species.*[0] toUpperCase - Single Dot/Multiple Layers/Multiple Arrays") {
+    val expr = ".species.*[0]"
+    val bsonArrayExpectedHuman = new BsonArray().add("PERSON1").add("person2").add("person3")
+    val bsonArrayExpectedAlien = new BsonArray().add("ET").add("predator").add("alien")
+    val bsonExpected = new BsonObject().put("person", bsonArrayExpectedHuman).put("alien", bsonArrayExpectedAlien)
+    val expectedEncoded = new BsonObject().put("species", bsonExpected).encodeToBarray
+    val bsonInj = Boson.injector(expr, (in: String) => {
+      in.toUpperCase
+    })
+    val future = bsonInj.go(bsonSpeciesEncoded)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
+    assert(equals)
+  }
+
   //
   //  test("Nested key injection - Multiple Layers- Double dots") {
   //    val person = new BsonObject().put("name", "john doe")
