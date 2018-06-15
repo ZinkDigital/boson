@@ -1007,8 +1007,7 @@ class BosonImpl() {
                 case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
               }
           }
-        val modified = arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
-        codec + modified
+        arrayInjection(statements, codec, codec.duplicate, injFunction, input._1, input._2, input._3, input._4)
 
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
@@ -2186,7 +2185,7 @@ class BosonImpl() {
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
-                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                        ((processTypesArray(dataType, codec, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
                     }
                   }
                 }
