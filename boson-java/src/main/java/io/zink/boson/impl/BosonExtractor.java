@@ -50,7 +50,6 @@ public class BosonExtractor<T> implements Boson {
         };
         Option<Class<T>> retainedClassOpt = retainConsumerType(_extractFunction);
 
-        BosonImpl boson = new BosonImpl();
         if (retainedClassOpt.isDefined()) {
             this.clazz = retainedClassOpt.get();
             int counter = 0;
@@ -73,10 +72,10 @@ public class BosonExtractor<T> implements Boson {
             }
             Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(retainedClassOpt.get());
             TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
-            interpreter = new Interpreter<>(boson, expression, Option.empty(), Option.apply(anon), Option.apply(typeCase));
+            interpreter = new Interpreter<>(expression, Option.empty(), Option.apply(anon), Option.apply(typeCase));
         } else {
             typeIsClass = false;
-            interpreter = new Interpreter<>(boson, expression, Option.empty(), Option.apply(anon), Option.empty());
+            interpreter = new Interpreter<>(expression, Option.empty(), Option.apply(anon), Option.empty());
         }
     }
 

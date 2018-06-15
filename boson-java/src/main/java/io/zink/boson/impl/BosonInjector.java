@@ -36,7 +36,6 @@ public class BosonInjector<T> implements Boson {
     public CompletableFuture<byte[]> go(byte[] bsonByteEncoding) {
         Option opt = apply(bsonByteEncoding);
         Option e = empty();
-        BosonImpl boson = new BosonImpl();
         CompletableFuture<byte[]> future =
                 CompletableFuture.supplyAsync(() -> {
                     return bsonByteEncoding;
@@ -48,7 +47,6 @@ public class BosonInjector<T> implements Boson {
     public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
         Option opt = apply(bsonByteBufferEncoding);
         Option e = empty();
-        BosonImpl boson = new BosonImpl();
         CompletableFuture<ByteBuffer> future =
                 CompletableFuture.supplyAsync(() -> {
                     return bsonByteBufferEncoding;

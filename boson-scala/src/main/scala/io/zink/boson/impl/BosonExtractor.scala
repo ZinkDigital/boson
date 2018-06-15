@@ -21,9 +21,7 @@ import scala.concurrent.Future
   */
 class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  private val boson: BosonImpl = new BosonImpl()
-
-  private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fExt = Some(extractFunction))
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fExt = Some(extractFunction))
 
   private def runInterpreter(bsonEncoded: Either[Array[Byte], String]): Unit = {
     interpreter.run(bsonEncoded)

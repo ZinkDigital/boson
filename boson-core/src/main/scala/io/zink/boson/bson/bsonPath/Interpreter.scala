@@ -16,13 +16,11 @@ import scala.util.{Failure, Success}
 /**
   * Class that handles both processes of Injection and Extraction.
   *
-  * @param boson Instance of BosonImpl.
   * @param fInj  Function used in Injection process.
   * @param fExt  Function used in Extraction process.
   * @tparam T Type specified by the User.
   */
-class Interpreter[T](boson: BosonImpl,
-                     expression: String,
+class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]]) {
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
@@ -238,14 +236,14 @@ class Interpreter[T](boson: BosonImpl,
     */
   def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = keyList.size match {
     case 1 =>
-      boson.extract(encodedStructure, keyList, limitList)
+      BosonImpl.extract(encodedStructure, keyList, limitList)
 
     case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
-      boson.extract(encodedStructure, keyList, limitList)
+      BosonImpl.extract(encodedStructure, keyList, limitList)
 
     case _ =>
       val filtered: Seq[Either[ByteBuf, String]] =
-        boson.extract(encodedStructure, keyList, limitList) collect {
+        BosonImpl.extract(encodedStructure, keyList, limitList) collect {
           case buf: ByteBuf => Left(buf)
           case str: String if isJson(str) => Right(str)
         }
@@ -366,13 +364,13 @@ class Interpreter[T](boson: BosonImpl,
     }
 
     val result: Either[Array[Byte], String] = {
-      val x = boson.inject(input, statements, fInj.get)
+      val x = BosonImpl.inject(input, statements, fInj.get)
       x.getCodecData match {
         case Left(byteBuf) => Left(byteBuf.array())
         case Right(string) => Right(string)
       }
     }
-    //      Try(boson.inject(input, statements, fInj.get)) match { //TODO WHEN INJECTORS ARE WORKING, REPLACE ABOVE CODE WITH THIS
+    //      Try(BosonImpl.inject(input, statements, fInj.get)) match { //TODO WHEN INJECTORS ARE WORKING, REPLACE ABOVE CODE WITH THIS
     //        case Success(resultCodec) => resultCodec.getCodecData match {
     //          case Left(byteBuf) => Left(byteBuf.array())
     //          case Right(string) => Right(string)
