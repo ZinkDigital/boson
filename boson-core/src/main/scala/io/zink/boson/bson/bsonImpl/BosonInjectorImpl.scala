@@ -689,7 +689,7 @@ private[bsonImpl] object BosonInjectorImpl {
         currentResCodec + codecAux
 
       case D_BSONARRAY =>
-        val partialCodec: Codec = codec.readToken(SonArray(CS_ARRAY)) match {
+        val partialCodec: Codec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
           case SonArray(_, result) => result match {
             case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
             case jsonString: String => CodecObject.toCodec(jsonString)
