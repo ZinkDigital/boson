@@ -141,6 +141,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
     case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
+
     case SonArray(x, _) =>
       x match {
         case C_DOT =>
@@ -169,6 +170,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           buff.readerIndex(endIndex)
           SonArray(x, b)
       }
+
     case SonObject(x, _) =>
       x match {
         case C_DOT =>

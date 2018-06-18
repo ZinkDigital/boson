@@ -361,9 +361,9 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T): Codec = dataType match {
     case D_BSONOBJECT =>
-      val bsonObjectCodec: Codec = codec.getToken(SonString(CS_ARRAY)) match {
-        case SonString(_, data) => data match {
-          case byteBuff: ByteBuf => CodecObject.toCodec(byteBuff)
+      val bsonObjectCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
+        case SonObject(_, data) => data match {
+          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
           case jsonString: String => CodecObject.toCodec(jsonString)
         }
       }
@@ -376,15 +376,37 @@ private[bsonImpl] object BosonInjectorImpl {
       val modifiedCodec: Codec = modifyHasElem(statementsList, partialCodec, fieldID, elem, injFunction)
       resultCodec + modifiedCodec
 
-    case D_FLOAT_DOUBLE => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+    case D_FLOAT_DOUBLE =>
+      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+      codecToReturn.removeEmptySpace
+      codecToReturn
 
-    case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.writeToken(resultCodec, SonString(CS_ARRAY_WITH_SIZE))
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+      val value0 = codec.readToken(SonString(CS_STRING)) match {
+        case SonString(_, data) => data.asInstanceOf[String]
+      }
+      val codecWithValue = codec.writeToken(createEmptyCodec(codec), SonString(CS_STRING, value0))
+      val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, value0.length + 1))
+      val codecWithZeroByte = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
 
-    case D_INT => codec.writeToken(resultCodec, SonNumber(CS_INTEGER))
+      ((resultCodec + codecWithSize) + codecWithValue) + codecWithZeroByte
+    //      codecToReturn.removeEmptySpace
 
-    case D_LONG => codec.writeToken(resultCodec, SonNumber(CS_LONG))
 
-    case D_BOOLEAN => codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN))
+    case D_INT =>
+      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_INTEGER)))
+      codecToReturn.removeEmptySpace
+      codecToReturn
+
+    case D_LONG =>
+      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_LONG)))
+      codecToReturn.removeEmptySpace
+      codecToReturn
+
+    case D_BOOLEAN =>
+      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+      codecToReturn.removeEmptySpace
+      codecToReturn
 
     case D_NULL => resultCodec //TODO what do we do in this case
   }
