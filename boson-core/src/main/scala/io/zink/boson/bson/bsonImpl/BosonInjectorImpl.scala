@@ -17,7 +17,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param statementsList - A list with pairs that contains the key of interest and the type of operation
     * @param codec          - Structure from which we are reading the old values
     * @param fieldID        - Name of the field of interest
-    * @param injFunction    - The injection function to be applied
+    * @param injFunction    - The injectino function to be applied
     * @tparam T - The type of input and output of the injection function
     * @return A Codec containing the alterations made
     */
@@ -427,7 +427,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_FLOAT_DOUBLE =>
         codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val value0 = codec.readToken(SonString(CS_STRING)) match {
+        val value0 = codec.readToken(SonString(CS_STRING)) match { //TODO - Está a comer-se aqui
           case SonString(_, data) => data.asInstanceOf[String]
         }
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
@@ -1085,10 +1085,10 @@ private[bsonImpl] object BosonInjectorImpl {
                       val newCodecResultCopy = codecWithKeyCopy + modifiedPartialCodec
                       ((newCodecResult, newCodecResultCopy), exceptions)
                     case _ =>
-                      ((processTypesArray(dataType, codec, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
-                } else
-                  ((processTypesArray(dataType, codec, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                } else //TODO - AQUI!!
+                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
 
 
               case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
@@ -1267,7 +1267,7 @@ private[bsonImpl] object BosonInjectorImpl {
         if (exceptions == 0)
           codecFinal
         else
-          throw new Exception
+          throw new Exception //TODO - throwing this exception
     }
   }
 
@@ -1372,7 +1372,10 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
+        val
+
+
+        codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
         val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
         val (codecTo, codecUntil): (Codec, Codec) = dataType match {
           case 0 => (codecWithDataType, codecWithDataTypeCopy)
