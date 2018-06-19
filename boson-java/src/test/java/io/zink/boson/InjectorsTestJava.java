@@ -13,6 +13,19 @@ public class InjectorsTestJava {
     private final BsonArray personsArray = new BsonArray().add(johnDoeBson).add(janeDoeBson);
     private final BsonObject personsBson = new BsonObject().put("persons", personsArray);
     private final BsonObject clientBson = new BsonObject().put("client", personsBson);
+    private final byte[] bsonEncoded = clientBson.encodeToBarray();
+
+    private final BsonArray bsonHuman = new BsonArray().add("person1").add("person2").add("person3");
+    private final BsonObject bsonObjArray = new BsonObject().put("person", bsonHuman);
+    private final byte[] bsonObjArrayEncoded = bsonObjArray.encodeToBarray();
+
+    private final BsonArray bsonAlien = new BsonArray().add("et").add("predator").add("alien");
+    private final BsonObject bsonObjArray1 = new BsonObject().put("alien", bsonAlien);
+
+    private final BsonObject bsonEvent = new BsonObject().put("person", bsonHuman).put("alien", bsonAlien);
+    private final BsonObject bsonSpeciesObj = new BsonObject().put("species", bsonEvent);
+    private final byte[] bsonSpeciesEncoded = bsonSpeciesObj.encodeToBarray();
+
 
     /**
      * Private method to display all elements inside a byte array
@@ -126,6 +139,456 @@ public class InjectorsTestJava {
         byte[] bsonEncoded = bson.encodeToBarray();
         boson.go(bsonEncoded).thenAccept((resultValue) -> {
             assert (containsInteger(resultValue, 41) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void halfNameInj() {
+        String ex = ".n*";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = johnDoeBson.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (new String(resultValue).contains("JOHN DOE") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void hasElemInj_String() {
+        String ex = ".persons[@name]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = personsBson.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("JOHN DOE") && resultString.contains("JANE DOE") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void hasElemInj_Integer() {
+        String ex = ".persons[@age]";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        byte[] bsonEncoded = personsBson.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void hasElemInj_DoubleDot() {
+        String ex = "..persons[@age]";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        byte[] bsonEncoded = personsBson.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void hasElemInjMultiKey_DoubleDot() {
+        String ex = "..client..persons[@age]";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void keyWithArrExpr0to1() {
+        String ex = ".person[0 to 1]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void keyWithArrExpr0until1() {
+        String ex = ".person[0 until 1]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("person2") && resultString.contains("person3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void keyWithArrExpr1toEnd() {
+        String ex = ".person[1 to end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("PERSON2") && resultString.contains("PERSON3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void keyWithArrExpr1untilEnd() {
+        String ex = ".person[1 until end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void keyWithArrExprEnd() {
+        String ex = ".person[end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("person2") && resultString.contains("PERSON3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExprAll() {
+        String ex = ".person[all]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("PERSON3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExprfirst() {
+        String ex = ".person[first]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("person2") && resultString.contains("person3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExpr1() {
+        String ex = ".person[1]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonObjArrayEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonObjArrayEncoded.length);
+        }).join();
+    }
+
+    public void ArrExpr0to1() {
+        String ex = ".[0 to 1]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void ArrExpr0toEnd() {
+        String ex = ".[0 to end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("PERSON3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void ArrExpr0Until1() {
+        String ex = ".[0 until 1]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("person2") && resultString.contains("person3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void ArrExpr0UntilEnd() {
+        String ex = ".[0 until end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void ArrExprAll() {
+        String ex = ".[all]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("PERSON3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void ArrExprFirst() {
+        String ex = ".[first]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("person2") && resultString.contains("person3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void ArrExprEnd() {
+        String ex = ".[end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = bsonHuman.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("person2") && resultString.contains("PERSON3") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExpr_MultiKey_0to1() {
+        String ex = ".species.person[0 to 1]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonSpeciesEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonSpeciesEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExpr_MultiKey_0until2() {
+        String ex = ".species.person[0 until 2]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonSpeciesEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("PERSON2") && resultString.contains("person3") && resultValue.length == bsonSpeciesEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExpr_MultiKey_all() {
+        String ex = ".species.alien[all]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonSpeciesEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("ET") && resultString.contains("PREDATOR") && resultString.contains("ALIEN") && resultValue.length == bsonSpeciesEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExpr_MultiKey_end() {
+        String ex = ".species.alien[end]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonSpeciesEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("person1") && resultString.contains("et") && resultString.contains("predator") && resultString.contains("ALIEN") && resultValue.length == bsonSpeciesEncoded.length);
+        }).join();
+    }
+
+    public void keyWithArrExpr_MultiKey_halfWord() {
+        String ex = ".species.*[0]";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonSpeciesEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("PERSON1") && resultString.contains("person2") && resultString.contains("person3") && resultString.contains("ET") && resultString.contains("predator") && resultString.contains("alient") && resultValue.length == bsonSpeciesEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj() {
+        String ex = "..name";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        byte[] bsonEncoded = clientBson.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("JOHN DOE") && resultString.contains("JANE DOE") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_MultiKey() {
+        String ex = ".client..name";
+        Boson boson = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            String resultString = new String(resultValue);
+            assert (resultString.contains("JOHN DOE") && resultString.contains("JANE DOE") && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_MultiDoubleDot() {
+        String ex = "..persons..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArrExprFirst() {
+        String ex = "..persons[first]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 12) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArrExprEnd() {
+        String ex = "..persons[end]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 21) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArrExpr1ToEnd() {
+        String ex = "..persons[1 to end]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 21) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArrAll() {
+        String ex = "..persons[all]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArr0To1() {
+        String ex = "..persons[0 to 1]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArr0To2() {
+        BsonObject johnDoeBson = new BsonObject().put("name", "John Doe").put("age", 21);
+        BsonObject janeDoeBson = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonObject doeJane = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(johnDoeBson).add(janeDoeBson).add(doeJane);
+        BsonObject personsBson = new BsonObject().put("persons", personsArray);
+        BsonObject clientBson = new BsonObject().put("client", personsBson);
+        String ex = "..persons[0 to 2]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(clientBson.encodeToBarray()).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && containsInteger(resultValue, 30) && resultValue.length == clientBson.encodeToBarray().length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_KeyWithArr0Until2() {  //TODO CORRECT THIS TEST
+        BsonObject johnDoeBson = new BsonObject().put("name", "John Doe").put("age", 21);
+        BsonObject janeDoeBson = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonObject doeJane = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(johnDoeBson).add(janeDoeBson).add(doeJane);
+        BsonObject personsBson = new BsonObject().put("persons", personsArray);
+        BsonObject clientBson = new BsonObject().put("client", personsBson);
+        String ex = "..persons[0 until 2]..age";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(clientBson.encodeToBarray()).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && containsInteger(resultValue, 10) && resultValue.length == clientBson.encodeToBarray().length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_HalfWord1() {
+        String ex = "..per*[@age]";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_HalfWord2() {
+        String ex = "..per*[@a*]";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void doubleDotInj_HalfWord3() {
+        String ex = "..cl*..per*[@a*]";
+        Boson boson = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
         }).join();
     }
 }
