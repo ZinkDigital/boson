@@ -427,7 +427,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_FLOAT_DOUBLE =>
         codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val value0 = codec.readToken(SonString(CS_STRING)) match { //TODO - Está a comer-se aqui
+        val value0 = codec.readToken(SonString(CS_STRING)) match {
           case SonString(_, data) => data.asInstanceOf[String]
         }
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1))
@@ -819,9 +819,9 @@ private[bsonImpl] object BosonInjectorImpl {
     }
     val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
-        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList)
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList, formerType = 0)
       case (EMPTY_KEY, from, expr, _) =>
-        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList)
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType =  0)
       case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString, to.toString)
       case (nonEmptyKey, from, expr, _) =>
@@ -843,7 +843,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
-  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END, fullStatementsList: StatementsList): Codec = {
+  def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END, fullStatementsList: StatementsList, formerType: Int): Codec = {
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
 
@@ -879,7 +879,7 @@ private[bsonImpl] object BosonInjectorImpl {
             val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
             val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
 
-            val isArray = key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
+            val isArray = formerType == 4 //key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
 
             val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
@@ -907,15 +907,9 @@ private[bsonImpl] object BosonInjectorImpl {
                           }
                         }
 
-                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                          Try(modifierEnd(partialCodec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
-                            case Success(tuple) =>
-                              (tuple, 0)
-                            case Failure(_) =>
-                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
-                          }
-                        (codecTuple, exceptionsReturn)
-
+                        val partialCodecModified = BosonImpl.inject(partialData, statementsList, injFunction)
+                        val subPartial = BosonImpl.inject(partialCodecModified.getCodecData, fullStatementsList, injFunction)
+                        ((codecWithKeyCopy + subPartial, codecWithKeyCopy + partialCodec), 0)
                       case _ =>
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
@@ -1067,7 +1061,6 @@ private[bsonImpl] object BosonInjectorImpl {
                     }
                   }
                 }
-
 
               case (x, _, C_END) if isArray && from.toInt > x.toInt =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) { //TODO why can't it be keyWithArrExpr ?
@@ -1371,10 +1364,7 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
       else {
         val dataType: Int = codec.readDataType
-        val
-
-
-        codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
+        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
         val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
         val (codecTo, codecUntil): (Codec, Codec) = dataType match {
           case 0 => (codecWithDataType, codecWithDataTypeCopy)
@@ -1404,11 +1394,11 @@ private[bsonImpl] object BosonInjectorImpl {
                         case jsonString: String => CodecObject.toCodec(jsonString)
                       }
                     }
-                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList)
+                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType)
                     val newInjectCodec = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction)
                     (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
-                    val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList)
+                    val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType)
                     (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
                 } else {
@@ -1419,10 +1409,10 @@ private[bsonImpl] object BosonInjectorImpl {
                         case jsonString: String => CodecObject.toCodec(jsonString)
                       }
                     }
-                    val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to, statementsList)
-                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
+                    val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to, statementsList, dataType)
+                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)//TODO- This duplicate might need to go...
                   } else {
-                    val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to, statementsList)
+                    val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to, statementsList, dataType)
                     (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
 
