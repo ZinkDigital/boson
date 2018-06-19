@@ -32,9 +32,9 @@ object Boson {
     /**
       * Apply method of extractor object.
       *
-      * @param expression String given by the User designated as BsonPath.
-      * @param extractFunction  Extract function given by the User to be applied after extraction.
-      * @param ext  Implicit Extractor.
+      * @param expression      String given by the User designated as BsonPath.
+      * @param extractFunction Extract function given by the User to be applied after extraction.
+      * @param ext             Implicit Extractor.
       * @tparam A Type of Value to be extracted.
       * @return Instance of a Boson
       */
@@ -46,8 +46,8 @@ object Boson {
       * LabelledGeneric allows to keep track of case class arguments and their types.
       * ExtractLabels performs the construction of the HList's case class and case class instantiation.
       *
-      * @param f  LabelledGeneric of type A and L.
-      * @param ext  Object extractLabels of type L.
+      * @param f   LabelledGeneric of type A and L.
+      * @param ext Object extractLabels of type L.
       * @tparam A Represents a case class.
       * @tparam L Represents the HList of the case class.
       * @return Instance of a Boson.
@@ -59,15 +59,16 @@ object Boson {
       new extractor[A] {
 
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
+
         def extract(expression: String, extractFunction: A => Unit): Boson =
-          new BosonExtractorObj[A, L](expression, extractFunction = Some(extractFunction))(f,ext,typeCase)
+          new BosonExtractorObj[A, L](expression, extractFunction = Some(extractFunction))(f, ext, typeCase)
       }
 
     /**
       * Like previous method handles the same situation but for sequences of case classes.
       *
-      * @param f  LabelledGeneric of type A and L.
-      * @param ext  Object extractLabels of type L.
+      * @param f   LabelledGeneric of type A and L.
+      * @param ext Object extractLabels of type L.
       * @tparam A Represents a case class.
       * @tparam L Represents the HList of the case class.
       * @return Instance of a Boson.
@@ -78,9 +79,10 @@ object Boson {
                                              tp: Typeable[A]): extractor[Seq[A]] = {
       new extractor[Seq[A]] {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
+
         //println("implicit seqCaseClass")
         def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
-          new BosonExtractorObj[A, L](expression, extractSeqFunction = Some(extractFunction))(f, ext,typeCase)
+          new BosonExtractorObj[A, L](expression, extractSeqFunction = Some(extractFunction))(f, ext, typeCase)
 
       }
     }
@@ -88,14 +90,15 @@ object Boson {
     /**
       * This method is chosen whenever User specifies the type of extraction as a Sequence of a primitive type.
       *
-      * @tparam A Primitive type.
-      * @tparam Coll  Collection.
+      * @tparam A    Primitive type.
+      * @tparam Coll Collection.
       * @return Instance of a Boson
       */
     implicit def seqLiterals[A, Coll[_]](implicit tp1: Typeable[Coll[A]]): extractor[Coll[A]] =
       new extractor[Coll[A]] {
 
         implicit val typeCase: Option[TypeCase[Coll[A]]] = Some(TypeCase[Coll[A]])
+
         //println("implicit seqLiterals")
         def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
           new BosonExtractor[Coll[A]](expression, extractFunction)(typeCase)
@@ -104,9 +107,10 @@ object Boson {
     implicit val seqArrByte: extractor[Seq[Array[Byte]]] =
       new extractor[Seq[Array[Byte]]] {
         implicit val typeCase: Option[TypeCase[Seq[Array[Byte]]]] = None
+
         //println(s"implicit of seqArrByte")
         override def extract(expression: String, extractFunction: Seq[Array[Byte]] => Unit): Boson =
-          new BosonExtractor[Seq[Array[Byte]]](expression,extractFunction)
+          new BosonExtractor[Seq[Array[Byte]]](expression, extractFunction)
       }
 
     /**
@@ -116,8 +120,9 @@ object Boson {
       new extractor[Array[Byte]] {
         //println("implicit arrByte")
         implicit val typeCase: Option[TypeCase[Array[Byte]]] = None
+
         override def extract(expression: String, extractFunction: Array[Byte] => Unit): Boson =
-          new BosonExtractor[Array[Byte]](expression,extractFunction)
+          new BosonExtractor[Array[Byte]](expression, extractFunction)
       }
 
     /**
@@ -127,6 +132,7 @@ object Boson {
       new extractor[Double] {
         //println("implicit Double")
         implicit val typeCase: Option[TypeCase[Double]] = Some(TypeCase[Double])
+
         override def extract(expression: String, extractFunction: Double => Unit): Boson =
           new BosonExtractor[Double](expression, extractFunction)
       }
@@ -138,6 +144,7 @@ object Boson {
       new extractor[Float] {
         //println("float")
         implicit val typeCase: Option[TypeCase[Float]] = Some(TypeCase[Float])
+
         override def extract(expression: String, extractFunction: Float => Unit): Boson =
           new BosonExtractor[Float](expression, extractFunction)
       }
@@ -149,6 +156,7 @@ object Boson {
       new extractor[Instant] {
         //println("instant")
         implicit val typeCase: Option[TypeCase[Instant]] = Some(TypeCase[Instant])
+
         override def extract(expression: String, extractFunction: Instant => Unit): Boson =
           new BosonExtractor[Instant](expression, extractFunction)
       }
@@ -160,6 +168,7 @@ object Boson {
       new extractor[Long] {
         //println("implicit Long")
         implicit val typeCase: Option[TypeCase[Long]] = Some(TypeCase[Long])
+
         override def extract(expression: String, extractFunction: Long => Unit): Boson =
           new BosonExtractor[Long](expression, extractFunction)
       }
@@ -171,6 +180,7 @@ object Boson {
       new extractor[Int] {
         //println("int")
         implicit val typeCase: Option[TypeCase[Int]] = Some(TypeCase[Int])
+
         override def extract(expression: String, extractFunction: Int => Unit): Boson =
           new BosonExtractor[Int](expression, extractFunction)
       }
@@ -182,6 +192,7 @@ object Boson {
       new extractor[String] {
         //println("string")
         implicit val typeCase: Option[TypeCase[String]] = Some(TypeCase[String])
+
         override def extract(expression: String, extractFunction: String => Unit): Boson =
           new BosonExtractor[String](expression, extractFunction)
       }
@@ -193,6 +204,7 @@ object Boson {
       new extractor[Boolean] {
         //println("boolean")
         implicit val typeCase: Option[TypeCase[Boolean]] = Some(TypeCase[Boolean])
+
         override def extract(expression: String, extractFunction: Boolean => Unit): Boson =
           new BosonExtractor[Boolean](expression, extractFunction)
       }
@@ -211,30 +223,32 @@ object Boson {
     * Instance of Boson.
     */
 
-//  def injector[T](expression: String, injectFunction: T => T) = new BosonInjector[T](expression, injectFunction)
+  //  def injector[T](expression: String, injectFunction: T => T) = new BosonInjector[T](expression, injectFunction)
 
   trait injector[A] {
     def inject(expression: String, injectFunction: A => A): Boson
   }
 
-  object injector{
+  object injector {
 
-    def apply[A](expression: String, injectFunction: A => A)(implicit inj: injector[A]):Boson = inj.inject(expression,injectFunction)
+    def apply[A](expression: String, injectFunction: A => A)(implicit inj: injector[A]): Boson = inj.inject(expression, injectFunction)
 
     implicit def caseClass[A, L <: HList](implicit
                                           f: LabelledGeneric.Aux[A, L],
                                           //inj: injectLabels[L], // TODO - Explore implementation Generator (Not necessary???)
                                           tp: Typeable[A]): injector[A] = {
-      new injector[A]{
+      new injector[A] {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
+
         def inject(expression: String, injectFunction: A => A): Boson =
-          new BosonInjector/*Obj*/[A](expression, injectFunction = injectFunction) //TODO - Option(injectFunction)
+          new BosonInjector /*Obj*/ [A](expression, injectFunction = injectFunction) //TODO - Option(injectFunction)
       }
     }
 
     implicit val seqArrByte: injector[Seq[Array[Byte]]] =
       new injector[Seq[Array[Byte]]] {
         implicit val typeCase: Option[TypeCase[Seq[Array[Byte]]]] = None
+
         override def inject(expression: String, injectFunction: Seq[Array[Byte]] => Seq[Array[Byte]]): Boson =
           new BosonInjector[Seq[Array[Byte]]](expression, injectFunction)
       }
@@ -242,26 +256,29 @@ object Boson {
     implicit val byteArr: injector[Array[Byte]] =
       new injector[Array[Byte]] {
         implicit val typeCase: Option[TypeCase[Array[Byte]]] = None
+
         override def inject(expression: String, injectFunction: Array[Byte] => Array[Byte]): Boson =
           new BosonInjector[Array[Byte]](expression, injectFunction)
       }
 
     implicit val double: injector[Double] =
-      new injector[Double]{
+      new injector[Double] {
         implicit val typeCase: Option[TypeCase[Double]] = Some(TypeCase[Double])
+
         override def inject(expression: String, injectFunction: Double => Double): Boson =
           new BosonInjector[Double](expression, injectFunction)
       }
 
     implicit val float: injector[Float] =
-      new injector[Float]{
+      new injector[Float] {
         implicit val typeCase: Option[TypeCase[Float]] = Some(TypeCase[Float])
+
         override def inject(expression: String, injectFunction: Float => Float): Boson =
           new BosonInjector[Float](expression, injectFunction)
       }
 
     implicit val instant: injector[Instant] =
-      new injector[Instant]{
+      new injector[Instant] {
         implicit val typeCase: Option[TypeCase[Instant]] = Some(TypeCase[Instant])
 
         override def inject(expression: String, injectFunction: Instant => Instant): Boson =
@@ -300,20 +317,32 @@ object Boson {
           new BosonInjector[Boolean](expression, injectFunction)
       }
   }
+
 }
 
 
 trait Boson {
+
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor this will result in
     * the immutable byte array being returned unmodified.
     *
-    * @param bsonByteEncoding Array[Byte] encoded
+    * @param bsonByteEncoding bson encoded into a byte array
     * @return Future with original or a modified Array[Byte].
     */
   def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]]
+
+  /**
+    * Apply this BosonImpl to the String and at some point in the future complete
+    * the future with the resulting String. In the case of an Extractor this will result in
+    * the immutable String being returned unmodified.
+    *
+    * @param bsonByteEncoding bson encoded into a String
+    * @return Future with original or a modified String.
+    */
   def go(bsonByteEncoding: String): Future[String]
+
   /**
     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
     * the future with the resulting byte array. In the case of an Extractor tis will result in

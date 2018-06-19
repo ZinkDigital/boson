@@ -33,6 +33,15 @@ public class BosonFuse implements Boson {
     }
 
     @Override
+    public CompletableFuture<String> go(String bsonByteBufferEncoding) {
+        return CompletableFuture.supplyAsync(() -> {
+            /*CompletableFuture<ByteBuffer> firstFuture = first.go(bsonByteBufferEncoding);
+            return second.go(firstFuture.join()).join();*/
+            return bsonByteBufferEncoding;
+        });
+    }
+
+    @Override
     public Boson fuse(Boson boson) {
         return new BosonFuse(this,boson);
     }

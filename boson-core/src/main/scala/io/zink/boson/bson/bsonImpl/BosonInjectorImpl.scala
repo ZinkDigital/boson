@@ -886,6 +886,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 //expections.clear()
                 if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
@@ -911,7 +912,7 @@ private[bsonImpl] object BosonInjectorImpl {
                             case Success(tuple) =>
                               (tuple, 0)
                             case Failure(_) =>
-                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
+                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
                           }
                         (codecTuple, exceptionsReturn)
 
@@ -987,19 +988,20 @@ private[bsonImpl] object BosonInjectorImpl {
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
-                          val newCodecCopy = codecWithKey.duplicate
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                           val subCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
+
                           if (condition equals UNTIL_RANGE) {
                             val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                               Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
                                 case Success(tuple) =>
-                                  ((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
+                                  ((codecWithKey + tuple._1, codecWithKeyCopy + tuple._2), exceptions)
                                 case Failure(_) =>
-                                  ((codecWithKey + partialCodec, newCodecCopy + partialCodec), exceptions + 1)
+                                  ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), exceptions + 1)
                               }
                             (codecTuple, exceptionsReturn)
-                          } else ((codecWithKey + subCodec, newCodecCopy + subCodec), exceptions)
+                          } else ((codecWithKey + subCodec, codecWithKeyCopy + subCodec), exceptions)
+
                         } else
                           ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
@@ -1257,7 +1259,7 @@ private[bsonImpl] object BosonInjectorImpl {
         if (exceptions == 0)
           codecFinal
         else
-          throw new Exception //TODO throwing exception here
+          throw new Exception
       case UNTIL_RANGE =>
         if (exceptions <= 1)
           codecFinalCopy
@@ -1296,10 +1298,6 @@ private[bsonImpl] object BosonInjectorImpl {
         (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        //        val token = codec.readToken(SonString(CS_STRING))
-        //
-        //        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
-
         val value0 = codec.readToken(SonString(CS_STRING)) match {
           case SonString(_, data) => data.asInstanceOf[String]
         }
@@ -1318,6 +1316,7 @@ private[bsonImpl] object BosonInjectorImpl {
         }
         val auxCodec = modifyArrayEndWithKey(statementList, codecObj, fieldID, injFunction, condition, from, to)
         (resultCodec + auxCodec, resultCodecCopy + auxCodec)
+
       case D_BSONARRAY =>
         val codecArr = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
           case SonArray(_, data) => data match {
@@ -1435,7 +1434,7 @@ private[bsonImpl] object BosonInjectorImpl {
                   (codecIterate, codecIterateCopy)
                 }
 
-              case extracted if fieldID.toCharArray.deep != extracted.toCharArray.deep && !isHalfword(fieldID, extracted) =>
+              case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                   val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
                   (processedCodec, processedCodecCopy)

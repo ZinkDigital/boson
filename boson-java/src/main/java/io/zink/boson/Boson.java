@@ -52,8 +52,8 @@ public interface Boson {
      * the future with the resulting byte array. In the case of an Extractor this will result in
      * the immutable byte array being returned unmodified.
      *
-     * @param bsonByteEncoding
-     * @return
+     * @param bsonByteEncoding bson encoded into a byte array
+     * @return CompletableFuture with original or a modified byte array.
      */
     CompletableFuture<byte[]> go(final byte[] bsonByteEncoding);
 
@@ -62,8 +62,18 @@ public interface Boson {
      * the future with the resulting byte array. In the case of an Extractor tis will result in
      * the immutable byte array being returned unmodified.
      *
-     * @param bsonByteBufferEncoding
-     * @return
+     * @param bsonByteEncoding bson encoded into a String
+     * @return CompletableFuture with original or a modified String.
+     */
+    CompletableFuture<String> go(final String bsonByteEncoding);
+
+    /**
+     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
+     * the future with the resulting byte array. In the case of an Extractor tis will result in
+     * the immutable byte array being returned unmodified.
+     *
+     * @param bsonByteBufferEncoding byte array encoded wrapped in a ByteBuffer.
+     * @return CompletableFuture with original or a modified ByteBuffer.
      */
     CompletableFuture<ByteBuffer> go(final ByteBuffer bsonByteBufferEncoding);
 
