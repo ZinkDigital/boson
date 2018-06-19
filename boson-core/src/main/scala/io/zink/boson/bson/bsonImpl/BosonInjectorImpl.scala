@@ -967,8 +967,6 @@ private[bsonImpl] object BosonInjectorImpl {
                     }
                   }
                 }
-
-
               case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
                 if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
@@ -1063,7 +1061,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 }
 
               case (x, _, C_END) if isArray && from.toInt > x.toInt =>
-                if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) { //TODO why can't it be keyWithArrExpr ?
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]){
                   //this is the case where we haven't yet reached the condition the user sent us
                   //but we still need to check inside this object to see there's a value that matches that condition
                   dataType match {
@@ -1082,9 +1080,8 @@ private[bsonImpl] object BosonInjectorImpl {
                     case _ =>
                       ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
-                } else //TODO - AQUI!!
+                } else
                   ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-
 
               case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
                 if (statementsList.lengthCompare(1) == 0) {
@@ -1099,7 +1096,7 @@ private[bsonImpl] object BosonInjectorImpl {
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
-                          val newCodecCopy = codecWithKey.duplicate
+//                          val newCodecCopy = codecWithKey.duplicate
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
 
                           //Look inside the curent object for cases that match the user given expression
@@ -1114,7 +1111,7 @@ private[bsonImpl] object BosonInjectorImpl {
                             case Success(_) => ((codecWithKey, codecWithKeyCopy), exceptions)
                             //((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
                             case Failure(_) =>
-                              ((codecWithKey + mergedCodec, newCodecCopy + mergedCodec), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
+                              ((codecWithKey + mergedCodec, codecWithKey + mergedCodec), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>

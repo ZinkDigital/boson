@@ -131,7 +131,11 @@ object BosonImpl {
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
             case (i, o1, o2) if o1.isDefined && o2.isDefined =>
-              (EMPTY_KEY, i, o1.get.value, o2.get)
+              if(o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]){
+                val to: Int = o2.get.asInstanceOf[Int]
+                (EMPTY_KEY, i, TO_RANGE, to-1)
+              }
+              else (EMPTY_KEY, i, o1.get.value, o2.get)
 
             case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
               (EMPTY_KEY, i, TO_RANGE, i)
@@ -150,7 +154,10 @@ object BosonImpl {
           (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
 
             case (_, o1, o2) if o1.isDefined && o2.isDefined =>
-              (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
+              if(o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]){
+                val to: Int = o2.get.asInstanceOf[Int]
+                (key, arrEx.leftArg, TO_RANGE, to-1)
+              } else (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
 
             case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
               (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg) //User sent, for example, Key[1] translates to - Key[1 TO 1]
