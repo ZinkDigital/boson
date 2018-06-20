@@ -5,9 +5,6 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
 
 @RunWith(classOf[JUnitRunner])
 class NewInjectorsTests extends FunSuite {
@@ -837,17 +834,23 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.containsSlice(Array(41, 0, 0, 0)) && resultValue.containsSlice(Array(32, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   //  }
 
-//  test("Java Instant injection") {
-  //    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", Instant.now().plusMillis(1000))
-  //    val client = new BsonObject().put("person", person1)
-  //    val bson = new BsonObject().put("client", client)
-  //    val ex = "..instant"
-  //    val bsonInj = Boson.injector(ex, (in: Instant) => {
-  //      in.plusMillis(1000)
-  //    })
-  //    val bsonEncoded = bson.encodeToBarray()
-  //    val future = bsonInj.go(bsonEncoded)
-  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-  //    println(resultValue.mkString(" "))
-  //  }
+  test("Java Instant injection") {
+    val ins = Instant.now()
+    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
+    val client = new BsonObject().put("person", person1)
+    val bson = new BsonObject().put("client", client)
+
+    val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
+    val expectedClient = new BsonObject().put("person", expectedPerson)
+    val expectedBson = new BsonObject().put("client", expectedClient)
+
+    val ex = "..instant"
+    val bsonInj = Boson.injector(ex, (in: Instant) => {
+      in.plusMillis(1000)
+    })
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
+  }
 }
