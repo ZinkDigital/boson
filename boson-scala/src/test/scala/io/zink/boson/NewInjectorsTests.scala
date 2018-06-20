@@ -1,13 +1,20 @@
 package io.zink.boson
 
+import java.time.Instant
+
 import bsonLib.{BsonArray, BsonObject}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 
 @RunWith(classOf[JUnitRunner])
 class NewInjectorsTests extends FunSuite {
+
+  case class Book(name: String, pages: Int)
 
   val bsonHuman: BsonArray = new BsonArray().add("person1").add("person2").add("person3")
   val bsonObjArray: BsonObject = new BsonObject().put("person", bsonHuman)
@@ -583,23 +590,23 @@ class NewInjectorsTests extends FunSuite {
   //    assert(equals)
   //  }
 
-  test("Nested key injection .client.person[0].age - Single Dots") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
-    val person3 = new BsonObject().put("name", "doe jane").put("age", 10)
-    val persons = new BsonArray().add(person1).add(person2).add(person3)
-    val client = new BsonObject().put("person", persons)
-    val bson = new BsonObject().put("client", client)
-
-    val ex = ".client.person[0].age"
-    val bsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
-    })
-    val bsonEncoded = bson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(12, 0, 0, 0)) && (resultValue containsSlice Array(10, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
-  }
+  //  test("Nested key injection .client.person[0].age - Single Dots") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+  //    val person3 = new BsonObject().put("name", "doe jane").put("age", 10)
+  //    val persons = new BsonArray().add(person1).add(person2).add(person3)
+  //    val client = new BsonObject().put("person", persons)
+  //    val bson = new BsonObject().put("client", client)
+  //
+  //    val ex = ".client.person[0].age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(12, 0, 0, 0)) && (resultValue containsSlice Array(10, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+  //  }
 
 
   //  test("Nested key injection - Multiple Layers- Double dots") {
@@ -834,46 +841,60 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.containsSlice(Array(41, 0, 0, 0)) && resultValue.containsSlice(Array(32, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   //  }
 
-  test("Java Instant injection") {
-    val ins = Instant.now()
-    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
-    val client = new BsonObject().put("person", person1)
-    val bson = new BsonObject().put("client", client)
+  //  test("Java Instant injection") {
+  //    val ins = Instant.now()
+  //    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
+  //    val client = new BsonObject().put("person", person1)
+  //    val bson = new BsonObject().put("client", client)
+  //
+  //    val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
+  //    val expectedClient = new BsonObject().put("person", expectedPerson)
+  //    val expectedBson = new BsonObject().put("client", expectedClient)
+  //
+  //    val ex = "..instant"
+  //    val bsonInj = Boson.injector(ex, (in: Instant) => {
+  //      in.plusMillis(1000)
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
+  //  }
+  //
+  //  test("Java Instant injection - HasElem") {
+  //    val ins = Instant.now()
+  //    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
+  //    val person2 = new BsonObject().put("name", "Jane Doe").put("age", 12)
+  //    val persons = new BsonArray().add(person1).add(person2)
+  //    val client = new BsonObject().put("person", persons)
+  //    val bson = new BsonObject().put("client", client)
+  //
+  //    val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
+  //    val expectedPersons = new BsonArray().add(expectedPerson).add(person2)
+  //    val expectedClient = new BsonObject().put("person", expectedPersons)
+  //    val expectedBson = new BsonObject().put("client", expectedClient)
+  //
+  //    val ex = "..person[@instant]"
+  //    val bsonInj = Boson.injector(ex, (in: Instant) => {
+  //      in.plusMillis(1000)
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
+  //  }
 
-    val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
-    val expectedClient = new BsonObject().put("person", expectedPerson)
-    val expectedBson = new BsonObject().put("client", expectedClient)
-
-    val ex = "..instant"
-    val bsonInj = Boson.injector(ex, (in: Instant) => {
-      in.plusMillis(1000)
+  test("Root injection - Double dots") {
+    val bson = new BsonObject().put("book", Book("Title", 1))
+    val ex = "..name"
+    val bsonInj = Boson.injector(ex, (in: Book) => {
+      println("inside: " + in.name)
+      println("inside: " + in.pages)
+      Book("LOTR", 320)
     })
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
-  }
 
-  test("Java Instant injection - HasElem") {
-    val ins = Instant.now()
-    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
-    val person2 = new BsonObject().put("name", "Jane Doe").put("age", 12)
-    val persons = new BsonArray().add(person1).add(person2)
-    val client = new BsonObject().put("person", persons)
-    val bson = new BsonObject().put("client", client)
-
-    val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
-    val expectedPersons = new BsonArray().add(expectedPerson).add(person2)
-    val expectedClient = new BsonObject().put("person", expectedPersons)
-    val expectedBson = new BsonObject().put("client", expectedClient)
-
-    val ex = "..person[@instant]"
-    val bsonInj = Boson.injector(ex, (in: Instant) => {
-      in.plusMillis(1000)
-    })
-    val bsonEncoded = bson.encodeToBarray()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
   }
 }
