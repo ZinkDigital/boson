@@ -481,6 +481,11 @@ private[bsonImpl] object BosonInjectorImpl {
           case value: String =>
             val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1))
             codec.writeToken(strSizeCodec, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+
+          case valueInstant: Instant =>
+            val value = valueInstant.toString
+            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1))
+            codec.writeToken(strSizeCodec, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
         }
 
       case D_BSONOBJECT =>
@@ -559,6 +564,11 @@ private[bsonImpl] object BosonInjectorImpl {
       }
       val resCodec = applyFunction(injFunction, value0) match {
         case str: String =>
+          val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1))
+          codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+
+        case value: Instant =>
+          val str = value.toString
           val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1))
           codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
       }
@@ -790,12 +800,12 @@ private[bsonImpl] object BosonInjectorImpl {
               }
           }
 
-//        case str: String =>
-//          Try(injFunction(Instant.parse(str).asInstanceOf[T])) match {
-//            case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
-//
-//            case Failure(_) => ???
-//          }
+        case str: String =>
+          Try(injFunction(Instant.parse(str).asInstanceOf[T])) match {
+            case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
+
+            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+          }
       }
 
       case _ => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
