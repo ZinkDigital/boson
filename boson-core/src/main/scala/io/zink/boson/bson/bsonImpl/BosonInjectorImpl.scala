@@ -1026,12 +1026,23 @@ private[bsonImpl] object BosonInjectorImpl {
                     }
                   } else {
                     if (exceptions == 0) {
-                      //                      val newCodecCopy = codecWithKey.duplicate // Here!
-                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
-                        case Success(tuple) =>
-                          (tuple, exceptions)
-                        case Failure(_) =>
-                          ((codecWithKey, codecWithKey), exceptions + 1)
+                      dataType match {
+                        case D_BSONARRAY | D_BSONOBJECT =>
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val interiorObjCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
+                          ((codecWithKey + interiorObjCodec, codecWithKey + partialCodec), exceptions)
+                        case _ =>
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                            case Success(tuple) =>
+                              (tuple, exceptions)
+                            case Failure(_) =>
+                              ((codecWithKey, codecWithKey), exceptions + 1)
+                          }
                       }
                     } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                   }
@@ -1262,7 +1273,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecFinal = codecWithSize + codecWithoutSize
 
-    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match { //TODO this might be wrong, size is giving 330
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
