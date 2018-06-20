@@ -840,4 +840,27 @@ class NewInjectorsTests extends FunSuite {
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
     assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
   }
+
+  test("Java Instant injection - HasElem") {
+    val ins = Instant.now()
+    val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
+    val person2 = new BsonObject().put("name", "Jane Doe").put("age", 12)
+    val persons = new BsonArray().add(person1).add(person2)
+    val client = new BsonObject().put("person", persons)
+    val bson = new BsonObject().put("client", client)
+
+    val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
+    val expectedPersons = new BsonArray().add(expectedPerson).add(person2)
+    val expectedClient = new BsonObject().put("person", expectedPersons)
+    val expectedBson = new BsonObject().put("client", expectedClient)
+
+    val ex = "..person[@instant]"
+    val bsonInj = Boson.injector(ex, (in: Instant) => {
+      in.plusMillis(1000)
+    })
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
+  }
 }

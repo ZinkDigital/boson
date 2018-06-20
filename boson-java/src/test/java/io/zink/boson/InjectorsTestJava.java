@@ -4,6 +4,10 @@ import bsonLib.BsonArray;
 import bsonLib.BsonObject;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
+import java.time.Instant;
+
 public class InjectorsTestJava {
     private final BsonObject johnDoeBson = new BsonObject().put("name", "John Doe").put("age", 21);
     private final BsonObject janeDoeBson = new BsonObject().put("name", "Jane Doe").put("age", 12);
@@ -586,6 +590,51 @@ public class InjectorsTestJava {
         });
         boson.go(bsonEncoded).thenAccept((resultValue) -> {
             assert (containsInteger(resultValue, 41) && containsInteger(resultValue, 32) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void javaInstantTest() {
+        String ex = "..instant";
+        Instant ins = Instant.now();
+        BsonObject person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000));
+        BsonObject client = new BsonObject().put("person", person1);
+        BsonObject bson = new BsonObject().put("client", client);
+
+        BsonObject expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000));
+        BsonObject expectedClient = new BsonObject().put("person", expectedPerson);
+        BsonObject expectedBson = new BsonObject().put("client", expectedClient);
+
+        Boson boson = Boson.injector(ex, (Instant in) -> {
+            return in.plusMillis(1000);
+        });
+
+        boson.go(bson.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, expectedBson.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void javaInstantHasElemTest() {
+        String ex = "..person[@instant]";
+        Instant ins = Instant.now();
+        BsonObject person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000));
+        BsonObject person2 = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject client = new BsonObject().put("person", persons);
+        BsonObject bson = new BsonObject().put("client", client);
+
+        BsonObject expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000));
+        BsonArray expectedPersons = new BsonArray().add(expectedPerson).add(person2);
+        BsonObject expectedClient = new BsonObject().put("person", expectedPersons);
+        BsonObject expectedBson = new BsonObject().put("client", expectedClient);
+
+        Boson boson = Boson.injector(ex, (Instant in) -> {
+            return in.plusMillis(1000);
+        });
+
+        boson.go(bson.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, expectedBson.encodeToBarray());
         }).join();
     }
 }
