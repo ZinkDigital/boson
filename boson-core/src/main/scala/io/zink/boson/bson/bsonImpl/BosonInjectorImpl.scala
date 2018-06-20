@@ -789,6 +789,13 @@ private[bsonImpl] object BosonInjectorImpl {
                 case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
               }
           }
+
+//        case str: String =>
+//          Try(injFunction(Instant.parse(str).asInstanceOf[T])) match {
+//            case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
+//
+//            case Failure(_) => ???
+//          }
       }
 
       case _ => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
@@ -821,7 +828,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList, formerType = 0)
       case (EMPTY_KEY, from, expr, _) =>
-        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType =  0)
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType = 0)
       case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString, to.toString)
       case (nonEmptyKey, from, expr, _) =>
@@ -1061,7 +1068,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 }
 
               case (x, _, C_END) if isArray && from.toInt > x.toInt =>
-                if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]){
+                if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                   //this is the case where we haven't yet reached the condition the user sent us
                   //but we still need to check inside this object to see there's a value that matches that condition
                   dataType match {
@@ -1096,7 +1103,7 @@ private[bsonImpl] object BosonInjectorImpl {
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
-//                          val newCodecCopy = codecWithKey.duplicate
+                          //                          val newCodecCopy = codecWithKey.duplicate
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
 
                           //Look inside the curent object for cases that match the user given expression
@@ -1407,7 +1414,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to, statementsList, dataType)
-                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)//TODO- This duplicate might need to go...
+                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate) //TODO- This duplicate might need to go...
                   } else {
                     val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to, statementsList, dataType)
                     (resCodec + newCodec, resCodecCopy + newCodec.duplicate)

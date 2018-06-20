@@ -45,30 +45,30 @@ class ExtractorTests extends FunSuite {
   test("Extract Boolean") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(bsonEvent.encodeToBarray()))
-    assert(false === extract(either, List(("José","allDots")), List((None,None,""))).head)
+    assert(false === extract(either, List(("José", "allDots")), List((None, None, ""))).head)
   }
 
   test("Extract Null") {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(bsonEvent.encodeToBarray()))
-    assert("Null" === extract(either, List(("Amadeu","allDots")), List((None,None,""))).head)
+    assert("Null" === extract(either, List(("Amadeu", "allDots")), List((None, None, ""))).head)
   }
 
   test("Extract Instant") {
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(globalObj.encodeToBarray()))
-    assertEquals(now.toString, extract(either, List(("UpdatedOn","allDots")), List((None,None,""))).head)
+    assertEquals(now.toString, extract(either, List(("UpdatedOn", "allDots")), List((None, None, ""))).head)
   }
 
   test("Extract String") {
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(globalObj.encodeToBarray()))
-    assertEquals("Lisboa", extract(either, List(("Residence","allDots")), List((None,None,""))).head)
+    assertEquals("Lisboa", extract(either, List(("Residence", "allDots")), List((None, None, ""))).head)
   }
 
   test("Extract Array[Byte] w/ Netty") {
     val help: ByteBuf = Unpooled.buffer()
     val finalBuf: ByteBuf = Unpooled.buffer()
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(globalObj.encodeToBarray()))
-    help.writeBytes(extract(either, List(("FavoriteSentence","allDots")), List((None,None,""))).head.asInstanceOf[String].getBytes)
+    help.writeBytes(extract(either, List(("FavoriteSentence", "allDots")), List((None, None, ""))).head.asInstanceOf[String].getBytes)
     finalBuf.writeBytes(io.netty.handler.codec.base64.Base64.decode(help))
     assert("Be the best".getBytes === new String(finalBuf.array()).replaceAll("\\p{C}", "").getBytes)
   }
@@ -83,7 +83,7 @@ class ExtractorTests extends FunSuite {
   test("Extract BsonObject") {
     val bsonEvent: BsonObject = new BsonObject().put("First", obj1).put("Second", obj2).put("Third", obj3)
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(bsonEvent.encodeToBarray()))
-    val result = extract(either, List(("Second","allDots")), List((None,None,""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
+    val result = extract(either, List(("Second", "allDots")), List((None, None, ""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
     val expected: Seq[Array[Byte]] = Seq(obj2.encodeToBarray())
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
@@ -91,7 +91,7 @@ class ExtractorTests extends FunSuite {
 
   test("Extract BsonArray") {
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(globalObj.encodeToBarray()))
-    val result = extract(either, List(("Colleagues","allDots")), List((None,None,""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
+    val result = extract(either, List(("Colleagues", "allDots")), List((None, None, ""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
 
     val expected: Seq[Array[Byte]] = Seq(arr.encodeToBarray())
     assert(expected.size === result.size)
@@ -103,7 +103,7 @@ class ExtractorTests extends FunSuite {
     val arr2: BsonArray = new BsonArray().add("Day3").add("Day20").add("Day31")
     obj2.put("JoséMonthLeave", arr2)
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(bsonEvent.encodeToBarray()))
-    val result = extract(either, List(("JoséMonthLeave","allDots")), List((None,None,""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
+    val result = extract(either, List(("JoséMonthLeave", "allDots")), List((None, None, ""))).asInstanceOf[Seq[ByteBuf]].map(_.array)
     val expected: Seq[Array[Byte]] = Seq(arr2.encodeToBarray())
     assert(expected.size === result.size)
     assertTrue(expected.zip(result).forall(b => b._1.sameElements(b._2)))
@@ -111,6 +111,6 @@ class ExtractorTests extends FunSuite {
 
   test("Extract nonexistent key") {
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(globalObj.encodeToBarray()))
-    assert(Seq() === extract(either, List(("Random","allDots")), List((None,None,""))))
+    assert(Seq() === extract(either, List(("Random", "allDots")), List((None, None, ""))))
   }
 }
