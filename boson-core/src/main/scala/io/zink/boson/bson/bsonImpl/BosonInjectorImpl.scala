@@ -1134,12 +1134,24 @@ private[bsonImpl] object BosonInjectorImpl {
                     }
                   } else {
                     if (exceptions == 0) {
-                      val newCodecCopy = codecWithKey.duplicate
-                      Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
-                        case Success(tuple) =>
-                          (tuple, exceptions)
-                        case Failure(_) =>
-                          ((codecWithKey, newCodecCopy), exceptions + 1)
+                      dataType match {
+                        case D_BSONARRAY | D_BSONOBJECT =>
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec(string)
+                            }
+                          }
+                          val codecMod = BosonImpl.inject(partialCodec.getCodecData,statementsList,injFunction)
+                          ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec),exceptions)
+                        case _ =>
+                          val newCodecCopy = codecWithKey.duplicate
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                            case Success(tuple) =>
+                              (tuple, exceptions)
+                            case Failure(_) =>
+                              ((codecWithKey, newCodecCopy), exceptions + 1)
+                          }
                       }
                     } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                   }
