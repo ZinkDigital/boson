@@ -4,9 +4,6 @@ import bsonLib.BsonArray;
 import bsonLib.BsonObject;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 public class InjectorsTestJava {
     private final BsonObject johnDoeBson = new BsonObject().put("name", "John Doe").put("age", 21);
     private final BsonObject janeDoeBson = new BsonObject().put("name", "Jane Doe").put("age", 12);
@@ -543,7 +540,7 @@ public class InjectorsTestJava {
     }
 
     @Test
-    public void doubleDotInj_KeyWithArr0Until2() {  //TODO CORRECT THIS TEST
+    public void doubleDotInj_KeyWithArr0Until2() {
         BsonObject johnDoeBson = new BsonObject().put("name", "John Doe").put("age", 21);
         BsonObject janeDoeBson = new BsonObject().put("name", "Jane Doe").put("age", 12);
         BsonObject doeJane = new BsonObject().put("name", "doe jane").put("age", 10);
