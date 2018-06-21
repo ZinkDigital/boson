@@ -235,13 +235,13 @@ object Boson {
 
     implicit def caseClass[A, L <: HList](implicit
                                           f: LabelledGeneric.Aux[A, L],
-                                          //inj: injectLabels[L], // TODO - Explore implementation Generator (Not necessary???)
+                                          ext: extractLabels[L],
                                           tp: Typeable[A]): injector[A] = {
       new injector[A] {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
 
         def inject(expression: String, injectFunction: A => A): Boson =
-          new BosonInjector /*Obj*/ [A](expression, injectFunction = injectFunction) //TODO - Option(injectFunction)
+          new BosonInjectorObj[A, L](expression, injectFunction = injectFunction)(typeCase, f, ext)
       }
     }
 

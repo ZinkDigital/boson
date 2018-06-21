@@ -6,7 +6,6 @@ import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
-
 import scala.util.{Failure, Success}
 
 /**
@@ -16,13 +15,15 @@ import scala.util.{Failure, Success}
 /**
   * Class that handles both processes of Injection and Extraction.
   *
-  * @param fInj  Function used in Injection process.
-  * @param fExt  Function used in Extraction process.
+  * @param fInj Function used in Injection process.
+  * @param fExt Function used in Extraction process.
   * @tparam T Type specified by the User.
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
-                     fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]]) {
+                     fExt: Option[T => Unit] = None,
+                     convertFunction: Option[Any => T] = None)(implicit tCase: Option[TypeCase[T]]) {
+
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
     case Success(result) => result
     case Failure(excp) => throw excp
@@ -160,7 +161,9 @@ class Interpreter[T](expression: String,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
+  def run(bsonEncoded: Either[Array[Byte], String]): Any = {
+    if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
+  }
 
   /**
     * Method that initiates the process of extraction based on a Statement list provided by the parser.

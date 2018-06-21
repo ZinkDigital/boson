@@ -4,8 +4,9 @@ import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
-import BosonInjectorImpl._
 import BosonExtractorImpl._
+import BosonInjectorImpl._
+import shapeless.TypeCase
 
 import scala.util.{Failure, Success, Try}
 
@@ -43,14 +44,18 @@ object BosonImpl {
 
     val startReaderIndexCodec: Int = nettyC.getReaderIndex
     Try(nettyC.readSize) match {
+
       case Success(value) =>
         val size: Int = value
         val seqTypeCodec: SonNamedType = nettyC.rootType
         seqTypeCodec match {
+
           case SonZero => Nil
+
           case SonArray(_, _) =>
             val arrayFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
+
               case C_DOT if keyList.lengthCompare(1) == 0 =>
                 Try(nettyC.getToken(SonArray(C_DOT)).asInstanceOf[SonArray].info) match {
                   case Success(v) =>
@@ -60,20 +65,25 @@ object BosonImpl {
                     nettyC.release()
                     Nil
                 }
+
               case _ =>
                 Try(extractFromBsonArray(nettyC, size, arrayFinishReaderIndex, keyList, limitList)) match {
                   case Success(v) =>
                     nettyC.release()
                     v
+
                   case Failure(_) =>
                     nettyC.release()
                     Nil
                 }
             }
+
           case SonObject(_, _) =>
             val bsonFinishReaderIndex: Int = startReaderIndexCodec + size
             keyList.head._1 match {
+
               case EMPTY_KEY if keyList.head._2.equals(C_LIMITLEVEL) => Nil
+
               case C_DOT if keyList.lengthCompare(1) == 0 =>
                 Try(nettyC.getToken(SonObject(C_DOT)).asInstanceOf[SonObject].info) match {
                   case Success(v) =>
@@ -83,11 +93,13 @@ object BosonImpl {
                     nettyC.release()
                     Nil
                 }
+
               case _ =>
                 Try(extractFromBsonObj(nettyC, keyList, bsonFinishReaderIndex, limitList)) match {
                   case Success(v) =>
                     nettyC.release()
                     v
+
                   case Failure(_) =>
                     nettyC.release()
                     Nil
@@ -95,6 +107,7 @@ object BosonImpl {
                 }
             }
         }
+
       case Failure(msg) =>
         throw new RuntimeException(msg)
     }
@@ -131,9 +144,9 @@ object BosonImpl {
         val input: (String, Int, String, Any) =
           (leftArg, midArg, rightArg) match {
             case (i, o1, o2) if o1.isDefined && o2.isDefined =>
-              if(o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]){
+              if (o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]) {
                 val to: Int = o2.get.asInstanceOf[Int]
-                (EMPTY_KEY, i, TO_RANGE, to-1)
+                (EMPTY_KEY, i, TO_RANGE, to - 1)
               }
               else (EMPTY_KEY, i, o1.get.value, o2.get)
 
@@ -154,9 +167,9 @@ object BosonImpl {
           (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
 
             case (_, o1, o2) if o1.isDefined && o2.isDefined =>
-              if(o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]){
+              if (o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]) {
                 val to: Int = o2.get.asInstanceOf[Int]
-                (key, arrEx.leftArg, TO_RANGE, to-1)
+                (key, arrEx.leftArg, TO_RANGE, to - 1)
               } else (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
 
             case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>

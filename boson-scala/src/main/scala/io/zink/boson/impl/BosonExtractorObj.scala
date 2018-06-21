@@ -29,8 +29,8 @@ class BosonExtractorObj[T, R <: HList](expression: String,
                                         extract: extractLabels[R],
                                         tp: Option[TypeCase[T]]) extends Boson {
 
-
   private val interpreter: Interpreter[T] = new Interpreter[T](expression, fExt = extractFunction)
+
   /**
     * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of
     * statements used to instantiate the Interpreter.
@@ -53,6 +53,7 @@ class BosonExtractorObj[T, R <: HList](expression: String,
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] = Future {
       val midRes: Any = runInterpreter(Left(bsonByteEncoding))
+      println(midRes)
       val seqTuples = TypeCase[Seq[List[(String, Any)]]]
       val result: Seq[T] =
         midRes match {

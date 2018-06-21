@@ -12,7 +12,8 @@ private[bsonImpl] object BosonExtractorImpl {
     */
   val eObjPrimitiveConditions: List[(String, String)] => Boolean =
     keyList => {
-      !keyList.head._2.equals(C_LIMIT) && !keyList.head._2.equals(C_NEXT) && !keyList.head._2.equals(C_ALLNEXT) && !keyList.head._2.equals(C_LIMITLEVEL)
+      lazy val headLimit = keyList.head._2
+      !headLimit.equals(C_LIMIT) && !headLimit.equals(C_NEXT) && !headLimit.equals(C_ALLNEXT) && !headLimit.equals(C_LIMITLEVEL)
     }
 
   /**

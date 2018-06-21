@@ -3,16 +3,24 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
+import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.bson.bsonPath.Interpreter
-import shapeless.TypeCase
+import shapeless.{HList, LabelledGeneric, TypeCase}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
+class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T)(implicit
+                                                                                  tp: Option[TypeCase[T]],
+                                                                                  gen: LabelledGeneric.Aux[T, R],
+                                                                                  extract: extractLabels[R]) extends Boson {
 
-class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: Option[TypeCase[T]]) extends Boson {
+  def convert(value: Any): T = { //TODO CHANGE THIS
+    ???
+  }
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction), convertFunction = None)
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction), convertFunction = Some(convert))
+
 
   /**
     * Method that delegates the injection process to Interpreter passing to it the data structure to be used (either a byte array or a String)
@@ -70,4 +78,5 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
   }
 
   override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
+
 }

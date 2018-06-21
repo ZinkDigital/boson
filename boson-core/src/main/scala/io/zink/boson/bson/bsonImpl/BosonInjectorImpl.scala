@@ -7,6 +7,8 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
+import shapeless.TypeCase
+
 import scala.util.{Failure, Success, Try}
 
 private[bsonImpl] object BosonInjectorImpl {
@@ -420,7 +422,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @return A Codec containing the alterations made
     */
-  def processTypesArray(dataType: Int, codec: Codec, currentResCodec: Codec): Codec = {
+  def processTypesArray[T](dataType: Int, codec: Codec, currentResCodec: Codec): Codec = {
     dataType match {
       case D_ZERO_BYTE =>
         currentResCodec
@@ -489,7 +491,7 @@ private[bsonImpl] object BosonInjectorImpl {
         }
 
       case D_BSONOBJECT =>
-        codec.readToken(SonObject(CS_OBJECT)) match {
+        codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
           case SonObject(_, data) => data match {
             case byteBuf: ByteBuf =>
               applyFunction(injFunction, byteBuf.array()) match {
@@ -765,8 +767,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of the value
     * @return A modified value in which the injector function was applied
     */
-  def applyFunction[T](injFunction: T => T, value: Any, fromRoot: Boolean = false): T = {
-
+  def applyFunction[T](injFunction: T => T, value: Any, fromRoot: Boolean = false) = {
     Try(injFunction(value.asInstanceOf[T])) match {
       case Success(modifiedValue) =>
         modifiedValue
@@ -1152,8 +1153,8 @@ private[bsonImpl] object BosonInjectorImpl {
                               case string: String => CodecObject.toCodec(string)
                             }
                           }
-                          val codecMod = BosonImpl.inject(partialCodec.getCodecData,statementsList,injFunction)
-                          ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec),exceptions)
+                          val codecMod = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
+                          ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec), exceptions)
                         case _ =>
                           val newCodecCopy = codecWithKey.duplicate
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
