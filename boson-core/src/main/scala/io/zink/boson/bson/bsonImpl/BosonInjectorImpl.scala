@@ -896,7 +896,7 @@ private[bsonImpl] object BosonInjectorImpl {
             val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
             val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
 
-            val isArray = formerType == 4 //key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
+            val isArray = /*formerType == 4*/ key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
 
             val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
@@ -936,17 +936,29 @@ private[bsonImpl] object BosonInjectorImpl {
                         (codecTuple, exceptionsReturn)
                     }
                   } else {
-                    val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
-                      case SonArray(_, value) => value.asInstanceOf[DataStructure]
-                    }
-                    val partialCodec = partialData match {
-                      case Left(byteBuf) => CodecObject.toCodec(byteBuf)
-                      case Right(jsonString) => CodecObject.toCodec(jsonString)
-                    }
                     dataType match {
-                        //Take partial codec first
+                      //Take partial codec first
                       case D_BSONARRAY | D_BSONOBJECT =>
-                        Try(BosonImpl.inject(partialData, statementsList, injFunction)) match {
+//                        Try(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE))) match {
+//                          case Success(c) =>
+//                            val partialData: DataStructure =  c match {
+//                              case SonArray(_, value) => value.asInstanceOf[DataStructure]
+//                            }
+//                            val partialCodec = partialData match {
+//                              case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+//                              case Right(jsonString) => CodecObject.toCodec(jsonString)
+//                            }
+//                            val codecAux = BosonImpl.inject(partialData, statementsList, injFunction)
+//                            ((codecWithKeyCopy + codecAux, codecWithKeyCopy + partialCodec), 0)
+//                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 1)
+//                        }
+                        val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          case SonArray(_, value) => value match {
+                            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                            case string: String => CodecObject.toCodec(string)
+                          }
+                        }
+                        Try(BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)) match {
                           case Success(c) => ((codecWithKeyCopy + c, codecWithKeyCopy + partialCodec), 0)
                           case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 1)
                         }
@@ -1174,8 +1186,8 @@ private[bsonImpl] object BosonInjectorImpl {
                               case string: String => CodecObject.toCodec(string)
                             }
                           }
-                          val codecMod = BosonImpl.inject(partialCodec.getCodecData,statementsList,injFunction)
-                          ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec),exceptions)
+                          val codecMod = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
+                          ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec), exceptions)
                         case _ =>
                           val newCodecCopy = codecWithKey.duplicate
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
