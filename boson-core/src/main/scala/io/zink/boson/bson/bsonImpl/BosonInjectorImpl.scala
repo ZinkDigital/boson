@@ -937,21 +937,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     }
                   } else {
                     dataType match {
-                      //Take partial codec first
                       case D_BSONARRAY | D_BSONOBJECT =>
-//                        Try(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE))) match {
-//                          case Success(c) =>
-//                            val partialData: DataStructure =  c match {
-//                              case SonArray(_, value) => value.asInstanceOf[DataStructure]
-//                            }
-//                            val partialCodec = partialData match {
-//                              case Left(byteBuf) => CodecObject.toCodec(byteBuf)
-//                              case Right(jsonString) => CodecObject.toCodec(jsonString)
-//                            }
-//                            val codecAux = BosonImpl.inject(partialData, statementsList, injFunction)
-//                            ((codecWithKeyCopy + codecAux, codecWithKeyCopy + partialCodec), 0)
-//                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 1)
-//                        }
                         val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                           case SonArray(_, value) => value match {
                             case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
@@ -963,7 +949,12 @@ private[bsonImpl] object BosonInjectorImpl {
                           case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 1)
                         }
                       case _ =>
-                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 0)
+                        val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
+                            case Success(tuple) => (tuple, 0)
+                            case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
+                          }
+                        (codecTuple, exceptionsReturn)
                     }
                   }
                 } else {
@@ -1459,7 +1450,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
                     val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType)
-                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
+                    (resCodec + newCodec, resCodecCopy + newCodec)
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
