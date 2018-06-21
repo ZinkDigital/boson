@@ -642,7 +642,25 @@ class NewInjectorsTests extends FunSuite {
   //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(32, 0, 0, 0)) && (resultValue containsSlice Array(10, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   //  }
 
-  test("Nested key injection .client.person[all].age - Single Dots") {
+  //  test("Nested key injection .client.person[all].age - Single Dots") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+  //    val person3 = new BsonObject().put("name", "doe jane").put("age", 10)
+  //    val persons = new BsonArray().add(person1).add(person2).add(person3)
+  //    val client = new BsonObject().put("person", persons)
+  //    val bson = new BsonObject().put("client", client)
+  //
+  //    val ex = ".client.person[all].age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(32, 0, 0, 0)) && (resultValue containsSlice Array(30, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+  //  }
+
+  test("Nested key injection .client.person[end].age - Single Dots") {
     val person1 = new BsonObject().put("name", "john doe").put("age", 21)
     val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
     val person3 = new BsonObject().put("name", "doe jane").put("age", 10)
@@ -650,7 +668,7 @@ class NewInjectorsTests extends FunSuite {
     val client = new BsonObject().put("person", persons)
     val bson = new BsonObject().put("client", client)
 
-    val ex = ".client.person[all].age"
+    val ex = ".client.person[end].age"
     val bsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -935,17 +953,17 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
   //  }
 
-  test("Root injection - Double dots") {
-    val bson = new BsonObject().put("book", Book("Title", 1))
-    val ex = "..name"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      println("inside: " + in.name)
-      println("inside: " + in.pages)
-      Book("LOTR", 320)
-    })
-    val bsonEncoded = bson.encodeToBarray()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-
-  }
+  //  test("Root injection - Double dots") {
+  //    val bson = new BsonObject().put("book", Book("Title", 1))
+  //    val ex = "..name"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      println("inside: " + in.name)
+  //      println("inside: " + in.pages)
+  //      Book("LOTR", 320)
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //
+  //  }
 }

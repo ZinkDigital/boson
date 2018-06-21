@@ -936,12 +936,23 @@ private[bsonImpl] object BosonInjectorImpl {
                         (codecTuple, exceptionsReturn)
                     }
                   } else {
-                    val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                      Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
-                        case Success(tuple) => (tuple, 0)
-                        case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
-                      }
-                    (codecTuple, exceptionsReturn)
+                    val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
+                      case SonArray(_, value) => value.asInstanceOf[DataStructure]
+                    }
+                    val partialCodec = partialData match {
+                      case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+                      case Right(jsonString) => CodecObject.toCodec(jsonString)
+                    }
+                    dataType match {
+                        //Take partial codec first
+                      case D_BSONARRAY | D_BSONOBJECT =>
+                        Try(BosonImpl.inject(partialData, statementsList, injFunction)) match {
+                          case Success(c) => ((codecWithKeyCopy + c, codecWithKeyCopy + partialCodec), 0)
+                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 1)
+                        }
+                      case _ =>
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 0)
+                    }
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
