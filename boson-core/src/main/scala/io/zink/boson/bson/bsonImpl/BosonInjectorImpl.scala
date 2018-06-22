@@ -90,8 +90,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         }
                         val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
                         val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
-                        codecWithKey + subCodec //merge the two subcodes
-
+                        codecWithKey + subCodec
                       case _ =>
                         processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
                     }
@@ -1083,8 +1082,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         if (exceptions == 0) {
-                          val newCodecCopy = codecWithKey.duplicate
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                               case string: String => CodecObject.toCodec(string)
@@ -1093,9 +1091,9 @@ private[bsonImpl] object BosonInjectorImpl {
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
                           Try(BosonImpl.inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
-                              ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                              ((codecWithKey + c, codecWithKey + partialCodec), 0)
                             case Failure(_) =>
-                              ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
+                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
@@ -1156,7 +1154,6 @@ private[bsonImpl] object BosonInjectorImpl {
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
-                          //                          val newCodecCopy = codecWithKey.duplicate
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
 
                           //Look inside the curent object for cases that match the user given expression
@@ -1213,21 +1210,26 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         if (exceptions == 0) {
-                          val newCodecCopy = codecWithKey.duplicate
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                               case string: String => CodecObject.toCodec(string)
                             }
                           }
-                          val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
-                          Try(BosonImpl.inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+
+                          val mergedCodec =
+                            if (!statementsList.equals(fullStatementsList))
+                              BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
+                            else
+                              partialCodec
+
+                          Try(BosonImpl.inject(mergedCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
-                              ((codecWithKey + c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                              ((codecWithKey + c, codecWithKey + partialCodec), 0)
                             case Failure(_) =>
-                              ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions + 1)
+                              ((codecWithKey, codecWithKeyCopy), 1)
                           }
-                        } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                        } else ((codecWithKey, codecWithKeyCopy), 1)
                       case _ =>
                         val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
                         (codecTuple, exceptions)
@@ -1282,7 +1284,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                       ((codecWithKey + modifiedPartialCodec, codecWithKeyCopy + modifiedPartialCodec), exceptions)
                     case _ =>
-                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
                 } else
                   throw CustomException("*modifyArrayEnd* Not a Array")

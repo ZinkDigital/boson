@@ -501,7 +501,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         new CodecBson(arg, Some(duplicated))
 
       case SonArray(_, info) =>
-        //      val duplicated = outCodec.copyByteBuf
         val writableByteSeq = info.asInstanceOf[Array[Byte]] //TODO exactly the same as bellow
         duplicated.writeBytes(writableByteSeq)
         new CodecBson(arg, Some(duplicated))
