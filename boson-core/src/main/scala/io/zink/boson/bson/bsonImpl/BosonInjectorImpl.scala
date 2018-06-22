@@ -3,11 +3,10 @@ package io.zink.boson.bson.bsonImpl
 import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
+import io.zink.boson.bson.bsonImpl.BosonImpl.{DataStructure, StatementsList}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
-import BosonImpl.{DataStructure, StatementsList}
-import shapeless.TypeCase
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,7 +38,7 @@ private[bsonImpl] object BosonInjectorImpl {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
         val newCodec = dataType match {
-          case 0 => writeCodec(codecWithDataType, startReader, originalSize) // This is the end
+          case 0 => writeCodec(codecWithDataType, startReader, originalSize)
           case _ =>
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
 
@@ -904,7 +903,6 @@ private[bsonImpl] object BosonInjectorImpl {
                 //expections.clear()
                 if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
@@ -1030,12 +1028,11 @@ private[bsonImpl] object BosonInjectorImpl {
                           ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
                         if (exceptions == 0) {
-                          val newCodecCopy = codecWithKey.duplicate
-                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)) match {
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
                             case Success(tuple) =>
                               (tuple, exceptions)
                             case Failure(_) =>
-                              ((codecWithKey, newCodecCopy), exceptions + 1)
+                              ((codecWithKey, codecWithKey), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                     }
@@ -1151,8 +1148,8 @@ private[bsonImpl] object BosonInjectorImpl {
 
                           //TODO HERE this wont corectly tell the until range, does not know the last element
                           Try(modifierEnd(mergedCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match { //emptyCodec.duplicate
-                            case Success(_) => ((codecWithKey, codecWithKeyCopy), exceptions)
-                            //((codecWithKey + tuple._1, newCodecCopy + tuple._2), exceptions)
+                            case Success(_) =>
+                              ((codecWithKey, codecWithKeyCopy), exceptions)
                             case Failure(_) =>
                               ((codecWithKey + mergedCodec, codecWithKey + mergedCodec), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
                           }
@@ -1314,7 +1311,7 @@ private[bsonImpl] object BosonInjectorImpl {
         if (exceptions == 0)
           codecFinal
         else
-          throw new Exception //TODO - throwing this exception
+          throw new Exception
     }
   }
 
