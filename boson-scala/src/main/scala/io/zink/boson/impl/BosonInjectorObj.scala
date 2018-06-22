@@ -15,9 +15,18 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
                                                                                   gen: LabelledGeneric.Aux[T, R],
                                                                                   extract: extractLabels[R]) extends Boson {
 
-  def convert(tupleList: List[(String, Any)]): T = { //TODO CHANGE THIS
-    println("you're now in the convert function")
-    ???
+  def convert(tupleList: List[(String, Any)]): T = {
+    val modTupleList = List(tupleList)
+    val tupleTypeCase = TypeCase[List[List[(String, Any)]]]
+    val result: Seq[T] =
+      modTupleList match {
+        case tupleTypeCase(vs) =>
+          vs.par.map { elem =>
+            extractLabels.to[T].from[gen.Repr](elem)
+          }.seq.collect { case v if v.nonEmpty => v.get }
+        case _ => Seq.empty[T]
+      }
+    result.head
   }
 
   private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction))(tp, Some(convert))

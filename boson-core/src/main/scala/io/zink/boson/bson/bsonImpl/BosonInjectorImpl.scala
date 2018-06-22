@@ -762,6 +762,7 @@ private[bsonImpl] object BosonInjectorImpl {
       false
   }
 
+
   /**
     * Method that tries to apply the given injector function to a given value
     *
@@ -793,8 +794,16 @@ private[bsonImpl] object BosonInjectorImpl {
 
         case byteArr: Array[Byte] if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T
           val extractedTuples: TupleList = extractTupleList(Left(byteArr))
-          println(extractedTuples)
-          ???
+          val convertFunct = convertFunction.get
+          val convertedValue = convertFunct(extractedTuples)
+          Try(injFunction(convertedValue)) match {
+            case Success(modifiedValue) =>
+              val modifiedTupleList = toTupleList(modifiedValue) //TODO implement encode tuple list  (tupleList -> byteArray or tupleList -> jsonString)
+              ???
+
+            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+          }
+
 
         case byteArr: Array[Byte] =>
           Try(injFunction(new String(byteArr).asInstanceOf[T])) match { //try with the value being a Array[Byte]
@@ -1642,5 +1651,15 @@ private[bsonImpl] object BosonInjectorImpl {
     }
 
     iterateObject(List())
+  }
+
+  private def toTupleList[T](modifiedValue: T): TupleList = {
+    val tupleArray = for { //TODO modified value comming with one extra field
+      field <- modifiedValue.getClass.getDeclaredFields
+    } yield {
+      field.setAccessible(true)
+      (field.getName, field.get(modifiedValue).asInstanceOf[Any])
+    }
+    tupleArray.toList
   }
 }
