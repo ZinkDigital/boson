@@ -12,7 +12,7 @@ import scala.concurrent.Future
 
 class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction), convertFunction = None)
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction))(tp, None)
 
   /**
     * Method that delegates the injection process to Interpreter passing to it the data structure to be used (either a byte array or a String)

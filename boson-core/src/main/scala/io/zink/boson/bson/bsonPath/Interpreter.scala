@@ -21,8 +21,7 @@ import scala.util.{Failure, Success}
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
-                     fExt: Option[T => Unit] = None,
-                     convertFunction: Option[Any => T] = None)(implicit tCase: Option[TypeCase[T]]) {
+                     fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
     case Success(result) => result
@@ -161,9 +160,7 @@ class Interpreter[T](expression: String,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(bsonEncoded: Either[Array[Byte], String]): Any = {
-    if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
-  }
+  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
 
   /**
     * Method that initiates the process of extraction based on a Statement list provided by the parser.

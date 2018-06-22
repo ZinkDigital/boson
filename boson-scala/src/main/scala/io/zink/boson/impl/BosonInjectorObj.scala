@@ -15,11 +15,12 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
                                                                                   gen: LabelledGeneric.Aux[T, R],
                                                                                   extract: extractLabels[R]) extends Boson {
 
-  def convert(value: Any): T = { //TODO CHANGE THIS
+  def convert(tupleList: List[(String, Any)]): T = { //TODO CHANGE THIS
+    println("you're now in the convert function")
     ???
   }
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction), convertFunction = Some(convert))
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction))(tp, Some(convert))
 
 
   /**

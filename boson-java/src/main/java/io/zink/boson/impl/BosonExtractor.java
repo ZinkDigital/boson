@@ -74,7 +74,7 @@ public class BosonExtractor<T> implements Boson {
             }
             Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(retainedClassOpt.get());
             TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
-            interpreter = new Interpreter<>(expression, Option.empty(), Option.apply(anon), Option.empty(), Option.apply(typeCase));
+            interpreter = new Interpreter<>(expression, Option.empty(), Option.apply(anon), Option.apply(typeCase), Option.empty());
         } else {
             typeIsClass = false;
             interpreter = new Interpreter<>(expression, Option.empty(), Option.apply(anon), Option.empty(), Option.empty());

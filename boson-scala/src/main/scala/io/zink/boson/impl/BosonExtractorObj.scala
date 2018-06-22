@@ -29,7 +29,7 @@ class BosonExtractorObj[T, R <: HList](expression: String,
                                         extract: extractLabels[R],
                                         tp: Option[TypeCase[T]]) extends Boson {
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fExt = extractFunction)
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fExt = extractFunction)(tp, None)
 
   /**
     * CallParse instantiates the parser where a set of rules is verified and if the parsing is successful it returns a list of

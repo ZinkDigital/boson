@@ -125,7 +125,7 @@ object BosonImpl {
     * @tparam T - The type of the input and output of the injection function
     * @return a new codec with the changes applied to it
     */
-  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T): Codec = {
+  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
     val codec: Codec = dataStructure match {
       case Right(jsonString) => CodecObject.toCodec(jsonString)
       case Left(byteBuf) => CodecObject.toCodec(byteBuf)

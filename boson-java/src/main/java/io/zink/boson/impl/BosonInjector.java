@@ -70,7 +70,7 @@ public class BosonInjector<T> implements Boson {
             }
             Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(retainedClassOpt.get());
             TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
-            this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.apply(typeCase));
+            this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.apply(typeCase), Option.empty());
         } else {
             typeIsClass = false;
             this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.empty());
