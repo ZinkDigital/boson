@@ -1106,6 +1106,32 @@ class NewInjectorsTests extends FunSuite {
     assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
   }
 
+  test("Case case injection - [0 until end]") {
+    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
+
+    val ex = ".store.books[0 until end].book"
+    val bsonInj = Boson.injector(ex, (in: Book) => {
+      Book(in.name, in.pages + 100)
+    })
+    val bsonEncoded = storBson.encodeToBarray
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book2.encodeToBarray()))
+  }
+
+  test("Case case injection - [end]") {
+    val expected = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+
+    val ex = ".store.books[end].book"
+    val bsonInj = Boson.injector(ex, (in: Book) => {
+      Book(in.name, in.pages + 100)
+    })
+    val bsonEncoded = storBson.encodeToBarray
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book.encodeToBarray()))
+  }
+
   //  test("Double dot key case case injection") { // TODO Correct this case, problem with the length 7040879
   //    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
   //    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
