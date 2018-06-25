@@ -51,7 +51,7 @@ private[bsonImpl] object BosonInjectorImpl {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT) else SonArray(CS_ARRAY)
+                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
                         val partialData = codec.readToken(token) match {
                           case SonObject(_, result) => result match {
                             case byteBuf: ByteBuf => Left(byteBuf)
@@ -64,7 +64,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         }
                         val partialCodec = BosonImpl.inject(partialData, statementsList, injFunction)
                         val mergedCodecs = codecWithKey + partialCodec
-                        codec.setReaderIndex(codec.getReaderIndex + partialCodec.getSize + 1) //Skip the bytes that the subcodec already read
+                        codec.setReaderIndex(codec.getReaderIndex + partialCodec.getSize + 1) //TODO rethink this case//Skip the bytes that the subcodec already read
                         modifierAll(codec, mergedCodecs, dataType, injFunction)
                       case _ =>
                         modifierAll(codec, codecWithKey, dataType, injFunction)

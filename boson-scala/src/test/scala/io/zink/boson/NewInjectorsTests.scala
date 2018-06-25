@@ -1049,94 +1049,40 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
   //  }
 
-  test("Key case class injection") {
-    val book = new BsonObject().put("name", "Title1").put("pages", 1)
-    val bson = new BsonObject().put("book", book)
-
-    val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
-
-    val ex = ".book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book("LOTR", 320)
-    })
-    val bsonEncoded = bson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue containsSlice expected)
-  }
-
-  test("Multiple key case case injection") {
-    val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
-
-    val ex = ".store.books[0].book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book("LOTR", 320)
-    })
-    val bsonEncoded = storBson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book2.encodeToBarray()))
-  }
-
-  test("Case case injection - [all]") {
-    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
-    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
-
-    val ex = ".store.books[all].book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val bsonEncoded = storBson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
-  }
-
-  test("Case case injection - [0 to end]") {
-    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
-    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
-
-    val ex = ".store.books[0 to end].book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val bsonEncoded = storBson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
-  }
-
-  test("Case case injection - [0 until end]") {
-    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
-
-    val ex = ".store.books[0 until end].book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val bsonEncoded = storBson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book2.encodeToBarray()))
-  }
-
-  test("Case case injection - [end]") {
-    val expected = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
-
-    val ex = ".store.books[end].book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val bsonEncoded = storBson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book.encodeToBarray()))
-  }
-
-  //  test("Double dot key case case injection") { // TODO Correct this case, problem with the length 7040879
+  //  test("Key case class injection") {
+  //    val book = new BsonObject().put("name", "Title1").put("pages", 1)
+  //    val bson = new BsonObject().put("book", book)
+  //
+  //    val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
+  //
+  //    val ex = ".book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book("LOTR", 320)
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue containsSlice expected)
+  //  }
+  //
+  //  test("Multiple key case case injection") {
+  //    val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
+  //
+  //    val ex = ".store.books[0].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book("LOTR", 320)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book2.encodeToBarray()))
+  //  }
+  //
+  //  test("Case case injection - [all]") {
   //    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
   //    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
   //
-  //    val ex = "..book"
+  //    val ex = ".store.books[all].book"
   //    val bsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
@@ -1145,6 +1091,114 @@ class NewInjectorsTests extends FunSuite {
   //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
   //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
   //  }
+  //
+  //  test("Case case injection - [0 to end]") {
+  //    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
+  //    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+  //
+  //    val ex = ".store.books[0 to end].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
+  //  }
+  //
+  //  test("Case case injection - [0 until end]") {
+  //    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
+  //
+  //    val ex = ".store.books[0 until end].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book2.encodeToBarray()))
+  //  }
+  //
+  //  test("Case case injection - [end]") {
+  //    val expected = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+  //
+  //    val ex = ".store.books[end].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book.encodeToBarray()))
+  //  }
+  //
+  //  test("Case case injection - [1]") {
+  //    val expected = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+  //
+  //    val ex = ".store.books[1].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book.encodeToBarray()))
+  //  }
+  //
+  //  test("Case case injection - ..books[1]") {
+  //    val expected = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+  //
+  //    val ex = "..books[1].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(book.encodeToBarray()))
+  //  }
+  //
+  //  test("Case case injection - .store.books[@book]") {
+  //    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
+  //    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+  //
+  //    val ex = ".store.books[@book]"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
+  //  }
+
+  //  test("Case case injection - ..books[@book]") {
+  //    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
+  //    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+  //
+  //    val ex = "..books[@book]"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val bsonEncoded = storBson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
+  //  }
+
+  test("Double dot key case case injection") { // TODO Correct this case, problem with setting reader index
+    val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
+    val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
+
+    val ex = "..book"
+    val bsonInj = Boson.injector(ex, (in: Book) => {
+      Book(in.name, in.pages + 100)
+    })
+    val bsonEncoded = storBson.encodeToBarray
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
+  }
 
   //  test("Key with Array Exp ..[0] - Double Dots") {
   //    val expr = "..[0]"
