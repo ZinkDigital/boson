@@ -3,12 +3,11 @@ package io.zink.boson.bson.bsonImpl
 import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
-
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-
+import io.zink.boson.bson.bsonImpl.bsonLib.BsonObject
 
 import scala.util.{Failure, Success, Try}
 
@@ -791,14 +790,15 @@ private[bsonImpl] object BosonInjectorImpl {
             case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
           }
 
-        case byteArr: Array[Byte] if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T
+        case byteArr: Array[Byte] if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T TODO support JSON string as well
           val extractedTuples: TupleList = extractTupleList(Left(byteArr))
           val convertFunct = convertFunction.get
           val convertedValue = convertFunct(extractedTuples)
           Try(injFunction(convertedValue)) match {
             case Success(modifiedValue) =>
-              val modifiedTupleList = toTupleList(modifiedValue) //TODO implement encode tuple list  (tupleList -> byteArray or tupleList -> jsonString)
-              ???
+              val modifiedTupleList = toTupleList(modifiedValue)
+              val modifiedByteArr = encodeTupleList(modifiedTupleList)
+              modifiedByteArr.asInstanceOf[T]
 
             case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
           }
@@ -1607,7 +1607,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param value - Object of type T encoded in a array of bytes
     * @return a List of tuples containing the name of a field of the object the value for that field
     */
-  private def extractTupleList(value: Either[Array[Byte], String]): TupleList = { //TODO SUPPORT CODECJSON
+  private def extractTupleList(value: Either[Array[Byte], String]): TupleList = {
     val codec: Codec = value match {
       case Left(byteArr) => CodecObject.toCodec(Unpooled.buffer(byteArr.length).writeBytes(byteArr))
 
@@ -1655,13 +1655,36 @@ private[bsonImpl] object BosonInjectorImpl {
     iterateObject(List())
   }
 
+  /**
+    * Private method that iterates through the fields of a given object and creates a list of tuple from the field names
+    * and field values
+    *
+    * @param modifiedValue - the object to be iterated
+    * @tparam T - The type T of the object to be iterated
+    * @return A list of tuples consisting in pairs of field names and field values
+    */
   private def toTupleList[T](modifiedValue: T): TupleList = {
-    val tupleArray = for { //TODO modified value comming with one extra field
-      field <- modifiedValue.getClass.getDeclaredFields
+    val tupleArray = for {
+      field <- modifiedValue.getClass.getDeclaredFields //Iterate through this object's fields
+      if !field.getName.equals("$outer") //remove shapeless add $outer param
     } yield {
-      field.setAccessible(true)
+      field.setAccessible(true) //make this object accessible so we can get its value
       (field.getName, field.get(modifiedValue).asInstanceOf[Any])
     }
     tupleArray.toList
+  }
+
+  /**
+    * Private method that receives a list of tuples and encodes them into a byte array or Json String (to be implemented)
+    *
+    * @param tupleList - List of tuples to be encoded
+    * @return An array of bytes representing the encoded list of tuples
+    */
+  private def encodeTupleList(tupleList: TupleList): Array[Byte] = {
+    val encodedObject = new BsonObject()
+    tupleList.foreach { case (fieldName, fieldValue) =>
+      encodedObject.put(fieldName, fieldValue)
+    }
+    encodedObject.encodeToBarray() //TODO support CodecJson maybe return (encodedObjects.encodeToBarray(), encodedObject.encodeToString())
   }
 }
