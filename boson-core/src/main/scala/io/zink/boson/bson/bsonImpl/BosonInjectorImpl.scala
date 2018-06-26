@@ -1003,8 +1003,8 @@ private[bsonImpl] object BosonInjectorImpl {
                         }
 
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) = Try(BosonImpl.inject(codecData, statementsList.drop(1), injFunction)) match {
-                          case Success(successCodec) => ((currentCodec + successCodec, currentCodec + partialCodec), exceptions)
-                          case Failure(_) => ((currentCodec + partialCodec, currentCodec + partialCodec), exceptions + 1)
+                          case Success(successCodec) => ((codecWithKey + successCodec, codecWithKeyCopy + partialCodec), exceptions)
+                          case Failure(_) => ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), exceptions + 1)
                         }
                         (codecTuple, exceptionsReturn)
                       case _ =>
@@ -1097,9 +1097,10 @@ private[bsonImpl] object BosonInjectorImpl {
                             }
                           }
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
-                          Try(BosonImpl.inject(modifiedPartialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+                          val subCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
+                          Try(BosonImpl.inject(subCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
-                              ((codecWithKey + c, codecWithKey + partialCodec), 0)
+                              ((codecWithKey + subCodec, codecWithKey + partialCodec), 0)
                             case Failure(_) =>
                               ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
                           }
