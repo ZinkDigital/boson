@@ -132,7 +132,7 @@ class CodecJson(str: String) extends Codec {
           SonNull(request, V_NULL)
       }
     case SonBoolean(request, _) =>
-      val subStr1 = if (getNextBoolean.equals(CS_TRUE)) 1 else 0
+      val subStr1 : Byte= if (getNextBoolean.equals(CS_TRUE)) 1 else 0
       SonBoolean(request, subStr1)
   }
 
@@ -203,7 +203,7 @@ class CodecJson(str: String) extends Codec {
           SonNull(request, V_NULL)
       }
     case SonBoolean(request, _) =>
-      val subStr1 = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
+      val subStr1 : Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
       SonBoolean(request, subStr1)
   }
 

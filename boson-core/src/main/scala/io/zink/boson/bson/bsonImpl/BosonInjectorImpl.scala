@@ -526,7 +526,9 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)) match {
-          case SonBoolean(_, data) => data.asInstanceOf[Boolean]
+          case SonBoolean(_, data) => data match {
+            case byte : Byte => byte == 1
+          }
         }
         applyFunction(injFunction, value0) match {
           case value: Boolean => codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value))
@@ -625,7 +627,9 @@ private[bsonImpl] object BosonInjectorImpl {
     case D_BOOLEAN =>
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
       val value0: Boolean = token match {
-        case SonBoolean(_, data) => data.asInstanceOf[Boolean]
+        case SonBoolean(_, data) => data match {
+          case byte : Byte => byte == 1
+        }
       }
       val resCodec = applyFunction(injFunction, value0) match {
         case tkn: Boolean => codec.writeToken(codecRes, SonBoolean(CS_BOOLEAN, tkn))
@@ -1653,7 +1657,9 @@ private[bsonImpl] object BosonInjectorImpl {
 
               case D_LONG => codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info.asInstanceOf[Long]
 
-              case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info.asInstanceOf[Boolean]
+              case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
+                case byte :Byte => byte == 1
+              }
 
               case D_NULL => ??? //TODO should we return a null here ?
             }
