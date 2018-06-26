@@ -984,8 +984,11 @@ private[bsonImpl] object BosonInjectorImpl {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
-                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY)) match {
-                          case SonArray(_, value) => value.asInstanceOf[DataStructure]
+                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          case SonArray(_, value) => value match {
+                            case byteBuff : ByteBuf => Left(byteBuff)
+                            case jsonString : String => Right(jsonString)
+                          }
                         }
 
                         val codecData =
