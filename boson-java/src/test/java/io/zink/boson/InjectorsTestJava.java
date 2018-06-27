@@ -47,7 +47,7 @@ public class InjectorsTestJava {
      */
     private void printArray(byte[] arr) {
         for (byte b : arr) {
-            System.out.println(b + " ");
+            System.out.print(b + " ");
         }
     }
 
@@ -686,6 +686,7 @@ public class InjectorsTestJava {
         byte[] bsonEncoded = storeBson.encodeToBarray();
         bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
             printArray(resultValue);
+            System.out.println("\n");
             printArray(storeBsonExpected.encodeToBarray());
             assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
         }).join();
