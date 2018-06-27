@@ -412,7 +412,10 @@ private[bsonImpl] object BosonInjectorImpl {
       codecToReturn
 
     case D_BOOLEAN =>
-      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+      val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
+        case byte: Byte => byte == 1
+      }
+      val codecToReturn = codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN, value0))
       codecToReturn.removeEmptySpace
       codecToReturn
 
@@ -457,7 +460,10 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_LONG =>
         codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
       case D_BOOLEAN =>
-        codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
+          case byte: Byte => byte == 1
+        }
+        codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value0))
     }
   }
 
@@ -527,7 +533,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)) match {
           case SonBoolean(_, data) => data match {
-            case byte : Byte => byte == 1
+            case byte: Byte => byte == 1
           }
         }
         applyFunction(injFunction, value0) match {
@@ -628,7 +634,7 @@ private[bsonImpl] object BosonInjectorImpl {
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
       val value0: Boolean = token match {
         case SonBoolean(_, data) => data match {
-          case byte : Byte => byte == 1
+          case byte: Byte => byte == 1
         }
       }
       val resCodec = applyFunction(injFunction, value0) match {
@@ -726,7 +732,11 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
 
-      case D_BOOLEAN => codec.writeToken(currentResCodec, codec.readToken(SonBoolean(CS_BOOLEAN)))
+      case D_BOOLEAN =>
+        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
+          case byte: Byte => byte == 1
+        }
+        codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value0))
     }
   }
 
@@ -990,8 +1000,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                           case SonArray(_, value) => value match {
-                            case byteBuff : ByteBuf => Left(byteBuff)
-                            case jsonString : String => Right(jsonString)
+                            case byteBuff: ByteBuf => Left(byteBuff)
+                            case jsonString: String => Right(jsonString)
                           }
                         }
 
@@ -1425,8 +1435,10 @@ private[bsonImpl] object BosonInjectorImpl {
         (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
 
       case D_BOOLEAN =>
-        val token = codec.readToken(SonBoolean(CS_BOOLEAN))
-        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
+          case byte: Byte => byte == 1
+        }
+        (codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN, value0)), codec.writeToken(resultCodecCopy, SonBoolean(CS_BOOLEAN, value0)))
     }
   }
 
@@ -1658,7 +1670,7 @@ private[bsonImpl] object BosonInjectorImpl {
               case D_LONG => codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info.asInstanceOf[Long]
 
               case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
-                case byte :Byte => byte == 1
+                case byte: Byte => byte == 1
               }
 
               case D_NULL => ??? //TODO should we return a null here ?

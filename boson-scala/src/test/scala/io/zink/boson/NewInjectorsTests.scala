@@ -1334,7 +1334,7 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
   //  }
 
-  test("Multiple key case case injection - Book1") { //TODO implement case class with Instant
+  test("Multiple key case case injection - Book1") {
     val expected = new BsonObject().put("pages", 10.0).put("someLong", 10L).put("someBoolean", false).encodeToBarray()
 
     val ex = ".store.books[0].book"
@@ -1345,6 +1345,21 @@ class NewInjectorsTests extends FunSuite {
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
     assert(resultValue.containsSlice(expected))
+  }
+
+  test("Double dot key injection - Book1") {
+    val expected = new BsonObject().put("pages", 2.0).put("someLong", 2L).put("someBoolean", false).encodeToBarray
+    val expected2 = new BsonObject().put("pages", 46.20).put("someLong", 200000L).put("someBoolean", true).encodeToBarray
+    val expected3 = new BsonObject().put("pages", -6.0).put("someLong", 1578912L).put("someBoolean", false).encodeToBarray
+
+    val ex = "..book"
+    val bsonInj = Boson.injector(ex, (in: Book1) => {
+      Book1(in.pages * 2, in.someLong * 2L, !in.someBoolean)
+    })
+    val bsonEncoded = storeBsonAux.encodeToBarray
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2) && resultValue.containsSlice(expected3))
   }
   //
   //  test("Key with Array Exp ..[0] - Double Dots") {
