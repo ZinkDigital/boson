@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +22,9 @@ import java.util.function.Function;
 
 import io.zink.boson.bson.bsonPath.Interpreter;
 import scala.Some;
+import scala.Tuple2;
+import scala.collection.immutable.Seq;
+import scala.collection.immutable.Seq$;
 import scala.util.Left$;
 import scala.util.Right$;
 import shapeless.TypeCase;
@@ -70,7 +75,18 @@ public class BosonInjector<T> implements Boson {
             }
             Typeable<T> typeable = Typeable$.MODULE$.simpleTypeable(retainedClassOpt.get());
             TypeCase<T> typeCase = TypeCase$.MODULE$.apply(typeable);
-            this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.apply(typeCase), Option.empty());
+            if (typeIsClass) {
+                Function1<scala.collection.immutable.List<Tuple2<String, Object>>, T> convertFunction = new Function1<scala.collection.immutable.List<Tuple2<String, Object>>, T>() {
+                    @Override
+                    public T apply(scala.collection.immutable.List<Tuple2<String, Object>> v1) {
+                        return InstantiateExtractedObject(v1);
+                    }
+                };
+                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.apply(typeCase),
+                        Option.apply(convertFunction));
+            } else {
+                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.apply(typeCase), Option.empty());
+            }
         } else {
             typeIsClass = false;
             this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.empty());
@@ -148,6 +164,103 @@ public class BosonInjector<T> implements Boson {
         return CompletableFuture.supplyAsync(() -> {
             return runInterpreter(bsonByteEncoding);
         });
+    }
+
+    //validates keys and value types of given class with extracted object
+    private Boolean compareKeysAndTypes(ArrayList<Tuple2<String, Object>> list, List<String> _keyNames, List<Class<?>> _keyTypes) {
+        Boolean flag = false;
+        for (int i = 0; i < _keyNames.size(); i++) {
+            Tuple2<String, Object> elem = list.get(i);
+            if (elem._1.toLowerCase().equals(_keyNames.get(i).toLowerCase())) {
+                if (elem._2.getClass().equals(_keyTypes.get(i)) || (_keyTypes.get(i).getSimpleName().equals("int") && elem._2.getClass().getSimpleName().equals("Integer"))) {
+                    flag = true;
+                } else if (elem._2.getClass().equals(ArrayList.class)) {
+                    List<String> kNames = new LinkedList<>();
+                    List<Class<?>> kTypes = new LinkedList<>();
+                    Constructor cons = _keyTypes.get(i).getDeclaredConstructors()[0];
+                    cons.setAccessible(true);
+                    Field[] _fields = _keyTypes.get(i).getDeclaredFields();
+                    for (Field field : _fields) {
+                        kNames.add(field.getName());
+                        kTypes.add(field.getType());
+                    }
+                    flag = compareKeysAndTypes((ArrayList<Tuple2<String, Object>>) elem._2, kNames, kTypes);
+                } else flag = false;
+            } else flag = false;
+        }
+        return flag;
+    }
+
+    // Verifies if all keys and types are valid and triggers construction
+    private Object triggerConstruction(Boolean allKeysAndTypesMatch, ArrayList<Tuple2<String, Object>> list, Class<?> outterClass, List<Class<?>> _keyTypes) {
+        if (allKeysAndTypesMatch) {
+            Object obj = instantiateClasses(list, outterClass, _keyTypes);
+            return obj;
+        }
+        return null;
+    }
+
+    //triggers the process of construction
+    private T InstantiateExtractedObject(scala.collection.immutable.List<Tuple2<String, Object>> _SeqOfTuplesList) {
+        Object finalObj = null;
+        Seq<scala.collection.immutable.List<Tuple2<String, Object>>> scalaList = (Seq<scala.collection.immutable.List<Tuple2<String, Object>>>) Seq$.MODULE$.apply(_SeqOfTuplesList);
+        List<scala.collection.immutable.List<Tuple2<String, Object>>> seqOfTuplesList = scala.collection.JavaConverters.seqAsJavaList(scalaList);
+        LinkedList<ArrayList<Tuple2<String, Object>>> javaList = new LinkedList<>();
+        for (int i = 0; i < seqOfTuplesList.size(); i++) { // each iteration represents one extracted object
+            javaList.add(convertLists(seqOfTuplesList.get(i)));
+            Boolean allKeysAndTypesMatch = compareKeysAndTypes(javaList.get(i), keyNames, keyTypes);
+            finalObj = triggerConstruction(allKeysAndTypesMatch, javaList.get(i), clazz, keyTypes);
+        }
+        return (T) finalObj;
+    }
+
+    // verifies the existence of nested classes and starts to instantiate them from the inside to the outside
+    private Object instantiateClasses(ArrayList<Tuple2<String, Object>> list, Class<?> typeClass, List<Class<?>> _keyTypes) {
+        Object instance = null;
+        Object innerInstance;
+        List<Class<?>> kTypes = new LinkedList<>();
+        ArrayList<Object> values = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i)._2 instanceof ArrayList) {
+                Field[] _fields = _keyTypes.get(i).getDeclaredFields();
+                for (Field field : _fields) {
+                    kTypes.add(field.getType());
+                }
+                innerInstance = instantiateClasses((ArrayList<Tuple2<String, Object>>) list.get(i)._2, _keyTypes.get(i), kTypes);
+                values.add(innerInstance);
+            } else {
+                values.add(list.get(i)._2);
+            }
+        }
+        Constructor cons = typeClass.getDeclaredConstructors()[0];
+        cons.setAccessible(true);
+        try {
+            instance = cons.newInstance(values.toArray());
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Going out of instantiateInnerClasses");
+        return instance;
+    }
+
+    /**
+     * Convert scala lists into java lists
+     *
+     * @param scalaList - scala list to be converted
+     * @return Return the converted java list
+     */
+    private java.util.ArrayList<Tuple2<String, Object>> convertLists(scala.collection.immutable.List<Tuple2<String, Object>> scalaList) {
+        List<Tuple2<String, Object>> globalList = scala.collection.JavaConverters.seqAsJavaList(scalaList);
+        ArrayList<Tuple2<String, Object>> scndList = new ArrayList<>();
+        for (int i = 0; i < globalList.size(); i++) {
+            Tuple2<String, Object> elem = globalList.get(i);
+            if (elem._2 instanceof scala.collection.immutable.List) {
+                scndList.add(new Tuple2<>(elem._1, convertLists((scala.collection.immutable.List<Tuple2<String, Object>>) elem._2)));
+            } else {
+                scndList.add(elem);
+            }
+        }
+        return scndList;
     }
 
     /**
