@@ -1,5 +1,6 @@
 package io.zink.boson;
 
+import bsonLib.Bson;
 import bsonLib.BsonArray;
 import bsonLib.BsonObject;
 import org.junit.Test;
@@ -27,6 +28,16 @@ public class InjectorsTestJava {
     private final BsonObject bsonEvent = new BsonObject().put("person", bsonHuman).put("alien", bsonAlien);
     private final BsonObject bsonSpeciesObj = new BsonObject().put("species", bsonEvent);
     private final byte[] bsonSpeciesEncoded = bsonSpeciesObj.encodeToBarray();
+
+    private BsonObject book = new BsonObject().put("name", "Title1").put("pages", 1);
+    private BsonObject bsonBook = new BsonObject().put("book", book);
+
+    private BsonObject book2 = new BsonObject().put("name", "Some book").put("pages", 123);
+    private BsonObject bsonBook2 = new BsonObject().put("book", book2);
+
+    private BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2);
+    private BsonObject store = new BsonObject().put("books", books);
+    private BsonObject storeBson = new BsonObject().put("store", store);
 
 
     /**
@@ -653,6 +664,30 @@ public class InjectorsTestJava {
 
         boson.go(bsonBook.encodeToBarray()).thenAccept(resultValue -> {
             assertArrayEquals(resultValue, expectedBsonbook);
+        }).join();
+    }
+
+    @Test
+    public void MultipleKeyClassInjection() {   //TODO FIX THIS TEST
+        BsonObject expectedBook = new BsonObject().put("name", "LOTR").put("pages", 320);
+        BsonObject bsonBook = new BsonObject().put("book", expectedBook);
+
+        BsonObject book2 = new BsonObject().put("name", "Some book").put("pages", 123);
+        BsonObject bsonBook2 = new BsonObject().put("book", book2);
+
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeBsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[0].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux("LOTR", 320);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            printArray(resultValue);
+            printArray(storeBsonExpected.encodeToBarray());
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
         }).join();
     }
 }

@@ -715,8 +715,6 @@ class NewInjectorsTests extends FunSuite {
     assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(32, 0, 0, 0)) && (resultValue containsSlice Array(10, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   }
 
-  //TODO - From here!
-
   test("Nested key injection ..[0].age - Single Dots") {
     val person1 = new BsonObject().put("name", "john doe").put("age", 21)
     val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
@@ -1063,7 +1061,7 @@ class NewInjectorsTests extends FunSuite {
     assert(resultValue containsSlice expected)
   }
 
-  test("Multiple key case case injection") {
+  test("Multiple key case class injection") {
     val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
 
     val ex = ".store.books[0].book"
@@ -1251,7 +1249,7 @@ class NewInjectorsTests extends FunSuite {
     assert(resultValue.containsSlice(expected))
   }
 
-  test("Case class injection - arr expresion ..[0 to end]") { //TODO ON HOLD
+  test("Case class injection - arr expresion ..[0 to end]") {
     val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
     val expected2 = new BsonObject().put("name", "Some book").put("pages", 223).encodeToBarray
 
@@ -1265,7 +1263,7 @@ class NewInjectorsTests extends FunSuite {
     assert(resultValue.containsSlice(expected) && resultValue.containsSlice(expected2))
   }
 
-  test("Case class injection - arr expresion ..[0 until end]") { //TODO ON HOLD
+  test("Case class injection - arr expresion ..[0 until end]") {
     val expected = new BsonObject().put("name", "Title1").put("pages", 101).encodeToBarray
 
     val ex = "..[0 until end].book"
