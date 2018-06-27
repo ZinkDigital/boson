@@ -185,7 +185,6 @@ public class BosonExtractor<T> implements Boson {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        System.out.println("Going out of instantiateInnerClasses");
         return instance;
     }
 

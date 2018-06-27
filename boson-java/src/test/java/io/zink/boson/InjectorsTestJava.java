@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import java.time.Instant;
 
 public class InjectorsTestJava {
+
     private final BsonObject johnDoeBson = new BsonObject().put("name", "John Doe").put("age", 21);
     private final BsonObject janeDoeBson = new BsonObject().put("name", "Jane Doe").put("age", 12);
     private final BsonArray personsArray = new BsonArray().add(johnDoeBson).add(janeDoeBson);
@@ -636,5 +637,48 @@ public class InjectorsTestJava {
         boson.go(bson.encodeToBarray()).thenAccept(resultValue -> {
             assertArrayEquals(resultValue, expectedBson.encodeToBarray());
         }).join();
+    }
+
+    @Test
+    public void classkeyInjection() {
+        String ex = ".book";
+        BsonObject book = new BsonObject().put("name", "Title1").put("pages", 1);
+        BsonObject bsonBook = new BsonObject().put("book", book);
+        BsonObject expectedBook = new BsonObject().put("name", "TITLE1").put("pages", 2);
+        byte[] expectedBsonbook = new BsonObject().put("book", expectedBook).encodeToBarray();
+
+        Boson boson = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName().toUpperCase(), in.getPages() * 2);
+        });
+
+        boson.go(bsonBook.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, expectedBsonbook);
+        }).join();
+    }
+}
+
+class BookAux {
+    private String name;
+    private int pages;
+
+    public BookAux(String name, int pages) {
+        this.name = name;
+        this.pages = pages;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getPages() {
+        return pages;
+    }
+
+    public void setPages(int pages) {
+        this.pages = pages;
     }
 }

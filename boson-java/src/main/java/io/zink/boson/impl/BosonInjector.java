@@ -23,6 +23,8 @@ import java.util.function.Function;
 import io.zink.boson.bson.bsonPath.Interpreter;
 import scala.Some;
 import scala.Tuple2;
+import scala.collection.immutable.Nil;
+import scala.collection.immutable.Nil$;
 import scala.collection.immutable.Seq;
 import scala.collection.immutable.Seq$;
 import scala.util.Left$;
@@ -203,8 +205,11 @@ public class BosonInjector<T> implements Boson {
     //triggers the process of construction
     private T InstantiateExtractedObject(scala.collection.immutable.List<Tuple2<String, Object>> _SeqOfTuplesList) {
         Object finalObj = null;
-        Seq<scala.collection.immutable.List<Tuple2<String, Object>>> scalaList = (Seq<scala.collection.immutable.List<Tuple2<String, Object>>>) Seq$.MODULE$.apply(_SeqOfTuplesList);
-        List<scala.collection.immutable.List<Tuple2<String, Object>>> seqOfTuplesList = scala.collection.JavaConverters.seqAsJavaList(scalaList);
+        scala.collection.mutable.ListBuffer<scala.collection.immutable.List<Tuple2<String, Object>>> wrapper = new scala.collection.mutable.ListBuffer<scala.collection.immutable.List<Tuple2<String, Object>>>();
+        wrapper.$plus$eq(_SeqOfTuplesList);
+        List<scala.collection.immutable.List<Tuple2<String, Object>>> seqOfTuplesList = scala.collection.JavaConverters.seqAsJavaList(wrapper);
+
+//        ArrayList<List<scala.collection.immutable.List<Tuple2<String, Object>>>> listWrapper = new ArrayList<>();
         LinkedList<ArrayList<Tuple2<String, Object>>> javaList = new LinkedList<>();
         for (int i = 0; i < seqOfTuplesList.size(); i++) { // each iteration represents one extracted object
             javaList.add(convertLists(seqOfTuplesList.get(i)));
@@ -239,7 +244,6 @@ public class BosonInjector<T> implements Boson {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-        System.out.println("Going out of instantiateInnerClasses");
         return instance;
     }
 
