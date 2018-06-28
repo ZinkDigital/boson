@@ -41,7 +41,8 @@ private[bsonImpl] object BosonInjectorImpl {
         val dataType: Int = codec.readDataType
         val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
         val newCodec = dataType match {
-          case 0 => writeCodec(codecWithDataType, startReader, originalSize)
+          case 0 =>
+            writeCodec(codecWithDataType, startReader, originalSize)
           case _ =>
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
 
@@ -101,9 +102,14 @@ private[bsonImpl] object BosonInjectorImpl {
                   } else {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction)
+                        val codecData: DataStructure = codec.getCodecData
+                        val subCodec = BosonImpl.inject(codecData, statementsList.drop(1), injFunction)
                         val mergedCodecs = codecWithKey + subCodec
-                        codec.setReaderIndex(codec.getReaderIndex + subCodec.getSize + 1) //Skip the bytes that the subcodec already read
+                        val codecFromData : Codec = codecData match {
+                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+                          case Right(jsonString) => CodecObject.toCodec(jsonString)
+                        }
+                        codec.setReaderIndex(codecFromData.getReaderIndex) //Skip the bytes that the subcodec already read
                         mergedCodecs
                       case _ => processTypesArray(dataType, codec, codecWithKey)
                     }
@@ -449,7 +455,7 @@ private[bsonImpl] object BosonInjectorImpl {
         }
         codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0.array))
       case D_BSONARRAY =>
-        val value0 = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+        val value0 = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
           case SonArray(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
         }
         codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0.array))
@@ -864,7 +870,7 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
-    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
       case SonArray(_, data) => data match {
         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
         case jsonString: String => CodecObject.toCodec(jsonString)
