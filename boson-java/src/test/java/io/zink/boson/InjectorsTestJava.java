@@ -811,13 +811,127 @@ public class InjectorsTestJava {
 
     @Test
     public void CaseClassInjection_DoubleDot() {
-        String ex = "..books[@book]";
+        String ex = "..book";
         Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
             return new BookAux(in.getName(), in.getPages() + 100);
         });
         byte[] bsonEncoded = storeBson.encodeToBarray();
         bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
             assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_0_DoubleDot() {
+        byte[] booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToBarray();
+        String ex = "..[0].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected);
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_1_DoubleDot() {
+        byte[] booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected).encodeToBarray();
+        String ex = "..[1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected);
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_end_DoubleDot() {
+        byte[] booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected).encodeToBarray();
+        String ex = "..[end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected);
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_first_DoubleDot() {
+        byte[] booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToBarray();
+        String ex = "..[first].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected);
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_0ToEnd_DoubleDot() {
+        String ex = "..[0 to end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_0UntilEnd_DoubleDot() {
+        byte[] booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToBarray();
+        String ex = "..[0 until end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected);
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_0To1_DoubleDot() {
+        String ex = "..[0 to 1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_0Until1_DoubleDot() {
+        byte[] booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToBarray();
+        String ex = "..[0 until 1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected);
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_all_DoubleDot() {
+        String ex = "..[all].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = books.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, booksExpected.encodeToBarray());
         }).join();
     }
 }
