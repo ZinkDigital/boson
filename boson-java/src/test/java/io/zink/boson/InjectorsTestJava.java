@@ -40,6 +40,17 @@ public class InjectorsTestJava {
     private BsonObject storeBson = new BsonObject().put("store", store);
 
 
+    private final BsonObject expected = new BsonObject().put("name", "Title1").put("pages", 101);
+    private final BsonObject bsonBookExpected = new BsonObject().put("book", expected);
+
+    private final BsonObject expected2 = new BsonObject().put("name", "Some book").put("pages", 223);
+    private final BsonObject bsonBook2Expected = new BsonObject().put("book", expected2);
+
+    private final BsonArray booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected);
+    private final BsonObject storeExpected = new BsonObject().put("books", booksExpected);
+    private final BsonObject storeBsonExpected = new BsonObject().put("store", storeExpected);
+
+
     /**
      * Private method to display all elements inside a byte array
      *
@@ -668,12 +679,9 @@ public class InjectorsTestJava {
     }
 
     @Test
-    public void MultipleKeyClassInjection() {   //TODO FIX THIS TEST
+    public void MultipleKeyClassInjection() {
         BsonObject expectedBook = new BsonObject().put("name", "LOTR").put("pages", 320);
         BsonObject bsonBook = new BsonObject().put("book", expectedBook);
-
-        BsonObject book2 = new BsonObject().put("name", "Some book").put("pages", 123);
-        BsonObject bsonBook2 = new BsonObject().put("book", book2);
 
         BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2);
         BsonObject store = new BsonObject().put("books", books);
@@ -685,9 +693,130 @@ public class InjectorsTestJava {
         });
         byte[] bsonEncoded = storeBson.encodeToBarray();
         bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
-            printArray(resultValue);
-            System.out.println("\n");
-            printArray(storeBsonExpected.encodeToBarray());
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_All() {
+        String ex = ".store.books[all].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_0ToEnd() {
+        String ex = ".store.books[0 to end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_0UntilEnd() {
+        BsonArray books = new BsonArray().add(bsonBookExpected).add(bsonBook2);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeBsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[0 until end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_End() {
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2Expected);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeBsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_1() {
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2Expected);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeBsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_ArrExpr_1() {
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2Expected);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeBsonExpected = new BsonObject().put("store", store);
+
+        String ex = "..books[1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_HasElem() {
+        String ex = ".store.books[@book]";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_HasElem_DoubleDot() {
+        String ex = "..books[@book]";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CaseClassInjection_DoubleDot() {
+        String ex = "..books[@book]";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
             assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray());
         }).join();
     }
