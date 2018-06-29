@@ -818,7 +818,7 @@ private[bsonImpl] object BosonInjectorImpl {
         case byteArr: Array[Byte] if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T TODO support JSON string as well
           val extractedTuples: TupleList = extractTupleList(Left(byteArr))
           val convertFunct = convertFunction.get
-          val convertedValue = convertFunct(extractedTuples)  //TODO está a vir a null
+          val convertedValue = convertFunct(extractedTuples)
           Try(injFunction(convertedValue)) match {
             case Success(modifiedValue) =>
               val modifiedTupleList = toTupleList(modifiedValue)

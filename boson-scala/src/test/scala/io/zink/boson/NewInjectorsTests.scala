@@ -294,8 +294,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[0 until 1] modification - Single Dots") {
@@ -308,8 +307,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[1 to end] toUpperCase - Single Dots") {
@@ -322,8 +320,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[1 until end] toUpperCase - Single Dots") {
@@ -336,8 +333,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[end] toUpperCase - Single Dots") {
@@ -350,8 +346,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[all] toUpperCase - Single Dots") {
@@ -364,8 +359,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[first] toUpperCase - Single Dots") {
@@ -378,8 +372,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .Key[1] toUpperCase - Single Dots") {
@@ -392,8 +385,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[0 to 1] modification toUpperCase - Single Dots") {
@@ -405,8 +397,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[0 to end] modification toUpperCase - Single Dots") {
@@ -418,8 +409,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[0 until 1] modification toUpperCase - Single Dots") {
@@ -431,8 +421,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[0 until end] modification toUpperCase - Single Dots") {
@@ -444,8 +433,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[2] modification toUpperCase - Single Dots") {
@@ -457,8 +445,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[all] modification toUpperCase - Single Dots") {
@@ -470,8 +457,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[first] modification toUpperCase - Single Dots") {
@@ -483,8 +469,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp .[end] modification toUpperCase - Single Dots") {
@@ -496,8 +481,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Expr .species.person[0] toUpperCase - No/Double Dots") {
@@ -510,8 +494,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Expr .species.person[0 to 1] toUpperCase - No/Double Dots") {
@@ -524,8 +507,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Expr .species.person[0 until 2] toUpperCase - No/Double Dots") {
@@ -538,8 +520,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Expr .species.alien[all] toUpperCase - No/Double Dots") {
@@ -552,8 +533,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Expr .species.alien[end] toUpperCase - No/Double Dots") {
@@ -566,8 +546,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Expr .species.*[0] toUpperCase - Single Dot/Multiple Layers/Multiple Arrays") {
@@ -581,8 +560,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Nested key injection .client.person[0].age - Single Dots") {
@@ -1033,7 +1011,7 @@ class NewInjectorsTests extends FunSuite {
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
+    assertArrayEquals(resultValue, expectedBson.encodeToBarray())
   }
 
   test("Java Instant injection - HasElem") {
@@ -1056,7 +1034,7 @@ class NewInjectorsTests extends FunSuite {
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert(resultValue.zip(expectedBson.encodeToBarray()).forall(bt => bt._1 == bt._2))
+    assertArrayEquals(resultValue, expectedBson.encodeToBarray())
   }
 
   test("Key case class injection") {
@@ -1387,8 +1365,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[first] - Double Dots") {
@@ -1400,8 +1377,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[all] - Double Dots") {
@@ -1413,8 +1389,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[end] - Double Dots") {
@@ -1426,8 +1401,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[0 to 1] - Double Dots") {
@@ -1439,8 +1413,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[0 until 1] - Double Dots") {
@@ -1452,8 +1425,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[0 to end] - Double Dots") {
@@ -1465,8 +1437,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 
   test("Key with Array Exp ..[0 until end] - Double Dots") {
@@ -1478,7 +1449,6 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = bsonInj.go(bsonHuman.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    val equals = expectedEncoded.zip(result).forall(bt => bt._1 == bt._2)
-    assert(equals)
+    assertArrayEquals(result, expectedEncoded)
   }
 }
