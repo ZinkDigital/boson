@@ -51,6 +51,19 @@ public class InjectorsTestJava {
     private final BsonObject storeBsonExpected = new BsonObject().put("store", storeExpected);
 
 
+    private final BsonObject bookAux = new BsonObject().put("pages", 1.0).put("someLong", 1L).put("someBoolean", true);
+    private final BsonObject bookAux2 = new BsonObject().put("pages", 23.10).put("someLong", 100000L).put("someBoolean", false);
+    private final BsonObject bookAux3 = new BsonObject().put("pages", -3.0).put("someLong", 789456L).put("someBoolean", true);
+
+    private final BsonObject bsonBookAux = new BsonObject().put("book", bookAux);
+    private final BsonObject bsonBookAux2 = new BsonObject().put("book", bookAux2);
+    private final BsonObject bsonBookAux3 = new BsonObject().put("book", bookAux3);
+
+    private final BsonArray booksAux = new BsonArray().add(bsonBookAux).add(bsonBookAux2).add(bsonBookAux3);
+    private final BsonObject storeAux = new BsonObject().put("books", booksAux);
+    private final BsonObject storeBsonAux = new BsonObject().put("store", storeAux);
+
+
     /**
      * Private method to display all elements inside a byte array
      *
@@ -934,6 +947,30 @@ public class InjectorsTestJava {
             assertArrayEquals(resultValue, booksExpected.encodeToBarray());
         }).join();
     }
+
+    @Test
+    public void MultipleKeyCaseClassInjection_BookAux1() {
+        BsonObject bookAux = new BsonObject().put("pages", 10.0).put("someLong", 10L).put("someBoolean", false);
+        BsonObject bookAux2 = new BsonObject().put("pages", 23.10).put("someLong", 100000L).put("someBoolean", false);
+        BsonObject bookAux3 = new BsonObject().put("pages", -3.0).put("someLong", 789456L).put("someBoolean", true);
+
+        BsonObject bsonBookAux = new BsonObject().put("book", bookAux);
+        BsonObject bsonBookAux2 = new BsonObject().put("book", bookAux2);
+        BsonObject bsonBookAux3 = new BsonObject().put("book", bookAux3);
+
+        BsonArray booksAux = new BsonArray().add(bsonBookAux).add(bsonBookAux2).add(bsonBookAux3);
+        BsonObject storeAux = new BsonObject().put("books", booksAux);
+        byte[] storeBsonAuxExpected = new BsonObject().put("store", storeAux).encodeToBarray();
+
+        String ex = ".store.books[0].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux1 in) -> {
+            return new BookAux1(in.getPages() + 9.0, in.getSomeLong() + 9L, !in.isSomeBoolean());
+        });
+        byte[] bsonEncoded = storeBsonAux.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonAuxExpected);
+        }).join();
+    }
 }
 
 class BookAux {
@@ -949,15 +986,31 @@ class BookAux {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public int getPages() {
         return pages;
     }
+}
 
-    public void setPages(int pages) {
+class BookAux1 {
+    private double pages;
+    private long someLong;
+    private boolean someBoolean;
+
+    public BookAux1(double pages, long someLong, boolean someBoolean) {
         this.pages = pages;
+        this.someLong = someLong;
+        this.someBoolean = someBoolean;
+    }
+
+    public double getPages() {
+        return pages;
+    }
+
+    public long getSomeLong() {
+        return someLong;
+    }
+
+    public boolean isSomeBoolean() {
+        return someBoolean;
     }
 }

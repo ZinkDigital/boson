@@ -174,7 +174,12 @@ public class BosonInjector<T> implements Boson {
         for (int i = 0; i < _keyNames.size(); i++) {
             Tuple2<String, Object> elem = list.get(i);
             if (elem._1.toLowerCase().equals(_keyNames.get(i).toLowerCase())) {
-                if (elem._2.getClass().equals(_keyTypes.get(i)) || (_keyTypes.get(i).getSimpleName().equals("int") && elem._2.getClass().getSimpleName().equals("Integer"))) {
+               Object a=  _keyTypes.get(i).getSimpleName();
+               Object x = elem._2.getClass().getSimpleName();
+                if (elem._2.getClass().equals(_keyTypes.get(i))
+                        || (_keyTypes.get(i).getSimpleName().equals("int") && elem._2.getClass().getSimpleName().equals("Integer"))
+                        || (_keyTypes.get(i).getSimpleName().equalsIgnoreCase(elem._2.getClass().getSimpleName()))
+                        ) {
                     flag = true;
                 } else if (elem._2.getClass().equals(ArrayList.class)) {
                     List<String> kNames = new LinkedList<>();
