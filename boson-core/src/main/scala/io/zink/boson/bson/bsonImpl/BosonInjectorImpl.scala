@@ -1023,7 +1023,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           case Right(jsonString) => CodecObject.toCodec(jsonString)
                         }
 
-                        val dataCodec = codecData match { //TODO maybe remove
+                        val dataCodec = codecData match {
                           case Left(byteBuf) => CodecObject.toCodec(byteBuf)
                           case Right(jsonString) => CodecObject.toCodec(jsonString)
                         }
