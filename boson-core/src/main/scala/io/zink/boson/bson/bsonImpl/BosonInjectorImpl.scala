@@ -1659,7 +1659,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case Right(jsonString) => CodecObject.toCodec(jsonString)
     }
     val startReader: Int = codec.getReaderIndex
-    val orignalSize: Int = codec.readSize
+    val originalSize: Int = codec.readSize
 
     /**
       * Iterate inside the object passed as parameter in order to extract all of its field names and filed values
@@ -1668,7 +1668,7 @@ private[bsonImpl] object BosonInjectorImpl {
       * @return A TupleList containing the extracted field names and field values
       */
     def iterateObject(writableList: TupleList): TupleList = {
-      if ((codec.getReaderIndex - startReader) >= orignalSize) writableList
+      if ((codec.getReaderIndex - startReader) >= originalSize) writableList
       else {
         val dataType: Int = codec.readDataType
         dataType match {
@@ -1678,9 +1678,17 @@ private[bsonImpl] object BosonInjectorImpl {
             val fieldValue = dataType match {
               case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
 
-              case D_BSONOBJECT => ??? //TODO iterate inside this object
+              case D_BSONOBJECT =>
+                codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
+                  case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
+                  case jsonString: String => extractTupleList(Right(jsonString))
+                }
 
-              case D_BSONARRAY => ??? //TODO iterate inside this array
+              case D_BSONARRAY =>
+                codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
+                  case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
+                  case jsonString: String => extractTupleList(Right(jsonString))
+                }
 
               case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
 
@@ -1716,7 +1724,14 @@ private[bsonImpl] object BosonInjectorImpl {
       if !field.getName.equals("$outer") //remove shapeless add $outer param
     } yield {
       field.setAccessible(true) //make this object accessible so we can get its value
-      (field.getName, field.get(modifiedValue).asInstanceOf[Any])
+      val attributeClass = field.get(modifiedValue).getClass.getSimpleName
+      if (!SCALA_TYPES_LIST.contains(attributeClass.toLowerCase)) {
+        val otherTupleList = toTupleList(field.get(modifiedValue)).asInstanceOf[Any]
+        otherTupleList
+        (field.getName, otherTupleList)
+      } else
+        (field.getName, field.get(modifiedValue).asInstanceOf[Any])
+
     }
     tupleArray.toList
   }
@@ -1729,9 +1744,18 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   private def encodeTupleList(tupleList: TupleList): Array[Byte] = {
     val encodedObject = new BsonObject()
-    tupleList.foreach { case (fieldName, fieldValue) =>
-      encodedObject.put(fieldName, fieldValue)
+    tupleList.foreach { case (fieldName: String, fieldValue: Any) =>
+      fieldValue match {
+        case nestedTupleList: TupleList =>
+          val nestedObject = new BsonObject()
+          nestedTupleList.foreach { case (name: String, value: Any) =>
+            nestedObject.put(name, value)
+          }
+          encodedObject.put(fieldName, nestedObject)
+
+        case _ => encodedObject.put(fieldName, fieldValue)
+      }
     }
-    encodedObject.encodeToBarray() //TODO support CodecJson maybe return (encodedObjects.encodeToBarray(), encodedObject.encodeToString())
+    encodedObject.encodeToBarray //TODO support CodecJson maybe return (encodedObjects.encodeToBarray(), encodedObject.encodeToString())
   }
 }
