@@ -66,11 +66,11 @@ class NewInjectorsTests extends FunSuite {
   val storeExpected: BsonObject = new BsonObject().put("books", booksExpected)
   val storeBsonExpected: BsonObject = new BsonObject().put("store", storeExpected)
 
-  val nestedAuthor: BsonObject = new BsonObject().put("firstName", "Lucas").put("lastName", "Fischer").put("age", 21)
+  val nestedAuthor: BsonObject = new BsonObject().put("firstName", "John").put("lastName", "Doe").put("age", 21)
   val nestedBook: BsonObject = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", nestedAuthor)
   val nestedBson: BsonObject = new BsonObject().put("book", nestedBook)
 
-  val nestedAuthorExpected: BsonObject = new BsonObject().put("firstName", "LUCAS").put("lastName", "FISCHER").put("age", 41)
+  val nestedAuthorExpected: BsonObject = new BsonObject().put("firstName", "JOHN").put("lastName", "DOE").put("age", 41)
   val nestedBookExpected: BsonObject = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthorExpected)
   val nestedBsonExpected: BsonObject = new BsonObject().put("book", nestedBookExpected)
 
