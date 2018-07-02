@@ -63,6 +63,14 @@ public class InjectorsTestJava {
     private final BsonObject storeAux = new BsonObject().put("books", booksAux);
     private final BsonObject storeBsonAux = new BsonObject().put("store", storeAux);
 
+    private final BsonObject nestedAuthor = new BsonObject().put("firstName", "John").put("lastName", "Doe").put("age", 21);
+    private final BsonObject nestedBook = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", nestedAuthor);
+    private final BsonObject nestedBson = new BsonObject().put("book", nestedBook);
+
+    private final BsonObject nestedAuthorExpected = new BsonObject().put("firstName", "JOHN").put("lastName", "DOE").put("age", 41);
+    private final BsonObject nestedBookExpected = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthorExpected);
+    private final BsonObject nestedBsonExpected = new BsonObject().put("book", nestedBookExpected);
+
 
     /**
      * Private method to display all elements inside a byte array
@@ -1115,6 +1123,146 @@ public class InjectorsTestJava {
             assertArrayEquals(resultValue, expectedEncoded);
         }).join();
     }
+
+    @Test
+    public void NestedCaseClass_RootInj() {
+        String expr = ".book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+           Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+           return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(nestedBson.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, nestedBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_DoubleDot() {
+        String expr = "..book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(nestedBson.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, nestedBsonExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_KeyWithArrExpr_All() {
+        BsonArray bsonArr = new BsonArray().add(nestedBson);
+        BsonObject bsonObj = new BsonObject().put("books", bsonArr);
+
+        BsonArray bsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject bsonObjExpected = new BsonObject().put("books", bsonArrExpected);
+
+        String expr = "..books[all].book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_KeyWithArrExpr_0ToEnd() {
+        BsonArray bsonArr = new BsonArray().add(nestedBson);
+        BsonObject bsonObj = new BsonObject().put("books", bsonArr);
+
+        BsonArray bsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject bsonObjExpected = new BsonObject().put("books", bsonArrExpected);
+
+        String expr = "..books[0 to end].book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_KeyWithArrExpr_0() {
+        BsonArray bsonArr = new BsonArray().add(nestedBson);
+        BsonObject bsonObj = new BsonObject().put("books", bsonArr);
+
+        BsonArray bsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject bsonObjExpected = new BsonObject().put("books", bsonArrExpected);
+
+        String expr = "..books[0].book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_KeyWithArrExpr_first() {
+        BsonArray bsonArr = new BsonArray().add(nestedBson);
+        BsonObject bsonObj = new BsonObject().put("books", bsonArr);
+
+        BsonArray bsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject bsonObjExpected = new BsonObject().put("books", bsonArrExpected);
+
+        String expr = "..books[first].book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_KeyWithArrExpr_DooubleDot() {
+        BsonArray bsonArr = new BsonArray().add(nestedBson);
+        BsonObject bsonObj = new BsonObject().put("books", bsonArr);
+
+        BsonArray bsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject bsonObjExpected = new BsonObject().put("books", bsonArrExpected);
+
+        String expr = "..book";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void NestedCaseClass_KeyWithArrExpr_HasElem() {
+        BsonArray bsonArr = new BsonArray().add(nestedBson);
+        BsonObject bsonObj = new BsonObject().put("books", bsonArr);
+
+        BsonArray bsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject bsonObjExpected = new BsonObject().put("books", bsonArrExpected);
+
+        String expr = ".books[@book]";
+        Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
 }
 
 class BookAux {
@@ -1156,5 +1304,53 @@ class BookAux1 {
 
     public boolean isSomeBoolean() {
         return someBoolean;
+    }
+}
+
+class NestedBook {
+    private String name;
+    private int pages;
+    private Author author;
+
+    public NestedBook(String name, int pages, Author author) {
+        this.name = name;
+        this.pages = pages;
+        this.author = author;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getPages() {
+        return pages;
+    }
+
+    public Author getAuthor() {
+        return author;
+    }
+}
+
+class Author {
+    private String firstName;
+    private String lastName;
+    private int age;
+
+    public Author(String firstName, String lastName, int age) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public int getAge() {
+        return age;
     }
 }
