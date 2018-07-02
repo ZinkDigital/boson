@@ -3,15 +3,9 @@
 
 Streaming Data Access for BSON and JSON encoded documents  
 
-[![Build Status](https://api.travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
-
-Bosonscala
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
-
-Bosonjava
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava)
+[![Build Status](https://travis-ci.org/ZinkDigital/boson.svg)](https://travis-ci.org/ZinkDigital/boson)
+   -- Boson Scala [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
+   -- Boson Java [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava)
 
 # Table of Contents
 
@@ -48,36 +42,6 @@ In the following points we show how to use Boson in both Scala and Java in a Qui
 ## QuickStart Guide  
 
 Boson is available through the Central Maven Repository, divided into 3 parts, [BosonScala](https://mvnrepository.com/artifact/io.zink/bosonscala), [BosonJava](https://mvnrepository.com/artifact/io.zink/bosonjava) and [BosonCore](https://mvnrepository.com/artifact/io.zink/bosoncore).  
-To include Boson in your projects you need to add the dependencies listed bellow.
-
-For SBT users, add the following to your build.sbt:
-```scala
-//For the Scala API
-libraryDependencies += “io.zink” % “bosonscala” % “0.5.0”
-```
-```scala
-//For the Java API
-libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
-```
-
-For Maven users, add the following to your pom.xml:
-```xml
-<!--For the Scala API-->
-<dependency>
-    <groupId>io.zink</groupId>
-    <artifactId>bosonsala</artifactId>
-    <version>0.5.0</version>
-</dependency>
-```
-```xml
-<!--For the Java API-->
-<dependency>
-    <groupId>io.zink</groupId>
-    <artifactId>bosonjava</artifactId>
-    <version>0.5.0</version>
-</dependency>
-```
-<div id='id-Boson'/>  
 
 ### Boson  
 
