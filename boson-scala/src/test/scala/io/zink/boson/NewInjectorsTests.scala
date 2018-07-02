@@ -66,6 +66,14 @@ class NewInjectorsTests extends FunSuite {
   val storeExpected: BsonObject = new BsonObject().put("books", booksExpected)
   val storeBsonExpected: BsonObject = new BsonObject().put("store", storeExpected)
 
+  val nestedAuthor: BsonObject = new BsonObject().put("firstName", "Lucas").put("lastName", "Fischer").put("age", 21)
+  val nestedBook: BsonObject = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", nestedAuthor)
+  val nestedBson: BsonObject = new BsonObject().put("book", nestedBook)
+
+  val nestedAuthorExpected: BsonObject = new BsonObject().put("firstName", "LUCAS").put("lastName", "FISCHER").put("age", 41)
+  val nestedBookExpected: BsonObject = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthorExpected)
+  val nestedBsonExpected: BsonObject = new BsonObject().put("book", nestedBookExpected)
+
 
   //  test("Root modification") {
   //    val bson = new BsonObject().put("name", "john doe")
@@ -1457,14 +1465,6 @@ class NewInjectorsTests extends FunSuite {
   //  }
 
   test("Nested case class injection - Root Key") {
-    val author = new BsonObject().put("firstName", "Lucas").put("lastName", "Fischer").put("age", 21)
-    val book = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", author)
-    val bson = new BsonObject().put("book", book)
-
-    val authorExpected = new BsonObject().put("firstName", "LUCAS").put("lastName", "FISCHER").put("age", 41)
-    val bookExpected = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", authorExpected)
-    val bsonExpected = new BsonObject().put("book", bookExpected)
-
     val expr = ".book"
 
     val bsonInj = Boson.injector(expr, (in: NestedBook) => {
@@ -1472,56 +1472,183 @@ class NewInjectorsTests extends FunSuite {
       NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
     })
 
-    val future = bsonInj.go(bson.encodeToBarray)
+    val future = bsonInj.go(nestedBson.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    assertArrayEquals(result, bsonExpected.encodeToBarray)
+    assertArrayEquals(result, nestedBsonExpected.encodeToBarray)
   }
 
-  test("Key with Array Expr .species.alien[first] toUpperCase - No/Double Dots") {
-    val expr = ".species.alien[first]"
-    val bsonArrayExpected = new BsonArray().add("ET").add("predator").add("alien")
-    val bsonExpected = new BsonObject().put("person", bsonHuman).put("alien", bsonArrayExpected)
-    val expectedEncoded = new BsonObject().put("species", bsonExpected).encodeToBarray
-    val bsonInj = Boson.injector(expr, (in: String) => {
-      in.toUpperCase
+  test("Nested case class injection - Double Dot") {
+    val expr = "..book"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
     })
-    val future = bsonInj.go(bsonSpeciesEncoded)
+
+    val future = bsonInj.go(nestedBson.encodeToBarray)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    assertArrayEquals(result, expectedEncoded)
+    assertArrayEquals(result, nestedBsonExpected.encodeToBarray)
   }
 
-  test("Nested key injection ..[0 until end].age - Single Dots") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
-    val person3 = new BsonObject().put("name", "doe jane").put("age", 10)
-    val persons = new BsonArray().add(person1).add(person2).add(person3)
-    //    val client = new BsonObject().put("person", persons)
-    //    val bson = new BsonObject().put("client", client)
+  test("Nested case class injection - KeyWithArrExpr - [all]") {
+    val bsonArr = new BsonArray().add(nestedBson)
+    val bsonObj = new BsonObject().put("books", bsonArr)
 
-    val ex = "..[0 until end].age"
-    val bsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
+    val bsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val bsonObjExpected = new BsonObject().put("books", bsonArrExpected)
+
+    val expr = "..books[all].book"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
     })
-    val bsonEncoded = persons.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(32, 0, 0, 0)) && (resultValue containsSlice Array(10, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+
+    val future = bsonInj.go(bsonObj.encodeToBarray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(result, bsonObjExpected .encodeToBarray)
   }
 
-  test("Nested key injection - ..person[1 until end]..age") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
-    val persons = new BsonArray().add(person1).add(person2)
-    val client = new BsonObject().put("person", persons)
-    val bson = new BsonObject().put("client", client)
+  test("Nested case class injection - KeyWithArrExpr - [0 to end]") {
+    val bsonArr = new BsonArray().add(nestedBson)
+    val bsonObj = new BsonObject().put("books", bsonArr)
 
-    val ex = "..person[1 until end]..age"
-    val bsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
+    val bsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val bsonObjExpected = new BsonObject().put("books", bsonArrExpected)
+
+    val expr = "..books[0 to end].book"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
     })
-    val bsonEncoded = bson.encodeToBarray
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert((resultValue containsSlice Array(21, 0, 0, 0)) && (resultValue containsSlice Array(12, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+
+    val future = bsonInj.go(bsonObj.encodeToBarray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(result, bsonObjExpected .encodeToBarray)
   }
+
+  test("Nested case class injection - KeyWithArrExpr - [0]") {
+    val bsonArr = new BsonArray().add(nestedBson)
+    val bsonObj = new BsonObject().put("books", bsonArr)
+
+    val bsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val bsonObjExpected = new BsonObject().put("books", bsonArrExpected)
+
+    val expr = "..books[0].book"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+    })
+
+    val future = bsonInj.go(bsonObj.encodeToBarray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(result, bsonObjExpected .encodeToBarray)
+  }
+
+  test("Nested case class injection - KeyWithArrExpr - [first]") {
+    val bsonArr = new BsonArray().add(nestedBson)
+    val bsonObj = new BsonObject().put("books", bsonArr)
+
+    val bsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val bsonObjExpected = new BsonObject().put("books", bsonArrExpected)
+
+    val expr = "..books[first].book"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+    })
+
+    val future = bsonInj.go(bsonObj.encodeToBarray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(result, bsonObjExpected .encodeToBarray)
+  }
+
+  test("Nested case class injection - KeyWithArrExpr - double dot") {
+    val bsonArr = new BsonArray().add(nestedBson)
+    val bsonObj = new BsonObject().put("books", bsonArr)
+
+    val bsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val bsonObjExpected = new BsonObject().put("books", bsonArrExpected)
+
+    val expr = "..book"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+    })
+
+    val future = bsonInj.go(bsonObj.encodeToBarray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(result, bsonObjExpected .encodeToBarray)
+  }
+
+  test("Nested case class injection - HasElem") {
+    val bsonArr = new BsonArray().add(nestedBson)
+    val bsonObj = new BsonObject().put("books", bsonArr)
+
+    val bsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val bsonObjExpected = new BsonObject().put("books", bsonArrExpected)
+
+    val expr = ".books[@book]"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+    })
+
+    val future = bsonInj.go(bsonObj.encodeToBarray)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(result, bsonObjExpected .encodeToBarray)
+  }
+
+  //  test("Key with Array Expr .species.alien[first] toUpperCase - No/Double Dots") {
+  //    val expr = ".species.alien[first]"
+  //    val bsonArrayExpected = new BsonArray().add("ET").add("predator").add("alien")
+  //    val bsonExpected = new BsonObject().put("person", bsonHuman).put("alien", bsonArrayExpected)
+  //    val expectedEncoded = new BsonObject().put("species", bsonExpected).encodeToBarray
+  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = bsonInj.go(bsonSpeciesEncoded)
+  //    val result: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assertArrayEquals(result, expectedEncoded)
+  //  }
+  //
+  //  test("Nested key injection ..[0 until end].age - Single Dots") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+  //    val person3 = new BsonObject().put("name", "doe jane").put("age", 10)
+  //    val persons = new BsonArray().add(person1).add(person2).add(person3)
+  //    //    val client = new BsonObject().put("person", persons)
+  //    //    val bson = new BsonObject().put("client", client)
+  //
+  //    val ex = "..[0 until end].age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = persons.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && (resultValue containsSlice Array(32, 0, 0, 0)) && (resultValue containsSlice Array(10, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+  //  }
+  //
+  //  test("Nested key injection - ..person[1 until end]..age") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+  //    val persons = new BsonArray().add(person1).add(person2)
+  //    val client = new BsonObject().put("person", persons)
+  //    val bson = new BsonObject().put("client", client)
+  //
+  //    val ex = "..person[1 until end]..age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert((resultValue containsSlice Array(21, 0, 0, 0)) && (resultValue containsSlice Array(12, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+  //  }
 }
