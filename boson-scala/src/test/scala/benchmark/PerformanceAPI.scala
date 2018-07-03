@@ -367,7 +367,7 @@ object PerformanceTests extends App {
   //  })
   //
   //  performanceAnalysis(bsonInjArray1, ".Markets[1].Tags")
-  //
+
   //  // .Markets[first].Tags
   //  val bsonInjArrayFirst: Boson = Boson.injector(".Markets[first].Tags", (in: Tags) => {
   //    in
@@ -411,11 +411,39 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjArrayToEnd, ".Markets[0 to end].Tags")
 
   // .Markets[0 Until end].Tags
-  val bsonInjArrayUntilEnd: Boson = Boson.injector(".Markets[0 until end].Tags", (in: Tags) => {
+  //  val bsonInjArrayUntilEnd: Boson = Boson.injector(".Markets[0 until end].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayUntilEnd, ".Markets[0 until end].Tags")
+
+  // .Epoch
+  //  val bsonInjEpoch: Boson = Boson.injector(".Epoch", (in: Int) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjEpoch, ".Epoch")
+
+  // .Participants[1].Tags.SSLNLastName
+  //  val bsonInjNested: Boson = Boson.injector(".Participants[1].Tags.SSLNLastName", (in: String) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjNested, ".Participants[1].Tags.SSLNLastName")
+
+  // .Markets[3 to 5]
+  //  val bsonInjArray3To5: Boson = Boson.injector(".Markets[3 to 5]", (in: Array[Byte]) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArray3To5, ".Markets[3 to 5]")
+
+  // .Markets[10].selectiongroupid
+  val bsonInjArray3To5: Boson = Boson.injector(".Markets[10].selectiongroupid", (in: Array[Byte]) => {
     in
   })
 
-  performanceAnalysis(bsonInjArrayUntilEnd, ".Markets[0 until end].Tags")
+  performanceAnalysis(bsonInjArray3To5, ".Markets[10].selectiongroupid")
 
   private def performanceAnalysis(boson: Boson, expression: String): Unit = {
     (0 to CYCLES).foreach(_ => {
