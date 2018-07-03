@@ -1,4 +1,4 @@
-[info] Updating {file:/C:/Users/Margarida%20Reis/Documents/boson/}bosonScala...
+[info] Updating {file:/home/margarida/boson/}bosonScala...
 [debug] :: resolving dependencies :: io.zink#bosonscala;0.6.0
 [debug] 	confs: [compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, sources, docs, pom, scala-tool]
 [debug] 	validate = true
@@ -15336,27 +15336,27 @@
 [debug] sbt-chain: Checking cache for: dependency: org.scala-lang.modules#scala-xml_2.12;1.0.6 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
 [debug] sbt-chain: module revision found in cache: org.scala-lang.modules#scala-xml_2.12;1.0.6
 [debug] 	found org.scala-lang.modules#scala-xml_2.12;1.0.6 in sbt-chain
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
 [debug] == resolving dependencies org.scala-lang#scala-compiler;2.12.3->org.scala-lang.modules#scala-xml_2.12;1.0.6 [compile->compile(*)]
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
-[debug] == resolving dependencies org.scala-lang.modules#scala-xml_2.12;1.0.6->org.scala-lang#scala-library;2.12.3 [compile->master(compile)]
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
+[debug] == resolving dependencies org.scala-lang.modules#scala-xml_2.12;1.0.6->org.scala-lang#scala-library;2.12.3 [compile->master(*)]
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
 [debug] == resolving dependencies org.scala-lang.modules#scala-xml_2.12;1.0.6->org.scala-lang#scala-library;2.12.3 [compile->compile(*)]
 [debug] == resolving dependencies org.scala-lang#scala-compiler;2.12.3->org.scala-lang.modules#scala-xml_2.12;1.0.6 [compile->runtime(*)]
 [debug] == resolving dependencies org.scala-lang#scala-compiler;2.12.3->org.scala-lang.modules#scala-xml_2.12;1.0.6 [compile->compile]
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(compile)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(compile)]}
-[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-compiler;2.12.0 {test=[runtime(*), master(*)]} => dependency: org.scala-lang#scala-compiler;2.12.3 {test=[runtime(*), master(*)]}
+[debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.0 {compile=[compile(*), master(*)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(*)], runtime=[runtime(*)]}
 [debug] == resolving dependencies org.scala-lang.modules#scala-xml_2.12;1.0.6->org.scala-lang#scala-library;2.12.3 [runtime->runtime(*)]
 [debug] == resolving dependencies org.scala-lang.modules#scala-xml_2.12;1.0.6->org.scala-lang#scala-library;2.12.3 [runtime->compile]
 [debug] dependency descriptor has been mediated: dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]} => dependency: org.scala-lang#scala-library;2.12.3 {compile=[compile(*), master(compile)], runtime=[runtime(*)]}
@@ -15492,19 +15492,19 @@
 [debug] 	[NOT REQUIRED] org.scala-lang#scala-compiler;2.12.3!scala-compiler.jar
 [debug] 	[NOT REQUIRED] org.scala-lang.modules#scala-xml_2.12;1.0.6!scala-xml_2.12.jar(bundle)
 [debug] 	[NOT REQUIRED] jline#jline;2.14.4!jline.jar
-[debug] :: resolution report :: resolve 6922ms :: artifacts dl 81ms
-[debug] 	report for io.zink#bosonscala;0.6.0 compile produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-compile.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 runtime produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-runtime.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 test produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-test.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 provided produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-provided.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 optional produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-optional.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 compile-internal produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-compile-internal.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 runtime-internal produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-runtime-internal.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 test-internal produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-test-internal.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 plugin produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-plugin.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 sources produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-sources.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 docs produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-docs.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 pom produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-pom.xml
-[debug] 	report for io.zink#bosonscala;0.6.0 scala-tool produced in C:\Users\Margarida Reis\Documents\boson\boson-scala\target\resolution-cache\reports\io.zink-bosonscala-scala-tool.xml
-[debug] 	resolve done (6922ms resolve - 81ms download)
+[debug] :: resolution report :: resolve 956ms :: artifacts dl 22ms
+[debug] 	report for io.zink#bosonscala;0.6.0 compile produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-compile.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 runtime produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-runtime.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 test produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-test.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 provided produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-provided.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 optional produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-optional.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 compile-internal produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-compile-internal.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 runtime-internal produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-runtime-internal.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 test-internal produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-test-internal.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 plugin produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-plugin.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 sources produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-sources.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 docs produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-docs.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 pom produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-pom.xml
+[debug] 	report for io.zink#bosonscala;0.6.0 scala-tool produced in /home/margarida/boson/boson-scala/target/resolution-cache/reports/io.zink-bosonscala-scala-tool.xml
+[debug] 	resolve done (956ms resolve - 22ms download)
 [info] Done updating.
