@@ -2,7 +2,7 @@ package io.zink.boson.bson.codec.impl
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.codec._
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bsonImpl.Dictionary.{CS_INTEGER, _}
 
 import scala.collection.{JavaConverters, mutable}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -132,7 +132,7 @@ class CodecJson(str: String) extends Codec {
           SonNull(request, V_NULL)
       }
     case SonBoolean(request, _) =>
-      val subStr1 : Byte= if (getNextBoolean.equals(CS_TRUE)) 1 else 0
+      val subStr1: Byte = if (getNextBoolean.equals(CS_TRUE)) 1 else 0
       SonBoolean(request, subStr1)
   }
 
@@ -203,7 +203,7 @@ class CodecJson(str: String) extends Codec {
           SonNull(request, V_NULL)
       }
     case SonBoolean(request, _) =>
-      val subStr1 : Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
+      val subStr1: Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
       SonBoolean(request, subStr1)
   }
 
@@ -612,7 +612,38 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodec: Codec, token: SonNamedType): Codec = ???
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType): Codec = {
+    val duplicated: String = outCodecOpt.getCodecData match {
+      case Right(jsonString) =>
+        val coppiedString = jsonString
+        coppiedString
+    }
+
+    token match {
+      case SonBoolean(_, info) => new CodecJson(duplicated + info.asInstanceOf[Boolean])
+
+      case SonNumber(numberType, info) =>
+        numberType match {
+          case CS_BYTE => new CodecJson(duplicated + info.asInstanceOf[Byte])
+
+          case CS_INTEGER => new CodecJson(duplicated + info.asInstanceOf[Int])
+
+          case CS_DOUBLE => new CodecJson(duplicated + info.asInstanceOf[Double])
+
+          case CS_FLOAT => new CodecJson(duplicated + info.asInstanceOf[Float])
+
+          case CS_LONG => new CodecJson(duplicated + info.asInstanceOf[Long])
+
+        }
+
+      case SonString(_, info) => new CodecJson(duplicated + info.asInstanceOf[CharSequence])  //TODO do these strings come with quotes ?
+
+      case SonArray(_, info) => new CodecJson(duplicated + info.asInstanceOf[CharSequence])
+
+      case SonObject(_, info) => new CodecJson(duplicated + info.asInstanceOf[CharSequence])
+
+    }
+  }
 
   /**
     * Method that returns a duplicate of the codec's data structure
