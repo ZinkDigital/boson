@@ -351,7 +351,7 @@ private[bsonImpl] object BosonInjectorImpl {
         CodecObject.toCodec(newBuf)
 
       case Right(jsonString) => //TODO not sure if this is correct for CodecJson
-        val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
+        val modifiedString: String = applyFunction(injFunction, jsonString, fromRoot = true).asInstanceOf[String]
         CodecObject.toCodec(modifiedString)
     }
   }
@@ -791,6 +791,9 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return A modified value in which the injector function was applied
     */
   private def applyFunction[T](injFunction: T => T, value: Any, fromRoot: Boolean = false)(implicit convertFunction: Option[TupleList => T] = None): T = {
+
+    def throwException(className: String): T = throw CustomException(s"Type Error. Cannot Cast ${className} inside the Injector Function.")
+
     Try(injFunction(value.asInstanceOf[T])) match {
       case Success(modifiedValue) =>
         modifiedValue
@@ -800,15 +803,23 @@ private[bsonImpl] object BosonInjectorImpl {
           Try(injFunction(double.toFloat.asInstanceOf[T])) match { //try with the value being a Double
             case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
 
-            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
 
-        case byteArr: Array[Byte] if fromRoot => //In case the User passed in the root
+        case jsonString: String if fromRoot => //In case the User passed a JsonString in the root
+          Try(injFunction(jsonString.asInstanceOf[T])) match {
+            case Success(modifiedValue) =>
+              modifiedValue.asInstanceOf[T]
+
+            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
+          }
+
+        case byteArr: Array[Byte] if fromRoot => //In case the User passed a BsonObject/BsonArray in the root
           Try(injFunction(byteArr.asInstanceOf[T])) match {
             case Success(modifiedValue) =>
               modifiedValue.asInstanceOf[T]
 
-            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
 
         case byteArr: Array[Byte] if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T TODO support JSON string as well
@@ -821,7 +832,7 @@ private[bsonImpl] object BosonInjectorImpl {
               val modifiedByteArr = encodeTupleList(modifiedTupleList)
               modifiedByteArr.asInstanceOf[T]
 
-            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
 
 
@@ -834,7 +845,7 @@ private[bsonImpl] object BosonInjectorImpl {
               Try(injFunction(Instant.parse(new String(byteArr)).asInstanceOf[T])) match { //try with the value being an Instant
                 case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
 
-                case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+                case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
               }
           }
 
@@ -842,11 +853,11 @@ private[bsonImpl] object BosonInjectorImpl {
           Try(injFunction(Instant.parse(str).asInstanceOf[T])) match {
             case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
 
-            case Failure(_) => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
       }
 
-      case _ => throw CustomException(s"Type Error. Cannot Cast ${value.getClass.getSimpleName.toLowerCase} inside the Injector Function.")
+      case _ => throwException(value.getClass.getSimpleName.toLowerCase)
     }
   }
 
