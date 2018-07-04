@@ -361,12 +361,27 @@ object PerformanceTests extends App {
 
   println("-------------------------INJECTORS----------------------------------")
 
-  //  // .Markets[1].Tags
-  //  val bsonInjArray1: Boson = Boson.injector(".Markets[1].Tags", (in: Tags) => {
-  //    in
-  //  })
-  //
-  //  performanceAnalysis(bsonInjArray1, ".Markets[1].Tags")
+  // .Markets[1].Tags
+
+  val tag: Tags = new Tags("", "", "", "", "", "")
+
+  (0 to CYCLES).foreach(_ => {
+    val start = System.nanoTime()
+    //    val _: Tags = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags", classOf[Tags])
+    val _ = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).put("$.Markets[1].Tags", "Tags", tag)
+    val end = System.nanoTime()
+    timesBuffer.append(end - start)
+  })
+
+  println("JsonPath With Gson time -> " + Lib.avgPerformance(timesBuffer) + " ms, Expression: .Markets[1].Tags")
+  timesBuffer.clear()
+  println()
+
+    val bsonInjArray1: Boson = Boson.injector(".Markets[1].Tags", (in: Tags) => {
+      in
+    })
+
+    performanceAnalysis(bsonInjArray1, ".Markets[1].Tags")
 
   //  // .Markets[first].Tags
   //  val bsonInjArrayFirst: Boson = Boson.injector(".Markets[first].Tags", (in: Tags) => {
@@ -374,7 +389,7 @@ object PerformanceTests extends App {
   //  })
   //
   //  performanceAnalysis(bsonInjArrayFirst, ".Markets[first].Tags")
-  //
+
   //  // .Markets[all].Tags
   //  val bsonInjArrayAll: Boson = Boson.injector(".Markets[all].Tags", (in: Tags) => {
   //    in
@@ -410,7 +425,7 @@ object PerformanceTests extends App {
   //
   //  performanceAnalysis(bsonInjArrayToEnd, ".Markets[0 to end].Tags")
 
-  // .Markets[0 Until end].Tags
+  // .Markets[0 until end].Tags
   //  val bsonInjArrayUntilEnd: Boson = Boson.injector(".Markets[0 until end].Tags", (in: Tags) => {
   //    in
   //  })
@@ -432,18 +447,18 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjNested, ".Participants[1].Tags.SSLNLastName")
 
   // .Markets[3 to 5]
-  //  val bsonInjArray3To5: Boson = Boson.injector(".Markets[3 to 5]", (in: Array[Byte]) => {
+  //    val bsonInjArray3To5: Boson = Boson.injector(".Markets[3 to 5]", (in: String) => {
+  //      in
+  //    })
+  //
+  //    performanceAnalysis(bsonInjArray3To5, ".Markets[3 to 5]")
+
+  // .Markets[10].selectiongroupid
+  //  val bsonInjArray3To5: Boson = Boson.injector(".Markets[10].selectiongroupid", (in: Array[Byte]) => {
   //    in
   //  })
   //
-  //  performanceAnalysis(bsonInjArray3To5, ".Markets[3 to 5]")
-
-  // .Markets[10].selectiongroupid
-  val bsonInjArray3To5: Boson = Boson.injector(".Markets[10].selectiongroupid", (in: Array[Byte]) => {
-    in
-  })
-
-  performanceAnalysis(bsonInjArray3To5, ".Markets[10].selectiongroupid")
+  //  performanceAnalysis(bsonInjArray3To5, ".Markets[10].selectiongroupid")
 
   //Injector .
   //  val bsonInj2: Boson = Boson.injector(".", (in: Array[Byte]) =>
