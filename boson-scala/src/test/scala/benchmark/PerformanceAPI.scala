@@ -377,6 +377,9 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjArray1, ".Markets[1].Tags")
 
   //  // .Markets[first].Tags
+
+  performanceJsonPath("$.Markets[0].Tags", tag)
+
   //  val bsonInjArrayFirst: Boson = Boson.injector(".Markets[first].Tags", (in: Tags) => {
   //    in
   //  })
@@ -394,8 +397,11 @@ object PerformanceTests extends App {
   //  })
   //
   //  performanceAnalysis(bsonInjArrayAll, ".Markets[all].Tags")
-  //
+
   //  // .Markets[end].Tags
+
+  performanceJsonPath("$.Markets.[-1].Tags", tag)
+
   //  val bsonInjArrayEnd: Boson = Boson.injector(".Markets[end].Tags", (in: Tags) => {
   //    in
   //  })
@@ -403,6 +409,9 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjArrayEnd, ".Markets[end].Tags")
 
   // .Markets[0 to 10].Tags
+
+  performanceJsonPath("$.Markets[0:10].Tags", tag)
+
   //  val bsonInjArrayTo: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => {
   //    in
   //  })
@@ -410,6 +419,9 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjArrayTo, ".Markets[0 to 10].Tags")
 
   // .Markets[0 until 10].Tags
+
+  performanceJsonPath("$.Markets[0:9].Tags", tag)
+
   //  val bsonInjArrayUntil: Boson = Boson.injector(".Markets[0 until 10].Tags", (in: Tags) => {
   //    in
   //  })
@@ -417,6 +429,9 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjArrayUntil, ".Markets[0 until 10].Tags")
 
   // .Markets[0 to end].Tags
+
+  performanceJsonPath("$.Markets[*].Tags", tag)
+
   //  val bsonInjArrayToEnd: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => {
   //    in
   //  })
@@ -424,6 +439,9 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bsonInjArrayToEnd, ".Markets[0 to end].Tags")
 
   // .Markets[0 until end].Tags
+
+  performanceJsonPath("$.Markets[:-1].Tags", tag)
+
   //  val bsonInjArrayUntilEnd: Boson = Boson.injector(".Markets[0 until end].Tags", (in: Tags) => {
   //    in
   //  })
