@@ -5,7 +5,7 @@ val basicSettings = Seq(
 
 organization:="io.zink",
 
-version := "0.6.0",
+version := "0.7.0",
 
 scalaVersion := "2.12.3",
 
@@ -57,11 +57,10 @@ scmInfo := Some(
   ),
   //useGpg := true,
   //pgpReadOnly := true,
-
 credentials += Credentials(Path.userHome /".sbt" /".credentials"),
 
   //pgpPassphrase := Some("boson0000".toArray),
-  pgpSecretRing := file("/Users/Margarida Reis/.sbt/gpg/secring.asc"),
+  pgpSecretRing := file("/home/margarida/.gnupg/secring.gpg"),
   publishMavenStyle := true,
 
   publishTo := {

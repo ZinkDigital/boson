@@ -75,7 +75,7 @@ object PerformanceTests extends App {
 
   //  (0 to CYCLES).foreach(_ => {
   //    val start = System.nanoTime()
-//      val _: Tags = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags", classOf[Tags])
+  //    val _: Tags = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).read("$.Markets[1].Tags", classOf[Tags])
   //    val end = System.nanoTime()
   //    timesBuffer.append(end - start)
   //  })
@@ -361,13 +361,89 @@ object PerformanceTests extends App {
 
   println("-------------------------INJECTORS----------------------------------")
 
-
-  //  //Injector .Markets[1].Tags
-  //  val bsonInj: Boson = Boson.injector(".Markets[1].Tags", (in: Tags) => {
+  //  // .Markets[1].Tags
+  //  val bsonInjArray1: Boson = Boson.injector(".Markets[1].Tags", (in: Tags) => {
   //    in
   //  })
-  //  performanceAnalysis(bsonInj, ".Markets[1].Tags")
+  //
+  //  performanceAnalysis(bsonInjArray1, ".Markets[1].Tags")
 
+  //  // .Markets[first].Tags
+  //  val bsonInjArrayFirst: Boson = Boson.injector(".Markets[first].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayFirst, ".Markets[first].Tags")
+  //
+  //  // .Markets[all].Tags
+  //  val bsonInjArrayAll: Boson = Boson.injector(".Markets[all].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayAll, ".Markets[all].Tags")
+  //
+  //  // .Markets[end].Tags
+  //  val bsonInjArrayEnd: Boson = Boson.injector(".Markets[end].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayEnd, ".Markets[end].Tags")
+
+  // .Markets[0 to 10].Tags
+  //  val bsonInjArrayTo: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayTo, ".Markets[0 to 10].Tags")
+
+  // .Markets[0 until 10].Tags
+  //  val bsonInjArrayUntil: Boson = Boson.injector(".Markets[0 until 10].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayUntil, ".Markets[0 until 10].Tags")
+
+  // .Markets[0 to end].Tags
+  //  val bsonInjArrayToEnd: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayToEnd, ".Markets[0 to end].Tags")
+
+  // .Markets[0 Until end].Tags
+  //  val bsonInjArrayUntilEnd: Boson = Boson.injector(".Markets[0 until end].Tags", (in: Tags) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArrayUntilEnd, ".Markets[0 until end].Tags")
+
+  // .Epoch
+  //  val bsonInjEpoch: Boson = Boson.injector(".Epoch", (in: Int) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjEpoch, ".Epoch")
+
+  // .Participants[1].Tags.SSLNLastName
+  //  val bsonInjNested: Boson = Boson.injector(".Participants[1].Tags.SSLNLastName", (in: String) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjNested, ".Participants[1].Tags.SSLNLastName")
+
+  // .Markets[3 to 5]
+  //  val bsonInjArray3To5: Boson = Boson.injector(".Markets[3 to 5]", (in: Array[Byte]) => {
+  //    in
+  //  })
+  //
+  //  performanceAnalysis(bsonInjArray3To5, ".Markets[3 to 5]")
+
+  // .Markets[10].selectiongroupid
+  val bsonInjArray3To5: Boson = Boson.injector(".Markets[10].selectiongroupid", (in: Array[Byte]) => {
+    in
+  })
+
+  performanceAnalysis(bsonInjArray3To5, ".Markets[10].selectiongroupid")
 
   //Injector .
   //  val bsonInj2: Boson = Boson.injector(".", (in: Array[Byte]) =>
@@ -441,8 +517,8 @@ object PerformanceTests extends App {
 
 
   //    Injector .Markets[all].Tags (.Markets[*].Tags) - Byte Array
-    val bosonArticle3: Boson = Boson.injector(".Markets[all].Tags", (in: Array[Byte]) => in)
-    performanceAnalysis(bosonArticle3, ".Markets[all].Tags")
+  val bosonArticle3: Boson = Boson.injector(".Markets[all].Tags", (in: Array[Byte]) => in)
+  performanceAnalysis(bosonArticle3, ".Markets[all].Tags")
 
   //    Injector .Markets[3 to 5] (.Markets[3:5].Tags)
   //  val bosonArticle4: Boson = Boson.injector(".Markets[3 to 5]", (in: String) => in)
