@@ -143,7 +143,7 @@ class CodecJson(str: String) extends Codec {
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readToken(tkn: SonNamedType): SonNamedType = tkn match {
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
     case SonObject(request, _) =>
       request match {
         case C_DOT =>
@@ -166,7 +166,7 @@ class CodecJson(str: String) extends Codec {
       }
     case SonString(request, _) =>
       request match {
-        case CS_NAME =>
+        case CS_NAME | CS_NAME_NO_LAST_BYTE =>
           val charSliced: Char = input(readerIndex)
           if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET) readerIndex += 1
           input(readerIndex) match {
@@ -203,8 +203,14 @@ class CodecJson(str: String) extends Codec {
           SonNull(request, V_NULL)
       }
     case SonBoolean(request, _) =>
-      val subStr1: Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
-      SonBoolean(request, subStr1)
+      if (ignore) {
+        readerIndex += 1
+        SonBoolean(request, 0.toByte)
+      }
+      else {
+        val subStr1: Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
+        SonBoolean(request, subStr1)
+      }
   }
 
   /**
@@ -612,36 +618,44 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType): Codec = {
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignore: Boolean = false, isKey: Boolean = false): Codec = {
     val duplicated: String = outCodecOpt.getCodecData match {
       case Right(jsonString) =>
         val coppiedString = jsonString
         coppiedString
     }
 
-    token match {
-      case SonBoolean(_, info) => new CodecJson(duplicated + info.asInstanceOf[Boolean])
+    if (ignore) new CodecJson(duplicated) else {
+      val resultString: String = token match {
+        case SonBoolean(_, info) => duplicated + info.asInstanceOf[Boolean]
 
-      case SonNumber(numberType, info) =>
-        numberType match {
-          case CS_BYTE => new CodecJson(duplicated + info.asInstanceOf[Byte])
+        case SonNumber(numberType, info) =>
+          numberType match {
+            case CS_BYTE => duplicated + info.asInstanceOf[Byte]
 
-          case CS_INTEGER => new CodecJson(duplicated + info.asInstanceOf[Int])
+            case CS_INTEGER => duplicated + info.asInstanceOf[Int]
 
-          case CS_DOUBLE => new CodecJson(duplicated + info.asInstanceOf[Double])
+            case CS_DOUBLE => duplicated + info.asInstanceOf[Double]
 
-          case CS_FLOAT => new CodecJson(duplicated + info.asInstanceOf[Float])
+            case CS_FLOAT => duplicated + info.asInstanceOf[Float]
 
-          case CS_LONG => new CodecJson(duplicated + info.asInstanceOf[Long])
+            case CS_LONG => duplicated + info.asInstanceOf[Long]
 
-        }
+          }
 
-      case SonString(_, info) => new CodecJson(duplicated + info.asInstanceOf[CharSequence])  //TODO do these strings come with quotes ?
+        case SonString(_, info) => duplicated + "\"" + info.asInstanceOf[CharSequence] + "\"" //TODO do these strings come with quotes
 
-      case SonArray(_, info) => new CodecJson(duplicated + info.asInstanceOf[CharSequence])
+        case SonArray(_, info) => duplicated + info.asInstanceOf[CharSequence]
 
-      case SonObject(_, info) => new CodecJson(duplicated + info.asInstanceOf[CharSequence])
-
+        case SonObject(_, info) => duplicated + info.asInstanceOf[CharSequence]
+      }
+      if (isKey) {
+        val newCodec = new CodecJson(resultString + ":")
+        newCodec.setReaderIndex(readerIndex)
+        newCodec
+      } else {
+        new CodecJson(resultString)
+      }
     }
   }
 

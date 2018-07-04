@@ -139,7 +139,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
     */
-  override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
     case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
 
     case SonArray(x, _) =>
@@ -437,7 +437,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType): Codec = {
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignore: Boolean = false, isKey : Boolean = false): Codec = {
     val duplicated: ByteBuf = outCodecOpt.getCodecData match {
       case Left(byteBuf) =>
         val newBuf = byteBuf.copy(0, byteBuf.capacity())

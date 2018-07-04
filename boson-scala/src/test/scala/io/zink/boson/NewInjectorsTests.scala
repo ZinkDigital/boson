@@ -1652,35 +1652,34 @@ class NewInjectorsTests extends FunSuite {
   //    assert((resultValue containsSlice Array(21, 0, 0, 0)) && (resultValue containsSlice Array(12, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   //  }
 
-  test("CodecJson - Root Injection") {
-    val json = new BsonObject().put("name", "john doe")
-    val ex = "."
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      """
-        |{
-        | "lastName": "Not Doe"
-        |}
-      """.stripMargin
-    })
-    val jsonEncoded = json.encodeToString()
-    val future = bsonInj.go(jsonEncoded)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue contains "Not Doe")
-  }
+  //  test("CodecJson - Root Injection") {
+  //    val json = new BsonObject().put("name", "john doe")
+  //    val ex = "."
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
+  //      """
+  //        |{
+  //        | "lastName": "Not Doe"
+  //        |}
+  //      """.stripMargin
+  //    })
+  //    val jsonEncoded = json.encodeToString()
+  //    val future = jsonInj.go(jsonEncoded)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue contains "Not Doe")
+  //  }
 
 
   test("CodecJson - Nested key modification - Single Dots") {
     val person = new BsonObject().put("name", "john doe")
-    val bson = new BsonObject().put("person", person)
+    val json = new BsonObject().put("person", person)
     val ex = ".person.name"
-    val bsonInj = Boson.injector(ex, (in: String) => {
+    val jsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
     })
-    val bsonEncoded = bson.encodeToBarray()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+    val jsonEncoded = json.encodeToString()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue contains "JOHN DOE")
   }
-}
 
 }

@@ -6,6 +6,7 @@ import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonExtractorImpl._
 import BosonInjectorImpl._
+import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
 import shapeless.TypeCase
 
 import scala.util.{Failure, Success, Try}
@@ -125,10 +126,13 @@ object BosonImpl {
     * @tparam T - The type of the input and output of the injection function
     * @return a new codec with the changes applied to it
     */
-  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
+  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
     val codec: Codec = dataStructure match {
-      case Right(jsonString) => CodecObject.toCodec(jsonString)
-      case Left(byteBuf) => CodecObject.toCodec(byteBuf)
+      case Right(jsonString: String) =>
+        val returnCodec = new CodecJson(jsonString)
+        returnCodec.setReaderIndex(readerIndextoUse)
+        returnCodec
+      case Left(byteBuf: ByteBuf) => new CodecBson(byteBuf)
     }
 
     statements.head._1 match {

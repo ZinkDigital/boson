@@ -38,8 +38,8 @@ private[bsonImpl] object BosonInjectorImpl {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
       if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
-        val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
+        val dataType: Int = codec.readDataType //TODO ele aqui esta no reader index 10 que e uma chaveta no entanto deveria estar mais a frente, pensar nisto
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
         val newCodec = dataType match {
           case 0 =>
             writeCodec(codecWithDataType, startReader, originalSize)
@@ -99,7 +99,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val codecData: DataStructure = codec.getCodecData
-                        val subCodec = BosonImpl.inject(codecData, statementsList.drop(1), injFunction)
+                        val subCodec = BosonImpl.inject(codecData, statementsList.drop(1), injFunction, readerIndextoUse = codec.getReaderIndex)
                         val mergedCodecs = codecWithKey + subCodec
                         val codecFromData: Codec = codecData match {
                           case Left(byteBuf) => CodecObject.toCodec(byteBuf)
@@ -1627,12 +1627,12 @@ private[bsonImpl] object BosonInjectorImpl {
     val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
       case SonString(_, keyString) => keyString.asInstanceOf[String]
     }
-    val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+    val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
       case SonBoolean(_, result) => result.asInstanceOf[Byte]
     }
 
-    val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key))
-    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b)), key)
+    val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key), isKey = true)
+    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), ignore = true), key)
   }
 
   /**
