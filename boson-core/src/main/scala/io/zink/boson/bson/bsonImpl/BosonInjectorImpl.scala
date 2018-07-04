@@ -63,10 +63,6 @@ private[bsonImpl] object BosonInjectorImpl {
                             case string: String => Right(string)
                           }
                         }
-                        //                        val partialCodec: Codec = partialData match {
-                        //                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
-                        //                          case Right(jsonString) => CodecObject.toCodec(jsonString)
-                        //                        }
 
                         val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
                         val modifiedCodec = modifierAll(subCodec, codecWithKey, dataType, injFunction)
