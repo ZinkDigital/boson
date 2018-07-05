@@ -1761,4 +1761,17 @@ class NewInjectorsTests extends FunSuite {
   //        (new String(resultValue3) contains "John Doe Hello")
   //    )
   //  }
+
+  test("CodecJson - Key with Array Exp .Key[01] modification toUpperCase - Single Dots") {
+    val expr = ".person[0]"
+    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
+    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+    val expectedEncoded = expectedBson.encodeToString
+    val bsonInj = Boson.injector(expr, (in: String) => {
+      in.toUpperCase
+    })
+    val future = bsonInj.go(bsonObjArray.encodeToString)
+    val result: String = Await.result(future, Duration.Inf)
+    assert(result.equals(expectedEncoded))
+  }
 }
