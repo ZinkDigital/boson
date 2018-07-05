@@ -38,8 +38,8 @@ private[bsonImpl] object BosonInjectorImpl {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
       if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
-        val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+        val dataType: Int = codec.readDataType //TODO ele aqui esta no reader index 10 que e uma chaveta no entanto deveria estar mais a frente, pensar nisto
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
         val newCodec = dataType match {
           case 0 =>
             writeCodec(codecWithDataType, startReader, originalSize)
@@ -128,15 +128,15 @@ private[bsonImpl] object BosonInjectorImpl {
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
-    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) { //If there's only one last byte to read (the closing 0 byte)
-      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) {
+      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), true)
     } else codecWithoutSize
 
     val finalSize = codecWithLastByte.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), true)
     codecWithLastByte.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ?? we can probably remove this 2 lines
     codecWithSize.removeEmptySpace
     codecWithSize + codecWithLastByte
@@ -1634,7 +1634,7 @@ private[bsonImpl] object BosonInjectorImpl {
     }
 
     val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key), isKey = true)
-    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), ignoreForJson = true), key)
+    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), true), key)
   }
 
   /**
