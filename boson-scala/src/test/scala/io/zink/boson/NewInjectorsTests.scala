@@ -1718,7 +1718,7 @@ class NewInjectorsTests extends FunSuite {
     val someObject = new BsonObject().put("SomeObject", client)
     val anotherObject = new BsonObject().put("AnotherObject", someObject)
     val bson = new BsonObject().put("Wrapper", anotherObject)
-    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.age
+    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.age"
     val bsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })

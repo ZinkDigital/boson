@@ -422,7 +422,7 @@ class CodecJson(str: String) extends Codec {
     */
   override def readDataType: Int = {
     if (readerIndex == 0) readerIndex += 1
-    if (input(readerIndex).equals(CS_COMMA) /*|| (input(readerIndex).equals(CS_OPEN_BRACKET))*/) readerIndex += 1
+    if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
     input(readerIndex) match {
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
         readerIndex += 1
