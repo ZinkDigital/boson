@@ -8,6 +8,7 @@ import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.boson.bson.bsonImpl.bsonLib.BsonObject
+import io.zink.boson.bson.codec.impl.CodecJson
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,7 +40,7 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType //TODO ele aqui esta no reader index 10 que e uma chaveta no entanto deveria estar mais a frente, pensar nisto
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), true)
         val newCodec = dataType match {
           case 0 =>
             writeCodec(codecWithDataType, startReader, originalSize)
@@ -140,6 +141,12 @@ private[bsonImpl] object BosonInjectorImpl {
     codecWithLastByte.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ?? we can probably remove this 2 lines
     codecWithSize.removeEmptySpace
     codecWithSize + codecWithLastByte
+
+    codecWithLastByte.getCodecData match {
+      case Left(bb) => codecWithSize + codecWithLastByte
+      case Right(str) => new CodecJson('{'+str+'}')
+    }
+
   }
 
   /**
