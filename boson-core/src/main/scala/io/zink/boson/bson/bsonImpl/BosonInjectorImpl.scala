@@ -8,7 +8,6 @@ import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.boson.bson.bsonImpl.bsonLib.BsonObject
-import io.zink.boson.bson.codec.impl.CodecJson
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,8 +38,8 @@ private[bsonImpl] object BosonInjectorImpl {
     def writeCodec(currentCodec: Codec, startReader: Int, originalSize: Int): Codec = {
       if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
-        val dataType: Int = codec.readDataType //TODO ele aqui esta no reader index 10 que e uma chaveta no entanto deveria estar mais a frente, pensar nisto
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), true)
+        val dataType: Int = codec.readDataType
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         val newCodec = dataType match {
           case 0 =>
             writeCodec(codecWithDataType, startReader, originalSize)
@@ -104,11 +103,14 @@ private[bsonImpl] object BosonInjectorImpl {
                         // For codecJson since we found an object or an array we have to skip the extra "{" or "[", that's why readerIndexToUse is +1
                         val subCodec = BosonImpl.inject(codecData, statementsList.drop(1), injFunction, readerIndextoUse = codec.getReaderIndex + 1)
                         val mergedCodecs = codecWithKey + subCodec
-                        val codecFromData: Codec = codecData match {
-                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
-                          case Right(jsonString) => CodecObject.toCodec(jsonString)
+                        codecData match {
+                          case Left(byteBuf) =>
+                            val codecWithReaderIndex = CodecObject.toCodec(byteBuf)
+                            codec.setReaderIndex(codecWithReaderIndex.getReaderIndex) //Skip the bytes that the subcodec already read
+
+                          case Right(jsonString) =>
+                            codec.setReaderIndex(codec.getReaderIndex + subCodec.getWriterIndex)
                         }
-                        codec.setReaderIndex(codecFromData.getReaderIndex) //Skip the bytes that the subcodec already read
                         mergedCodecs
                       case _ => processTypesArray(dataType, codec, codecWithKey)
                     }
@@ -130,23 +132,19 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
     val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) {
-      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), true)
+      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson= true)
     } else codecWithoutSize
 
     val finalSize = codecWithLastByte.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), true)
-    codecWithLastByte.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ?? we can probably remove this 2 lines
-    codecWithSize.removeEmptySpace
-    codecWithSize + codecWithLastByte
-
-    codecWithLastByte.getCodecData match {
-      case Left(bb) => codecWithSize + codecWithLastByte
-      case Right(str) => new CodecJson('{'+str+'}')
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
+    val mergedCodecs = codecWithSize + codecWithLastByte
+    mergedCodecs.getCodecData match {
+      case Left(_) => mergedCodecs
+      case Right(jsonString) => CodecObject.toCodec(s"{$jsonString}")
     }
-
   }
 
   /**
@@ -1641,7 +1639,7 @@ private[bsonImpl] object BosonInjectorImpl {
     }
 
     val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key), isKey = true)
-    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), true), key)
+    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), ignoreForJson = true), key)
   }
 
   /**

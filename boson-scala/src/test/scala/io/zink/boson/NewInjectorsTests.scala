@@ -1670,10 +1670,14 @@ class NewInjectorsTests extends FunSuite {
   }
 
 
-  test("CodecJson - Nested key modification - Single Dots") {
-    val person = new BsonObject().put("name", "john doe")
-    val bson = new BsonObject().put("person", person)
-    val ex = ".person.name"
+  test("CodecJson - Nested key modification, Multiple keys - Single Dots") {
+    val obj = new BsonObject().put("name", "john doe")
+    val person = new BsonObject().put("person", obj)
+    val client = new BsonObject().put("client", person)
+    val someObject = new BsonObject().put("SomeObject", client)
+    val anotherObject = new BsonObject().put("AnotherObject", someObject)
+    val bson = new BsonObject().put("Wrapper", anotherObject)
+    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.name"
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
     })
