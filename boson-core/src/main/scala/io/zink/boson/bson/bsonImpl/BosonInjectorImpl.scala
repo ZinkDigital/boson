@@ -103,11 +103,14 @@ private[bsonImpl] object BosonInjectorImpl {
                         // For codecJson since we found an object or an array we have to skip the extra "{" or "[", that's why readerIndexToUse is +1
                         val subCodec = BosonImpl.inject(codecData, statementsList.drop(1), injFunction, readerIndextoUse = codec.getReaderIndex + 1)
                         val mergedCodecs = codecWithKey + subCodec
-                        val codecFromData: Codec = codecData match {
-                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
-                          case Right(jsonString) => CodecObject.toCodec(jsonString)
+                        codecData match {
+                          case Left(byteBuf) =>
+                            val codecWithReaderIndex = CodecObject.toCodec(byteBuf)
+                            codec.setReaderIndex(codecWithReaderIndex.getReaderIndex) //Skip the bytes that the subcodec already read
+
+                          case Right(jsonString) =>
+                            codec.setReaderIndex(codec.getReaderIndex + subCodec.getWriterIndex)
                         }
-                        codec.setReaderIndex(codecFromData.getReaderIndex) //Skip the bytes that the subcodec already read
                         mergedCodecs
                       case _ => processTypesArray(dataType, codec, codecWithKey)
                     }
@@ -137,9 +140,11 @@ private[bsonImpl] object BosonInjectorImpl {
       case Right(string) => string.length + 4
     }
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
-    codecWithLastByte.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ?? we can probably remove this 2 lines
-    codecWithSize.removeEmptySpace
-    codecWithSize + codecWithLastByte
+    val mergedCodecs = codecWithSize + codecWithLastByte
+    mergedCodecs.getCodecData match {
+      case Left(_) => mergedCodecs
+      case Right(jsonString) => CodecObject.toCodec(s"{$jsonString}")
+    }
   }
 
   /**
