@@ -674,7 +674,13 @@ class CodecJson(str: String) extends Codec {
     * @param sumCodec
     * @return
     */
-  override def +(sumCodec: Codec): Codec = ???
+  override def +(sumCodec: Codec): Codec = {
+    val sum = sumCodec.getCodecData match {
+      case Right(jsonString) => jsonString
+    }
+    val resCodec = new CodecJson(str + sum)
+    resCodec
+  }
 
   /**
     * This method will remove the empty space in this codec.
@@ -682,6 +688,6 @@ class CodecJson(str: String) extends Codec {
     * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
     *
     */
-  def removeEmptySpace: Unit = ???
+  def removeEmptySpace: Unit = {}
 }
 

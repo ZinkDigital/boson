@@ -8,6 +8,7 @@ import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.boson.bson.bsonImpl.bsonLib.BsonObject
+import io.zink.boson.bson.codec.impl.CodecJson
 
 import scala.util.{Failure, Success, Try}
 
@@ -39,13 +40,17 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
       else {
         val dataType: Int = codec.readDataType //TODO ele aqui esta no reader index 10 que e uma chaveta no entanto deveria estar mais a frente, pensar nisto
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
+//        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
         val newCodec = dataType match {
           case 0 =>
+            val codecWithDataType = codec.getCodecData match {
+              case Left(bb) => codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
+              case Right(str) => new CodecJson(str)
+            }
             writeCodec(codecWithDataType, startReader, originalSize)
           case _ =>
+            val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignore = true)
             val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
-
             key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
                 if (statementsList.lengthCompare(1) == 0) {
@@ -495,7 +500,7 @@ private[bsonImpl] object BosonInjectorImpl {
         }
         applyFunction(injFunction, value0) match {
           case value: String =>
-            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1))
+            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1)) //TODO - Writing the size of String in Json
             codec.writeToken(strSizeCodec, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
 
           case valueInstant: Instant =>
