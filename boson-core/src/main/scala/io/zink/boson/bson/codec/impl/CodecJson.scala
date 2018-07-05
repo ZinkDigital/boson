@@ -148,7 +148,7 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonObject(request, input.mkString)
-        case CS_OBJECT =>
+        case CS_OBJECT | CS_OBJECT_WITH_SIZE =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
@@ -158,7 +158,7 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonArray(request, input.mkString)
-        case CS_ARRAY =>
+        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
@@ -422,7 +422,7 @@ class CodecJson(str: String) extends Codec {
     */
   override def readDataType: Int = {
     if (readerIndex == 0) readerIndex += 1
-    if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
+    if (input(readerIndex).equals(CS_COMMA) /*|| (input(readerIndex).equals(CS_OPEN_BRACKET))*/) readerIndex += 1
     input(readerIndex) match {
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
         readerIndex += 1
@@ -618,7 +618,7 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, isKey: Boolean = false): Codec = {
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
     val duplicated: String = outCodecOpt.getCodecData match {
       case Right(jsonString) =>
         val coppiedString = jsonString
@@ -654,7 +654,8 @@ class CodecJson(str: String) extends Codec {
         newCodec.setReaderIndex(readerIndex)
         newCodec
       } else {
-        new CodecJson(resultString)
+        val newCodec = new CodecJson(resultString + ",")
+        newCodec
       }
     }
   }
