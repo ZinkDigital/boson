@@ -618,14 +618,14 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignore: Boolean = false, isKey: Boolean = false): Codec = {
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, isKey: Boolean = false): Codec = {
     val duplicated: String = outCodecOpt.getCodecData match {
       case Right(jsonString) =>
         val coppiedString = jsonString
         coppiedString
     }
 
-    if (ignore) new CodecJson(duplicated) else {
+    if (ignoreForJson) new CodecJson(duplicated) else {
       val resultString: String = token match {
         case SonBoolean(_, info) => duplicated + info.asInstanceOf[Boolean]
 
@@ -643,7 +643,7 @@ class CodecJson(str: String) extends Codec {
 
           }
 
-        case SonString(_, info) => duplicated + "\"" + info.asInstanceOf[CharSequence] + "\"" //TODO do these strings come with quotes
+        case SonString(_, info) => duplicated + "\"" + info.asInstanceOf[CharSequence] + "\""
 
         case SonArray(_, info) => duplicated + info.asInstanceOf[CharSequence]
 
@@ -678,8 +678,7 @@ class CodecJson(str: String) extends Codec {
     val sum = sumCodec.getCodecData match {
       case Right(jsonString) => jsonString
     }
-    val resCodec = new CodecJson(str + sum)
-    resCodec
+    new CodecJson(str + sum)
   }
 
   /**

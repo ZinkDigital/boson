@@ -1670,29 +1670,29 @@ class NewInjectorsTests extends FunSuite {
   //  }
 
 
-  //  test("CodecJson - Nested key modification - Single Dots") {
-  //    val person = new BsonObject().put("name", "john doe")
-  //    val bson = new BsonObject().put("person", person)
-  //    val ex = ".person.name"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val bsonEncoded = bson.encodeToBarray()
-  //    val future = bsonInj.go(bsonEncoded)
-  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-  //    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
-  //  }
+    test("CodecJson - Nested key modification - Single Dots") {
+      val person = new BsonObject().put("name", "john doe")
+      val bson = new BsonObject().put("person", person)
+      val ex = ".person.name"
+      val bsonInj = Boson.injector(ex, (in: String) => {
+        in.toUpperCase
+      })
+      val bsonEncoded = bson.encodeToBarray()
+      val future = bsonInj.go(bsonEncoded)
+      val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+      assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+    }
 
-  test("CodecJson - Top level key modification") {
-    val bson = new BsonObject().put("name", "john doe")
-    val ex = ".name"
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase
-    })
-    val jsonEncoded = bson.encodeToString()
-    val future = bsonInj.go(jsonEncoded)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
-  }
+//  test("CodecJson - Top level key modification") {
+//    val bson = new BsonObject().put("name", "john doe")
+//    val ex = ".name"
+//    val bsonInj = Boson.injector(ex, (in: String) => {
+//      in.toUpperCase
+//    })
+//    val jsonEncoded = bson.encodeToString()
+//    val future = bsonInj.go(jsonEncoded)
+//    val resultValue: String = Await.result(future, Duration.Inf)
+//    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
+//  }
 
 }
