@@ -1728,6 +1728,23 @@ class NewInjectorsTests extends FunSuite {
     assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   }
 
+  test("CodecJson - Nested key modification, two fields - 2 - Single Dots") {
+    val obj = new BsonObject().put("name", "john doe").put("age", 21).put("gender", "male")
+    val person = new BsonObject().put("person", obj)
+    val client = new BsonObject().put("client", person)
+    val someObject = new BsonObject().put("SomeObject", client)
+    val anotherObject = new BsonObject().put("AnotherObject", someObject)
+    val bson = new BsonObject().put("Wrapper", anotherObject)
+    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.gender"
+    val bsonInj = Boson.injector(ex, (in: String) => {
+      "female"
+    })
+    val bsonEncoded = bson.encodeToString()
+    val future = bsonInj.go(bsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.contains("female") && resultValue.length == bsonEncoded.length + 2) // +2 because "female" is 2 character's longer than male
+  }
+
   //  test("CodecJson - Top level halfkey modification") {
   //    val bson = new BsonObject().put("name", "John Doe")
   //    val ex1 = ".*ame"
