@@ -176,7 +176,7 @@ class CodecJson(str: String) extends Codec {
               readerIndex += name.length
               SonString(request, name.substring(1, name.length - 1))
           }
-        case CS_STRING =>
+        case CS_STRING | CS_ARRAY =>
           val index = input.substring(readerIndex, inputSize).indexOf(CS_QUOTES)
           readerIndex += index
           val endIndex = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
@@ -424,9 +424,11 @@ class CodecJson(str: String) extends Codec {
     if (readerIndex == 0) readerIndex += 1
     if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
     input(readerIndex) match {
+
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
         readerIndex += 1
         D_ZERO_BYTE
+
       case CS_QUOTES =>
         val rIndexAux = readerIndex + 1
         val finalIndex: Int = input.substring(rIndexAux, inputSize).indexOf(CS_QUOTES)

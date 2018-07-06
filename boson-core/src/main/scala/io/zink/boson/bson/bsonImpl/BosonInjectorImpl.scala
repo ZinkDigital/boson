@@ -7,6 +7,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
+import com.sun.org.apache.bcel.internal.util.InstructionFinder.CodeConstraint
 import io.zink.boson.bson.bsonImpl.bsonLib.BsonObject
 
 import scala.util.{Failure, Success, Try}
@@ -191,7 +192,7 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte)) //write the read byte to a Codec
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true) //write the read byte to a Codec
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ => //In case its not the end
@@ -227,7 +228,16 @@ private[bsonImpl] object BosonInjectorImpl {
       case Right(string) => string.length + 4
     }
 
-    emptyDataStructure.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, size)) + codecWithoutSize
+    val returnCodec = emptyDataStructure.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, size), ignoreForJson = true) + codecWithoutSize
+
+    if (isCodecJson(returnCodec)) {
+      returnCodec.getCodecData match {
+        case Right(jsonString) =>
+          if (jsonString.charAt(jsonString.length - 1).equals(','))
+            CodecObject.toCodec(s"{${jsonString.dropRight(1)}}")
+          else CodecObject.toCodec(s"{$jsonString}")
+      }
+    } else returnCodec
   }
 
   /**
@@ -244,6 +254,10 @@ private[bsonImpl] object BosonInjectorImpl {
   private def searchAndModify[T](statementsList: StatementsList, codec: Codec, elem: String, injFunction: T => T, writableCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
+    //If it's a CodecJson we need to skip the "[" character
+    if (isCodecJson(codec))
+      codec.setReaderIndex(codec.getReaderIndex + 1)
+
 
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
@@ -255,17 +269,17 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
       else {
         val dataType = codec.readDataType
-        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte)) //write the read byte to a Codec
+        val codecWithDataType = codec.writeToken(writableCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true) //write the read byte to a Codec
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ =>
-            val (codecWithKey, _) = writeKeyAndByte(codec, codecWithDataType)
+            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
             dataType match {
               case D_BSONOBJECT =>
                 val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
                   case SonObject(_, result) => result match {
                     case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                    case jsonString: String => CodecObject.toCodec(jsonString)
+                    case jsonString: String => CodecObject.toCodec("{\"" + key + "\":" + jsonString) //For CodecJson the "{" and the key is already read, we need to add it back
                   }
                 } //Obtain only the size and the object itself of this BsonObject
                 if (hasElem(partialCodec.duplicate, elem)) {
@@ -283,7 +297,16 @@ private[bsonImpl] object BosonInjectorImpl {
                     if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                       val modifiedSubCodec = BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
                       iterateDataStructure(codecWithKey + modifiedSubCodec)
-                    } else iterateDataStructure(codecWithKey + modifiedCodec)
+                    } else {
+                      if (isCodecJson(codec)) {
+                        val modCodecAux: Codec = modifiedCodec.getCodecData match {
+                          case Right(jsonString) => CodecObject.toCodec(jsonString + ",")
+                        }
+                        iterateDataStructure(writableCodec + modCodecAux)
+                      }
+                      else
+                        iterateDataStructure(codecWithKey + modifiedCodec)
+                    }
 
                   } else {
                     val modifiedCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
@@ -296,7 +319,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
                 } else iterateDataStructure(codecWithKey + partialCodec)
 
-              case _ => processTypesArray(dataType, codec, writableCodec) //If its not an object then it will not have the elemnt we're looking for inside it
+              case _ => processTypesArray(dataType, codec, writableCodec) //If its not an object then it will not have the element we're looking for inside it
             }
         }
       }
@@ -307,9 +330,19 @@ private[bsonImpl] object BosonInjectorImpl {
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, modifiedSubSize))
+    val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, modifiedSubSize), ignoreForJson = true)
+    //TODO HERE FOR CODECJSON REMOVE LAST COMMA IF IT EXISTS THEN WRAP EVERYTHING INSIDE A []
     val modCodecWithSize = codecWithSize + modifiedSubCodec //Add the size of the resulting sub-codec (plus 4 bytes) with the actual sub-codec
-    writableCodec + modCodecWithSize //merge the modified sub-codec with the rest of the codec passed to this fuction as an argument
+    val updatedCodec: Codec =
+      if (isCodecJson(modCodecWithSize)) {
+        modCodecWithSize.getCodecData match {
+          case Right(jsonString) =>
+            if (jsonString.charAt(jsonString.length - 1).equals(','))
+              CodecObject.toCodec(s"[${jsonString.dropRight(1)}]")
+            else CodecObject.toCodec(s"[$jsonString]")
+        }
+      } else modCodecWithSize
+    writableCodec + updatedCodec //merge the modified sub-codec with the rest of the codec passed to this function as an argument
   }
 
   /**
@@ -951,8 +984,8 @@ private[bsonImpl] object BosonInjectorImpl {
         (currentCodec, currentCodecCopy, exceptions)
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte)) //Verify
-        val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true) //Verify
+        val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
           case _ =>
@@ -1527,8 +1560,8 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
-        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
+        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         val (codecTo, codecUntil): (Codec, Codec) = dataType match {
           case 0 => (codecWithDataType, codecWithDataTypeCopy)
           case _ =>
@@ -1789,5 +1822,16 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
     encodedObject.encodeToBarray //TODO support CodecJson maybe return (encodedObjects.encodeToBarray(), encodedObject.encodeToString())
+  }
+
+  /**
+    * Private function used to determine if a given codec is a CodecJson or not
+    *
+    * @param codec - Codec that we want to know the type of
+    * @return - a Boolean saying if the given codec is a CodecJson or not
+    */
+  private def isCodecJson(codec: Codec): Boolean = codec.getCodecData match {
+    case Left(_) => false
+    case Right(_) => true
   }
 }
