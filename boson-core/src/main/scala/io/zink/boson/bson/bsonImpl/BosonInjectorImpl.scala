@@ -272,9 +272,9 @@ private[bsonImpl] object BosonInjectorImpl {
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ =>
-            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
             dataType match {
               case D_BSONOBJECT =>
+                val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
                 val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
                   case SonObject(_, result) => result match {
                     case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
@@ -295,7 +295,14 @@ private[bsonImpl] object BosonInjectorImpl {
 
                     if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                       val modifiedSubCodec = BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
-                      iterateDataStructure(codecWithKey + modifiedSubCodec)
+                      if (isCodecJson(codec)) {
+                        val modCodecAux: Codec = modifiedSubCodec.getCodecData match {
+                          case Right(jsonString) => CodecObject.toCodec(jsonString + ",")
+                        }
+                        iterateDataStructure(writableCodec + modCodecAux)
+                      }
+                      else iterateDataStructure(codecWithKey + modifiedSubCodec)
+
                     } else {
                       if (isCodecJson(codec)) {
                         val modCodecAux: Codec = modifiedCodec.getCodecData match {
@@ -303,8 +310,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         }
                         iterateDataStructure(writableCodec + modCodecAux)
                       }
-                      else
-                        iterateDataStructure(codecWithKey + modifiedCodec)
+                      else iterateDataStructure(codecWithKey + modifiedCodec)
                     }
 
                   } else {
@@ -312,13 +318,32 @@ private[bsonImpl] object BosonInjectorImpl {
 
                     if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                       val modifiedSubCodec = BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
-                      iterateDataStructure(codecWithKey + modifiedSubCodec)
+                      if (isCodecJson(codec)) {
+                        val modCodecAux: Codec = modifiedSubCodec.getCodecData match {
+                          case Right(jsonString) => CodecObject.toCodec(jsonString + ",")
+                        }
+                        iterateDataStructure(writableCodec + modCodecAux)
+                      }
+                      else iterateDataStructure(codecWithKey + modifiedSubCodec)
+
                     } else iterateDataStructure(codecWithKey + modifiedCodec)
                   }
 
-                } else iterateDataStructure(codecWithKey + partialCodec)
+                } else {
+                  if (isCodecJson(codec)) {
+                    val modCodecAux: Codec = partialCodec.getCodecData match {
+                      case Right(jsonString) => CodecObject.toCodec(jsonString + ",")
+                    }
+                    iterateDataStructure(writableCodec + modCodecAux)
+                  }
+                  else iterateDataStructure(codecWithKey + partialCodec)
+                }
 
-              case _ => processTypesArray(dataType, codec, writableCodec) //If its not an object then it will not have the element we're looking for inside it
+              case _ =>
+                val codecToWrite = if (!isCodecJson(codec)) {
+                  writeKeyAndByte(codec, codecWithDataType)._1
+                } else writableCodec
+                iterateDataStructure(processTypesArray(dataType, codec, codecToWrite)) //If its not an object then it will not have the element we're looking for inside it
             }
         }
       }
