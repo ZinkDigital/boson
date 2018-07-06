@@ -158,11 +158,20 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonArray(request, input.mkString)
-        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
+        case CS_ARRAY =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonArray(request, subStr1)
+        case CS_ARRAY_WITH_SIZE => //TODO - Doesn't work for .[] because Json doesn't start with '{'
+          //First Read key until '['
+          val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
+          val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
+          //Second Read actual Array until ']'
+          val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+          val subArr = input.substring(readerIndex + arrKeySize + 1, readerIndex + arrKeySize + arrSize )
+          println(subKey + subArr)
+          SonArray(request, subKey + subArr)
       }
     case SonString(request, _) =>
       request match {
@@ -421,7 +430,7 @@ class CodecJson(str: String) extends Codec {
     *         18: represents a Long
     */
   override def readDataType: Int = {
-    if (readerIndex == 0) readerIndex += 1
+    if (readerIndex == 0) readerIndex += 1 // TODO - if ArraWithoutKey Don't do this because there is no '{'
     if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
     input(readerIndex) match {
 
@@ -458,7 +467,7 @@ class CodecJson(str: String) extends Codec {
           case _ => D_ARRAYB_INST_STR_ENUM_CHRSEQ
         }
       case CS_OPEN_BRACKET => D_BSONOBJECT
-      case CS_OPEN_RECT_BRACKET => D_BSONARRAY
+      case CS_OPEN_RECT_BRACKET => D_BSONARRAY //TODO - We can have a Key before '[' and it is still an Array
       case CS_T => D_BOOLEAN
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL
