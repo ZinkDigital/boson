@@ -1711,7 +1711,7 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.contains("JOHN DOE") && resultValue.length == bsonEncoded.length)
   //  }
 
-//  test("CodecJson - Nested key modification, two fields- Single Dots") {
+  //  test("CodecJson - Nested key modification, two fields- Single Dots") {
   //    val obj = new BsonObject().put("name", "john doe").put("age", 21)
   //    val person = new BsonObject().put("person", obj)
   //    val client = new BsonObject().put("client", person)
@@ -1762,51 +1762,71 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   //  }
 
-  test("CodecJson - Nested key - Double Dots") {
-    val bson = new BsonObject().put("name", "john doe").put("age", 21)
-    val ex = "..age"
-    val bsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
-    })
-    val bsonEncoded = bson.encodeToString()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
-  }
+  //  test("CodecJson - Nested key - Double Dots") {
+  //    val bson = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val ex = "..age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = bson.encodeToString()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
+  //  }
+  //
+  //  test("CodecJson - Nested key 2 - Double Dots") {
+  //    val obj = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person = new BsonObject().put("person", obj)
+  //    val client = new BsonObject().put("client", person)
+  //    val someObject = new BsonObject().put("SomeObject", client)
+  //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
+  //    val bson = new BsonObject().put("Wrapper", anotherObject)
+  //    val ex = "..age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = bson.encodeToString()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
+  //  }
+  //
+  //  test("CodecJson - Nested key 3 - Double Dots") {
+  //    val obj = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person = new BsonObject().put("person", obj)
+  //    val client = new BsonObject().put("client", person)
+  //    val someObject = new BsonObject().put("SomeObject", client)
+  //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
+  //    val bson = new BsonObject().put("Wrapper", anotherObject)
+  //    val ex = "..client..age"
+  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val bsonEncoded = bson.encodeToString()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
+  //  }
 
-  test("CodecJson - Nested key 2 - Double Dots") {
-    val obj = new BsonObject().put("name", "john doe").put("age", 21)
-    val person = new BsonObject().put("person", obj)
-    val client = new BsonObject().put("client", person)
-    val someObject = new BsonObject().put("SomeObject", client)
-    val anotherObject = new BsonObject().put("AnotherObject", someObject)
-    val bson = new BsonObject().put("Wrapper", anotherObject)
-    val ex = "..age"
-    val bsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
-    })
-    val bsonEncoded = bson.encodeToString()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
-  }
+    test("CodecJson - Java Instant injection") {
+      val ins = Instant.now()
+      val person1 = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(1000))
+      val client = new BsonObject().put("person", person1)
+      val bson = new BsonObject().put("client", client)
 
-  test("CodecJson - Nested key 3 - Double Dots") {
-    val obj = new BsonObject().put("name", "john doe").put("age", 21)
-    val person = new BsonObject().put("person", obj)
-    val client = new BsonObject().put("client", person)
-    val someObject = new BsonObject().put("SomeObject", client)
-    val anotherObject = new BsonObject().put("AnotherObject", someObject)
-    val bson = new BsonObject().put("Wrapper", anotherObject)
-    val ex = "..client..age"
-    val bsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
-    })
-    val bsonEncoded = bson.encodeToString()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
-  }
+      val expectedPerson = new BsonObject().put("name", "John Doe").put("age", 21).put("instant", ins.plusMillis(2000))
+      val expectedClient = new BsonObject().put("person", expectedPerson)
+      val expectedJson = new BsonObject().put("client", expectedClient)
+
+      val ex = "..instant"
+      val bsonInj = Boson.injector(ex, (in: Instant) => {
+        in.plusMillis(1000)
+      })
+      val bsonEncoded = bson.encodeToString()
+      val future = bsonInj.go(bsonEncoded)
+      val resultValue: String = Await.result(future, Duration.Inf)
+      assert(resultValue.equals(expectedJson.encodeToString))
+    }
 
   //  test("CodecJson - Top level halfkey modification") {
   //    val bson = new BsonObject().put("name", "John Doe")
@@ -1842,7 +1862,7 @@ class NewInjectorsTests extends FunSuite {
   //    )
   //  }
 
-//  test("CodecJson - Key with Array Exp .Key[01] modification toUpperCase - Single Dots") {
+  //  test("CodecJson - Key with Array Exp .Key[01] modification toUpperCase - Single Dots") {
   //    val expr = ".person[0]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
