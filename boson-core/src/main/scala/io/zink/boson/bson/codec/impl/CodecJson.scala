@@ -430,7 +430,7 @@ class CodecJson(str: String) extends Codec {
     *         18: represents a Long
     */
   override def readDataType: Int = {
-    if (readerIndex == 0) readerIndex += 1
+    if (readerIndex == 0) readerIndex += 1 // TODO - if ArraWithoutKey Don't do this because there is no '{'
     if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
     input(readerIndex) match {
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
@@ -465,7 +465,7 @@ class CodecJson(str: String) extends Codec {
           case _ => D_ARRAYB_INST_STR_ENUM_CHRSEQ
         }
       case CS_OPEN_BRACKET => D_BSONOBJECT
-      case CS_OPEN_RECT_BRACKET => D_BSONARRAY
+      case CS_OPEN_RECT_BRACKET => D_BSONARRAY //TODO - We can have a Key before '[' and it is still an Array
       case CS_T => D_BOOLEAN
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL

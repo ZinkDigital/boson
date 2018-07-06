@@ -1863,6 +1863,21 @@ class NewInjectorsTests extends FunSuite {
   //  }
 
   test("CodecJson - Key with Array Exp .Key[0] modification toUpperCase - Single Dots") {
+    val expr = ".person[0]"
+    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
+    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+    val expectedEncoded = expectedBson.encodeToString
+    val bsonInj = Boson.injector(expr, (in: String) => {
+      in.toUpperCase
+    })
+    println(bsonObjArray.encodeToString)
+    println(bsonHuman.encodeToString()) //TODO - this is a problem!!!!
+    val future = bsonInj.go(bsonObjArray.encodeToString)
+    val result: String = Await.result(future, Duration.Inf)
+    assert(result.equals(expectedEncoded))
+  }
+
+  test("CodecJson - Key with Array Exp .[0] modification toUpperCase - Single Dots") {
     val expr = ".[0]"
     val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
     val expectedBson = new BsonObject().put("person", bsonArrayExpected)
@@ -1870,6 +1885,8 @@ class NewInjectorsTests extends FunSuite {
     val bsonInj = Boson.injector(expr, (in: String) => {
       in.toUpperCase
     })
+    println(bsonObjArray.encodeToString)
+    println(bsonHuman.encodeToString()) //TODO - this is a problem!!!!
     val future = bsonInj.go(bsonHuman.encodeToString)
     val result: String = Await.result(future, Duration.Inf)
     assert(result.equals(expectedEncoded))
