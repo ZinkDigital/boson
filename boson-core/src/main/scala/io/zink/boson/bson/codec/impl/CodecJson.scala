@@ -169,7 +169,7 @@ class CodecJson(str: String) extends Codec {
           val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
           //Second Read actual Array until ']'
           val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-          val subArr = input.substring(readerIndex + arrKeySize + 1, readerIndex + arrKeySize + arrSize )
+          val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize )
           println(subKey + subArr)
           SonArray(request, subKey + subArr)
       }
@@ -177,7 +177,8 @@ class CodecJson(str: String) extends Codec {
       request match {
         case CS_NAME | CS_NAME_NO_LAST_BYTE =>
           val charSliced: Char = input(readerIndex)
-          if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET) readerIndex += 1
+          if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
+            readerIndex += 1 //Not incrementing
           input(readerIndex) match {
             case CS_QUOTES =>
               val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
@@ -430,14 +431,12 @@ class CodecJson(str: String) extends Codec {
     *         18: represents a Long
     */
   override def readDataType: Int = {
-    if (readerIndex == 0) readerIndex += 1 // TODO - if ArraWithoutKey Don't do this because there is no '{'
+    if (readerIndex == 0 && input(0) == '{') readerIndex += 1
     if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
     input(readerIndex) match {
-
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
         readerIndex += 1
         D_ZERO_BYTE
-
       case CS_QUOTES =>
         val rIndexAux = readerIndex + 1
         val finalIndex: Int = input.substring(rIndexAux, inputSize).indexOf(CS_QUOTES)
@@ -467,7 +466,8 @@ class CodecJson(str: String) extends Codec {
           case _ => D_ARRAYB_INST_STR_ENUM_CHRSEQ
         }
       case CS_OPEN_BRACKET => D_BSONOBJECT
-      case CS_OPEN_RECT_BRACKET => D_BSONARRAY //TODO - We can have a Key before '[' and it is still an Array
+      case CS_OPEN_RECT_BRACKET => //TODO - We can have a Key before '[' and it is still an Array
+        D_BSONARRAY
       case CS_T => D_BOOLEAN
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL
