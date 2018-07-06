@@ -1017,17 +1017,17 @@ private[bsonImpl] object BosonInjectorImpl {
             val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
               case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
-            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match {
               case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
 
             val codecWithoutKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b))
+            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b), true)
 
             val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b))
+            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b), true)
 
-            val isArray = /*formerType == 4*/ key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
+            val isArray = formerType == 4 || key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
 
             val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
               case (x, C_END, _) if isArray =>
