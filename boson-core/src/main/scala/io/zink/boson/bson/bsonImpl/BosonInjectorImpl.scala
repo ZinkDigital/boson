@@ -1527,23 +1527,23 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
       else {
         val dataType: Int = codec.readDataType
-        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte))
-        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte))
+        val codecWithDataType: Codec = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), true)
+        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte), true)
         val (codecTo, codecUntil): (Codec, Codec) = dataType match {
           case 0 => (codecWithDataType, codecWithDataTypeCopy)
           case _ =>
             val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
               case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
-            val b: Byte = codec.readToken(SonBoolean(C_ZERO)) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO), true) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
               case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
 
-            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-            val resCodec = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b))
+            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key), isKey = true)
+            val resCodec = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), true)
 
-            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-            val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b))
+            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key), isKey = true)
+            val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b), true)
 
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
