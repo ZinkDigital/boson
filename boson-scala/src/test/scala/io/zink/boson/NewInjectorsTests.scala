@@ -1870,32 +1870,12 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
 
-  test("CodecJson - HasElem 3") {
-    val bsonArray = new BsonArray().add("Not an Object").add("Something")
-    val json = new BsonObject().put("persons", bsonArray)
-
-    val bsonArrayExpected = new BsonArray().add("Not an Object").add("Something")
-    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
-
-    val ex = ".persons[@name]"
-    val bsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase
-    })
-
-    val future = bsonInj.go(json.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(jsonExpected.encodeToString))
-  }
-
-  //  test("CodecJson - HasElem 4") {
-  //    val person1 = new BsonObject().put("name", "John Doe")
-  //    val bsonArray = new BsonArray().add(person1).add("Something")
+  //  test("CodecJson - HasElem 3") {
+  //    val bsonArray = new BsonArray().add("Not an Object").add("Something")
   //    val json = new BsonObject().put("persons", bsonArray)
   //
-  //    val person1Expected = new BsonObject().put("name", "JOHN DOE")
-  //    val bsonArrayExpected = new BsonArray().add(person1Expected).add("Something")
+  //    val bsonArrayExpected = new BsonArray().add("Not an Object").add("Something")
   //    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
-  //
   //
   //    val ex = ".persons[@name]"
   //    val bsonInj = Boson.injector(ex, (in: String) => {
@@ -1906,6 +1886,26 @@ class NewInjectorsTests extends FunSuite {
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
+
+  test("CodecJson - HasElem 4") {
+    val person1 = new BsonObject().put("name", "John Doe")
+    val bsonArray = new BsonArray().add(person1).add("Something")
+    val json = new BsonObject().put("persons", bsonArray)
+
+    val person1Expected = new BsonObject().put("name", "JOHN DOE")
+    val bsonArrayExpected = new BsonArray().add(person1Expected).add("Something")
+    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
+
+
+    val ex = ".persons[@name]"
+    val bsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+
+    val future = bsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
 
   //  test("CodecJson - Top level halfkey modification") {
   //    val bson = new BsonObject().put("name", "John Doe")
