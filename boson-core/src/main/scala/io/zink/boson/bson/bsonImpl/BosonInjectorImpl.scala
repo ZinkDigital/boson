@@ -477,12 +477,10 @@ private[bsonImpl] object BosonInjectorImpl {
         case SonString(_, data) => data.asInstanceOf[String]
       }
       val codecWithValue = codec.writeToken(createEmptyCodec(codec), SonString(CS_STRING, value0))
-      val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, value0.length + 1))
-      val codecWithZeroByte = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte))
+      val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+      val codecWithZeroByte = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
 
       ((resultCodec + codecWithSize) + codecWithValue) + codecWithZeroByte
-    //      codecToReturn.removeEmptySpace
-
 
     case D_INT =>
       val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_INTEGER)))
