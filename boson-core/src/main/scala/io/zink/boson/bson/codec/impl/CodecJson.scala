@@ -432,8 +432,13 @@ class CodecJson(str: String) extends Codec {
     */
   override def readDataType(former: Int = 0): Int = {
     if (readerIndex == 0) readerIndex += 1
-    val aux = if (input(readerIndex).equals(CS_COMMA)) readerIndex + 1 else readerIndex
-
+    val aux = if (input(readerIndex).equals(CS_COMMA) && former !=4) {
+      readerIndex += 1
+      readerIndex
+    } else if(input(readerIndex).equals(CS_COMMA) && former ==4) readerIndex + 1
+              else readerIndex
+//    if(input(readerIndex).equals(CS_COMMA)) readerIndex += 1
+//    input(readerIndex) match {
     input(aux) match {
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
         readerIndex += 1
