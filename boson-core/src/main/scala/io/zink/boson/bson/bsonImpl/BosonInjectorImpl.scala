@@ -355,7 +355,6 @@ private[bsonImpl] object BosonInjectorImpl {
       case Right(string) => string.length + 4
     }
     val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, modifiedSubSize), ignoreForJson = true)
-    //TODO HERE FOR CODECJSON REMOVE LAST COMMA IF IT EXISTS THEN WRAP EVERYTHING INSIDE A []
     val modCodecWithSize = codecWithSize + modifiedSubCodec //Add the size of the resulting sub-codec (plus 4 bytes) with the actual sub-codec
     val updatedCodec: Codec =
       if (isCodecJson(modCodecWithSize)) {
@@ -431,7 +430,7 @@ private[bsonImpl] object BosonInjectorImpl {
         val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
         CodecObject.toCodec(newBuf)
 
-      case Right(jsonString) => //TODO not sure if this is correct for CodecJson
+      case Right(jsonString) =>
         val modifiedString: String = applyFunction(injFunction, jsonString, fromRoot = true).asInstanceOf[String]
         CodecObject.toCodec(modifiedString)
     }
@@ -592,7 +591,7 @@ private[bsonImpl] object BosonInjectorImpl {
               }
             case str: String =>
               applyFunction(injFunction, str) match {
-                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING, resString))
+                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING_NO_QUOTES, resString))
               }
           }
         }
@@ -901,15 +900,22 @@ private[bsonImpl] object BosonInjectorImpl {
             case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
 
-        case byteArr: Array[Byte] if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T TODO support JSON string as well
-          val extractedTuples: TupleList = extractTupleList(Left(byteArr))
+        case byteArrOrJson if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T
+
+          val extractedTuples: TupleList = byteArrOrJson match {
+            case byteArray: Array[Byte] => extractTupleList(Left(byteArray))
+            case jsonString: String => extractTupleList(Right(jsonString))
+          }
+
           val convertFunct = convertFunction.get
           val convertedValue = convertFunct(extractedTuples)
           Try(injFunction(convertedValue)) match {
             case Success(modifiedValue) =>
               val modifiedTupleList = toTupleList(modifiedValue)
-              val modifiedByteArr = encodeTupleList(modifiedTupleList)
-              modifiedByteArr.asInstanceOf[T]
+              encodeTupleList(modifiedTupleList, byteArrOrJson) match {
+                case Left(modByteArr) => modByteArr.asInstanceOf[T]
+                case Right(modJsonString) => modJsonString.asInstanceOf[T]
+              }
 
             case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
@@ -1706,7 +1712,7 @@ private[bsonImpl] object BosonInjectorImpl {
     val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
       case SonString(_, keyString) => keyString.asInstanceOf[String]
     }
-    val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+    val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true) match {
       case SonBoolean(_, result) => result.asInstanceOf[Byte]
     }
 
@@ -1829,7 +1835,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param tupleList - List of tuples to be encoded
     * @return An array of bytes representing the encoded list of tuples
     */
-  private def encodeTupleList(tupleList: TupleList): Array[Byte] = {
+  private def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String] = {
     val encodedObject = new BsonObject()
     tupleList.foreach { case (fieldName: String, fieldValue: Any) =>
       fieldValue match {
@@ -1843,7 +1849,10 @@ private[bsonImpl] object BosonInjectorImpl {
         case _ => encodedObject.put(fieldName, fieldValue)
       }
     }
-    encodedObject.encodeToBarray //TODO support CodecJson maybe return (encodedObjects.encodeToBarray(), encodedObject.encodeToString())
+    value match {
+      case _: Array[Byte] => Left(encodedObject.encodeToBarray)
+      case _: String => Right(encodedObject.encodeToString)
+    }
   }
 
   /**

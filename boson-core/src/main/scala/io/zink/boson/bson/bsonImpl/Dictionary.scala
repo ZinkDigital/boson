@@ -92,6 +92,7 @@ object Dictionary {
   val CS_NAME: String = "Name"
   val CS_NAME_NO_LAST_BYTE: String = "NameNoLastByte"
   val CS_STRING: String = STRING
+  val CS_STRING_NO_QUOTES: String = "StringNoQuotes"
   val CS_INTEGER: String = INTEGER
   val CS_DOUBLE: String = DOUBLE
   val CS_FLOAT: String = FLOAT
