@@ -159,7 +159,7 @@ trait Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  def readDataType: Int
+  def readDataType(former: Int = 0): Int
 
   /**
     * duplicate is used to create a duplicate of the codec, all information is duplicate so that operations

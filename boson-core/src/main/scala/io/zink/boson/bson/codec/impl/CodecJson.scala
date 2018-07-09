@@ -158,7 +158,7 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonArray(request, input.mkString)
-        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
+        case CS_ARRAY /*| CS_ARRAY_WITH_SIZE*/ =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
@@ -178,7 +178,7 @@ class CodecJson(str: String) extends Codec {
         case CS_NAME | CS_NAME_NO_LAST_BYTE =>
           val charSliced: Char = input(readerIndex)
           if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
-            readerIndex += 1 //Not incrementing
+            readerIndex += 1
           input(readerIndex) match {
             case CS_QUOTES =>
               val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
@@ -414,7 +414,7 @@ class CodecJson(str: String) extends Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  override def getDataType: Int = this.readDataType
+  override def getDataType: Int = this.readDataType()
 
   /**
     * readDataType is used to obtain the type of the next value in stream, consuming the value from the stream
@@ -430,7 +430,7 @@ class CodecJson(str: String) extends Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  override def readDataType: Int = {
+  override def readDataType(former: Int = 0): Int = {
     if (readerIndex == 0) readerIndex += 1
     if (input(readerIndex).equals(CS_COMMA)) readerIndex += 1
     input(readerIndex) match {
@@ -466,7 +466,28 @@ class CodecJson(str: String) extends Codec {
           case _ => D_ARRAYB_INST_STR_ENUM_CHRSEQ
         }
       case CS_OPEN_BRACKET => D_BSONOBJECT
-      case CS_OPEN_RECT_BRACKET => D_BSONARRAY
+      case CS_OPEN_RECT_BRACKET =>
+        if(former == 4){
+          val rIndexAux = readerIndex + 1
+          input(rIndexAux) match {
+            case CS_QUOTES => D_ARRAYB_INST_STR_ENUM_CHRSEQ
+            case CS_OPEN_BRACKET => D_BSONOBJECT
+            case CS_OPEN_RECT_BRACKET => D_BSONARRAY
+            case CS_T => D_BOOLEAN
+            case CS_F => D_BOOLEAN
+            case CS_N => D_NULL
+            case x if x.isDigit =>
+              lazy val strSliced = input.substring(rIndexAux, inputSize)
+              val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
+              val inputAux = input.substring(rIndexAux, rIndexAux + bindex)
+              if (!inputAux.contains(CS_DOT)) {
+                Try(inputAux.toInt) match {
+                  case Success(v) => D_INT
+                  case Failure(_) => D_LONG
+                }
+              } else D_FLOAT_DOUBLE
+          }
+        } else D_BSONARRAY
       case CS_T => D_BOOLEAN
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL

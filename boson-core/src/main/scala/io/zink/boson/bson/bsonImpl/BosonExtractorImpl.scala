@@ -42,7 +42,7 @@ private[bsonImpl] object BosonExtractorImpl {
     * @return List with extraction result.
     */
   def extractFromBsonObj[T](codec: Codec, keyList: List[(String, String)], bsonFinishReaderIndex: Int, limitList: List[(Option[Int], Option[Int], String)]): List[Any] = {
-    val seqTypeCodec: Int = codec.readDataType
+    val seqTypeCodec: Int = codec.readDataType()
     val finalValue: List[Any] =
       seqTypeCodec match {
         case D_FLOAT_DOUBLE =>
@@ -240,7 +240,7 @@ private[bsonImpl] object BosonExtractorImpl {
       case _ if keyList.head._2.equals(C_LIMITLEVEL) && !keyList.head._1.equals(EMPTY_KEY) => Nil
 
       case _ =>
-        val seqType2: Int = codec.readDataType
+        val seqType2: Int = codec.readDataType()
         if (seqType2 != 0) {
           codec.readArrayPosition
         }
@@ -334,7 +334,7 @@ private[bsonImpl] object BosonExtractorImpl {
       */
     def constructWithLimits(iter: Int): List[Any] = {
 
-      val seqTypeCodec: Int = codec.readDataType
+      val seqTypeCodec: Int = codec.readDataType()
       if (seqTypeCodec != 0) {
         codec.readArrayPosition
       }
@@ -706,7 +706,7 @@ private[bsonImpl] object BosonExtractorImpl {
     * @return List with extraction result.
     */
   def findElements(codec: Codec, keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], start: Int, finish: Int): List[Any] = {
-    val seqType: Int = codec.readDataType
+    val seqType: Int = codec.readDataType()
     val finalValue: List[Any] =
       seqType match {
         case D_FLOAT_DOUBLE =>

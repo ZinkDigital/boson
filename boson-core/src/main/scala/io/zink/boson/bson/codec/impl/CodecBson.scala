@@ -303,7 +303,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  override def readDataType: Int = buff.readByte()
+  override def readDataType(former: Int = 0): Int = buff.readByte()
 
 
   /**
