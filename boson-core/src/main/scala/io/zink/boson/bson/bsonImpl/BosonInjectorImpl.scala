@@ -962,7 +962,7 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
-    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
       case SonArray(_, data) => data match {
         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
         case jsonString: String => CodecObject.toCodec("{" + jsonString + "}")

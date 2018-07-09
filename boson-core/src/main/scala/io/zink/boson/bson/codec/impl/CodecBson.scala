@@ -156,7 +156,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           buff.readerIndex(endIndex)
           SonArray(x, b)
 
-        case CS_ARRAY_WITH_SIZE =>
+        case CS_ARRAY_WITH_SIZE | CS_ARRAY_INJ =>
           val size = buff.getIntLE(buff.readerIndex)
           val endIndex = buff.readerIndex + size
           val newBuff = buff.copy(buff.readerIndex, size)

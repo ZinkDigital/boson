@@ -158,12 +158,12 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonArray(request, input.mkString)
-        case CS_ARRAY /*| CS_ARRAY_WITH_SIZE*/ =>
+        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonArray(request, subStr1)
-        case CS_ARRAY_WITH_SIZE => //TODO - Doesn't work for .[] because Json doesn't start with '{'
+        case CS_ARRAY_INJ => //TODO - Doesn't work for .[] because Json doesn't start with '{'
           //First Read key until '['
           val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
           val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
