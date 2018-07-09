@@ -996,13 +996,6 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END, fullStatementsList: StatementsList, formerType: Int)(implicit
                                                                                                                                                                                                              convertFunction: Option[TupleList => T] = None): Codec = {
-    //    val (startReaderIndex, originalSize) = codec.getCodecData match {
-    //      case Left(byteBuf) => (codec.getReaderIndex, codec.readSize)
-    //      case Right(str) =>
-    //        val size = codec.readSize
-    //        if (formerType == 4) codec.setReaderIndex(codec.getReaderIndex + 1)
-    //        (codec.getReaderIndex, size)
-    //    }
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
     var counter: Int = -1
@@ -1025,10 +1018,6 @@ private[bsonImpl] object BosonInjectorImpl {
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
           case _ =>
-
-            //            val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
-            //              case SonString(_, keyString) => keyString.asInstanceOf[String]
-            //            }
             val key: String = codec.getCodecData match {
               case Left(_) => codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
                 case SonString(_, keyString) => keyString.asInstanceOf[String]
@@ -1040,7 +1029,6 @@ private[bsonImpl] object BosonInjectorImpl {
             val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true) match {
               case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
-
 
             val codecWithoutKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key), ignoreForJson = true)
             val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b), ignoreForJson = true)
@@ -1457,7 +1445,16 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
 
-    val codecFinal = codecWithSize + codecWithoutSize
+    val codecMerged = codecWithSize + codecWithoutSize
+
+    val codecFinal = codecMerged.getCodecData match {
+      case Left(_) => codecMerged
+      case Right(jsonString) =>
+        if (jsonString.charAt(jsonString.length - 1).equals(','))
+          CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+        else
+          CodecObject.toCodec(s"[$jsonString]")
+    }
 
     val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
@@ -1468,7 +1465,18 @@ private[bsonImpl] object BosonInjectorImpl {
     codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
     codecWithSizeCopy.removeEmptySpace
 
-    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
+    val codecMergedCopy = codecWithSizeCopy + codecWithoutSizeCopy
+
+    val codecFinalCopy = codecMergedCopy.getCodecData match {
+      case Left(_) => codecMergedCopy
+      case Right(jsonString) =>
+        if (jsonString.charAt(jsonString.length - 1).equals(','))
+          CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+        else
+          CodecObject.toCodec(s"[$jsonString]")
+    }
+
+//    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>
@@ -1697,16 +1705,35 @@ private[bsonImpl] object BosonInjectorImpl {
       case Right(string) => string.length + 4
     }
 
-    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize))
+    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
     codecWithoutSize.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
     codecWithSize.removeEmptySpace
 
-    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy))
+    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy), ignoreForJson = true)
     codecWithoutSizeCopy.removeEmptySpace //TODO MAYBE MAKE THIS IMMUTABLE ??
     codecWithSizeCopy.removeEmptySpace
 
-    val finalCodec = codecWithSize + codecWithoutSize
-    val finalCodecCopy = codecWithSizeCopy + codecWithoutSizeCopy
+    val codecMerged = codecWithSize + codecWithoutSize
+
+    val finalCodec = codecMerged.getCodecData match {
+      case Left(_) => codecMerged
+      case Right(jsonString) =>
+        if (jsonString.charAt(jsonString.length - 1).equals(','))
+          CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
+        else
+          CodecObject.toCodec(s"{$jsonString}")
+    }
+
+    val codecMergedCopy = codecWithSizeCopy + codecWithoutSizeCopy
+
+    val finalCodecCopy = codecMergedCopy.getCodecData match {
+      case Left(_) => codecMergedCopy
+      case Right(jsonString) =>
+        if (jsonString.charAt(jsonString.length - 1).equals(','))
+          CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
+        else
+          CodecObject.toCodec(s"{$jsonString}")
+    }
 
     condition match {
       case TO_RANGE =>
