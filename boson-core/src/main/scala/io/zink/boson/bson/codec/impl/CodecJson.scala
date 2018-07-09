@@ -466,8 +466,7 @@ class CodecJson(str: String) extends Codec {
           case _ => D_ARRAYB_INST_STR_ENUM_CHRSEQ
         }
       case CS_OPEN_BRACKET => D_BSONOBJECT
-      case CS_OPEN_RECT_BRACKET => //TODO - We can have a Key before '[' and it is still an Array
-        D_BSONARRAY
+      case CS_OPEN_RECT_BRACKET => D_BSONARRAY
       case CS_T => D_BOOLEAN
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL
