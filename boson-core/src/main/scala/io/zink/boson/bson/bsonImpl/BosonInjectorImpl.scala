@@ -959,7 +959,7 @@ private[bsonImpl] object BosonInjectorImpl {
     val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
       case SonArray(_, data) => data match {
         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-        case jsonString: String => CodecObject.toCodec(jsonString)
+        case jsonString: String => CodecObject.toCodec("{"+jsonString+"}")
       }
     }
     val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
@@ -992,7 +992,7 @@ private[bsonImpl] object BosonInjectorImpl {
                                                                                                                                                                                                              convertFunction: Option[TupleList => T] = None): Codec = {
     val startReaderIndex = codec.getReaderIndex
     val originalSize = codec.readSize
-
+    var counter: Int = -1
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
@@ -1019,15 +1019,22 @@ private[bsonImpl] object BosonInjectorImpl {
               case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
 
+            val compare: String = codec.getCodecData match {
+              case Left(_) => key
+              case Right(_) =>
+                counter += 1
+                counter.toString
+            }
+
             val codecWithoutKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key))
-            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b), true)
+            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b), ignoreForJson = true)
 
             val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key))
-            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b), true)
+            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b), ignoreForJson = true)
 
-            val isArray = formerType == 4 || key.forall(b => b.isDigit) //TODO - isArray true if dataType == 4
+            val isArray = formerType == 4 || compare.forall(b => b.isDigit)
 
-            val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (new String(key), condition, to) match {
+            val ((codecResult, codecResultCopy), exceptionsResult): ((Codec, Codec), Int) = (compare, condition, to) match {
               case (x, C_END, _) if isArray =>
                 //expections.clear()
                 if (statementsList.size == 1) {
