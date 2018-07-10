@@ -1345,14 +1345,23 @@ private[bsonImpl] object BosonInjectorImpl {
                     if (exceptions == 0) {
                       dataType match {
                         case D_BSONARRAY | D_BSONOBJECT =>
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
+                              case string: String => CodecObject.toCodec("{" + string + "}")
                             }
                           }
                           val codecMod = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
-                          ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec), exceptions)
+                          if (isCodecJson(codec)) {
+                            val codecModWithComma = codecMod.getCodecData match {
+                              case Right(str) => CodecObject.toCodec(str + ",")
+                            }
+
+                            val partialCodecWithComma = partialCodec.getCodecData match {
+                              case Right(str) => CodecObject.toCodec(str + ",")
+                            }
+                            ((codecWithKey + codecModWithComma, codecWithKeyCopy + partialCodecWithComma), exceptions)
+                          } else ((codecWithKey + codecMod, codecWithKeyCopy + partialCodec), exceptions)
                         case _ =>
                           val newCodecCopy = codecWithKey.duplicate
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
@@ -1843,7 +1852,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 }
 
               case D_BSONARRAY =>
-//                if (isCodecJson(codec)) codec.setReaderIndex(codec.getReaderIndex + 1) //skip the ":" character
+                //                if (isCodecJson(codec)) codec.setReaderIndex(codec.getReaderIndex + 1) //skip the ":" character
                 codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
                   case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
                   case jsonString: String => extractTupleList(Right(jsonString))
