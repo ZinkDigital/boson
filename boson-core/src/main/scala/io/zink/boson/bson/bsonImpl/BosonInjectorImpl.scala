@@ -129,8 +129,21 @@ private[bsonImpl] object BosonInjectorImpl {
                   }
                 }
               case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
-                if (statementsList.head._2.contains(C_DOUBLEDOT))
-                  processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  if (isCodecJson(codec)) {
+                    codec.getCodecData match {
+                      case Right(jsonString) =>
+                        if (jsonString.charAt(0).equals('[')) {
+                          codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
+                          val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
+                          processedObj.getCodecData match {
+                            case Right(js) => CodecObject.toCodec(js + ",")
+                          }
+
+                        } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                    }
+                  } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                }
                 else processTypesArray(dataType, codec, codecWithKey)
             }
         }
@@ -156,11 +169,13 @@ private[bsonImpl] object BosonInjectorImpl {
     mergedCodecs.getCodecData match {
       case Left(_) => mergedCodecs
       case Right(jsonString) =>
-        //TODO it can also be an array so we would need to encapsulate it in []
-        if (jsonString.charAt(jsonString.length - 1).equals(','))
-          CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
-        else
-          CodecObject.toCodec(s"{$jsonString}")
+        if (jsonString.charAt(jsonString.length - 1).equals(',')) {
+          codec.getCodecData match {
+            case Right(codecString) =>
+              if (codecString.charAt(0).equals('[')) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+              else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
+          }
+        } else CodecObject.toCodec(s"{$jsonString}")
     }
   }
 
@@ -804,6 +819,7 @@ private[bsonImpl] object BosonInjectorImpl {
           }
         }
         val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
+
         currentResCodec + codecAux
 
       case D_NULL => currentResCodec
@@ -1476,7 +1492,7 @@ private[bsonImpl] object BosonInjectorImpl {
           CodecObject.toCodec(s"[$jsonString]")
     }
 
-//    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
+    //    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
 
     condition match {
       case TO_RANGE =>
