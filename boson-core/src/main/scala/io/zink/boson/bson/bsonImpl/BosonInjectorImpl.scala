@@ -408,9 +408,13 @@ private[bsonImpl] object BosonInjectorImpl {
 
             case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE))
 
-            case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_ARRAY))
+            case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING))
 
-            case D_BSONOBJECT | D_BSONARRAY => codec.getToken(SonString(CS_ARRAY))
+            case D_BSONOBJECT | D_BSONARRAY =>
+              if(isCodecJson(codec)) {
+                codec.setReaderIndex(codec.getReaderIndex + 1)
+              }
+              codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
 
             case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN))
 

@@ -87,7 +87,7 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonArray(request, input.mkString)
-        case CS_ARRAY =>
+        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           SonArray(request, subStr1)
@@ -103,7 +103,7 @@ class CodecJson(str: String) extends Codec {
               val name = input.substring(ri, subStr + 2)
               SonString(request, name)
           }
-        case CS_STRING =>
+        case CS_STRING | CS_ARRAY_WITH_SIZE => //TODO not sure about CS_ARRAY_WITH_SIZE here
           val index = input.substring(readerIndex, inputSize).view.indexOf(CS_QUOTES)
           val rI = readerIndex + index
           val endIndex = input.substring(rI + 1, inputSize).view.indexOf(CS_QUOTES)
