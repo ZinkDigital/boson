@@ -962,17 +962,17 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
-    val arrayTokenCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+    val (arrayTokenCodec, formerType): (Codec, Int) = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
       case SonArray(_, data) => data match {
-        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-        case jsonString: String => CodecObject.toCodec("{" + jsonString + "}")
+        case byteBuf: ByteBuf => (CodecObject.toCodec(byteBuf), 0)
+        case jsonString: String => (CodecObject.toCodec("{" + jsonString + "}"), 4)
       }
     }
     val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
-        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList, formerType = 0)
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList, formerType = formerType)
       case (EMPTY_KEY, from, expr, _) =>
-        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType = 0)
+        modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType = formerType)
       case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString, to.toString)
       case (nonEmptyKey, from, expr, _) =>
