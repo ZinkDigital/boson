@@ -1033,7 +1033,7 @@ private[bsonImpl] object BosonInjectorImpl {
         (currentCodec, currentCodecCopy, exceptions)
       else {
         val dataType: Int = codec.readDataType(formerType)
-        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true) //Verify
+        val codecWithDataType = codec.writeToken(currentCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
@@ -1496,8 +1496,6 @@ private[bsonImpl] object BosonInjectorImpl {
           CodecObject.toCodec(s"[$jsonString]")
     }
 
-    //    val codecFinalCopy = codecWithSizeCopy + codecWithoutSizeCopy
-
     condition match {
       case TO_RANGE =>
         if (exceptions == 0)
@@ -1660,14 +1658,14 @@ private[bsonImpl] object BosonInjectorImpl {
                     val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
                       case SonArray(_, result) => result match {
                         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                        case jsonString: String => CodecObject.toCodec(jsonString)
+                        case jsonString: String => CodecObject.toCodec("{"+jsonString+"}") //TODO - Add {}
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType)
-                    val newInjectCodec = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction)
+                    val newInjectCodec = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction) //TODO - Here??? Maybe...
                     (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
-                    val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType) //TODO - readerIndex=10 , input(10)='['
+                    val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType)
                     (resCodec + newCodec, resCodecCopy + newCodec)
                   }
                 } else {
