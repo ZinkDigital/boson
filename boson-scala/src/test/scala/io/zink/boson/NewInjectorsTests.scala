@@ -2049,6 +2049,34 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
 
+  test("CodecJson - Nested case class injection - root injection ") {
+    val expectedBook = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthor)
+    val expectedJson = new BsonObject().put("book", expectedBook)
+
+    val expr = ".book"
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      NestedBook(in.name.toUpperCase, in.pages + 100, in.author)
+    })
+
+    val future = bsonInj.go(nestedBson.encodeToString)
+    val result: String = Await.result(future, Duration.Inf)
+    assert(result.equals(expectedJson.encodeToString))
+  }
+
+  test("CodecJson - Nested case class injection - double dot - root injection ") {
+    val expectedBook = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthor)
+    val expectedJson = new BsonObject().put("book", expectedBook)
+
+    val expr = "..book"
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      NestedBook(in.name.toUpperCase, in.pages + 100, in.author)
+    })
+
+    val future = bsonInj.go(nestedBson.encodeToString)
+    val result: String = Await.result(future, Duration.Inf)
+    assert(result.equals(expectedJson.encodeToString))
+  }
+
   test("CodecJson - Nested case class injection - HasElem") {
     val jsonArr = new BsonArray().add(nestedBson)
     val jsonObj = new BsonObject().put("books", jsonArr)
