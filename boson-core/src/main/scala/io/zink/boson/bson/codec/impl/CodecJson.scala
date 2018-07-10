@@ -163,15 +163,21 @@ class CodecJson(str: String) extends Codec {
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonArray(request, subStr1)
-        case CS_ARRAY_INJ => //TODO - Doesn't work for .[] because Json doesn't start with '{'
-          //First Read key until '['
-          val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
-          val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
-          //Second Read actual Array until ']'
-          val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-          val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
-          println(subKey + subArr)
-          SonArray(request, subKey + subArr)
+        case CS_ARRAY_INJ =>
+          if (input(readerIndex).equals('[')) {
+            val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val subStr1 = input.substring(readerIndex, readerIndex + size)
+            SonArray(request, subStr1)
+          } else {
+            //First Read key until '['
+            val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
+            val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
+            //Second Read actual Array until ']'
+            val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
+            println(subKey + subArr)
+            SonArray(request, subKey + subArr)
+          }
       }
     case SonString(request, _) =>
       request match {
@@ -432,13 +438,13 @@ class CodecJson(str: String) extends Codec {
     */
   override def readDataType(former: Int = 0): Int = {
     if (readerIndex == 0) readerIndex += 1
-    val aux = if (input(readerIndex).equals(CS_COMMA) && former !=4) {
+    val aux = if (input(readerIndex).equals(CS_COMMA) && former != 4) {
       readerIndex += 1
       readerIndex
-    } else if(input(readerIndex).equals(CS_COMMA) && former ==4) readerIndex + 1
-              else readerIndex
-//    if(input(readerIndex).equals(CS_COMMA)) readerIndex += 1
-//    input(readerIndex) match {
+    } else if (input(readerIndex).equals(CS_COMMA) && former == 4) readerIndex + 1
+    else readerIndex
+    //    if(input(readerIndex).equals(CS_COMMA)) readerIndex += 1
+    //    input(readerIndex) match {
     input(aux) match {
       case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
         readerIndex += 1
@@ -473,7 +479,7 @@ class CodecJson(str: String) extends Codec {
         }
       case CS_OPEN_BRACKET => D_BSONOBJECT
       case CS_OPEN_RECT_BRACKET =>
-        if(former == 4){
+        if (former == 4) {
           val rIndexAux = readerIndex + 1
           input(rIndexAux) match {
             case CS_QUOTES => D_ARRAYB_INST_STR_ENUM_CHRSEQ
