@@ -411,8 +411,8 @@ private[bsonImpl] object BosonInjectorImpl {
             case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING))
 
             case D_BSONOBJECT | D_BSONARRAY =>
-              if(isCodecJson(codec)) {
-                codec.setReaderIndex(codec.getReaderIndex + 1)
+              if (isCodecJson(codec)) {
+                codec.setReaderIndex(codec.getReaderIndex + 1) //Skip the ":" character
               }
               codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
 
@@ -1836,12 +1836,14 @@ private[bsonImpl] object BosonInjectorImpl {
               case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
 
               case D_BSONOBJECT =>
+                if (isCodecJson(codec)) codec.setReaderIndex(codec.getReaderIndex + 1) //skip the ":" character
                 codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
                   case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
                   case jsonString: String => extractTupleList(Right(jsonString))
                 }
 
               case D_BSONARRAY =>
+//                if (isCodecJson(codec)) codec.setReaderIndex(codec.getReaderIndex + 1) //skip the ":" character
                 codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
                   case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
                   case jsonString: String => extractTupleList(Right(jsonString))

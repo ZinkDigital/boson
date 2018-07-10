@@ -2016,15 +2016,56 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
 
-  test("CodeJson - HasElem case class injection") {
-    val ex = ".store.books[@book]"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
+  //  test("CodeJson - HasElem case class injection") {
+  //    val ex = ".store.books[@book]"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
+  //  }
+  //
+  //  test("CodeJson - HasElem case class injection 2") {
+  //    val ex = "..books[@book]"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
+  //  }
+  //
+  //  test("CodeJson - HasElem case class injection 3") {
+  //    val ex = "..store..books[@book]"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
+  //  }
+
+  test("CodecJson - Nested case class injection - HasElem") {
+    val jsonArr = new BsonArray().add(nestedBson)
+    val jsonObj = new BsonObject().put("books", jsonArr)
+
+    val jsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val jsonObjExpected = new BsonObject().put("books", jsonArrExpected)
+
+    val expr = ".books[@book]"
+
+    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
     })
 
-    val future = bsonInj.go(storeBson.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(storeBsonExpected.encodeToString))
+    val future = bsonInj.go(jsonObj.encodeToString)
+    val result: String = Await.result(future, Duration.Inf)
+    assert(result.equals(jsonObjExpected.encodeToString))
   }
 
   //  test("CodeJson - Multiple key case class injection") { //TODO on hold
