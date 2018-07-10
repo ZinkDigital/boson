@@ -543,15 +543,15 @@ private[bsonImpl] object BosonInjectorImpl {
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
       case D_BSONOBJECT =>
-        val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match { //TODO What about JSON case ???
-          case SonObject(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
+        val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match {
+          case SonObject(_, content) => if (isCodecJson(codec)) content.asInstanceOf[String] else content.asInstanceOf[ByteBuf].array
         }
-        codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0.array))
+        codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0))
       case D_BSONARRAY =>
         val value0 = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
-          case SonArray(_, byteBuf) => byteBuf.asInstanceOf[ByteBuf]
+          case SonArray(_, content) => if (isCodecJson(codec)) content.asInstanceOf[String] else content.asInstanceOf[ByteBuf].array
         }
-        codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0.array))
+        codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0))
       case D_NULL =>
         currentResCodec
       case D_INT =>
@@ -1641,7 +1641,7 @@ private[bsonImpl] object BosonInjectorImpl {
             val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
               case SonString(_, keyString) => keyString.asInstanceOf[String]
             }
-            val b: Byte = codec.readToken(SonBoolean(C_ZERO), true) match { //TODO FOR CodecJSON we cant read a boolean, we need to read an empty string
+            val b: Byte = codec.readToken(SonBoolean(C_ZERO), true) match {
               case SonBoolean(_, result) => result.asInstanceOf[Byte]
             }
 

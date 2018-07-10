@@ -148,7 +148,7 @@ class CodecJson(str: String) extends Codec {
       request match {
         case C_DOT =>
           SonObject(request, input.mkString)
-        case CS_OBJECT | CS_OBJECT_WITH_SIZE =>
+        case CS_OBJECT | CS_OBJECT_WITH_SIZE | CS_OBJECT_INJ =>
           val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
@@ -169,14 +169,22 @@ class CodecJson(str: String) extends Codec {
             val subStr1 = input.substring(readerIndex, readerIndex + size)
             SonArray(request, subStr1)
           } else {
-            //First Read key until '['
-            val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
-            val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
-            //Second Read actual Array until ']'
-            val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-            val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
-            println(subKey + subArr)
-            SonArray(request, subKey + subArr)
+            if (input(readerIndex).equals('{')) {
+              println("various objects")
+              val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+              val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
+              println(subStr1)
+              readerIndex += size
+              SonArray(request, subStr1)
+            } else {
+              //First Read key until '['
+              val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
+              val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
+              //Second Read actual Array until ']'
+              val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+              val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
+              SonArray(request, subKey + subArr)
+            }
           }
       }
     case SonString(request, _) =>
