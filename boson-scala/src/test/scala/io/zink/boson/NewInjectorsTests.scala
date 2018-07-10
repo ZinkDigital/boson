@@ -2096,23 +2096,23 @@ class NewInjectorsTests extends FunSuite {
   //    assert(result.equals(jsonObjExpected.encodeToString))
   //  }
 
-  //  test("CodeJson - Multiple key case class injection") { //TODO on hold
-  //    val book: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
-  //    val bsonBook: BsonObject = new BsonObject().put("book", book)
-  //
-  //    val books: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
-  //    val store: BsonObject = new BsonObject().put("books", books)
-  //    val storeJsonExpected: BsonObject = new BsonObject().put("store", store)
-  //
-  //    val ex = ".store.books[0].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
-  //      Book("LOTR", 320)
-  //    })
-  //
-  //    val future = bsonInj.go(storeBson.encodeToString)
-  //    val resultValue: String = Await.result(future, Duration.Inf)
-  //    assert(resultValue.equals(storeJsonExpected.encodeToString))
-  //  }
+  test("CodeJson - Multiple key case class injection") {
+    val book: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
+    val bsonBook: BsonObject = new BsonObject().put("book", book)
+
+    val books: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
+    val store: BsonObject = new BsonObject().put("books", books)
+    val storeJsonExpected: BsonObject = new BsonObject().put("store", store)
+
+    val ex = ".store.books[0].book"
+    val bsonInj = Boson.injector(ex, (in: Book) => {
+      Book("LOTR", 320)
+    })
+
+    val future = bsonInj.go(storeBson.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(storeJsonExpected.encodeToString))
+  }
 
   //  test("CodecJson - Top level halfkey modification") {
   //    val bson = new BsonObject().put("name", "John Doe")
