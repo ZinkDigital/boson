@@ -8,6 +8,7 @@ import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.boson.bson.bsonImpl.bsonLib.BsonObject
+import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
 
 import scala.util.{Failure, Success, Try}
 
@@ -1345,7 +1346,6 @@ private[bsonImpl] object BosonInjectorImpl {
                             else
                               modifiedPartialCodec
 
-                          //TODO HERE this wont corectly tell the until range, does not know the last element
                           Try(modifierEnd(mergedCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match { //emptyCodec.duplicate
                             case Success(_) =>
                               ((codecWithKey, codecWithKeyCopy), exceptions)
@@ -1692,8 +1692,12 @@ private[bsonImpl] object BosonInjectorImpl {
                         case jsonString: String => CodecObject.toCodec("{" + jsonString + "}") //TODO - Add {}
                       }
                     }
-                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType)
-                    val newInjectCodec = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction) //TODO - Here??? Maybe...
+                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType).getCodecData match {
+                      case Left(byteBuf) => new CodecBson(byteBuf)
+                      case Right(jsonString) => new CodecJson(jsonString)
+                    }
+                    println(newCodec.getCodecData)
+                    val newInjectCodec = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction) //TODO - Here??? Maybe... add {}
                     (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
                     val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType)
@@ -1727,8 +1731,14 @@ private[bsonImpl] object BosonInjectorImpl {
 
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
-                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
-                  (processedCodec, processedCodecCopy)
+                  if(isCodecJson(codec)){
+                    val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
+                    (processedCodec, processedCodecCopy)
+//                    (codec.writeToken(currentCodec, SonString(CS_STRING,key)), codec.writeToken(currentCodecCopy, SonString(CS_STRING,key)))
+                  } else {
+                    val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                    (processedCodec, processedCodecCopy)
+                  }
                 } else {
                   val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
                   val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)

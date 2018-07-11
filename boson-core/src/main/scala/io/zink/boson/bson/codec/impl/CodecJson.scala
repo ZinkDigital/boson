@@ -170,17 +170,16 @@ class CodecJson(str: String) extends Codec {
             SonArray(request, subStr1)
           } else {
             if (input(readerIndex).equals('{')) {
-              println("various objects")
               val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
               val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
               println(subStr1)
               readerIndex += size
               SonArray(request, subStr1)
             } else {
-              //First Read key until '['
+              //First - Read key until '['
               val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
               val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
-              //Second Read actual Array until ']'
+              //Second - Read actual Array until ']'
               val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
               val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
               SonArray(request, subKey + subArr)
@@ -195,6 +194,10 @@ class CodecJson(str: String) extends Codec {
             readerIndex += 1
           input(readerIndex) match {
             case CS_QUOTES =>
+              //**************************
+              val sub = findObjectSize(input.substring(readerIndex, inputSize).view, CS_QUOTES, ':')
+              println(input.substring(readerIndex, readerIndex + sub - 1))
+              //**************************
               val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
               val name = input.substring(readerIndex, readerIndex + subStr + 2)
               readerIndex += name.length
