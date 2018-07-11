@@ -2144,14 +2144,53 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(storeJsonExpected.encodeToString))
   //  }
 
-  test("CodecJson - Case case injection - [all]") {
-    val ex = ".store.books[all].book"
+  //  test("CodecJson - Case case injection - [all]") {
+  //    val ex = ".store.books[all].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
+  //  }
+  //
+  //  test("CodecJson - Case case injection - [0 to end]") {
+  //    val ex = ".store.books[0 to end].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
+  //  }
+
+  //  test("CodecJson - Case case injection - [0 until end]") {
+  //    val books = new BsonArray().add(bsonBookExpected).add(bsonBook2)
+  //    val store = new BsonObject().put("books", books)
+  //    val storeBsonExpected = new BsonObject().put("store", store)
+  //
+  //    val ex = ".store.books[0 until end].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
+  //  }
+
+  test("CodecJson - Case case injection - [end]") {
+    val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
+    val store = new BsonObject().put("books", books)
+    val storeJsonExpected = new BsonObject().put("store", store)
+
+    val ex = ".store.books[end].book"
     val bsonInj = Boson.injector(ex, (in: Book) => {
       Book(in.name, in.pages + 100)
     })
+
     val future = bsonInj.go(storeBson.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(storeBsonExpected.encodeToString))
+    assert(resultValue.equals(storeJsonExpected.encodeToString))
   }
 
   //  test("CodecJson - Top level halfkey modification") {
