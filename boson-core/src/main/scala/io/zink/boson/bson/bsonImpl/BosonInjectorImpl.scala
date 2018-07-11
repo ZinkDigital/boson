@@ -1025,7 +1025,7 @@ private[bsonImpl] object BosonInjectorImpl {
       *
       * @param currentCodec     - The codec where we right the values of the processed data
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
-      * @param exceptions       - An Int that represents how many exceptions have occurred (This value is used to detirmine if the range inserted is a TO_RANGE or UNTIL_RANGE)
+      * @param exceptions       - An Int that represents how many exceptions have occurred (This value is used to determine if the range inserted is a TO_RANGE or UNTIL_RANGE)
       * @return a codec pair with the modifications made and the amount of exceptions that occured
       */
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec, exceptions: Int): (Codec, Codec, Int) = {
@@ -1217,14 +1217,22 @@ private[bsonImpl] object BosonInjectorImpl {
                     if (exceptions == 0) {
                       dataType match {
                         case D_BSONARRAY | D_BSONOBJECT =>
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
+                              case string: String => CodecObject.toCodec("{" + string + "}")
                             }
                           }
                           val interiorObjCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
-                          ((codecWithKey + interiorObjCodec, codecWithKey + partialCodec), exceptions)
+                          if (isCodecJson(codec)) {
+                            val interiorWithComma = interiorObjCodec.getCodecData match {
+                              case Right(str) => CodecObject.toCodec(str + ",")
+                            }
+                            val partialWithComma = partialCodec.getCodecData match {
+                              case Right(str) => CodecObject.toCodec(str + ",")
+                            }
+                            ((codecWithKey + interiorWithComma, codecWithKey + partialWithComma), exceptions)
+                          } else ((codecWithKey + interiorObjCodec, codecWithKey + partialCodec), exceptions)
                         case _ =>
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
                             case Success(tuple) =>
@@ -1667,7 +1675,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     val partialCodec = codec.readToken(SonArray(CS_ARRAY)) match {
                       case SonArray(_, result) => result match {
                         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                        case jsonString: String => CodecObject.toCodec("{"+jsonString+"}") //TODO - Add {}
+                        case jsonString: String => CodecObject.toCodec("{" + jsonString + "}") //TODO - Add {}
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType)
