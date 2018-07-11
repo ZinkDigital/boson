@@ -2178,12 +2178,27 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
 
-  test("CodecJson - Case case injection - [end]") {
+  //  test("CodecJson - Case case injection - [end]") {
+  //    val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
+  //    val store = new BsonObject().put("books", books)
+  //    val storeJsonExpected = new BsonObject().put("store", store)
+  //
+  //    val ex = ".store.books[end].book"
+  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //
+  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeJsonExpected.encodeToString))
+  //  }
+
+  test("CodecJson - Case case injection - ..books[1]") {
     val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
     val store = new BsonObject().put("books", books)
     val storeJsonExpected = new BsonObject().put("store", store)
 
-    val ex = ".store.books[end].book"
+    val ex = "..books[1].book"
     val bsonInj = Boson.injector(ex, (in: Book) => {
       Book(in.name, in.pages + 100)
     })

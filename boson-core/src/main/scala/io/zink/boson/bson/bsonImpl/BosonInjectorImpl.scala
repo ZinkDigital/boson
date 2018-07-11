@@ -544,7 +544,11 @@ private[bsonImpl] object BosonInjectorImpl {
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
       case D_BSONOBJECT =>
         val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match {
-          case SonObject(_, content) => if (isCodecJson(codec)) content.asInstanceOf[String] else content.asInstanceOf[ByteBuf].array
+          case SonObject(_, content) =>
+            if (isCodecJson(codec)) {
+              val str = content.asInstanceOf[String]
+              if (!str.charAt(0).equals('{')) "{" + str else str
+            } else content.asInstanceOf[ByteBuf].array
         }
         codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0))
       case D_BSONARRAY =>
@@ -1455,9 +1459,8 @@ private[bsonImpl] object BosonInjectorImpl {
                     case _ =>
                       ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
-                } else {
-                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions) // Exceptions
-                }
+                } else ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions) // Exceptions
+
               case (x, _, l) if !isArray =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
