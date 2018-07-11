@@ -1731,14 +1731,14 @@ private[bsonImpl] object BosonInjectorImpl {
 
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
-                  if(isCodecJson(codec)){
-                    val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
-                    (processedCodec, processedCodecCopy)
-//                    (codec.writeToken(currentCodec, SonString(CS_STRING,key)), codec.writeToken(currentCodecCopy, SonString(CS_STRING,key)))
-                  } else {
-                    val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
-                    (processedCodec, processedCodecCopy)
-                  }
+                  //                  if(isCodecJson(codec)){
+                  //                    val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
+                  //                    (processedCodec, processedCodecCopy)
+                  ////                    (codec.writeToken(currentCodec, SonString(CS_STRING,key)), codec.writeToken(currentCodecCopy, SonString(CS_STRING,key)))
+                  //                  } else {
+                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                  (processedCodec, processedCodecCopy)
+                  //                  }
                 } else {
                   val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
                   val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)
