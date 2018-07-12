@@ -1737,11 +1737,17 @@ private[bsonImpl] object BosonInjectorImpl {
                         case jsonString: String => CodecObject.toCodec("{" + jsonString + "}") //TODO - Add {}
                       }
                     }
-                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType).getCodecData match {
-                      case Left(byteBuf) => new CodecBson(byteBuf)
-                      case Right(jsonString) => new CodecJson(jsonString)
+                    val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType)
+
+                    val newInjectCodec1 = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction)
+                    val newInjectCodec = newInjectCodec1.getCodecData match {
+                      case Left(_) => newInjectCodec1
+                      case Right(jsonString) =>
+                        if(dataType == D_BSONARRAY)
+                          CodecObject.toCodec("["+jsonString.substring(1,jsonString.size - 1)+"]")
+                        else if(dataType == D_BSONOBJECT) newInjectCodec1
+                        else CodecObject.toCodec(jsonString.substring(1,jsonString.size - 1))
                     }
-                    val newInjectCodec = BosonImpl.inject(newCodec.getCodecData, statementsList, injFunction) //TODO - Here??? Maybe... add {}
                     (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
                     val newCodec: Codec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType)
@@ -1775,14 +1781,23 @@ private[bsonImpl] object BosonInjectorImpl {
 
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
-                  //                  if(isCodecJson(codec)){
-                  //                    val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
-                  //                    (processedCodec, processedCodecCopy)
-                  ////                    (codec.writeToken(currentCodec, SonString(CS_STRING,key)), codec.writeToken(currentCodecCopy, SonString(CS_STRING,key)))
-                  //                  } else {
-                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
-                  (processedCodec, processedCodecCopy)
-                  //                  }
+                  codec.getCodecData match {
+                    case Left(_) =>
+                      val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                      (processedCodec, processedCodecCopy)
+                    case Right(jsonString) =>
+                      if ((jsonString.charAt(codec.getReaderIndex - 1) equals ',') || (jsonString.charAt(codec.getReaderIndex - 1) equals ']')) { //If this happens key is not key but value
+                        codec.setReaderIndex(codec.getReaderIndex - key.size - 3)
+                        val keyType = codec.getDataType
+                        val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, keyType, codec, injFunction, condition, from, to, codecWithDataType, codecWithDataTypeCopy)
+                        (processedCodec, processedCodecCopy)
+                      } else {
+                        val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                        (processedCodec, processedCodecCopy)
+                      }
+                  }
+                  //                  val (processedCodec, processedCodecCopy): (Codec, Codec) = processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
+                  //                  (processedCodec, processedCodecCopy)
                 } else {
                   val codecIterate = processTypesArray(dataType, codec.duplicate, resCodec)
                   val codecIterateCopy = processTypesArray(dataType, codec, resCodecCopy)

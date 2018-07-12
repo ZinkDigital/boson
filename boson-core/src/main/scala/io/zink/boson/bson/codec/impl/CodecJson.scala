@@ -194,11 +194,6 @@ class CodecJson(str: String) extends Codec {
             readerIndex += 1
           input(readerIndex) match {
             case CS_QUOTES =>
-              //**************************
-//              val sub = findObjectSize(input.substring(readerIndex, inputSize).view, CS_QUOTES, ':')
-//              println(input.substring(readerIndex, readerIndex + sub - 1))
-              //**************************
-
               val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
               val name = input.substring(readerIndex, readerIndex + subStr + 2)
               readerIndex += name.length
