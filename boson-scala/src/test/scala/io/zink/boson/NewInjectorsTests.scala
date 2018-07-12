@@ -1672,11 +1672,11 @@ class NewInjectorsTests extends FunSuite {
   //  test("CodecJson - Top level key modification") {
   //    val bson = new BsonObject().put("name", "john doe")
   //    val ex = ".name"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase
   //    })
   //    val jsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(jsonEncoded)
+  //    val future = jsonInj.go(jsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
   //  }
@@ -1685,11 +1685,11 @@ class NewInjectorsTests extends FunSuite {
   //    val person = new BsonObject().put("name", "john doe")
   //    val bson = new BsonObject().put("person", person)
   //    val ex = ".person.name"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("JOHN DOE") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1702,11 +1702,11 @@ class NewInjectorsTests extends FunSuite {
   //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
   //    val bson = new BsonObject().put("Wrapper", anotherObject)
   //    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.name"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("JOHN DOE") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1719,11 +1719,11 @@ class NewInjectorsTests extends FunSuite {
   //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
   //    val bson = new BsonObject().put("Wrapper", anotherObject)
   //    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1736,11 +1736,11 @@ class NewInjectorsTests extends FunSuite {
   //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
   //    val bson = new BsonObject().put("Wrapper", anotherObject)
   //    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.gender"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      "female"
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("female") && resultValue.length == bsonEncoded.length + 2) // +2 because "female" is 2 character's longer than male
   //  }
@@ -1753,11 +1753,11 @@ class NewInjectorsTests extends FunSuite {
   //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
   //    val bson = new BsonObject().put("Wrapper", anotherObject)
   //    val ex = ".Wrapper.AnotherObject.SomeObject.client.person.age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1765,11 +1765,11 @@ class NewInjectorsTests extends FunSuite {
   //  test("CodecJson - Nested key - Double Dots") {
   //    val bson = new BsonObject().put("name", "john doe").put("age", 21)
   //    val ex = "..age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1782,11 +1782,11 @@ class NewInjectorsTests extends FunSuite {
   //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
   //    val bson = new BsonObject().put("Wrapper", anotherObject)
   //    val ex = "..age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1799,11 +1799,11 @@ class NewInjectorsTests extends FunSuite {
   //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
   //    val bson = new BsonObject().put("Wrapper", anotherObject)
   //    val ex = "..client..age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.contains("41") && resultValue.length == bsonEncoded.length)
   //  }
@@ -1819,11 +1819,11 @@ class NewInjectorsTests extends FunSuite {
   //    val expectedJson = new BsonObject().put("client", expectedClient)
   //
   //    val ex = "..instant"
-  //    val bsonInj = Boson.injector(ex, (in: Instant) => {
+  //    val jsonInj = Boson.injector(ex, (in: Instant) => {
   //      in.plusMillis(1000)
   //    })
   //    val bsonEncoded = bson.encodeToString()
-  //    val future = bsonInj.go(bsonEncoded)
+  //    val future = jsonInj.go(bsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(expectedJson.encodeToString))
   //  }
@@ -1840,11 +1840,11 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
   //
   //    val ex = ".persons[@name]"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase()
   //    })
   //    val jsonEncoded = json.encodeToString()
-  //    val future = bsonInj.go(jsonEncoded)
+  //    val future = jsonInj.go(jsonEncoded)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1861,11 +1861,11 @@ class NewInjectorsTests extends FunSuite {
   //
   //
   //    val ex = ".persons[@name]"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase
   //    })
   //
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1878,11 +1878,11 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
   //
   //    val ex = ".persons[@name]"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase
   //    })
   //
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1898,11 +1898,11 @@ class NewInjectorsTests extends FunSuite {
   //
   //
   //    val ex = ".persons[@name]"
-  //    val bsonInj = Boson.injector(ex, (in: String) => {
+  //    val jsonInj = Boson.injector(ex, (in: String) => {
   //      in.toUpperCase
   //    })
   //
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1919,11 +1919,11 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
   //
   //    val ex = ".persons[@age]"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1942,11 +1942,11 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("client", clientExpected)
   //
   //    val ex = ".client.persons[@age]"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1965,11 +1965,11 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("client", clientExpected)
   //
   //    val ex = "..persons[@age]"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
   //
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -1992,10 +1992,10 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("wrapper", objExpected)
   //
   //    val ex = "..obj..persons[@age]"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
   //      in + 20
   //    })
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
@@ -2008,43 +2008,43 @@ class NewInjectorsTests extends FunSuite {
   //    val jsonExpected = new BsonObject().put("book", expected)
   //
   //    val ex = ".book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book("LOTR", 320)
   //    })
-  //    val future = bsonInj.go(json.encodeToString)
+  //    val future = jsonInj.go(json.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(jsonExpected.encodeToString))
   //  }
 
   //  test("CodeJson - HasElem case class injection") {
   //    val ex = ".store.books[@book]"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
   //
   //  test("CodeJson - HasElem case class injection 2") {
   //    val ex = "..books[@book]"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
   //
   //  test("CodeJson - HasElem case class injection 3") {
   //    val ex = "..store..books[@book]"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
@@ -2054,11 +2054,11 @@ class NewInjectorsTests extends FunSuite {
   //    val expectedJson = new BsonObject().put("book", expectedBook)
   //
   //    val expr = ".book"
-  //    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+  //    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
   //      NestedBook(in.name.toUpperCase, in.pages + 100, in.author)
   //    })
   //
-  //    val future = bsonInj.go(nestedBson.encodeToString)
+  //    val future = jsonInj.go(nestedBson.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedJson.encodeToString))
   //  }
@@ -2068,11 +2068,11 @@ class NewInjectorsTests extends FunSuite {
   //    val expectedJson = new BsonObject().put("book", expectedBook)
   //
   //    val expr = "..book"
-  //    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+  //    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
   //      NestedBook(in.name.toUpperCase, in.pages + 100, in.author)
   //    })
   //
-  //    val future = bsonInj.go(nestedBson.encodeToString)
+  //    val future = jsonInj.go(nestedBson.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedJson.encodeToString))
   //  }
@@ -2086,12 +2086,12 @@ class NewInjectorsTests extends FunSuite {
   //
   //    val expr = ".books[@book]"
   //
-  //    val bsonInj = Boson.injector(expr, (in: NestedBook) => {
+  //    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
   //      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
   //      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
   //    })
   //
-  //    val future = bsonInj.go(jsonObj.encodeToString)
+  //    val future = jsonInj.go(jsonObj.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(jsonObjExpected.encodeToString))
   //  }
@@ -2105,11 +2105,11 @@ class NewInjectorsTests extends FunSuite {
   //    val storeJsonExpected: BsonObject = new BsonObject().put("store", store)
   //
   //    val ex = ".store.books[0].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book("LOTR", 320)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeJsonExpected.encodeToString))
   //  }
@@ -2122,11 +2122,11 @@ class NewInjectorsTests extends FunSuite {
   //    val storeJsonExpected: BsonObject = new BsonObject().put("store", store)
   //
   //    val ex = ".store.books[0].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book("LOTR", 320)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeJsonExpected.encodeToString))
   //  }
@@ -2137,11 +2137,11 @@ class NewInjectorsTests extends FunSuite {
   //    val storeJsonExpected = new BsonObject().put("store", store)
   //
   //    val ex = ".store.books[first].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeJsonExpected.encodeToString))
   //  }
@@ -2152,31 +2152,31 @@ class NewInjectorsTests extends FunSuite {
   //    val storeJsonExpected = new BsonObject().put("store", store)
   //
   //    val ex = ".store.books[1].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeJsonExpected.encodeToString))
   //  }
 
   //  test("CodecJson - Case case injection - [all]") {
   //    val ex = ".store.books[all].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
   //
   //  test("CodecJson - Case case injection - [0 to end]") {
   //    val ex = ".store.books[0 to end].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
@@ -2187,10 +2187,10 @@ class NewInjectorsTests extends FunSuite {
   //    val storeBsonExpected = new BsonObject().put("store", store)
   //
   //    val ex = ".store.books[0 until end].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
@@ -2201,28 +2201,39 @@ class NewInjectorsTests extends FunSuite {
   //    val storeJsonExpected = new BsonObject().put("store", store)
   //
   //    val ex = ".store.books[end].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
   //      Book(in.name, in.pages + 100)
   //    })
   //
-  //    val future = bsonInj.go(storeBson.encodeToString)
+  //    val future = jsonInj.go(storeBson.encodeToString)
   //    val resultValue: String = Await.result(future, Duration.Inf)
   //    assert(resultValue.equals(storeJsonExpected.encodeToString))
   //  }
 
-  test("CodecJson - Case case injection - ..books[1]") {
-    val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
-    val store = new BsonObject().put("books", books)
-    val storeJsonExpected = new BsonObject().put("store", store)
+  //  test("CodecJson - Case case injection - ..books[1]") {
+  //    val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
+  //    val store = new BsonObject().put("books", books)
+  //    val storeJsonExpected = new BsonObject().put("store", store)
+  //
+  //    val ex = "..books[1].book"
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //
+  //    val future = jsonInj.go(storeBson.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(storeJsonExpected.encodeToString))
+  //  }
 
-    val ex = "..books[1].book"
-    val bsonInj = Boson.injector(ex, (in: Book) => {
+  test("CodecJson - Case class injection - arr expression ..[0]") {
+    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString
+    val ex = "..[0].book"
+    val jsonInj = Boson.injector(ex, (in: Book) => {
       Book(in.name, in.pages + 100)
     })
-
-    val future = bsonInj.go(storeBson.encodeToString)
+    val future = jsonInj.go(books.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(storeJsonExpected.encodeToString))
+    assert(resultValue.equals(booksExpected))
   }
 
   //  test("CodecJson - Top level halfkey modification") {
@@ -2231,25 +2242,25 @@ class NewInjectorsTests extends FunSuite {
   //    val ex2 = ".nam*"
   //    val ex3 = ".n*me"
   //
-  //    val bsonInj1 = Boson.injector(ex1, (in: String) => {
+  //    val jsonInj1 = Boson.injector(ex1, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val bsonInj2 = Boson.injector(ex2, (in: String) => {
+  //    val jsonInj2 = Boson.injector(ex2, (in: String) => {
   //      in.toLowerCase
   //    })
-  //    val bsonInj3 = Boson.injector(ex3, (in: String) => {
+  //    val jsonInj3 = Boson.injector(ex3, (in: String) => {
   //      in + " Hello"
   //    })
   //
   //    val jsonEncoded = bson.encodeToString()
   //
-  //    val future1 = bsonInj1.go(jsonEncoded)
+  //    val future1 = jsonInj1.go(jsonEncoded)
   //    val resultValue1: String = Await.result(future1, Duration.Inf)
   //
-  //    val future2 = bsonInj2.go(jsonEncoded)
+  //    val future2 = jsonInj2.go(jsonEncoded)
   //    val resultValue2: String = Await.result(future2, Duration.Inf)
   //
-  //    val future3 = bsonInj3.go(jsonEncoded)
+  //    val future3 = jsonInj3.go(jsonEncoded)
   //    val resultValue3: String = Await.result(future3, Duration.Inf)
   //
   //    assert(
@@ -2264,10 +2275,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2277,10 +2288,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2290,10 +2301,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2303,10 +2314,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2316,10 +2327,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2329,10 +2340,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("person1").add("person2").add("PERSON3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2342,10 +2353,10 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2355,36 +2366,36 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
 
-  test("CodecJson - Key with Array Exp ..Key[1] modification toUpperCase - Double Dots") {
-    val expr = "..person[1]"
-    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
-    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
-    val expectedEncoded = expectedBson.encodeToString
-    val bsonInj = Boson.injector(expr, (in: String) => {
-      in.toUpperCase
-    })
-    val future = bsonInj.go(bsonObjArray.encodeToString)
-    val result: String = Await.result(future, Duration.Inf)
-    assert(result.equals(expectedEncoded))
-  }
+  //  test("CodecJson - Key with Array Exp ..Key[1] modification toUpperCase - Double Dots") {
+  //    val expr = "..person[1]"
+  //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
+  //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
+  //    val expectedEncoded = expectedBson.encodeToString
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
+  //      in.toUpperCase
+  //    })
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
+  //    val result: String = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expectedEncoded))
+  //  }
 
   //  test("CodecJson - Key with Array Exp ..Key[first] modification toUpperCase - Double Dots") { //TODO - On hold
   //    val expr = "..person[first]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedBson = new BsonObject().put("person", bsonArrayExpected)
   //    val expectedEncoded = expectedBson.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonObjArray.encodeToString)
+  //    val future = jsonInj.go(bsonObjArray.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2393,10 +2404,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[0]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2405,10 +2416,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[first]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2417,10 +2428,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[all]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2429,10 +2440,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[end]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("person2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2441,10 +2452,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[1 to 2]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2453,10 +2464,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[0 until 2]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2465,10 +2476,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[1 to end]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2477,10 +2488,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = ".[1 until end]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(expectedEncoded))
   //  }
@@ -2489,10 +2500,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[0]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2501,10 +2512,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[first]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("person2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2513,10 +2524,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[all]"
   //    val bsonArrayExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2525,10 +2536,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[end]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("person2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2537,10 +2548,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[1 to 2]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2549,10 +2560,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[1 until 2]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2561,10 +2572,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[1 to end]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2573,10 +2584,10 @@ class NewInjectorsTests extends FunSuite {
   //    val expr = "..[1 until end]"
   //    val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("person3")
   //    val expectedEncoded = bsonArrayExpected.encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
-  //    val future = bsonInj.go(bsonHuman.encodeToString)
+  //    val future = jsonInj.go(bsonHuman.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result equals expectedEncoded)
   //  }
@@ -2586,11 +2597,11 @@ class NewInjectorsTests extends FunSuite {
   //    val bsonArrayExpected = new BsonArray().add("ET").add("predator").add("alien")
   //    val bsonExpected = new BsonObject().put("person", bsonHuman).put("alien", bsonArrayExpected)
   //    val expectedEncoded = new BsonObject().put("species", bsonExpected).encodeToString
-  //    val bsonInj = Boson.injector(expr, (in: String) => {
+  //    val jsonInj = Boson.injector(expr, (in: String) => {
   //      in.toUpperCase
   //    })
   //    println(bsonSpeciesObj.encodeToString)
-  //    val future = bsonInj.go(bsonSpeciesObj.encodeToString)
+  //    val future = jsonInj.go(bsonSpeciesObj.encodeToString)
   //    val result: String = Await.result(future, Duration.Inf)
   //  assert(result equals expectedEncoded)
   //  }
