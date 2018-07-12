@@ -1143,8 +1143,6 @@ private[bsonImpl] object BosonInjectorImpl {
                             case jsonString: String => Right("{" + jsonString + "}")
                           }
                         }
-                        //                        val searchInsidePartial = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-
                         val codecData =
                           if (!statementsList.equals(fullStatementsList))
                             BosonImpl.inject(partialData, fullStatementsList, injFunction).getCodecData
@@ -1155,18 +1153,6 @@ private[bsonImpl] object BosonInjectorImpl {
                           case Left(byteBuf) => CodecObject.toCodec(byteBuf)
                           case Right(jsonString) => CodecObject.toCodec(jsonString)
                         }
-
-                        //                        val dataCodec = codecData match {
-                        //                          case Left(byteBuf) => CodecObject.toCodec(byteBuf)
-                        //                          case Right(jsonString) => CodecObject.toCodec(jsonString)
-                        //                        }
-                        //                        val dataCodecToUse =
-                        //                          if (isCodecJson(codec)) {
-                        //                            dataCodec.getCodecData match {
-                        //                              case Right(str) => CodecObject.toCodec(str + ",")
-                        //                            }
-                        //                          } else dataCodec
-
                         val partialToUse =
                           if (isCodecJson(codec)) {
                             partialCodec.getCodecData match {
@@ -1285,19 +1271,38 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         if (exceptions == 0) {
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
+                              case string: String => CodecObject.toCodec("{" + string + "}")
                             }
                           }
-                          val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
-                          val subCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
+                          // val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
+
+
+                          val subCodec =
+                            if (!statementsList.equals(fullStatementsList))
+                              BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
+                            else
+                              partialCodec
+
+                          val partialToUse =
+                            if (isCodecJson(codec)) {
+                              partialCodec.getCodecData match {
+                                case Right(str) => CodecObject.toCodec(str + ",")
+                              }
+                            } else partialCodec
+
                           Try(BosonImpl.inject(subCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
-                              ((codecWithKey + subCodec, codecWithKey + partialCodec), 0)
+                              if (isCodecJson(codec)) {
+                                val cWithComma = c.getCodecData match {
+                                  case Right(str) => CodecObject.toCodec(str + ",")
+                                }
+                                ((codecWithKey + cWithComma, codecWithKey + partialToUse), 0)
+                              } else ((codecWithKey + c, codecWithKey + partialToUse), 0)
                             case Failure(_) =>
-                              ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), 1)
+                              ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
