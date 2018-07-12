@@ -2253,27 +2253,27 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(booksExpected))
   //  }
 
-  test("CodecJson - Case class injection - arr expression ..[0 to end]") {
-    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString
-    val ex = "..[0 to end].book"
-    val jsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val future = jsonInj.go(books.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(booksExpected))
-  }
-
-  test("CodecJson - Case class injection - arr expression ..[0 until end]") {
-    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString
-    val ex = "..[0 until end].book"
-    val jsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val future = jsonInj.go(books.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(booksExpected))
-  }
+  //  test("CodecJson - Case class injection - arr expression ..[0 to end]") {
+  //    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString
+  //    val ex = "..[0 to end].book"
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val future = jsonInj.go(books.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(booksExpected))
+  //  }
+  //
+  //  test("CodecJson - Case class injection - arr expression ..[0 until end]") {
+  //    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString
+  //    val ex = "..[0 until end].book"
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val future = jsonInj.go(books.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(booksExpected))
+  //  }
 
   //  test("CodecJson - Case class injection - arr expression ..[0 to 1]") {
   //    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString
@@ -2288,7 +2288,7 @@ class NewInjectorsTests extends FunSuite {
 
   test("CodecJson - Case class injection - arr expression ..[0 until 1]") {
     val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString
-    val ex = "..[0 to 1].book"
+    val ex = "..[0 until 1].book"
     val jsonInj = Boson.injector(ex, (in: Book) => {
       Book(in.name, in.pages + 100)
     })
@@ -2297,16 +2297,16 @@ class NewInjectorsTests extends FunSuite {
     assert(resultValue.equals(booksExpected))
   }
 
-  test("CodecJson - Case class injection - arr expression ..[all]") {
-    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString
-    val ex = "..[all].book"
-    val jsonInj = Boson.injector(ex, (in: Book) => {
-      Book(in.name, in.pages + 100)
-    })
-    val future = jsonInj.go(books.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(booksExpected))
-  }
+  //  test("CodecJson - Case class injection - arr expression ..[all]") {
+  //    val booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString
+  //    val ex = "..[all].book"
+  //    val jsonInj = Boson.injector(ex, (in: Book) => {
+  //      Book(in.name, in.pages + 100)
+  //    })
+  //    val future = jsonInj.go(books.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(booksExpected))
+  //  }
 
   //  test("CodecJson - Top level halfkey modification") {
   //    val bson = new BsonObject().put("name", "John Doe")
