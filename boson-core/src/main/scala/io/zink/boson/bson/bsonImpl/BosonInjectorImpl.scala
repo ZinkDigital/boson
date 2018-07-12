@@ -1964,7 +1964,6 @@ private[bsonImpl] object BosonInjectorImpl {
       val attributeClass = field.get(modifiedValue).getClass.getSimpleName
       if (!SCALA_TYPES_LIST.contains(attributeClass.toLowerCase)) {
         val otherTupleList = toTupleList(field.get(modifiedValue)).asInstanceOf[Any]
-        otherTupleList
         (field.getName, otherTupleList)
       } else
         (field.getName, field.get(modifiedValue).asInstanceOf[Any])
