@@ -1277,8 +1277,6 @@ private[bsonImpl] object BosonInjectorImpl {
                               case string: String => CodecObject.toCodec("{" + string + "}")
                             }
                           }
-                          // val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
-
 
                           val subCodec =
                             if (!statementsList.equals(fullStatementsList))
@@ -1752,7 +1750,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                       case SonArray(_, result) => result match {
                         case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                        case jsonString: String => CodecObject.toCodec(jsonString)
+                        case jsonString: String => CodecObject.toCodec("{" + jsonString + "}")
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to, statementsList, dataType)
