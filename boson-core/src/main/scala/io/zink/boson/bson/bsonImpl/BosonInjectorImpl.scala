@@ -1377,10 +1377,10 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         if (exceptions == 0) {
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
+                              case string: String => CodecObject.toCodec("{" + string + "}")
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
@@ -1397,7 +1397,12 @@ private[bsonImpl] object BosonInjectorImpl {
                             case Success(_) =>
                               ((codecWithKey, codecWithKeyCopy), exceptions)
                             case Failure(_) =>
-                              ((codecWithKey + mergedCodec, codecWithKey + mergedCodec), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
+                              val mergedToUse = if (isCodecJson(codec)) {
+                                mergedCodec.getCodecData match {
+                                  case Right(str) => CodecObject.toCodec(str + ",")
+                                }
+                              } else mergedCodec
+                              ((codecWithKey + mergedToUse, codecWithKey + mergedToUse), if (condition equals UNTIL_RANGE) exceptions + 1 else exceptions)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
