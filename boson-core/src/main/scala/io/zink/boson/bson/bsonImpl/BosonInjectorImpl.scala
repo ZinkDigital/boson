@@ -1071,10 +1071,10 @@ private[bsonImpl] object BosonInjectorImpl {
 
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                        val partialData: DataStructure = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                           case SonArray(_, value) => value match {
                             case byteBuf: ByteBuf => Left(byteBuf)
-                            case jsonString: String => Right(jsonString)
+                            case jsonString: String => Right("{" + jsonString + "}")
                           }
                         }
 
@@ -1091,7 +1091,18 @@ private[bsonImpl] object BosonInjectorImpl {
 
                         val partialCodecModified = BosonImpl.inject(partialData, statementsList, injFunction)
                         val subPartial = BosonImpl.inject(partialCodecModified.getCodecData, fullStatementsList, injFunction)
-                        ((codecWithKeyCopy + subPartial, codecWithKeyCopy + partialCodec), 0)
+                        val subPartialToUse = if (isCodecJson(codec)) {
+                          subPartial.getCodecData match {
+                            case Right(str) => CodecObject.toCodec(str + ",")
+                          }
+                        } else subPartial
+
+                        val partialCodecToUse = if (isCodecJson(codec)) {
+                          partialCodec.getCodecData match {
+                            case Right(str) => CodecObject.toCodec(str + ",")
+                          }
+                        } else partialCodec
+                        ((codecWithKeyCopy + subPartialToUse, codecWithKeyCopy + partialCodecToUse), 0)
                       case _ =>
                         val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
