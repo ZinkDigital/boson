@@ -1213,53 +1213,46 @@ private[bsonImpl] object BosonInjectorImpl {
                   if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        if (exceptions == 0) {
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
-                            case SonArray(_, value) => value match {
-                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec("{" + string + "}")
-                            }
+                        val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+                          case SonArray(_, value) => value match {
+                            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                            case string: String => CodecObject.toCodec("{" + string + "}")
                           }
-                          val emptyCodec: Codec = createEmptyCodec(codec)
-                          val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
-                          val subCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
+                        }
+                        val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
+                        val subCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
 
-                          if (condition equals UNTIL_RANGE) {
-                            val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
-                              Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
-                                case Success(tuple) =>
-                                  val tuple1ToUse = if (isCodecJson(codec)) {
-                                    tuple._1.getCodecData match {
-                                      case Right(str) => CodecObject.toCodec(str + ",")
-                                    }
-                                  } else tuple._1
+                        val partialToUse = if (isCodecJson(codec)) {
+                          partialCodec.getCodecData match {
+                            case Right(str) => CodecObject.toCodec(str + ",")
+                          }
+                        } else partialCodec
 
-                                  val tuple2ToUse = if (isCodecJson(codec)) {
-                                    tuple._2.getCodecData match {
-                                      case Right(str) => CodecObject.toCodec(str + ",")
-                                    }
-                                  } else tuple._2
-                                  ((codecWithKey + tuple1ToUse, codecWithKeyCopy + tuple2ToUse), exceptions)
-                                case Failure(_) =>
-                                  val partialToUse = if (isCodecJson(codec)) {
-                                    partialCodec.getCodecData match {
-                                      case Right(str) => CodecObject.toCodec(str + ",")
-                                    }
-                                  } else partialCodec
-                                  ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), exceptions + 1)
-                              }
-                            (codecTuple, exceptionsReturn)
+                        val subCodecToUse = if (isCodecJson(codec)) {
+                          subCodec.getCodecData match {
+                            case Right(str) => CodecObject.toCodec(str + ",")
+                          }
+                        } else subCodec
+
+                        if (condition equals UNTIL_RANGE) {
+                          if (codec.getDataType == 0) {
+                            if (isCodecJson(codec))
+                              codec.setReaderIndex(codec.getReaderIndex - 1)
+                            ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), exceptions)
                           } else {
-                            val subCodecToUse = if (isCodecJson(codec)) {
-                              subCodec.getCodecData match {
-                                case Right(str) => CodecObject.toCodec(str + ",")
-                              }
-                            } else subCodec
+                            if (isCodecJson(codec))
+                              codec.setReaderIndex(codec.getReaderIndex - 1)
+
                             ((codecWithKey + subCodecToUse, codecWithKeyCopy + subCodecToUse), exceptions)
                           }
-
-                        } else
-                          ((codecWithKey, codecWithKeyCopy), exceptions + 1)
+                        } else {
+                          val subCodecToUse = if (isCodecJson(codec)) {
+                            subCodec.getCodecData match {
+                              case Right(str) => CodecObject.toCodec(str + ",")
+                            }
+                          } else subCodec
+                          ((codecWithKey + subCodecToUse, codecWithKeyCopy + subCodecToUse), exceptions)
+                        }
                       case _ =>
                         if (exceptions == 0) {
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
