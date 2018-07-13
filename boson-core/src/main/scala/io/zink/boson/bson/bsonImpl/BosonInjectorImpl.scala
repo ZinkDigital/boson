@@ -1203,10 +1203,10 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         if (exceptions == 0) {
-                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec(string)
+                              case string: String => CodecObject.toCodec("{" + string + "}")
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
@@ -1217,12 +1217,35 @@ private[bsonImpl] object BosonInjectorImpl {
                             val (codecTuple, exceptionsReturn): ((Codec, Codec), Int) =
                               Try(modifierEnd(modifiedPartialCodec, dataType, injFunction, emptyCodec, emptyCodec.duplicate)) match {
                                 case Success(tuple) =>
-                                  ((codecWithKey + tuple._1, codecWithKeyCopy + tuple._2), exceptions)
+                                  val tuple1ToUse = if (isCodecJson(codec)) {
+                                    tuple._1.getCodecData match {
+                                      case Right(str) => CodecObject.toCodec(str + ",")
+                                    }
+                                  } else tuple._1
+
+                                  val tuple2ToUse = if (isCodecJson(codec)) {
+                                    tuple._2.getCodecData match {
+                                      case Right(str) => CodecObject.toCodec(str + ",")
+                                    }
+                                  } else tuple._2
+                                  ((codecWithKey + tuple1ToUse, codecWithKeyCopy + tuple2ToUse), exceptions)
                                 case Failure(_) =>
-                                  ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), exceptions + 1)
+                                  val partialToUse = if (isCodecJson(codec)) {
+                                    partialCodec.getCodecData match {
+                                      case Right(str) => CodecObject.toCodec(str + ",")
+                                    }
+                                  } else partialCodec
+                                  ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), exceptions + 1)
                               }
                             (codecTuple, exceptionsReturn)
-                          } else ((codecWithKey + subCodec, codecWithKeyCopy + subCodec), exceptions)
+                          } else {
+                            val subCodecToUse = if (isCodecJson(codec)) {
+                              subCodec.getCodecData match {
+                                case Right(str) => CodecObject.toCodec(str + ",")
+                              }
+                            } else subCodec
+                            ((codecWithKey + subCodecToUse, codecWithKeyCopy + subCodecToUse), exceptions)
+                          }
 
                         } else
                           ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -1741,10 +1764,10 @@ private[bsonImpl] object BosonInjectorImpl {
                     val newInjectCodec = newInjectCodec1.getCodecData match {
                       case Left(_) => newInjectCodec1
                       case Right(jsonString) =>
-                        if(dataType == D_BSONARRAY)
-                          CodecObject.toCodec("["+jsonString.substring(1,jsonString.size - 1)+"]")
-                        else if(dataType == D_BSONOBJECT) newInjectCodec1
-                        else CodecObject.toCodec(jsonString.substring(1,jsonString.size - 1))
+                        if (dataType == D_BSONARRAY)
+                          CodecObject.toCodec("[" + jsonString.substring(1, jsonString.size - 1) + "]")
+                        else if (dataType == D_BSONOBJECT) newInjectCodec1
+                        else CodecObject.toCodec(jsonString.substring(1, jsonString.size - 1))
                     }
                     (resCodec + newInjectCodec, resCodecCopy + newInjectCodec.duplicate)
                   } else {
