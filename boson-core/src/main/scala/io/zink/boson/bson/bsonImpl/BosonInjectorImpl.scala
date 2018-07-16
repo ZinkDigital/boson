@@ -1338,16 +1338,40 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         if (exceptions == 0) {
+                          val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
+                            case SonArray(_, value) => value match {
+                              case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+                              case string: String => CodecObject.toCodec("{" + string + "}")
+                            }
+                          }
+
                           val newCodecCopy = codecWithKey.duplicate
-                          Try(BosonImpl.inject(codec.duplicate.getCodecData, statementsList.drop(1), injFunction)) match {
+                          Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
-                              ((c, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
+                              val cToUse = if (isCodecJson(codec)) {
+                                c.getCodecData match {
+                                  case Right(str) => CodecObject.toCodec(str + ",")
+                                }
+                              } else c
+                              if (condition equals UNTIL_RANGE) {
+                                if (codec.getDataType == 0) {
+                                  if (isCodecJson(codec))
+                                    codec.setReaderIndex(codec.getReaderIndex - 1)
+
+                                  ((codecWithKey + partialCodec, codecWithKeyCopy + partialCodec), exceptions)
+                                } else {
+                                  if (isCodecJson(codec))
+                                    codec.setReaderIndex(codec.getReaderIndex - 1)
+                                  ((processTypesArray(dataType, codec.duplicate, newCodecCopy), codecWithKey + cToUse), exceptions)
+                                }
+                              } else
+                                ((codecWithKey + cToUse, processTypesArray(dataType, codec.duplicate, newCodecCopy)), exceptions)
                             case Failure(_) =>
                               ((codecWithKey, newCodecCopy), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
-                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions + 1)
                     }
                   }
                 }
