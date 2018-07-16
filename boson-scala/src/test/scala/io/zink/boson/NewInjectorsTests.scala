@@ -3421,24 +3421,24 @@ class NewInjectorsTests extends FunSuite {
   //      assert(resultValue.equals(personsExpected.encodeToString))
   //    }
 
-  test("CodecJson - .[0 until end]..age injection") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
-    val persons = new BsonArray().add(person1).add(person2)
-
-    val person1Expected = new BsonObject().put("name", "john doe").put("age", 41)
-    val person2Expected = new BsonObject().put("name", "jane doe").put("age", 12)
-    val personsExpected = new BsonArray().add(person1Expected).add(person2Expected)
-
-    val ex = ".[0 until end]..age"
-    val jsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
-    })
-
-    val future = jsonInj.go(persons.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(personsExpected.encodeToString))
-  }
+  //  test("CodecJson - .[0 until end]..age injection") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+  //    val persons = new BsonArray().add(person1).add(person2)
+  //
+  //    val person1Expected = new BsonObject().put("name", "john doe").put("age", 41)
+  //    val person2Expected = new BsonObject().put("name", "jane doe").put("age", 12)
+  //    val personsExpected = new BsonArray().add(person1Expected).add(person2Expected)
+  //
+  //    val ex = ".[0 until end]..age"
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //
+  //    val future = jsonInj.go(persons.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(personsExpected.encodeToString))
+  //  }
   //
   //  test("CodecJson - .[0 to end]..age injection") {
   //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
@@ -3478,22 +3478,22 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(personsExpected.encodeToString))
   //  }
 
-  //  test("CodecJson - .[end]..age injection") {
-  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-  //    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
-  //    val persons = new BsonArray().add(person1).add(person2)
-  //
-  //    val person1Expected = new BsonObject().put("name", "john doe").put("age", 21)
-  //    val person2Expected = new BsonObject().put("name", "jane doe").put("age", 32)
-  //    val personsExpected = new BsonArray().add(person1Expected).add(person2Expected)
-  //
-  //    val ex = ".[end]..age"
-  //    val jsonInj = Boson.injector(ex, (in: Int) => {
-  //      in + 20
-  //    })
-  //
-  //    val future = jsonInj.go(persons.encodeToString)
-  //    val resultValue: String = Await.result(future, Duration.Inf)
-  //    assert(resultValue.equals(personsExpected.encodeToString))
-  //  }
+  test("CodecJson - .[end]..age injection") {
+    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+    val persons = new BsonArray().add(person1).add(person2)
+
+    val person1Expected = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2Expected = new BsonObject().put("name", "jane doe").put("age", 32)
+    val personsExpected = new BsonArray().add(person1Expected).add(person2Expected)
+
+    val ex = ".[end]..age"
+    val jsonInj = Boson.injector(ex, (in: Int) => {
+      in + 20
+    })
+
+    val future = jsonInj.go(persons.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(personsExpected.encodeToString))
+  }
 }
