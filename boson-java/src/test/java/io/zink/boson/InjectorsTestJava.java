@@ -1318,6 +1318,174 @@ public class InjectorsTestJava {
             assertArrayEquals(resultValue, expectedEncoded);
         }).join();
     }
+
+    @Test
+    public void CodecJson_KeyArrayExp_1() {
+        BsonArray personExpected = new BsonArray().add("person1").add("PERSON2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[1]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_0To1() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[0 to 1]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_0Until2() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[0 until 2]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_First() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("person2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[first]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_All() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[all]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_End() {
+        BsonArray personExpected = new BsonArray().add("person1").add("person2").add("PERSON3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[end]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_1ToEnd() {
+        BsonArray personExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[1 to end]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_0UntilEnd() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("PERSON2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = ".person[0 until end]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_Double_1() {
+        BsonArray personExpected = new BsonArray().add("person1").add("PERSON2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = "..person[1]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_Double_First() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("person2").add("person3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = "..person[first]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_Double_All() {
+        BsonArray personExpected = new BsonArray().add("PERSON1").add("PERSON2").add("PERSON3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = "..person[all]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyArrayExp_Double_End() {
+        BsonArray personExpected = new BsonArray().add("person1").add("person2").add("PERSON3");
+        String expectedEncoded = new BsonObject().put("person", personExpected).encodeToString();
+        String expr = "..person[end]";
+
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
+            assert(resultValue.equals(expectedEncoded));
+        }).join();
+    }
 }
 
 class BookAux {
