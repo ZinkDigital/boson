@@ -3283,6 +3283,182 @@ public class InjectorsTestJava {
             assert (resultValue.equals(storeJsonExpected.encodeToString()));
         }).join();
     }
+
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_First() {
+        String expr = ".species.alien[first]";
+        BsonArray expected = new BsonArray().add("ET").add("predator").add("alien");
+        BsonObject expectedObj = new BsonObject().put("person", bsonHuman).put("alien", expected);
+        String expectedEncoded = new BsonObject().put("species", expectedObj).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (String in) -> {
+            return in.toUpperCase();
+        });
+        bsonInj.go(bsonSpeciesObj.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_halfNameInj() {
+        String ex1 = ".*ame";
+        String ex2 = ".nam*";
+        String ex3 = ".n*me";
+        Boson boson1 = Boson.injector(ex1, (String in) -> {
+            return in.toUpperCase();
+        });
+        Boson boson2 = Boson.injector(ex2, (String in) -> {
+            return in.toLowerCase();
+        });
+        Boson boson3 = Boson.injector(ex3, (String in) -> {
+            return in + " Hello";
+        });
+
+        String bsonEncoded = johnDoeBson.encodeToString();
+        boson1.go(bsonEncoded).thenAccept((resultValue1) -> {
+            Boolean b1 = (new String(resultValue1).contains("JOHN DOE") && resultValue1.length() == bsonEncoded.length());
+            boson2.go(bsonEncoded).thenAccept((resultValue2) -> {
+                Boolean b2 = (new String(resultValue2).contains("john doe") && resultValue2.length() == bsonEncoded.length());
+                boson3.go(bsonEncoded).thenAccept((resultValue3) -> {
+                    Boolean b3 = (new String(resultValue3).contains("John Doe Hello") && resultValue3.length() == (bsonEncoded.length()+6));
+                    assert (b1 && b2 && b3);
+                }).join();
+            }).join();
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_1() {
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2Expected);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeBsonExpected = new BsonObject().put("store", store);
+
+        String ex = "..books[1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = storeBson.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeBsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_0_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString();
+        String ex = "..[0].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_first_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString();
+        String ex = "..[first].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_1_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected).encodeToString();
+        String ex = "..[1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_End_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected).encodeToString();
+        String ex = "..[end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_0ToEnd_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString();
+        String ex = "..[0 to end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_0UntilEnd_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString();
+        String ex = "..[0 until end].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_0To1_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString();
+        String ex = "..[0 to 1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_0Until1_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2).encodeToString();
+        String ex = "..[0 until 1].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_CaseClassInjection_ArrExpr_All_DoubleDot() {
+        String booksExpected = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected).encodeToString();
+        String ex = "..[all].book";
+        Boson bsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+        String bsonEncoded = books.encodeToString();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assert (resultValue.equals(booksExpected));
+        }).join();
+    }
 }
 
 class BookAux {
