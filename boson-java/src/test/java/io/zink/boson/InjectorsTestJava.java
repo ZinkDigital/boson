@@ -1128,8 +1128,8 @@ public class InjectorsTestJava {
     public void NestedCaseClass_RootInj() {
         String expr = ".book";
         Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
-           Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
-           return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
         });
 
         bsonInj.go(nestedBson.encodeToBarray()).thenAccept(resultValue -> {
@@ -1268,7 +1268,7 @@ public class InjectorsTestJava {
     public void Nested_KeyWithArrayExp_Single_First() {
         String expr = ".species.alien[first]";
         BsonArray expected = new BsonArray().add("ET").add("predator").add("alien");
-        BsonObject expectedObj = new BsonObject().put("person",bsonHuman).put("alien",expected);
+        BsonObject expectedObj = new BsonObject().put("person", bsonHuman).put("alien", expected);
         byte[] expectedEncoded = new BsonObject().put("species", expectedObj).encodeToBarray();
         Boson bsonInj = Boson.injector(expr, (String in) -> {
             return in.toUpperCase();
@@ -1329,7 +1329,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1343,7 +1343,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1357,7 +1357,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1371,7 +1371,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1385,7 +1385,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1399,7 +1399,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1413,7 +1413,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1427,7 +1427,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1441,7 +1441,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1455,7 +1455,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1469,7 +1469,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1483,7 +1483,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonObjArray.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1497,7 +1497,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1511,7 +1511,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1525,7 +1525,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1539,7 +1539,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1553,7 +1553,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1567,7 +1567,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1581,7 +1581,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1595,7 +1595,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1609,7 +1609,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1623,7 +1623,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1637,7 +1637,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1651,7 +1651,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1665,7 +1665,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1679,7 +1679,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1693,7 +1693,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1707,7 +1707,7 @@ public class InjectorsTestJava {
             return in.toUpperCase();
         });
         bsonInj.go(bsonHuman.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1727,7 +1727,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1747,7 +1747,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1769,7 +1769,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1789,7 +1789,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1811,7 +1811,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1833,7 +1833,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1855,7 +1855,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1877,7 +1877,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1897,7 +1897,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1917,7 +1917,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1939,7 +1939,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1959,7 +1959,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -1981,7 +1981,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2003,7 +2003,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2025,7 +2025,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2047,7 +2047,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2072,7 +2072,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2092,7 +2092,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2114,7 +2114,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2134,7 +2134,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2156,7 +2156,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2178,7 +2178,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2200,7 +2200,7 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
@@ -2222,12 +2222,543 @@ public class InjectorsTestJava {
             return in + 20;
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
-            assert(resultValue.equals(expectedEncoded));
+            assert (resultValue.equals(expectedEncoded));
         }).join();
     }
 
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_1() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
 
+        String expr = "..person[1].age";
 
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonArray expected = new BsonArray().add(person1).add(person2Exp).add(person3);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_First() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[first].age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 41);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2).add(person3);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_All() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[all].age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 41);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_End() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[end].age";
+
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1).add(person2).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_1To2() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 to 2].age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_1Until2() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 until 2].age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_1ToEnd() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 to end].age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Single_1UntilEnd() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 until end].age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_1() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[1]..age";
+
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonArray expected = new BsonArray().add(person1).add(person2Exp).add(person3);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_First() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[first]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 41);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2).add(person3);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_All() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[all]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 41);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_End() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[end]..age";
+
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1).add(person2).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single__Double1To2() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[1 to 2]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_1Until2() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[1 until 2]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_1ToEnd() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[1 to end]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Single_Double_1UntilEnd() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = ".person[1 until end]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_1() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1]..age";
+
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonArray expected = new BsonArray().add(person1).add(person2Exp).add(person3);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_First() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[first]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 41);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2).add(person3);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_All() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[all]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 41);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_End() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[end]..age";
+
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1).add(person2).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_1To2() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 to 2]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_1Until2() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 until 2]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_1ToEnd() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 to end]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 30);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Nested_KeyWithArrayExp_Double_Double_1UntilEnd() {
+        BsonObject person1 = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "jane doe").put("age", 12);
+        BsonObject person3 = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray personsArray = new BsonArray().add(person1).add(person2).add(person3);
+        BsonObject persons = new BsonObject().put("person", personsArray);
+
+        String expr = "..person[1 until end]..age";
+
+        BsonObject person1Exp = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person2Exp = new BsonObject().put("name", "jane doe").put("age", 32);
+        BsonObject person3Exp = new BsonObject().put("name", "doe jane").put("age", 10);
+        BsonArray expected = new BsonArray().add(person1Exp).add(person2Exp).add(person3Exp);
+        String expectedEncoded = new BsonObject().put("person", expected).encodeToString();
+        Boson bsonInj = Boson.injector(expr, (Integer in) -> {
+            return in + 20;
+        });
+        bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
 }
 
 class BookAux {
