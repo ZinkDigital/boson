@@ -1136,8 +1136,8 @@ public class InjectorsTestJava {
     public void NestedCaseClass_RootInj() {
         String expr = ".book";
         Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
-           Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
-           return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
         });
 
         bsonInj.go(nestedBson.encodeToBarray()).thenAccept(resultValue -> {
@@ -3174,6 +3174,113 @@ public class InjectorsTestJava {
         });
         bsonInj.go(persons.encodeToString()).thenAccept(resultValue -> {
             assert (resultValue.equals(expectedEncoded));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj() {
+        BsonObject book = new BsonObject().put("name", "LOTR").put("pages", 320);
+        BsonObject bsonBook = new BsonObject().put("book", book);
+
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeJsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[0].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux("LOTR", 320);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeJsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj_2() {
+        BsonArray books = new BsonArray().add(bsonBookExpected).add(bsonBook2);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeJsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[first].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeJsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj_3() {
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2Expected);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeJsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[1].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeJsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj_4() {
+        String ex = ".store.books[all].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeBsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj_5() {
+        String ex = ".store.books[0 to end].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeBsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj_6() {
+        BsonArray books = new BsonArray().add(bsonBookExpected).add(bsonBook2);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeJsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[0 until end].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeJsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_MultipleKeyCaseClassInj_7() {
+        BsonArray books = new BsonArray().add(bsonBook).add(bsonBook2Expected);
+        BsonObject store = new BsonObject().put("books", books);
+        BsonObject storeJsonExpected = new BsonObject().put("store", store);
+
+        String ex = ".store.books[end].book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeJsonExpected.encodeToString()));
         }).join();
     }
 }
