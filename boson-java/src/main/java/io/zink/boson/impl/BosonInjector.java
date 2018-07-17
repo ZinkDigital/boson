@@ -15,10 +15,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import io.zink.boson.bson.bsonPath.Interpreter;
 import scala.Some;
@@ -173,20 +175,21 @@ public class BosonInjector<T> implements Boson {
         Boolean flag = false;
         for (int i = 0; i < _keyNames.size(); i++) {
             Tuple2<String, Object> elem = list.get(i);
-            if (elem._1.toLowerCase().equals(_keyNames.get(i).toLowerCase())) {
-               Object a=  _keyTypes.get(i).getSimpleName();
-               Object x = elem._2.getClass().getSimpleName();
-                if (elem._2.getClass().equals(_keyTypes.get(i))
-                        || (_keyTypes.get(i).getSimpleName().equals("int") && elem._2.getClass().getSimpleName().equals("Integer"))
-                        || (_keyTypes.get(i).getSimpleName().equalsIgnoreCase(elem._2.getClass().getSimpleName()))
+            int elemIndex = _keyNames.indexOf(elem._1);
+            if (elemIndex != -1) {
+                Class<?> keyType = _keyTypes.get(elemIndex);
+                Object x = elem._2.getClass().getSimpleName();
+                if (elem._2.getClass().equals(keyType)
+                        || (keyType.getSimpleName().equals("int") && elem._2.getClass().getSimpleName().equals("Integer"))
+                        || (keyType.getSimpleName().equalsIgnoreCase(elem._2.getClass().getSimpleName()))
                         ) {
                     flag = true;
                 } else if (elem._2.getClass().equals(ArrayList.class)) {
                     List<String> kNames = new LinkedList<>();
                     List<Class<?>> kTypes = new LinkedList<>();
-                    Constructor cons = _keyTypes.get(i).getDeclaredConstructors()[0];
+                    Constructor cons = keyType.getDeclaredConstructors()[0];
                     cons.setAccessible(true);
-                    Field[] _fields = _keyTypes.get(i).getDeclaredFields();
+                    Field[] _fields = keyType.getDeclaredFields();
                     for (Field field : _fields) {
                         kNames.add(field.getName());
                         kTypes.add(field.getType());
@@ -199,9 +202,9 @@ public class BosonInjector<T> implements Boson {
     }
 
     // Verifies if all keys and types are valid and triggers construction
-    private Object triggerConstruction(Boolean allKeysAndTypesMatch, ArrayList<Tuple2<String, Object>> list, Class<?> outterClass, List<Class<?>> _keyTypes) {
+    private Object triggerConstruction(Boolean allKeysAndTypesMatch, ArrayList<Tuple2<String, Object>> list, Class<?> outterClass, List<Class<?>> _keyTypes, List<String> _keyNames) {
         if (allKeysAndTypesMatch) {
-            Object obj = instantiateClasses(list, outterClass, _keyTypes);
+            Object obj = instantiateClasses(list, outterClass, _keyTypes, _keyNames);
             return obj;
         }
         return null;
@@ -219,24 +222,27 @@ public class BosonInjector<T> implements Boson {
         for (int i = 0; i < seqOfTuplesList.size(); i++) { // each iteration represents one extracted object
             javaList.add(convertLists(seqOfTuplesList.get(i)));
             Boolean allKeysAndTypesMatch = compareKeysAndTypes(javaList.get(i), keyNames, keyTypes);
-            finalObj = triggerConstruction(allKeysAndTypesMatch, javaList.get(i), clazz, keyTypes);
+            finalObj = triggerConstruction(allKeysAndTypesMatch, javaList.get(i), clazz, keyTypes, keyNames);
         }
         return (T) finalObj;
     }
 
     // verifies the existence of nested classes and starts to instantiate them from the inside to the outside
-    private Object instantiateClasses(ArrayList<Tuple2<String, Object>> list, Class<?> typeClass, List<Class<?>> _keyTypes) {
+    private Object instantiateClasses(ArrayList<Tuple2<String, Object>> list, Class<?> typeClass, List<Class<?>> _keyTypes, List<String> _keyNames) {
         Object instance = null;
         Object innerInstance;
         List<Class<?>> kTypes = new LinkedList<>();
+        List<String> kNames = new LinkedList<>();
         ArrayList<Object> values = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i)._2 instanceof ArrayList) {
-                Field[] _fields = _keyTypes.get(i).getDeclaredFields();
+                int elemIndex = _keyNames.indexOf(list.get(i)._1);
+                Field[] _fields = _keyTypes.get(elemIndex).getDeclaredFields();
                 for (Field field : _fields) {
                     kTypes.add(field.getType());
+                    kNames.add(field.getName());
                 }
-                innerInstance = instantiateClasses((ArrayList<Tuple2<String, Object>>) list.get(i)._2, _keyTypes.get(i), kTypes);
+                innerInstance = instantiateClasses((ArrayList<Tuple2<String, Object>>) list.get(i)._2, _keyTypes.get(elemIndex), kTypes, kNames);
                 values.add(innerInstance);
             } else {
                 values.add(list.get(i)._2);
@@ -245,7 +251,20 @@ public class BosonInjector<T> implements Boson {
         Constructor cons = typeClass.getDeclaredConstructors()[0];
         cons.setAccessible(true);
         try {
-            instance = cons.newInstance(values.toArray());
+            Class<?>[] parameterTypes = cons.getParameterTypes();
+            ArrayList<Object> sortedValues = new ArrayList<>();
+            for (Class<?> parameterType : parameterTypes) {
+                for (Object value : values) {
+                    if (value.getClass().equals(parameterType)
+                            || parameterType.getSimpleName().equals("int") && value.getClass().getSimpleName().equals("Integer")
+                            || parameterType.getSimpleName().equalsIgnoreCase(value.getClass().getSimpleName())) {
+                        sortedValues.add(value);
+                        values.remove(value);
+                        break;
+                    }
+                }
+            }
+            instance = cons.newInstance(sortedValues.toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }

@@ -67,9 +67,17 @@ public class InjectorsTestJava {
     private final BsonObject nestedBook = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", nestedAuthor);
     private final BsonObject nestedBson = new BsonObject().put("book", nestedBook);
 
+    private final BsonObject nestedAuthor2 = new BsonObject().put("firstName", "Jane").put("lastName", "Doe").put("age", 12);
+    private final BsonObject nestedBook2 = new BsonObject().put("name", "A Title").put("pages", 999).put("author", nestedAuthor2);
+    private final BsonObject nestedBson2 = new BsonObject().put("book", nestedBook2);
+
     private final BsonObject nestedAuthorExpected = new BsonObject().put("firstName", "JOHN").put("lastName", "DOE").put("age", 41);
     private final BsonObject nestedBookExpected = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthorExpected);
     private final BsonObject nestedBsonExpected = new BsonObject().put("book", nestedBookExpected);
+
+    private final BsonObject nestedAuthor2Expected = new BsonObject().put("firstName", "JANE").put("lastName", "DOE").put("age", 32);
+    private final BsonObject nestedBook2Expected = new BsonObject().put("name", "A TITLE").put("pages", 1099).put("author", nestedAuthor2Expected);
+    private final BsonObject nestedBson2Expected = new BsonObject().put("book", nestedBook2Expected);
 
 
     /**
@@ -1128,8 +1136,8 @@ public class InjectorsTestJava {
     public void NestedCaseClass_RootInj() {
         String expr = ".book";
         Boson bsonInj = Boson.injector(expr, (NestedBook in) -> {
-           Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
-           return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+            Author newAuthor = new Author(in.getAuthor().getFirstName().toUpperCase(), in.getAuthor().getLastName().toUpperCase(), in.getAuthor().getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
         });
 
         bsonInj.go(nestedBson.encodeToBarray()).thenAccept(resultValue -> {
@@ -1261,6 +1269,415 @@ public class InjectorsTestJava {
 
         bsonInj.go(bsonObj.encodeToBarray()).thenAccept(resultValue -> {
             assertArrayEquals(resultValue, bsonObjExpected.encodeToBarray());
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_RootInjection() {
+        BsonObject json = new BsonObject().put("name", "john doe");
+        String ex = ".";
+        Boson jsonInj = Boson.injector(ex, (String in) -> {
+            return "{\"lastName\": \"Not Doe\"}";
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.contains("Not Doe"));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_TopLevelKeyMod() {
+        BsonObject json = new BsonObject().put("name", "john doe");
+        String ex = ".name";
+        Boson jsonInj = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.contains("JOHN DOE") && resultValue.length() == json.encodeToString().length());
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedKey_TwoFields_SingleDots() {
+        BsonObject obj = new BsonObject().put("name", "john doe").put("age", 21);
+        BsonObject person = new BsonObject().put("person", obj);
+        BsonObject client = new BsonObject().put("client", person);
+        BsonObject someObject = new BsonObject().put("SomeObject", client);
+        BsonObject anotherObject = new BsonObject().put("AnotherObject", someObject);
+        BsonObject json = new BsonObject().put("Wrapper", anotherObject);
+        String ex = ".Wrapper.AnotherObject.SomeObject.client.person.age";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.contains("41") && resultValue.length() == json.encodeToString().length());
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedKey_TwoFields_3_SingleDots() {
+        BsonObject obj = new BsonObject().put("name", "john doe").put("age", 21).put("gender", "male");
+        BsonObject person = new BsonObject().put("person", obj);
+        BsonObject client = new BsonObject().put("client", person);
+        BsonObject someObject = new BsonObject().put("SomeObject", client);
+        BsonObject anotherObject = new BsonObject().put("AnotherObject", someObject);
+        BsonObject json = new BsonObject().put("Wrapper", anotherObject);
+        String ex = ".Wrapper.AnotherObject.SomeObject.client.person.age";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.contains("41") && resultValue.length() == json.encodeToString().length());
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedKey_DoubleDots() {
+        BsonObject obj = new BsonObject().put("name", "john doe").put("age", 21).put("gender", "male");
+        BsonObject person = new BsonObject().put("person", obj);
+        BsonObject client = new BsonObject().put("client", person);
+        BsonObject someObject = new BsonObject().put("SomeObject", client);
+        BsonObject anotherObject = new BsonObject().put("AnotherObject", someObject);
+        BsonObject json = new BsonObject().put("Wrapper", anotherObject);
+        String ex = "..age";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.contains("41") && resultValue.length() == json.encodeToString().length());
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedKey_2_DoubleDots() {
+        BsonObject obj = new BsonObject().put("name", "john doe").put("age", 21).put("gender", "male");
+        BsonObject person = new BsonObject().put("person", obj);
+        BsonObject client = new BsonObject().put("client", person);
+        BsonObject someObject = new BsonObject().put("SomeObject", client);
+        BsonObject anotherObject = new BsonObject().put("AnotherObject", someObject);
+        BsonObject json = new BsonObject().put("Wrapper", anotherObject);
+        String ex = "..client..age";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.contains("41") && resultValue.length() == json.encodeToString().length());
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_Java_instantInjection() {
+        Instant ins = Instant.now();
+        BsonObject obj = new BsonObject().put("name", "john doe").put("age", 21).put("instant", ins.plusMillis(1000));
+        BsonObject person = new BsonObject().put("person", obj);
+        BsonObject json = new BsonObject().put("client", person);
+
+        BsonObject objExpected = new BsonObject().put("name", "john doe").put("age", 21).put("instant", ins.plusMillis(2000));
+        BsonObject personExpected = new BsonObject().put("person", objExpected);
+        BsonObject jsonExpected = new BsonObject().put("client", personExpected);
+
+        String ex = "..instant";
+        Boson jsonInj = Boson.injector(ex, (Instant in) -> {
+            return in.plusMillis(1000);
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_1() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe");
+        BsonObject person2 = new BsonObject().put("name", "Jane Doe");
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject json = new BsonObject().put("persons", persons);
+
+        BsonObject person1Expected = new BsonObject().put("name", "JOHN DOE");
+        BsonObject person2Expected = new BsonObject().put("name", "JANE DOE");
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add(person2Expected);
+        BsonObject jsonExpected = new BsonObject().put("persons", personsExpected);
+
+        String ex = ".persons[@name]";
+        Boson jsonInj = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_2() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe");
+        BsonObject person2 = new BsonObject().put("surname", "Doe");
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject json = new BsonObject().put("persons", persons);
+
+        BsonObject person1Expected = new BsonObject().put("name", "JOHN DOE");
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add(person2);
+        BsonObject jsonExpected = new BsonObject().put("persons", personsExpected);
+
+        String ex = ".persons[@name]";
+        Boson jsonInj = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_3() {
+        BsonArray persons = new BsonArray().add("Not and Object").add("Something");
+        BsonObject json = new BsonObject().put("persons", persons);
+
+        BsonArray personsExpected = new BsonArray().add("Not and Object").add("Something");
+        BsonObject jsonExpected = new BsonObject().put("persons", personsExpected);
+
+        String ex = ".persons[@name]";
+        Boson jsonInj = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_4() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe");
+        BsonArray persons = new BsonArray().add(person1).add("Something");
+        BsonObject json = new BsonObject().put("persons", persons);
+
+        BsonObject person1Expected = new BsonObject().put("name", "JOHN DOE");
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add("Something");
+        BsonObject jsonExpected = new BsonObject().put("persons", personsExpected);
+
+        String ex = ".persons[@name]";
+        Boson jsonInj = Boson.injector(ex, (String in) -> {
+            return in.toUpperCase();
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_5() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject json = new BsonObject().put("persons", persons);
+
+        BsonObject person1Expected = new BsonObject().put("name", "John Doe").put("age", 41);
+        BsonObject person2Expected = new BsonObject().put("name", "Jane Doe").put("age", 32);
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add(person2Expected);
+        BsonObject jsonExpected = new BsonObject().put("persons", personsExpected);
+
+        String ex = ".persons[@age]";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_6() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject client = new BsonObject().put("persons", persons);
+        BsonObject json = new BsonObject().put("client", client);
+
+
+        BsonObject person1Expected = new BsonObject().put("name", "John Doe").put("age", 41);
+        BsonObject person2Expected = new BsonObject().put("name", "Jane Doe").put("age", 32);
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add(person2Expected);
+        BsonObject clientExpected = new BsonObject().put("persons", personsExpected);
+        BsonObject jsonExpected = new BsonObject().put("client", clientExpected);
+
+        String ex = ".client.persons[@age]";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_7() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject client = new BsonObject().put("persons", persons);
+        BsonObject json = new BsonObject().put("client", client);
+
+
+        BsonObject person1Expected = new BsonObject().put("name", "John Doe").put("age", 41);
+        BsonObject person2Expected = new BsonObject().put("name", "Jane Doe").put("age", 32);
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add(person2Expected);
+        BsonObject clientExpected = new BsonObject().put("persons", personsExpected);
+        BsonObject jsonExpected = new BsonObject().put("client", clientExpected);
+
+        String ex = "..persons[@age]";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElem_8() {
+        BsonObject person1 = new BsonObject().put("name", "John Doe").put("age", 21);
+        BsonObject person2 = new BsonObject().put("name", "Jane Doe").put("age", 12);
+        BsonArray persons = new BsonArray().add(person1).add(person2);
+        BsonObject client = new BsonObject().put("persons", persons);
+        BsonObject clientJson = new BsonObject().put("client", client);
+        BsonObject obj = new BsonObject().put("obj", clientJson);
+        BsonObject json = new BsonObject().put("wrapper", obj);
+
+
+        BsonObject person1Expected = new BsonObject().put("name", "John Doe").put("age", 41);
+        BsonObject person2Expected = new BsonObject().put("name", "Jane Doe").put("age", 32);
+        BsonArray personsExpected = new BsonArray().add(person1Expected).add(person2Expected);
+        BsonObject clientExpected = new BsonObject().put("persons", personsExpected);
+        BsonObject clientJsonExpected = new BsonObject().put("client", clientExpected);
+        BsonObject objExpected = new BsonObject().put("obj", clientJsonExpected);
+        BsonObject jsonExpected = new BsonObject().put("wrapper", objExpected);
+
+
+        String ex = "..obj..persons[@age]";
+        Boson jsonInj = Boson.injector(ex, (Integer in) -> {
+            return in + 20;
+        });
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_KeyCaseClassInjection() {
+        BsonObject book = new BsonObject().put("name", "Title1").put("pages", 1);
+        BsonObject json = new BsonObject().put("book", book);
+
+        BsonObject bookExpected = new BsonObject().put("name", "LOTR").put("pages", 320);
+        BsonObject jsonExpected = new BsonObject().put("book", bookExpected);
+        String ex = ".book";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux("LOTR", 320);
+        });
+
+        jsonInj.go(json.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElemCaseClassInjection() {
+        String ex = ".store.books[@book]";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeBsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElemCaseClassInjection2() {
+        String ex = "..books[@book]";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeBsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_HasElemCaseClassInjection3() {
+        String ex = "..store..books[@book]";
+        Boson jsonInj = Boson.injector(ex, (BookAux in) -> {
+            return new BookAux(in.getName(), in.getPages() + 100);
+        });
+
+        jsonInj.go(storeBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(storeBsonExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedCaseClass1() {
+        BsonObject expectedBook = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthor);
+        BsonObject expectedJson = new BsonObject().put("book", expectedBook);
+        String ex = ".book";
+        Boson jsonInj = Boson.injector(ex, (NestedBook in) -> {
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, in.getAuthor());
+        });
+
+        jsonInj.go(nestedBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedJson.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedCaseClass2() {
+        BsonObject expectedBook = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthor);
+        BsonObject expectedJson = new BsonObject().put("book", expectedBook);
+        String ex = "..book";
+        Boson jsonInj = Boson.injector(ex, (NestedBook in) -> {
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, in.getAuthor());
+        });
+
+        jsonInj.go(nestedBson.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(expectedJson.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedCaseClass3() {
+        BsonArray jsonArr = new BsonArray().add(nestedBson);
+        BsonObject jsonObj = new BsonObject().put("books", jsonArr);
+
+        BsonArray jsonArrExpected = new BsonArray().add(nestedBsonExpected);
+        BsonObject jsonObjExpected = new BsonObject().put("books", jsonArrExpected);
+
+        String ex = ".books[@book]";
+        Boson jsonInj = Boson.injector(ex, (NestedBook in) -> {
+            Author oldAuthor = in.getAuthor();
+            Author newAuthor = new Author(oldAuthor.getFirstName().toUpperCase(), oldAuthor.getLastName().toUpperCase(), oldAuthor.getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        jsonInj.go(jsonObj.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonObjExpected.encodeToString()));
+        }).join();
+    }
+
+    @Test
+    public void CodecJson_NestedCaseClass4() {
+        BsonArray jsonArr = new BsonArray().add(nestedBson).add(nestedBson2);
+        BsonObject jsonObj = new BsonObject().put("books", jsonArr);
+
+        BsonArray jsonArrExpected = new BsonArray().add(nestedBsonExpected).add(nestedBson2Expected);
+        BsonObject jsonObjExpected = new BsonObject().put("books", jsonArrExpected);
+
+
+        String ex = "..books[all].book";
+        Boson jsonInj = Boson.injector(ex, (NestedBook in) -> {
+            Author oldAuthor = in.getAuthor();
+            Author newAuthor = new Author(oldAuthor.getFirstName().toUpperCase(), oldAuthor.getLastName().toUpperCase(), oldAuthor.getAge() + 20);
+            return new NestedBook(in.getName().toUpperCase(), in.getPages() + 100, newAuthor);
+        });
+
+        jsonInj.go(jsonObj.encodeToString()).thenAccept(resultValue -> {
+            assert (resultValue.equals(jsonObjExpected.encodeToString()));
         }).join();
     }
 }
