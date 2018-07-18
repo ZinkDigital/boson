@@ -339,8 +339,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           case Right(jsonString) => CodecObject.toCodec(jsonString + ",")
                         }
                         iterateDataStructure(writableCodec + modCodecAux)
-                      }
-                      else iterateDataStructure(codecWithKey + modifiedSubCodec)
+                      } else iterateDataStructure(codecWithKey + modifiedSubCodec)
 
                     } else iterateDataStructure(codecWithKey + modifiedCodec)
                   }
