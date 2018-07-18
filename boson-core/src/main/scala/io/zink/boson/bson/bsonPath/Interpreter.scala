@@ -190,16 +190,14 @@ class Interpreter[T](expression: String,
         val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
         res match {
           case tuples(list) => list
-          case _ => //TODO: throw error perhaps
-            throw CustomException("Error building tuples to fulfill case class.")
+          case _ => throw CustomException("Error building tuples to fulfill case class.")
         }
       }.seq
       case Right(stringList) => stringList.par.map { encoded =>
         val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
         res match {
           case tuples(list) => list
-          case _ => //TODO: throw error perhaps
-            throw CustomException("Error building tuples to fulfill case class.")
+          case _ => throw CustomException("Error building tuples to fulfill case class.")
         }
       }.seq
     }

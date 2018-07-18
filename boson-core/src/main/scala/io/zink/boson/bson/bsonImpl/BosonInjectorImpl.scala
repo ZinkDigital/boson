@@ -471,20 +471,24 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = dataType match {
     case D_BSONOBJECT =>
-      val bsonObjectCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
+      val objectCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
         case SonObject(_, data) => data match {
           case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
           case jsonString: String => CodecObject.toCodec(jsonString)
         }
       }
-      val modifiedCodec: Codec = modifyHasElem(statementsList, bsonObjectCodec, fieldID, elem, injFunction)
+      val modifiedCodec: Codec = modifyHasElem(statementsList, objectCodec, fieldID, elem, injFunction)
       resultCodec + modifiedCodec
 
     case D_BSONARRAY =>
-      val length = codec.getSize
-      val partialCodec: Codec = codec.readSlice(length)
-      val modifiedCodec: Codec = modifyHasElem(statementsList, partialCodec, fieldID, elem, injFunction)
-      resultCodec + modifiedCodec
+      val arrayCodec: Codec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
+        case byteBuf: ByteBuf =>
+          CodecObject.toCodec(byteBuf)
+        case jsonString: String =>
+          CodecObject.toCodec(jsonString)
+      }
+      resultCodec + arrayCodec
+
 
     case D_FLOAT_DOUBLE =>
       val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
