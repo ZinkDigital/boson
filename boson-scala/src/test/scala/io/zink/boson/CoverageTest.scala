@@ -4295,4 +4295,67 @@ class CoverageTest extends FunSuite {
     assert(resultValue.equals(personsExpected.encodeToString))
   }
 
+  test("CodecJson - ..key[0]..key Same key - Double") {
+    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+    val personsArr = new BsonArray().add(person1).add(person2)
+    val persons = new BsonObject().put("name", personsArr)
+
+    val person1Expected = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2Expected = new BsonObject().put("name", "JANE DOE").put("age", 12)
+    val personsArrExpected = new BsonArray().add(person1Expected).add(person2Expected)
+    val personsExpected = new BsonObject().put("name", personsArrExpected)
+
+    val ex = "..name[end]..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+
+    val future = jsonInj.go(persons.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(personsExpected.encodeToString))
+  }
+
+  test("CodecJson - .key[0]..key Same key - Single/Double") {
+    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+    val personsArr = new BsonArray().add(person1).add(person2)
+    val persons = new BsonObject().put("name", personsArr)
+
+    val person1Expected = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2Expected = new BsonObject().put("name", "JANE DOE").put("age", 12)
+    val personsArrExpected = new BsonArray().add(person1Expected).add(person2Expected)
+    val personsExpected = new BsonObject().put("name", personsArrExpected)
+
+    val ex = ".name[end]..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+
+    val future = jsonInj.go(persons.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(personsExpected.encodeToString))
+  }
+
+  test("CodecJson - .key[0]..key Same key - Single/Double") {
+    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
+    val personsArr = new BsonArray().add(person1).add(person2)
+    val persons = new BsonObject().put("name", personsArr)
+
+    val person1Expected = new BsonObject().put("name", "john doe").put("age", 21)
+    val person2Expected = new BsonObject().put("name", "JANE DOE").put("age", 12)
+    val personsArrExpected = new BsonArray().add(person1Expected).add(person2Expected)
+    val personsExpected = new BsonObject().put("name", personsArrExpected)
+
+    val ex = ".name[end]..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+
+    val future = jsonInj.go(persons.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(personsExpected.encodeToString))
+  }
+
 }
