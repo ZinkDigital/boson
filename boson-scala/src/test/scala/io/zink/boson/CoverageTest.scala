@@ -2393,6 +2393,56 @@ class CoverageTest extends FunSuite {
     assert(resultValue.contains("JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
+  test("CodecJson - Nested key modification - Different value types 1") {
+    val person = new BsonObject().put("doubleKey", 1.0)
+    val json = new BsonObject().put("person", person)
+
+    val personExpected = new BsonObject().put("doubleKey", 2.0)
+    val jsonExpected = new BsonObject().put("person", personExpected)
+
+    val ex = ".person.doubleKey"
+    val jsonInj = Boson.injector(ex, (in: Double) => {
+      in * 2.0
+    })
+
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
+
+  test("CodecJson - Nested key modification - Different value types 2") {
+    val person = new BsonObject().put("longKey", 10000000000L)
+    val json = new BsonObject().put("person", person)
+
+    val personExpected = new BsonObject().put("longKey", 20000000000L)
+    val jsonExpected = new BsonObject().put("person", personExpected)
+    val ex = ".person.longKey"
+    val jsonInj = Boson.injector(ex, (in: Long) => {
+      in * 2
+    })
+
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
+
+  test("CodecJson - Nested key modification - Different value types 3") {
+    val person = new BsonObject().put("boolKey", false)
+    val json = new BsonObject().put("person", person)
+
+    val personExpected = new BsonObject().put("boolKey", true)
+    val jsonExpected = new BsonObject().put("person", personExpected)
+
+    val ex = ".person.boolKey"
+    val jsonInj = Boson.injector(ex, (in: Boolean) => {
+      !in
+    })
+
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
+
   test("CodecJson - Nested key modification - Single Dots - wrong object") {
     val arr = new BsonArray().add("Something")
     val bson = new BsonObject().put("person", arr)
