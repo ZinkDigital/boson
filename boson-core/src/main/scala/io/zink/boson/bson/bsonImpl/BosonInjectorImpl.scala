@@ -1592,7 +1592,7 @@ private[bsonImpl] object BosonInjectorImpl {
               case (_, _, _) if !isArray =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
-                    case D_BSONOBJECT | D_BSONARRAY =>
+                    case D_BSONOBJECT | D_BSONARRAY => //TODO- maybe take out this case
                       val partialCodec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
                         case SonArray(_, value) => value match {
                           case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
@@ -1863,7 +1863,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                     }
                     val newCodec = modifyArrayEnd(statementsList.drop(1), partialCodec, injFunction, condition, from, to, statementsList, dataType)
-                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate) //TODO- This duplicate might need to go...
+                    (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   } else {
                     val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to, statementsList, dataType)
                     (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
