@@ -83,17 +83,17 @@ class NewInjectorsTests extends FunSuite {
   val nestedBson2Expected: BsonObject = new BsonObject().put("book", nestedBook2Expected)
 
 
-  //  test("Root modification") {
-  //    val bson = new BsonObject().put("name", "john doe")
-  //    val ex = "."
-  //    val bsonInj = Boson.injector(ex, (in: Array[Byte]) => {
-  //      new String(in).toUpperCase.getBytes
-  //    })
-  //    val bsonEncoded = bson.encodeToBarray()
-  //    val future = bsonInj.go(bsonEncoded)
-  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-  //    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
-  //  }
+    test("Root modification") {
+      val bson = new BsonObject().put("name", "john doe")
+      val ex = "."
+      val bsonInj = Boson.injector(ex, (in: Array[Byte]) => {
+        new String(in).toUpperCase.getBytes
+      })
+      val bsonEncoded = bson.encodeToBarray()
+      val future = bsonInj.go(bsonEncoded)
+      val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+      assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+    }
   //
   //  test("Root Injection") {
   //    val bson = new BsonObject().put("name", "john doe")

@@ -331,15 +331,15 @@ private[bsonImpl] object BosonInjectorImpl {
 
                   } else {
                     val modifiedCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
-
-                    if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                      val modifiedSubCodec = BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
-                      if (isCodecJson(codec)) {
-                        val modCodecAux: Codec = CodecObject.toCodec(modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                        iterateDataStructure(writableCodec + modCodecAux)
-                      } else iterateDataStructure(codecWithKey + modifiedSubCodec)
-
-                    } else iterateDataStructure(codecWithKey + modifiedCodec)
+                    val modifiedSubCodec =
+                      if (statementsList.head._2.contains(C_DOUBLEDOT))
+                        BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
+                      else
+                        modifiedCodec
+                    if (isCodecJson(codec)) {
+                      val modCodecAux: Codec = CodecObject.toCodec(modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
+                      iterateDataStructure(writableCodec + modCodecAux)
+                    } else iterateDataStructure(codecWithKey + modifiedSubCodec)
                   }
 
                 } else {
@@ -439,12 +439,12 @@ private[bsonImpl] object BosonInjectorImpl {
         We first cast the result of applyFunction as String because when we input a byte array we apply the injFunction to it
         as a String. We return that modified String and convert it back to a byte array in order to create a ByteBuf from it
        */
-      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes, fromRoot = true).asInstanceOf[Array[Byte]]
+      val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[Array[Byte]]
         val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
         CodecObject.toCodec(newBuf)
 
       case Right(jsonString) =>
-        val modifiedString: String = applyFunction(injFunction, jsonString, fromRoot = true).asInstanceOf[String]
+        val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
         CodecObject.toCodec(modifiedString)
     }
   }
@@ -618,7 +618,7 @@ private[bsonImpl] object BosonInjectorImpl {
         }
 
       case D_BSONARRAY =>
-        codec.readToken(SonArray(CS_ARRAY)) match {
+        codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
           case SonArray(_, data) => data match {
             case byteBuf: ByteBuf =>
               applyFunction(injFunction, byteBuf.array()) match {
@@ -890,7 +890,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of the value
     * @return A modified value in which the injector function was applied
     */
-  private def applyFunction[T](injFunction: T => T, value: Any, fromRoot: Boolean = false)(implicit convertFunction: Option[TupleList => T] = None): T = {
+  private def applyFunction[T](injFunction: T => T, value: Any)(implicit convertFunction: Option[TupleList => T] = None): T = {
 
     def throwException(className: String): T = throw CustomException(s"Type Error. Cannot Cast $className inside the Injector Function.")
 
@@ -903,22 +903,6 @@ private[bsonImpl] object BosonInjectorImpl {
           Try(injFunction(double.toFloat.asInstanceOf[T])) match {
             //try with the value being a Double
             case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
-
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
-
-        case jsonString: String if fromRoot => //In case the User passed a JsonString in the root
-          Try(injFunction(jsonString.asInstanceOf[T])) match {
-            case Success(modifiedValue) =>
-              modifiedValue.asInstanceOf[T]
-
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
-
-        case byteArr: Array[Byte] if fromRoot => //In case the User passed a BsonObject/BsonArray in the root
-          Try(injFunction(byteArr.asInstanceOf[T])) match {
-            case Success(modifiedValue) =>
-              modifiedValue.asInstanceOf[T]
 
             case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }

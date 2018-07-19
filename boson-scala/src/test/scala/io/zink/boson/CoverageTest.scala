@@ -467,11 +467,6 @@ class CoverageTest extends FunSuite {
     assertEquals(Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38), mutableBuffer)
   }
 
-  //TODO:
-  //    val doc: Any = Configuration.defaultConfiguration().jsonProvider().parse(bson.asJson().toString)
-  //    val list: java.util.List[String] = JsonPath.read(doc, "$..Title")
-  //    println(list)
-
   test("Iterate through ..*y[#]..[#], Seq[Array[Byte]]") {
     val expression: String = "..*k[all]..[0]"
     val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
@@ -736,6 +731,20 @@ class CoverageTest extends FunSuite {
     assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 
+  test("Nested key modification - Different value types 1") {
+    val person = new BsonObject().put("arrayKey", new BsonArray().add("something"))
+    val json = new BsonObject().put("person", person)
+
+    val ex = ".person.arrayKey"
+    val jsonInj = Boson.injector(ex, (in: Array[Byte]) => {
+      in
+    })
+
+    val future = jsonInj.go(json.encodeToBarray)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assertArrayEquals(resultValue, json.encodeToBarray)
+  }
+
   test("Nested key modification - Single Dots - Multiple layers") {
     val obj = new BsonObject().put("name", "john doe")
     val person = new BsonObject().put("person", obj)
@@ -895,7 +904,6 @@ class CoverageTest extends FunSuite {
   test("Nested key injection - Double dots") {
     val person = new BsonObject().put("name", "john doe")
     val bson = new BsonObject().put("person", person)
-    //    val bson = new BsonObject().put("client", client)
 
     val ex = "..name"
     val bsonInj = Boson.injector(ex, (in: String) => {
@@ -2824,6 +2832,27 @@ class CoverageTest extends FunSuite {
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
     val ex = "..persons[@subObject].subObject.age"
+    val jsonInj = Boson.injector(ex, (in: Int) => {
+      in + 20
+    })
+    val future = jsonInj.go(client.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(clientExpected.encodeToString))
+  }
+
+  test("CodecJson - HasElem 14") {
+    val arr = new BsonArray().add("Something")
+    val person2 = new BsonObject().put("name", "Jane Doe").put("age", 12)
+    val personBson2 = new BsonObject().put("subObject", person2)
+    val persons = new BsonArray().add(arr).add(personBson2)
+    val client = new BsonObject().put("persons", persons)
+
+    val person2Expected = new BsonObject().put("name", "Jane Doe").put("age", 32)
+    val personBson2Expected = new BsonObject().put("subObject", person2Expected)
+    val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
+    val clientExpected = new BsonObject().put("persons", personsExpected)
+
+    val ex = ".persons[@subObject].subObject.age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
