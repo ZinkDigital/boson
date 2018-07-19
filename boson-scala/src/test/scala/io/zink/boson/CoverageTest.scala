@@ -2406,6 +2406,21 @@ class CoverageTest extends FunSuite {
     assert(resultValue.equals(bson.encodeToString))
   }
 
+  test("CodecJson - Nested key modification - Double Dots 2") {
+    val person1 = new BsonObject().put("name", "John Doe")
+    val person2 = new BsonObject().put("name", "Jane Doe")
+    val arr = new BsonArray().add(person1).add(person2)
+    val bson = new BsonObject().put("person", arr)
+
+    val ex = "..person..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val future = jsonInj.go(bson.encodeToString())
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(bson.encodeToString))
+  }
+
   test("CodecJson - Nested key modification, Multiple keys - Single Dots") {
     val obj = new BsonObject().put("name", "john doe")
     val person = new BsonObject().put("person", obj)
@@ -4363,26 +4378,4 @@ class CoverageTest extends FunSuite {
     val resultValue: String = Await.result(future, Duration.Inf)
     assert(resultValue.equals(personsExpected.encodeToString))
   }
-
-  test("CodecJson - .key[0]..key Same key - Single/Double") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
-    val personsArr = new BsonArray().add(person1).add(person2)
-    val persons = new BsonObject().put("name", personsArr)
-
-    val person1Expected = new BsonObject().put("name", "john doe").put("age", 21)
-    val person2Expected = new BsonObject().put("name", "JANE DOE").put("age", 12)
-    val personsArrExpected = new BsonArray().add(person1Expected).add(person2Expected)
-    val personsExpected = new BsonObject().put("name", personsArrExpected)
-
-    val ex = ".name[end]..name"
-    val jsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase
-    })
-
-    val future = jsonInj.go(persons.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(personsExpected.encodeToString))
-  }
-
 }
