@@ -44,7 +44,14 @@ private[bsonImpl] object BosonInjectorImpl {
           case 0 =>
             writeCodec(codecWithDataType, startReader, originalSize)
           case _ =>
-            val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
+            val (codecWithKey, key) = codec.getCodecData match {
+              case Left(_) =>
+                writeKeyAndByte(codec, codecWithDataType)
+              case Right(jsonString) =>
+                if (jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET) && codec.getReaderIndex == 1)
+                  (codecWithDataType, "")
+                else writeKeyAndByte(codec, codecWithDataType)
+            }
 
             key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
@@ -131,16 +138,20 @@ private[bsonImpl] object BosonInjectorImpl {
               case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   if (isCodecJson(codec)) {
-                    codec.getCodecData match {
-                      case Right(jsonString) =>
-                        if (jsonString.charAt(0).equals('[')) {
-                          codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
-                          val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
-                          CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
+                    val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
 
-                        } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
-                      case _ => throw CustomException("Unreachable exception")
-                    }
+
+                    if (jsonString.charAt(0).equals('[')) {
+                      if (codec.getReaderIndex != 1) {
+                        //codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
+                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
+                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
+                      } else {
+                        codec.setReaderIndex(0)
+                        processTypesArray(4, codec, codecWithKey)
+                      }
+                    } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+
                   } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
                 }
                 else processTypesArray(dataType, codec, codecWithKey)
@@ -171,7 +182,8 @@ private[bsonImpl] object BosonInjectorImpl {
         if (jsonString.charAt(jsonString.length - 1).equals(',')) {
           codec.getCodecData match {
             case Right(codecString) =>
-              if (codecString.charAt(0).equals('[')) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+              if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+              else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
               else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
             case _ => throw CustomException("Unreachable exception")
           }
@@ -621,7 +633,7 @@ private[bsonImpl] object BosonInjectorImpl {
               }
             case str: String =>
               applyFunction(injFunction, str) match {
-                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING, resString))
+                case resString: String => codec.writeToken(currentResCodec, SonString(CS_STRING_NO_QUOTES, resString))
               }
           }
         }
