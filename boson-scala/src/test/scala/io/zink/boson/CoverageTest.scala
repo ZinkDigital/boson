@@ -712,7 +712,7 @@ class CoverageTest extends FunSuite {
   }
 
   test("Top level key modification") {
-    val bson = new BsonObject().put("name", "john doe")
+    val bson = new BsonObject().putNull("nullKey").put("name", "john doe")
     val ex = ".name"
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
@@ -802,7 +802,7 @@ class CoverageTest extends FunSuite {
   }
 
   test("HasElem injection test") {
-    val person1 = new BsonObject().put("name", "John Doe")
+    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
     val person2 = new BsonObject().put("name", "Jane Doe")
     val bsonArray = new BsonArray().add(person1).add(person2)
     val bson = new BsonObject().put("persons", bsonArray)
@@ -2368,7 +2368,7 @@ class CoverageTest extends FunSuite {
   }
 
   test("CodecJson - Nested key modification - Single Dots") {
-    val person = new BsonObject().put("name", "john doe")
+    val person = new BsonObject().putNull("nullKey").put("name", "john doe")
     val bson = new BsonObject().put("person", person)
     val ex = ".person.name"
     val jsonInj = Boson.injector(ex, (in: String) => {
@@ -2378,6 +2378,69 @@ class CoverageTest extends FunSuite {
     val future = jsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
     assert(resultValue.contains("JOHN DOE") && resultValue.length == bsonEncoded.length)
+  }
+
+  test("CodecJson - Nested key modification - Multiple unimportant keys- Single Dots") {
+    val person = new BsonObject().put("intKey", 10).put("longKey", 10000000000L).put("boolKey", false).put("name", "john doe")
+    val bson = new BsonObject().put("person", person)
+    val ex = ".person.name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val bsonEncoded = bson.encodeToString()
+    val future = jsonInj.go(bsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.contains("JOHN DOE") && resultValue.length == bsonEncoded.length)
+  }
+
+  test("CodecJson - Nested key modification - Different value types 1") {
+    val person = new BsonObject().put("doubleKey", 1.0)
+    val json = new BsonObject().put("person", person)
+
+    val personExpected = new BsonObject().put("doubleKey", 2.0)
+    val jsonExpected = new BsonObject().put("person", personExpected)
+
+    val ex = ".person.doubleKey"
+    val jsonInj = Boson.injector(ex, (in: Double) => {
+      in * 2.0
+    })
+
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
+
+  test("CodecJson - Nested key modification - Different value types 2") {
+    val person = new BsonObject().put("longKey", 10000000000L)
+    val json = new BsonObject().put("person", person)
+
+    val personExpected = new BsonObject().put("longKey", 20000000000L)
+    val jsonExpected = new BsonObject().put("person", personExpected)
+    val ex = ".person.longKey"
+    val jsonInj = Boson.injector(ex, (in: Long) => {
+      in * 2
+    })
+
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
+
+  test("CodecJson - Nested key modification - Different value types 3") {
+    val person = new BsonObject().put("boolKey", false)
+    val json = new BsonObject().put("person", person)
+
+    val personExpected = new BsonObject().put("boolKey", true)
+    val jsonExpected = new BsonObject().put("person", personExpected)
+
+    val ex = ".person.boolKey"
+    val jsonInj = Boson.injector(ex, (in: Boolean) => {
+      !in
+    })
+
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
   test("CodecJson - Nested key modification - Single Dots - wrong object") {
@@ -2556,12 +2619,12 @@ class CoverageTest extends FunSuite {
   }
 
   test("CodecJson - HasElem injection test") {
-    val person1 = new BsonObject().put("name", "John Doe")
+    val person1 = new BsonObject().putNull("nullKey").put("name", "John Doe")
     val person2 = new BsonObject().put("name", "Jane Doe")
     val bsonArray = new BsonArray().add(person1).add(person2)
     val json = new BsonObject().put("persons", bsonArray)
 
-    val person1Expected = new BsonObject().put("name", "JOHN DOE")
+    val person1Expected = new BsonObject().putNull("nullKey").put("name", "JOHN DOE")
     val person2Expected = new BsonObject().put("name", "JANE DOE")
     val bsonArrayExpected = new BsonArray().add(person1Expected).add(person2Expected)
     val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
