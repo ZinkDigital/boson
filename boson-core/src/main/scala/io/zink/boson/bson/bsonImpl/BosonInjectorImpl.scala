@@ -166,27 +166,21 @@ private[bsonImpl] object BosonInjectorImpl {
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
-    val codecWithLastByte = if (codec.getReaderIndex == originalSize && (codecWithoutSize.getWriterIndex == codec.getReaderIndex - 5)) {
-      codecWithoutSize + emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-    } else codecWithoutSize
 
-    val finalSize = codecWithLastByte.getCodecData match {
+    val finalSize = codecWithoutSize.getCodecData match {
       case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
+      case Right(string) => 0 //The size will not be written in CodecJson
     }
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
-    val mergedCodecs = codecWithSize + codecWithLastByte
+    val mergedCodecs = codecWithSize + codecWithoutSize
     mergedCodecs.getCodecData match {
       case Left(_) => mergedCodecs
       case Right(jsonString) =>
         if (jsonString.charAt(jsonString.length - 1).equals(',')) {
-          codec.getCodecData match {
-            case Right(codecString) =>
-              if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
-              else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
-              else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
-            case _ => throw CustomException("Unreachable exception")
-          }
+          val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+          if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+          else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
+          else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
         } else CodecObject.toCodec(s"{$jsonString}")
     }
   }
@@ -405,7 +399,6 @@ private[bsonImpl] object BosonInjectorImpl {
             case SonString(_, keyString) => keyString.asInstanceOf[String]
           }
           dataType match {
-            case D_ZERO_BYTE =>
 
             case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE))
 
@@ -419,11 +412,11 @@ private[bsonImpl] object BosonInjectorImpl {
 
             case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN))
 
-            case D_NULL =>
+            case D_LONG => codec.readToken(SonNumber(CS_LONG))
 
             case D_INT => codec.readToken(SonNumber(CS_INTEGER))
 
-            case D_LONG => codec.readToken(SonNumber(CS_LONG))
+            case D_NULL => codec.readToken(SonNull(CS_NULL))
           }
       }
     }
@@ -562,7 +555,7 @@ private[bsonImpl] object BosonInjectorImpl {
         }
         codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0))
       case D_NULL =>
-        currentResCodec
+        codec.writeToken(currentResCodec, codec.readToken(SonNull(CS_NULL)))
       case D_INT =>
         codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
       case D_LONG =>
