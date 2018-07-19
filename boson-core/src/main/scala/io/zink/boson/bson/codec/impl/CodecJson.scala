@@ -167,6 +167,7 @@ class CodecJson(str: String) extends Codec {
           if (input(readerIndex).equals('[')) {
             val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
             val subStr1 = input.substring(readerIndex, readerIndex + size)
+            readerIndex += size
             SonArray(request, subStr1)
           } else {
             if (input(readerIndex).equals('{')) {
