@@ -231,7 +231,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  val processedCodec: Codec = processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction)
+                  val processedCodec: Codec = processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction) //TODO IN HERE
                   iterateDataStructure(processedCodec)
                 } else {
                   val processedCodec: Codec = processTypesArray(dataType, codec, codecWithKeyByte)
@@ -478,15 +478,12 @@ private[bsonImpl] object BosonInjectorImpl {
         case byteBuf: ByteBuf =>
           CodecObject.toCodec(byteBuf)
         case jsonString: String =>
-          CodecObject.toCodec(jsonString)
+          CodecObject.toCodec(jsonString + ",")
       }
       resultCodec + arrayCodec
 
 
-    case D_FLOAT_DOUBLE =>
-      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
-      codecToReturn.removeEmptySpace
-      codecToReturn
+    case D_FLOAT_DOUBLE => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
 
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
       val value0 = codec.readToken(SonString(CS_STRING)) match {
@@ -498,25 +495,18 @@ private[bsonImpl] object BosonInjectorImpl {
 
       ((resultCodec + codecWithSize) + codecWithValue) + codecWithZeroByte
 
-    case D_INT =>
-      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_INTEGER)))
-      codecToReturn.removeEmptySpace
-      codecToReturn
+    case D_INT => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_INTEGER)))
 
-    case D_LONG =>
-      val codecToReturn = codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_LONG)))
-      codecToReturn.removeEmptySpace
-      codecToReturn
+    case D_LONG => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_LONG)))
+
 
     case D_BOOLEAN =>
       val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
         case byte: Byte => byte == 1
       }
-      val codecToReturn = codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN, value0))
-      codecToReturn.removeEmptySpace
-      codecToReturn
+      codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN, value0))
 
-    case D_NULL => resultCodec
+    case D_NULL => codec.writeToken(resultCodec, codec.readToken(SonNull(CS_NULL)))
   }
 
   /**

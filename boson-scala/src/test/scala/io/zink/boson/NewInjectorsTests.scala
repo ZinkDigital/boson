@@ -2223,6 +2223,27 @@ class NewInjectorsTests extends FunSuite {
   //      val resultValue: String = Await.result(future, Duration.Inf)
   //      assert(resultValue.equals(clientExpected.encodeToString))
   //    }
+
+  test("CodecJson - HasElem 14") {
+    val arr = new BsonArray().add("Something")
+    val person2 = new BsonObject().putNull("nullKey").put("name", "Jane Doe").put("age", 12)
+    val personBson2 = new BsonObject().put("subObject", person2)
+    val persons = new BsonArray().add(arr).add(personBson2)
+    val client = new BsonObject().put("persons", persons)
+
+    val person2Expected = new BsonObject().putNull("nullKey").put("name", "Jane Doe").put("age", 32)
+    val personBson2Expected = new BsonObject().put("subObject", person2Expected)
+    val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
+    val clientExpected = new BsonObject().put("persons", personsExpected)
+
+    val ex = "..persons[@subObject].subObject.age"
+    val jsonInj = Boson.injector(ex, (in: Int) => {
+      in + 20
+    })
+    val future = jsonInj.go(client.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(clientExpected.encodeToString))
+  }
   //
   //    test("CodecJson - Key case class injection") {
   //      val book = new BsonObject().put("name", "Title1").put("pages", 1)
