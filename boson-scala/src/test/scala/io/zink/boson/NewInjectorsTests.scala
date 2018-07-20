@@ -4044,20 +4044,18 @@ class NewInjectorsTests extends FunSuite {
   ////      assert(resultValue.equals(personsExpected.encodeToString))
   //    }
 
-  test("CodecJson - Array within array .Array[0]..Array[0] - Single/Double") {
+  test("CodecJson - Array within array ..Array[0]..Array[0] - Double/Double") {
     val person1 = new BsonArray().add("name").add("john doe").add("age")
     val person2 = new BsonArray().add("name").add("jane doe").add("age")
     val personsArr = new BsonArray().add(person1).add(person2)
     val persons = new BsonObject().put("persons", personsArr)
-
-    println(persons)
 
     val person1Expected = new BsonArray().add("name").add("john doe").add("age")
     val person2Expected = new BsonArray().add("name").add("JANE DOE").add("age")
     val personsArrExpected = new BsonArray().add(person1Expected).add(person2Expected)
     val personsExpected = new BsonObject().put("persons", personsArrExpected)
 
-    val ex = ".persons[1]..[1]"
+    val ex = "..persons[1]..[1]"
     val jsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
     })

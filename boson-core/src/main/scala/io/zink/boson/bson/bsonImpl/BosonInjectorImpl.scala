@@ -1393,21 +1393,23 @@ private[bsonImpl] object BosonInjectorImpl {
                           val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                              case string: String => CodecObject.toCodec("{" + string + "}")
+                              case string: String =>
+                                if (dataType == D_BSONOBJECT) CodecObject.toCodec("{" + string + "}")
+                                else CodecObject.toCodec(string)
                             }
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                           //Look inside the curent object for cases that match the user given expression
                           val mergedCodec =
-                            if (!statementsList.equals(fullStatementsList)) //we only want to investigate inside this object if it has the property we're looking for
+                            if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) //we only want to investigate inside this object if it has the property we're looking for
                               BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
                             else
                               modifiedPartialCodec
 
                           Try(modifierEnd(mergedCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match {
                             case Success(_) =>
-                              ((codecWithKey, codecWithKeyCopy), exceptions)
+                              ((codecWithKey + mergedCodec, codecWithKeyCopy + partialCodec), exceptions)
                             case Failure(_) =>
                               val mergedToUse = if (isCodecJson(codec))
                                 CodecObject.toCodec(mergedCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
@@ -1531,7 +1533,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                       val modifiedPartialCodec =
                         if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) //TODO - if(fullStatement.head._2.contains(C_DOUBLEDOT))
-                          BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
+                           if (fullStatementsList.head._2.contains(C_DOUBLEDOT)) BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
+                           else BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                         else
                           partialCodec
                       if (isCodecJson(codec)) {
