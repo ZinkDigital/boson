@@ -52,16 +52,6 @@ trait Codec {
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
 
   /**
-    * getArrayPosition is used to get the actual array position, without consuming the value from stream
-    *
-    * @return this method doesn't return anything because this data is not usefull for extraction
-    *         however, in the future when dealing with injection, we may have the need to work with this value
-    *         (this is why there is a commented function with the same but returning a Int)
-    */
-  //def getArrayPosition: Int
-  def getArrayPosition: Unit
-
-  /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
     * @return this method doesn't return anything because this data is not usefull for extraction
@@ -179,28 +169,6 @@ trait Codec {
     * since we want to ignore a value
     */
   def consumeValue(seqType: Int): Unit
-
-  /**
-    * Method that reads a specified length and returns a new codec with the length of the old one, but with only the read information
-    */
-  def readSpecificSize(size: Int): Codec
-
-  /**
-    * Method that retains only a slice, of a specified length, of the data structure.
-    * Returns a new codec containing that slice
-    *
-    * @param length - The length of the slice to retain
-    * @return - a new codec containing only a slice of the old codec's dataStructure
-    */
-  def readSlice(length: Int): Codec
-
-  /**
-    * Create a new codec from an Array of Bytes
-    *
-    * @param byteArray - The Array of Bytes from which to create the codec
-    * @return a new codec with the information present in the array of byte
-    */
-  def fromByteArray(byteArray: Array[Byte]): Codec
 
   //--------------------------------------------Injector functions-----------------------------------------
 

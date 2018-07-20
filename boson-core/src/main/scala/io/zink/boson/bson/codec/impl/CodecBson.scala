@@ -329,46 +329,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   override def downOneLevel: Unit = {}
 
   /**
-    * getArrayPosition is used to get the actual buffer position, without consuming the value from stream
-    *
-    * @return this method doesn't return anything because this data is not usefull for extraction
-    *         however, in the future when dealing with injection, we may have the need to work with this value
-    *         (this is why there is a commented function with the same but returning a Int)
-    */
-  /* override def getArrayPosition: Int = {
-     val list: ListBuffer[Byte] = new ListBuffer[Byte]
-     var i = 0
-     while (buff.getByte(buff.readerIndex()+i) != 0) {
-       list.+=(buff.getByte(buff.readerIndex()+i))
-       i+=1
-     }
-     new String(list.toArray.filter((b:Byte) => b != 0)).toInt
-   }*/
-  override def getArrayPosition: Unit = {
-    val list: ListBuffer[Byte] = new ListBuffer[Byte]
-    var i = 0
-    while (buff.getByte(buff.readerIndex() + i) != 0) {
-      list.+=(buff.getByte(buff.readerIndex() + i))
-      i += 1
-    }
-  }
-
-  /**
     * readArrayPosition is used to get the actual buffer position, consuming the value from stream
     *
     * @return this method doesn't return anything because this data is not usefull for extraction
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  /*override def readArrayPosition: Int = {
-    val list: ListBuffer[Byte] = new ListBuffer[Byte]
-
-    while (buff.getByte(buff.readerIndex()) != 0) {
-      list.+=(buff.readByte())
-    }
-    if(list.nonEmpty)list.+=(buff.readByte())
-    new String(list.toArray.filter((b:Byte) => b != 0)).toInt
-  }*/
   override def readArrayPosition: Unit = {
     val list: ListBuffer[Byte] = new ListBuffer[Byte]
 
@@ -392,41 +358,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     case D_INT => buff.skipBytes(4)
     case D_LONG => buff.skipBytes(8)
     case _ =>
-  }
-
-  /**
-    * Method that reads a specific length and returns a new codec with that information
-    */
-  override def readSpecificSize(size: Int): Codec = {
-    val buf1 = buff.readBytes(size)
-    val newCodec = new CodecBson(arg, Some(Unpooled.buffer(buf1.capacity()).writeBytes(buf1)))
-    buf1.release()
-    newCodec
-  }
-
-  /**
-    * Method that retains only a slice, of a specified length, of the data structure.
-    * Returns a new codec containing that slice
-    *
-    * @param length - The length of the slice to retain
-    * @return - a new codec containing only a slice of the old codec's dataStructure
-    */
-  override def readSlice(length: Int): Codec = {
-    val partialBuf = buff.readRetainedSlice(length)
-    val newCodec = new CodecBson(arg, Some(partialBuf))
-    partialBuf.release()
-    newCodec
-  }
-
-  /**
-    * Create a new codec from an Array of Bytes
-    *
-    * @param byteArray - The Array of Bytes from which to create the codec
-    * @return a new codec with the information present in the array of byte
-    */
-  def fromByteArray(byteArray: Array[Byte]): Codec = {
-    val newBuff = Unpooled.buffer(byteArray.length).writeBytes(byteArray)
-    new CodecBson(arg, Some(newBuff))
   }
 
   //-------------------------------------Injector functions--------------------------

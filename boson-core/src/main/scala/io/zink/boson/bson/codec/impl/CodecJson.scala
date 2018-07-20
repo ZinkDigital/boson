@@ -552,49 +552,12 @@ class CodecJson(str: String) extends Codec {
   }
 
   /**
-    * getArrayPosition is used to get the actual array position, without consuming the value from stream
-    *
-    * @return this method doesn't return anything because this data is not usefull for extraction
-    *         however, in the future when dealing with injection, we may have the need to work with this value
-    *         (this is why there is a commented function with the same but returning a Int)
-    */
-  /*override def getArrayPosition: Int = {
-  lazy val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
-  val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
-  substr.substring(0, index).count(p => p.equals(CS_COMMA))
-}*/
-  override def getArrayPosition: Unit = {}
-
-  /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
     * @return this method doesn't return anything because this data is not usefull for extraction
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  /* override def readArrayPosition: Int ={
-   val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
-   val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
-   val str = substr.substring(0, index).view
-   val list = StringBuilder.newBuilder
-   var a = 0
-   var i = 0
-   while(i!=str.length){
-     str(i)match{
-       case x if x.equals(CS_OPEN_BRACKET)||x.equals(CS_OPEN_RECT_BRACKET) =>
-         list.append(x)
-         a+=1
-       case  x if x.equals(CS_CLOSE_BRACKET)||x.equals(CS_CLOSE_RECT_BRACKET) =>
-         list.append(x)
-         a-=1
-       case x =>
-         if(a==0) list.append(x) else list.append(CS_ZERO)
-     }
-     i+=1
-   }
-   val res = list.count(p => p.equals(CS_COMMA))
-   res
- }*/
   override def readArrayPosition: Unit = {}
 
   /**
@@ -636,28 +599,6 @@ class CodecJson(str: String) extends Codec {
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
   }
-
-  /**
-    * Method that reads a specified length and returns a new codec with that information
-    */
-  override def readSpecificSize(size: Int): Codec = ???
-
-  /**
-    * Method that retains only a slice, of a specified length, of the data structure.
-    * Returns a new codec containing that slice
-    *
-    * @param length - The length of the slice to retain
-    * @return - a new codec containing only a slice of the old codec's dataStructure
-    */
-  override def readSlice(length: Int): Codec = ???
-
-  /**
-    * Create a new codec from an Array of Bytes
-    *
-    * @param byteArray - The Array of Bytes from which to create the codec
-    * @return a new codec with the information present in the array of byte
-    */
-  def fromByteArray(byteArray: Array[Byte]): Codec = new CodecJson(new String(byteArray))
 
   //
   //-------------------------------------Injector functions--------------------------
