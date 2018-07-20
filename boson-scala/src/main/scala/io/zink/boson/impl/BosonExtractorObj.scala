@@ -89,40 +89,14 @@ class BosonExtractorObj[T, R <: HList](expression: String,
     future
   }
 
-  /**
-    * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
-    * the future with the resulting byte array. In the case of an Extractor tis will result in
-    * the immutable byte array being returned unmodified.
-    *
-    * @param bsonByteBufferEncoding Array[Byte] encoded wrapped in a ByteBuffer.
-    * @return Future with original ByteBuffer.
-    */
-  override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
-    val future: Future[ByteBuffer] =
-      Future {
-        val midRes: Any = runInterpreter(Left(bsonByteBufferEncoding.array()))
-        val seqTuples = TypeCase[Seq[List[(String, Any)]]]
-        val result: Seq[T] =
-          midRes match {
-            case seqTuples(vs) =>
-              vs.par.map { elem =>
-                extractLabels.to[T].from[gen.Repr](elem)
-              }.seq.collect { case v if v.nonEmpty => v.get }
-            case _ => Seq.empty[T]
-          }
-        if (extractSeqFunction.isDefined) extractSeqFunction.get(result) else result.foreach(elem => extractFunction.get(elem))
-        bsonByteBufferEncoding
-      }
-    future
-  }
 
-  /**
-    * Fuse one BosonImpl to another. The boson that is this should be executed first before the
-    * boson that is the parameter in teh case of update/read conflicts.
-    * the immutable byte array being returned unmodified.
-    *
-    * @param boson BosonImpl to fuse to.
-    * @return the fused BosonImpl
-    */
-  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
+  //  /**
+  //    * Fuse one BosonImpl to another. The boson that is this should be executed first before the
+  //    * boson that is the parameter in teh case of update/read conflicts.
+  //    * the immutable byte array being returned unmodified.
+  //    *
+  //    * @param boson BosonImpl to fuse to.
+  //    * @return the fused BosonImpl
+  //    */
+  //  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 }

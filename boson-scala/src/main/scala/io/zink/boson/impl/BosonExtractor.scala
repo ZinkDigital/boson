@@ -1,3 +1,4 @@
+
 package io.zink.boson.impl
 
 import java.nio.ByteBuffer
@@ -35,15 +36,6 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     future
   }
 
-  override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
-    val future: Future[ByteBuffer] =
-      Future {
-        runInterpreter(Left(bsonByteBufferEncoding.array()))
-        bsonByteBufferEncoding
-      }
-    future
-  }
-
   override def go(bsonByteEncoding: String): Future[String] = {
     val future: Future[String] =
       Future {
@@ -53,7 +45,6 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     future
   }
 
-  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
-
+//  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 
 }

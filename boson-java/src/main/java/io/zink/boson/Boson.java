@@ -67,25 +67,15 @@ public interface Boson {
      */
     CompletableFuture<String> go(final String bsonByteEncoding);
 
-    /**
-     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
-     * the future with the resulting byte array. In the case of an Extractor tis will result in
-     * the immutable byte array being returned unmodified.
-     *
-     * @param bsonByteBufferEncoding byte array encoded wrapped in a ByteBuffer.
-     * @return CompletableFuture with original or a modified ByteBuffer.
-     */
-    CompletableFuture<ByteBuffer> go(final ByteBuffer bsonByteBufferEncoding);
 
-
-    /**
-     * Fuse one BosonImpl to another. The boson that is this should be executed first before the
-     * boson that is the parameter in teh case of update/read conflicts.
-     * the immutable byte array being returned unmodified.
-     *
-     * @param boson to fuse to.
-     * @return the fused BosonImpl
-     */
-    Boson fuse(final Boson boson);
+//    /**
+//     * Fuse one BosonImpl to another. The boson that is this should be executed first before the
+//     * boson that is the parameter in teh case of update/read conflicts.
+//     * the immutable byte array being returned unmodified.
+//     *
+//     * @param boson to fuse to.
+//     * @return the fused BosonImpl
+//     */
+//    Boson fuse(final Boson boson);
 
 }

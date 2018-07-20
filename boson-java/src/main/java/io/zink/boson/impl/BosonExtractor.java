@@ -237,21 +237,8 @@ public class BosonExtractor<T> implements Boson {
         });
     }
 
-    @Override
-    public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                runInterpreter(bsonByteBufferEncoding.array());
-                return bsonByteBufferEncoding;
-            } catch (Exception ex) {
-                extractFunction.accept(null);
-                return null;
-            }
-        });
-    }
-
-    @Override
-    public Boson fuse(Boson boson) {
-        return new BosonFuse(this, boson);
-    }
+//    @Override
+//    public Boson fuse(Boson boson) {
+//        return new BosonFuse(this, boson);
+//    }
 }

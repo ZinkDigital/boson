@@ -343,25 +343,15 @@ trait Boson {
     */
   def go(bsonByteEncoding: String): Future[String]
 
-  /**
-    * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
-    * the future with the resulting byte array. In the case of an Extractor tis will result in
-    * the immutable byte array being returned unmodified.
-    *
-    * @param bsonByteBufferEncoding Array[Byte] encoded wrapped in a ByteBuffer.
-    * @return Future with original or a modified ByteBuffer.
-    */
-  def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer]
 
-
-  /**
-    * Fuse one BosonImpl to another. The boson that is this should be executed first before the
-    * boson that is the parameter in the case of update/read conflicts.
-    * the immutable byte array being returned unmodified.
-    *
-    * @param boson BosonImpl to fuse to.
-    * @return the fused BosonImpl
-    */
-  def fuse(boson: Boson): Boson
+//  /**
+//    * Fuse one BosonImpl to another. The boson that is this should be executed first before the
+//    * boson that is the parameter in the case of update/read conflicts.
+//    * the immutable byte array being returned unmodified.
+//    *
+//    * @param boson BosonImpl to fuse to.
+//    * @return the fused BosonImpl
+//    */
+//  def fuse(boson: Boson): Boson
 
 }

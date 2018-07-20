@@ -1951,26 +1951,6 @@ class NewInjectorsTests extends FunSuite {
   //      assert(resultValue.equals(expectedJson.encodeToString))
   //    }
   //
-  test("CodecJson - HasElem injection test") {
-    val person1 = new BsonObject().putNull("nullKey").put("name", "John Doe")
-    val person2 = new BsonObject().put("name", "Jane Doe")
-    val bsonArray = new BsonArray().add(person1).add(person2)
-    val json = new BsonObject().put("persons", bsonArray)
-
-    val person1Expected = new BsonObject().putNull("nullKey").put("name", "JOHN DOE")
-    val person2Expected = new BsonObject().put("name", "JANE DOE")
-    val bsonArrayExpected = new BsonArray().add(person1Expected).add(person2Expected)
-    val jsonExpected = new BsonObject().put("persons", bsonArrayExpected)
-
-    val ex = ".persons[@name]"
-    val jsonInj = Boson.injector(ex, (in: String) => {
-      in.toUpperCase()
-    })
-    val jsonEncoded = json.encodeToString()
-    val future = jsonInj.go(jsonEncoded)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(jsonExpected.encodeToString))
-  }
   //
   //    test("CodecJson - HasElem injection test, one object does not contain the elem") {
   //      val person1 = new BsonObject().put("name", "John Doe")
@@ -2224,26 +2204,26 @@ class NewInjectorsTests extends FunSuite {
   //      assert(resultValue.equals(clientExpected.encodeToString))
   //    }
 
-  test("CodecJson - HasElem 14") {
-    val arr = new BsonArray().add("Something")
-    val person2 = new BsonObject().putNull("nullKey").put("name", "Jane Doe").put("age", 12)
-    val personBson2 = new BsonObject().put("subObject", person2)
-    val persons = new BsonArray().add(arr).add(personBson2)
-    val client = new BsonObject().put("persons", persons)
-
-    val person2Expected = new BsonObject().putNull("nullKey").put("name", "Jane Doe").put("age", 32)
-    val personBson2Expected = new BsonObject().put("subObject", person2Expected)
-    val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
-    val clientExpected = new BsonObject().put("persons", personsExpected)
-
-    val ex = "..persons[@subObject].subObject.age"
-    val jsonInj = Boson.injector(ex, (in: Int) => {
-      in + 20
-    })
-    val future = jsonInj.go(client.encodeToString)
-    val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue.equals(clientExpected.encodeToString))
-  }
+  //  test("CodecJson - HasElem 14") {
+  //    val arr = new BsonArray().add("Something")
+  //    val person2 = new BsonObject().putNull("nullKey").put("name", "Jane Doe").put("age", 12)
+  //    val personBson2 = new BsonObject().put("subObject", person2)
+  //    val persons = new BsonArray().add(arr).add(personBson2)
+  //    val client = new BsonObject().put("persons", persons)
+  //
+  //    val person2Expected = new BsonObject().putNull("nullKey").put("name", "Jane Doe").put("age", 32)
+  //    val personBson2Expected = new BsonObject().put("subObject", person2Expected)
+  //    val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
+  //    val clientExpected = new BsonObject().put("persons", personsExpected)
+  //
+  //    val ex = "..persons[@subObject].subObject.age"
+  //    val jsonInj = Boson.injector(ex, (in: Int) => {
+  //      in + 20
+  //    })
+  //    val future = jsonInj.go(client.encodeToString)
+  //    val resultValue: String = Await.result(future, Duration.Inf)
+  //    assert(resultValue.equals(clientExpected.encodeToString))
+  //  }
   //
   //    test("CodecJson - Key case class injection") {
   //      val book = new BsonObject().put("name", "Title1").put("pages", 1)
@@ -2260,6 +2240,24 @@ class NewInjectorsTests extends FunSuite {
   //      val resultValue: String = Await.result(future, Duration.Inf)
   //      assert(resultValue.equals(jsonExpected.encodeToString))
   //    }
+
+  test("CodecJson - Key case class injection Test") {
+    val book = new BsonObject().put("name", "Title1").putNull("pages")
+    val json = new BsonObject().put("book", book)
+
+    val expected = new BsonObject().put("name", "LOTR").put("pages", 320)
+    val jsonExpected = new BsonObject().put("book", expected)
+
+    val ex = ".book"
+    val jsonInj = Boson.injector(ex, (in: Book) => {
+      Book("LOTR", 320)
+    })
+    val future = jsonInj.go(json.encodeToString)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.equals(jsonExpected.encodeToString))
+  }
+
+
   //
   //    test("CodeJson - HasElem case class injection") {
   //      val ex = ".store.books[@book]"

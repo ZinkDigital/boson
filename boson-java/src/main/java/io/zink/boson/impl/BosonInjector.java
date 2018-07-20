@@ -291,23 +291,8 @@ public class BosonInjector<T> implements Boson {
         return scndList;
     }
 
-    /**
-     * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
-     * the future with the resulting byte array. In the case of an Extractor tis will result in
-     * the immutable byte array being returned unmodified.
-     *
-     * @param bsonByteBufferEncoding byte array encoded wrapped in a ByteBuffer.
-     * @return CompletableFuture with original or a modified ByteBuffer.
-     */
-    @Override
-    public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
-        return CompletableFuture.supplyAsync(() -> {
-            return bsonByteBufferEncoding;
-        });
-    }
-
-    @Override
-    public Boson fuse(Boson boson) {
-        return new BosonFuse(this, boson);
-    }
+//    @Override
+//    public Boson fuse(Boson boson) {
+//        return new BosonFuse(this, boson);
+//    }
 }

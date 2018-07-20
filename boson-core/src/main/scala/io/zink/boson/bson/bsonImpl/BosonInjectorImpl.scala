@@ -520,16 +520,17 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   private def processTypesArray[T](dataType: Int, codec: Codec, currentResCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     dataType match {
-      case D_ZERO_BYTE =>
-        currentResCodec
-      case D_FLOAT_DOUBLE =>
-        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+      case D_ZERO_BYTE => currentResCodec
+
+      case D_FLOAT_DOUBLE => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)) match {
           case SonString(_, data) => data.asInstanceOf[String]
         }
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+
       case D_BSONOBJECT =>
         val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)) match {
           case SonObject(_, content) =>
@@ -539,17 +540,19 @@ private[bsonImpl] object BosonInjectorImpl {
             } else content.asInstanceOf[ByteBuf].array
         }
         codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0))
+
       case D_BSONARRAY =>
         val value0 = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
           case SonArray(_, content) => if (isCodecJson(codec)) content.asInstanceOf[String] else content.asInstanceOf[ByteBuf].array
         }
         codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0))
-      case D_NULL =>
-        codec.writeToken(currentResCodec, codec.readToken(SonNull(CS_NULL)))
-      case D_INT =>
-        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
-      case D_LONG =>
-        codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+
+      case D_NULL => codec.writeToken(currentResCodec, codec.readToken(SonNull(CS_NULL)))
+
+      case D_INT => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+
+      case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
           case byte: Byte => byte == 1
@@ -631,8 +634,7 @@ private[bsonImpl] object BosonInjectorImpl {
           case value: Boolean => codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value))
         }
 
-      case D_NULL =>
-        throw CustomException(s"NULL field. Can not be changed")
+      case D_NULL => throw CustomException(s"NULL field. Can not be changed")
 
       case D_INT =>
         val value0 = codec.readToken(SonNumber(CS_INTEGER)) match {
@@ -843,32 +845,28 @@ private[bsonImpl] object BosonInjectorImpl {
     if (fieldID.contains(STAR) & extracted.nonEmpty) {
       val list: Array[String] = fieldID.split(STAR_CHAR)
       (extracted, list.length) match {
-        case (_, 0) =>
-          true
-        case (x, 1) if x.startsWith(list.head) =>
-          true
-        case (x, 2) if x.startsWith(list.head) & x.endsWith(list.last) =>
-          true
+        case (_, 0) => true
+
+        case (x, 1) if x.startsWith(list.head) => true
+
+        case (x, 2) if x.startsWith(list.head) & x.endsWith(list.last) => true
+
         case (x, i) if i > 2 =>
           fieldID match {
             case s if s.startsWith(STAR) =>
               if (x.startsWith(list.apply(1)))
                 isHalfword(s.substring(1 + list.apply(1).length), x.substring(list.apply(1).length))
-              else {
+              else
                 isHalfword(s, x.substring(1))
-              }
+
             case s if !s.startsWith(STAR) =>
-              if (x.startsWith(list.head)) {
-                isHalfword(s.substring(list.head.length), extracted.substring(list.head.length))
-              } else {
-                false
-              }
+              if (x.startsWith(list.head)) isHalfword(s.substring(list.head.length), extracted.substring(list.head.length))
+              else false
+
           }
-        case _ =>
-          false
+        case _ => false
       }
-    } else
-      false
+    } else false
   }
 
 
@@ -1490,7 +1488,6 @@ private[bsonImpl] object BosonInjectorImpl {
                       case _ =>
                         val codecTuple = processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, codecWithKey, codecWithKeyCopy)
                         (codecTuple, exceptions)
-
                     }
                   } else {
                     dataType match {
@@ -1533,8 +1530,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                       val modifiedPartialCodec =
                         if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) //TODO - if(fullStatement.head._2.contains(C_DOUBLEDOT))
-                           if (fullStatementsList.head._2.contains(C_DOUBLEDOT)) BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
-                           else BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
+                          if (fullStatementsList.head._2.contains(C_DOUBLEDOT)) BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
+                          else BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                         else
                           partialCodec
                       if (isCodecJson(codec)) {
@@ -1999,7 +1996,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 case byte: Byte => byte == 1
               }
 
-              case D_NULL => ??? //TODO should we return a null here ?
+              case D_NULL => codec.readToken(SonNull(CS_NULL)); null;
             }
             iterateObject(writableList :+ (fieldName, fieldValue))
         }

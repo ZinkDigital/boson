@@ -55,19 +55,5 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
     }
   }
 
-  /**
-    * Apply this BosonImpl to the byte array that arrives and at some point in the future complete
-    * the future with the resulting byte array. In the case of an Extractor tis will result in
-    * the immutable byte array being returned unmodified.
-    *
-    * @param bsonByteBufferEncoding Array[Byte] encoded wrapped in a ByteBuffer.
-    * @return Future with original or a modified ByteBuffer.
-    */
-  override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = { //TODO isn't this to be forgotten ?
-    Future {
-      bsonByteBufferEncoding
-    }
-  }
-
-  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
+//  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 }

@@ -2375,6 +2375,30 @@ class CoverageTest extends FunSuite {
     assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
   }
 
+  test("CodecJson - Top level key modification - HalfWord") {
+    val bson = new BsonObject().put("ARealyLongKeyToTest", "john doe")
+    val ex = ".*ea*ong*ey*To*st"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = bson.encodeToString()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
+  test("CodecJson - Top level key modification - HalfWord 2") {
+    val bson = new BsonObject().put("ARealyLongKeyToTest", "john doe")
+    val ex = ".A*ea*ong*ey*To*st"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = bson.encodeToString()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
   test("CodecJson - Nested key modification - Single Dots") {
     val person = new BsonObject().putNull("nullKey").put("name", "john doe")
     val bson = new BsonObject().put("person", person)
