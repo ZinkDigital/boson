@@ -5,7 +5,7 @@ val basicSettings = Seq(
 
 organization:="io.zink",
 
-version := "0.6.0",
+version := "0.8.0",
 
 scalaVersion := "2.12.3",
 
