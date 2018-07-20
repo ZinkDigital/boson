@@ -2,7 +2,6 @@ package io.zink.boson.bson.bsonImpl
 
 import java.nio.charset.Charset
 import java.util
-
 import shapeless.TypeCase
 
 
@@ -80,8 +79,8 @@ object Dictionary {
 
   val seqString: TypeCase[Seq[String]] = TypeCase[Seq[String]]
   //val seqTuples = TypeCase[Seq[List[Any]]] -> used in toTuples
-  val tuples = TypeCase[List[(String, Any)]]
-  val listTuples = TypeCase[List[Any]]
+  val tuples: TypeCase[List[(String, Any)]] = TypeCase[List[(String, Any)]]
+  val listTuples: TypeCase[List[Any]] = TypeCase[List[Any]]
 
   //CODECS CONSTANTS
   val CS_OBJECT: String = "Object"
@@ -93,6 +92,7 @@ object Dictionary {
   val CS_NAME: String = "Name"
   val CS_NAME_NO_LAST_BYTE: String = "NameNoLastByte"
   val CS_STRING: String = STRING
+  val CS_STRING_NO_QUOTES: String = "StringNoQuotes"
   val CS_INTEGER: String = INTEGER
   val CS_DOUBLE: String = DOUBLE
   val CS_FLOAT: String = FLOAT
@@ -134,6 +134,7 @@ object Dictionary {
   TYPES_LIST.add("Null")
   TYPES_LIST.add("CharSequence")
 
+  val SCALA_TYPES_LIST:List[String] = List("int", "string", "double", "long", "float", "byte[]", "instant", "boolean", "null", "charsequence", "integer", "[b")
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

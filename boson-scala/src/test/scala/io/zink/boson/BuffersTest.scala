@@ -15,7 +15,6 @@ class BuffersTest extends FunSuite {  //TODO SHOULD THIS BE REMOVED ?
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
   val bsonEvent: BsonObject = new BsonObject().put("kitchen", "dirty".getBytes).put("Grade", 'C').put("CharSequence", "It WORKS!!!")
 
-  val exampleBoson: BosonImpl = new BosonImpl()
 //
 //  test("Java ByteBuffer"){
 //    val array: Array[Byte] = bsonEvent.encode().getBytes

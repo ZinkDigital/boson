@@ -49,7 +49,7 @@ trait Codec {
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
     */
-  def readToken(tkn: SonNamedType): SonNamedType
+  def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
 
   /**
     * getArrayPosition is used to get the actual array position, without consuming the value from stream
@@ -159,7 +159,7 @@ trait Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  def readDataType: Int
+  def readDataType(former: Int = 0): Int
 
   /**
     * duplicate is used to create a duplicate of the codec, all information is duplicate so that operations
@@ -210,7 +210,7 @@ trait Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeToken(outCodec: Codec, token: SonNamedType): Codec
+  def writeToken(outCodec: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey : Boolean = false): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure

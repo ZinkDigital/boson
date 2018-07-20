@@ -1,3 +1,4 @@
+
 package io.zink.boson.impl
 
 import java.nio.ByteBuffer
@@ -21,9 +22,7 @@ import scala.concurrent.Future
   */
 class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  private val boson: BosonImpl = new BosonImpl()
-
-  private val interpreter: Interpreter[T] = new Interpreter[T](boson, expression, fExt = Some(extractFunction))
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fExt = Some(extractFunction))(tp, None)
 
   private def runInterpreter(bsonEncoded: Either[Array[Byte], String]): Unit = {
     interpreter.run(bsonEncoded)
@@ -37,15 +36,6 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     future
   }
 
-  override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
-    val future: Future[ByteBuffer] =
-      Future {
-        runInterpreter(Left(bsonByteBufferEncoding.array()))
-        bsonByteBufferEncoding
-      }
-    future
-  }
-
   override def go(bsonByteEncoding: String): Future[String] = {
     val future: Future[String] =
       Future {
@@ -55,7 +45,6 @@ class BosonExtractor[T](expression: String, extractFunction: T => Unit)(implicit
     future
   }
 
-  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
-
+//  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 
 }

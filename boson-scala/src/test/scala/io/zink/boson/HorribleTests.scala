@@ -449,18 +449,5 @@ class HorribleTests extends FunSuite {
     }
   }
 
-  test("Empty buf") {
-    val buf: ByteBuffer = ByteBuffer.allocate(0)
-    val expression = "..Store"
-    val expected = Seq()
-    val boson: Boson = Boson.extractor(expression, (out: Seq[Any]) => {
-      assert(expected.size === out.size)
-      assertTrue(expected.zip(out).forall(b => b._1.equals(b._2)))
-    })
-    intercept[Exception]{
-      val res = boson.go(buf)
-      Await.result(res, Duration.Inf)
-    }
-  }
 
 }
