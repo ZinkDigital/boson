@@ -18,7 +18,7 @@ import BosonImpl.extract
 @RunWith(classOf[JUnitRunner])
 class ExtractorTests extends FunSuite {
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED)
-  val obj1: BsonObject = new BsonObject().put("André", 975).put("António", 975L)
+  val obj1: BsonObject = new BsonObject().put("André", 975).put("António", 975F)
   val obj2: BsonObject = new BsonObject().put("Pedro", 1250L).put("José", false)
   val obj3: BsonObject = new BsonObject().put("Américo", 1500).putNull("Amadeu")
 
@@ -34,6 +34,12 @@ class ExtractorTests extends FunSuite {
     val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
     val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(bsonEvent.encodeToBarray()))
     assert(1500 === extract(either, List(("Américo","allDots")), List((None,None,""))).head)
+  }
+
+  test("Extract Float") {
+    val bsonEvent: BsonObject = new BsonObject().put("StartUp", arr)
+    val either: Either[ByteBuf, String] = Left(Unpooled.copiedBuffer(bsonEvent.encodeToBarray()))
+    assert(975F === extract(either, List(("António","allDots")), List((None,None,""))).head)
   }
 
   test("Extract Long") {

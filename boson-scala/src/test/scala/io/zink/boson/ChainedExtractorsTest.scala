@@ -615,4 +615,31 @@ class ChainedExtractorsTest extends FunSuite {
     Await.result(res, Duration.Inf)
     assert(expected === mutableBuffer)
   }
+
+//  test("Iterate through .Key1[@Title], Seq[String]") {
+//    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
+//    val person2 = new BsonObject().put("name", "Jane Doe")
+//    val bsonArray = new BsonArray().add(person1).add(person2)
+//    val bson = new BsonObject().put("persons", bsonArray)
+//    val ex = ".persons[@name]"
+//    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+//
+//    val boson: Boson = Boson.extractor(ex, (in: String) => {
+//      mutableBuffer += in
+//      println(s"in: $in")
+//      println("APPLIED")
+//    })
+//
+////    val expression: String = ".Store.Book.Title[@SpecialEditions]"
+////    val boson: Boson = Boson.extractor(expression, (in: String) => {
+////      mutableBuffer += in
+////      println(s"in: $in")
+////      println("APPLIED")
+////    })
+//    val res = boson.go(bson.encodeToBarray)
+//    Await.result(res, Duration.Inf)
+//    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
+//  }
+
+
 }
