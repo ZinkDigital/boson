@@ -1412,9 +1412,16 @@ private[bsonImpl] object BosonInjectorImpl {
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                           //Look inside the curent object for cases that match the user given expression
                           val mergedCodec =
-                            if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) //we only want to investigate inside this object if it has the property we're looking for
-                              BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
-                            else
+                            if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) { //we only want to investigate inside this object if it has the property we're looking for
+                              val auxCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
+                              if (isCodecJson(codec)) {
+                                if (dataType == D_BSONOBJECT) auxCodec
+                                else {
+                                  val auxStr: String = auxCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+                                  CodecObject.toCodec("[" + auxStr.substring(1, auxStr.size - 1) + "]")
+                                }
+                              } else auxCodec
+                            } else
                               modifiedPartialCodec
 
                           Try(modifierEnd(mergedCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match {
@@ -1446,7 +1453,7 @@ private[bsonImpl] object BosonInjectorImpl {
                             case SonArray(_, value) => value match {
                               case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
                               case string: String =>
-                                if (dataType == D_BSONOBJECT) CodecObject.toCodec("{"+string+"}")
+                                if (dataType == D_BSONOBJECT) CodecObject.toCodec("{" + string + "}")
                                 else CodecObject.toCodec(string)
                             }
                           }
@@ -1541,12 +1548,22 @@ private[bsonImpl] object BosonInjectorImpl {
                             else CodecObject.toCodec(string)
                         }
                       }
-                      val modifiedPartialCodec =
-                        if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) //TODO - if(fullStatement.head._2.contains(C_DOUBLEDOT))
-                           if (fullStatementsList.head._2.contains(C_DOUBLEDOT)) BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
-                           else BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
+                      val modifiedAuxCodec =
+                        if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT))
+                          if (fullStatementsList.head._2.contains(C_DOUBLEDOT)) BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
+                          else BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                         else
                           partialCodec
+
+                      val modifiedPartialCodec =
+                        if (isCodecJson(codec)) {
+                          if(dataType == D_BSONOBJECT) modifiedAuxCodec
+                          else {
+                            val aux = modifiedAuxCodec.getCodecData.asInstanceOf[Right[ByteBuf,String]].value
+                            CodecObject.toCodec("[" + aux.substring(1,aux.size - 1) + "]")
+                          }
+                        } else modifiedAuxCodec
+
                       if (isCodecJson(codec)) {
                         val modPartWithComma = CodecObject.toCodec(modifiedPartialCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
                         ((codecWithKey + modPartWithComma, codecWithKeyCopy + modPartWithComma), exceptions)
