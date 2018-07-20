@@ -41,9 +41,9 @@ class NewInjectorsTests extends FunSuite {
   val book2: BsonObject = new BsonObject().put("name", "Some book").put("pages", 123)
   val bsonBook2: BsonObject = new BsonObject().put("book", book2)
 
-  val books: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
-  val store: BsonObject = new BsonObject().put("books", books)
-  val storeBson: BsonObject = new BsonObject().put("store", store)
+  val booksArr: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
+  val storeObj: BsonObject = new BsonObject().put("books", booksArr)
+  val storeBson: BsonObject = new BsonObject().put("store", storeObj)
 
   val bookAux: BsonObject = new BsonObject().put("pages", 1.0).put("someLong", 1L).put("someBoolean", true)
   val bookAux2: BsonObject = new BsonObject().put("pages", 23.10).put("someLong", 100000L).put("someBoolean", false)
