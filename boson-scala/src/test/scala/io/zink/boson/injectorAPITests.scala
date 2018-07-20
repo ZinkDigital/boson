@@ -623,4 +623,5 @@ class injectorAPITests extends FunSuite {
 //    assertEquals(Vector(14.5) ,future.join().getValue  )
 //  }
 */
+
 }
