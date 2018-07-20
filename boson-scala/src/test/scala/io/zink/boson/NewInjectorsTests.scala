@@ -1306,6 +1306,7 @@ class NewInjectorsTests extends FunSuite {
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
     assertArrayEquals(resultValue, booksExpected.encodeToBarray())
+
   }
 
   test("Case class injection - arr expression ..[0 until 1]") {
