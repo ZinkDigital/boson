@@ -28,8 +28,6 @@ class LongInputTests extends FunSuite {
   val json: JsonObject = new JsonObject(finale)
   val bson: BsonObject = new BsonObject(json)
 
-  val boson: BosonImpl = new BosonImpl()
-
   test("extract top field") {
     val expression: String = ".Epoch"
     val boson: Boson = Boson.extractor(expression, (out: Int) => {

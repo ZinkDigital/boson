@@ -34,9 +34,8 @@ class injectorAPITests extends FunSuite {
   val bAux: BsonObject = new BsonObject().put("damnnn", bsonArrayEvent1)
   val bsonArrayEvent: BsonArray = new BsonArray().add(bAux).add(bAux).add(bAux)
   val bsonObjectRoot: BsonObject = new BsonObject().put("array", bsonArrayEvent)
-
-//  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
-
+  
+  //  val validatedByteArr111: Array[Byte] = bsonObjectRoot.encodeToBarray()
   /*test("simple test"){
     val book1 = new BsonObject().put("Title", "Scala")
     val store = new BsonObject().put("Book", book1)
@@ -624,4 +623,5 @@ class injectorAPITests extends FunSuite {
 //    assertEquals(Vector(14.5) ,future.join().getValue  )
 //  }
 */
+
 }

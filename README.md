@@ -9,24 +9,24 @@ Streaming Data Access for BSON and JSON encoded documents
 
 # Table of Contents
 
-- [Introduction to Boson](#id-introductionToBoson)  
-- [QuickStart Guide](#id-quickStartGuide)  
+- [Introduction to Boson](#id-introductionToBoson)
+- [QuickStart Guide](#id-quickStartGuide)
    * [Boson](#id-Boson)
    * [Scala](#id-quickStartGuideScala)
-      * [Extraction](#id-bosonExtractionScala)  
-      * [Injection](#id-bosonInjectionScala)  
+      * [Extraction](#id-bosonExtractionScala)
+      * [Injection](#id-bosonInjectionScala)
       * [Fusion](#id-bosonFuseScala)
-   * [Java](#id-quickStartGuideJava)  
-      * [Extraction](#id-extractionJava)  
-      * [Injection](#id-injectionJava)  
-      * [Fusion](#id-bosonFuseJava)  
-- [Documentation](#id-documentation)  
-   * [BsonPath](#bsonpath)  
-      * [Operators](#operators)  
+   * [Java](#id-quickStartGuideJava)
+      * [Extraction](#id-extractionJava)
+      * [Injection](#id-injectionJava)
+      * [Fusion](#id-bosonFuseJava)
+- [Documentation](#id-documentation)
+   * [BsonPath](#bsonpath)
+      * [Operators](#operators)
       * [Examples and Comparison with JsonPath](#comparison-with-jsonpath)
    * [Java Profiler](#java-profiler)
 
-<div id='id-introductionToBoson'/>  
+<div id='id-introductionToBoson'/>
 
 ## Introduction to Boson
 
@@ -37,11 +37,11 @@ Through the use of Shapeless, Boson allows the use of user created classes as da
 In the following points we show how to use Boson in both Scala and Java in a QuickStart Guide.
 
 
-<div id='id-quickStartGuide'/>  
+<div id='id-quickStartGuide'/>
 
-## QuickStart Guide  
+## QuickStart Guide
 
-Boson is available through the Central Maven Repository, divided into 3 parts, [BosonScala](https://mvnrepository.com/artifact/io.zink/bosonscala), [BosonJava](https://mvnrepository.com/artifact/io.zink/bosonjava) and [BosonCore](https://mvnrepository.com/artifact/io.zink/bosoncore).  
+Boson is available through the Central Maven Repository, divided into 3 parts, [BosonScala](https://mvnrepository.com/artifact/io.zink/bosonscala), [BosonJava](https://mvnrepository.com/artifact/io.zink/bosonjava) and [BosonCore](https://mvnrepository.com/artifact/io.zink/bosoncore).
 To include Boson in your projects you need to add the dependencies listed bellow.
 
 For SBT users, add the following to your build.sbt:
@@ -71,7 +71,7 @@ For Maven users, add the following to your pom.xml:
     <version>0.5.0</version>
 </dependency>
 ```
-<div id='id-Boson'/>  
+<div id='id-Boson'/>
 
 ### Boson  
 

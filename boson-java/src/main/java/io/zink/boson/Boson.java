@@ -52,8 +52,8 @@ public interface Boson {
      * the future with the resulting byte array. In the case of an Extractor this will result in
      * the immutable byte array being returned unmodified.
      *
-     * @param bsonByteEncoding
-     * @return
+     * @param bsonByteEncoding bson encoded into a byte array
+     * @return CompletableFuture with original or a modified byte array.
      */
     CompletableFuture<byte[]> go(final byte[] bsonByteEncoding);
 
@@ -62,20 +62,20 @@ public interface Boson {
      * the future with the resulting byte array. In the case of an Extractor tis will result in
      * the immutable byte array being returned unmodified.
      *
-     * @param bsonByteBufferEncoding
-     * @return
+     * @param bsonByteEncoding bson encoded into a String
+     * @return CompletableFuture with original or a modified String.
      */
-    CompletableFuture<ByteBuffer> go(final ByteBuffer bsonByteBufferEncoding);
+    CompletableFuture<String> go(final String bsonByteEncoding);
 
 
-    /**
-     * Fuse one BosonImpl to another. The boson that is this should be executed first before the
-     * boson that is the parameter in teh case of update/read conflicts.
-     * the immutable byte array being returned unmodified.
-     *
-     * @param boson to fuse to.
-     * @return the fused BosonImpl
-     */
-    Boson fuse(final Boson boson);
+//    /**
+//     * Fuse one BosonImpl to another. The boson that is this should be executed first before the
+//     * boson that is the parameter in teh case of update/read conflicts.
+//     * the immutable byte array being returned unmodified.
+//     *
+//     * @param boson to fuse to.
+//     * @return the fused BosonImpl
+//     */
+//    Boson fuse(final Boson boson);
 
 }

@@ -139,8 +139,9 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
     */
-  override def readToken(tkn: SonNamedType): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
     case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
+
     case SonArray(x, _) =>
       x match {
         case C_DOT =>
@@ -155,20 +156,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           buff.readerIndex(endIndex)
           SonArray(x, b)
 
-        case CS_ARRAY_WITH_SIZE =>
+        case CS_ARRAY_WITH_SIZE | CS_ARRAY_INJ =>
           val size = buff.getIntLE(buff.readerIndex)
           val endIndex = buff.readerIndex + size
           val newBuff = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonArray(x, newBuff)
-
-        case CS_ARRAY_INJ =>
-          val size = buff.getIntLE(buff.readerIndex)
-          val endIndex = buff.readerIndex + size
-          val b = buff.copy(buff.readerIndex, size)
-          buff.readerIndex(endIndex)
-          SonArray(x, b)
       }
+
     case SonObject(x, _) =>
       x match {
         case C_DOT =>
@@ -185,14 +180,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
-          val endIndex = buff.readerIndex + size
+        val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
 
-        case CS_OBJECT_INJ => //TODO - Check
-          val size = buff.getIntLE(buff.readerIndex) - 4
-          val endIndex = buff.readerIndex - 4 + size
+        case CS_OBJECT_INJ =>
+          val size = buff.getIntLE(buff.readerIndex)
+          val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
@@ -308,7 +303,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  override def readDataType: Int = buff.readByte()
+  override def readDataType(former: Int = 0): Int = buff.readByte()
 
 
   /**
@@ -442,73 +437,85 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType): Codec = {
-    val duplicated: ByteBuf = outCodecOpt.getCodecData match {
-      case Left(byteBuf) =>
-        val newBuf = byteBuf.copy(0, byteBuf.capacity())
-        newBuf.readerIndex(byteBuf.readerIndex()) //Will always be 0
-        newBuf.writerIndex(byteBuf.writerIndex())
+  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
+    val duplicated: ByteBuf = {
+      val byteBuf = outCodecOpt.getCodecData.asInstanceOf[Left[ByteBuf, String]].value
+      val newBuf = byteBuf.copy(0, byteBuf.capacity())
+      newBuf.readerIndex(byteBuf.readerIndex()) //Will always be 0
+      newBuf.writerIndex(byteBuf.writerIndex())
     }
-    token match {
+    if (ignoreForBson) new CodecBson(arg, Some(duplicated)) else {
+      token match {
 
-      case SonBoolean(_, info) =>
-        val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
-        duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
-        new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
+        case SonNull(_, _) => new CodecBson(arg, Some(duplicated))
 
-      case SonNumber(numberType, info) =>
-        val manipulatedBuf: ByteBuf = numberType match {
+        case SonBoolean(_, info) =>
+          val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
+          duplicated.writeBoolean(writableBoolean) // write the boolean to the duplicated ByteBuf
+          new CodecBson(arg, Some(duplicated)) //return a new codec with the duplicated ByteBuf
 
-          case CS_BYTE =>
-            val writableByte = info.asInstanceOf[Byte]
-            duplicated.writeByte(writableByte)
+        case SonNumber(numberType, info) =>
+          val manipulatedBuf: ByteBuf = numberType match {
 
-          case CS_INTEGER =>
-            val writableInt = info.asInstanceOf[Int]
-            duplicated.writeIntLE(writableInt)
+            case CS_BYTE =>
+              val writableByte = info.asInstanceOf[Byte]
+              duplicated.writeByte(writableByte)
 
-          case CS_DOUBLE =>
-            val writableDouble = info.asInstanceOf[Double]
-            duplicated.writeDoubleLE(writableDouble)
+            case CS_INTEGER =>
+              val writableInt = info.asInstanceOf[Int]
+              duplicated.writeIntLE(writableInt)
 
-          case CS_FLOAT =>
-            val writableFloat = info.asInstanceOf[Float]
-            duplicated.writeFloatLE(writableFloat)
+            case CS_DOUBLE =>
+              val writableDouble = info.asInstanceOf[Double]
+              duplicated.writeDoubleLE(writableDouble)
 
-          case CS_LONG =>
-            val writableLong = info.asInstanceOf[Long]
-            duplicated.writeLongLE(writableLong)
+            case CS_FLOAT =>
+              val writableFloat = info.asInstanceOf[Float]
+              duplicated.writeFloatLE(writableFloat)
 
-        }
-        new CodecBson(arg, Some(manipulatedBuf))
+            case CS_LONG =>
+              val writableLong = info.asInstanceOf[Long]
+              duplicated.writeLongLE(writableLong)
 
-      case SonString(objType, info) =>
-        objType match {
-          case CS_ARRAY_WITH_SIZE =>
-            val valueLength: Int = buff.readIntLE()
-            val bytes: ByteBuf = buff.readBytes(valueLength)
-            duplicated.writeIntLE(valueLength)
-            duplicated.writeBytes(bytes)
-            bytes.release()
+          }
+          new CodecBson(arg, Some(manipulatedBuf))
 
-          case _ =>
-            val writableCharSeq = info.asInstanceOf[CharSequence]
-            duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
-        }
+        case SonString(objType, info) =>
+          objType match {
+            case CS_ARRAY_WITH_SIZE =>
+              val valueLength: Int = buff.readIntLE()
+              val bytes: ByteBuf = buff.readBytes(valueLength)
+              duplicated.writeIntLE(valueLength)
+              duplicated.writeBytes(bytes)
+              bytes.release()
 
-        new CodecBson(arg, Some(duplicated))
+            case _ =>
+              val writableCharSeq = info.asInstanceOf[CharSequence]
+              duplicated.writeCharSequence(writableCharSeq, Charset.defaultCharset())
+          }
 
-      case SonArray(_, info) =>
-        //      val duplicated = outCodec.copyByteBuf
-        val writableByteSeq = info.asInstanceOf[Array[Byte]]
-        duplicated.writeBytes(writableByteSeq)
-        new CodecBson(arg, Some(duplicated))
+          new CodecBson(arg, Some(duplicated))
 
-      case SonObject(_, info) =>
-        val writableByteSeq = info.asInstanceOf[Array[Byte]] // TODO - Breaking Here
-        duplicated.writeBytes(writableByteSeq)
-        new CodecBson(arg, Some(duplicated))
+        case SonArray(_, info) =>
+          val writableByteSeq = info.asInstanceOf[Array[Byte]] //TODO exactly the same as bellow
+          duplicated.writeBytes(writableByteSeq)
+          new CodecBson(arg, Some(duplicated))
 
+        case SonObject(dataType, info) =>
+          dataType match {
+
+            case CS_OBJECT_WITH_SIZE =>
+              val writableByteBuf = info.asInstanceOf[ByteBuf]
+              val writableByteSeq = writableByteBuf.array()
+              duplicated.writeBytes(writableByteSeq)
+              new CodecBson(arg, Some(duplicated))
+
+            case _ =>
+              val writableByteSeq = info.asInstanceOf[Array[Byte]]
+              duplicated.writeBytes(writableByteSeq)
+              new CodecBson(arg, Some(duplicated))
+          }
+      }
     }
   }
 
@@ -541,6 +548,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a codec with the added information of the other 2
     */
   override def +(sumCodec: Codec): Codec = {
+    sumCodec.setReaderIndex(0)
     val duplicated = copyByteBuf
     duplicated.writerIndex(buff.writerIndex())
     sumCodec.getCodecData match {

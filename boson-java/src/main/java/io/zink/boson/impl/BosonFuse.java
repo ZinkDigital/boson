@@ -19,12 +19,12 @@ public class BosonFuse implements Boson {
         return CompletableFuture.supplyAsync(() -> {
            /*CompletableFuture<byte[]> firstFuture = first.go(bsonByteEncoding);
            return second.go(firstFuture.join()).join();*/
-           return bsonByteEncoding;
+            return bsonByteEncoding;
         });
     }
 
     @Override
-    public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
+    public CompletableFuture<String> go(String bsonByteBufferEncoding) {
         return CompletableFuture.supplyAsync(() -> {
             /*CompletableFuture<ByteBuffer> firstFuture = first.go(bsonByteBufferEncoding);
             return second.go(firstFuture.join()).join();*/
@@ -32,8 +32,8 @@ public class BosonFuse implements Boson {
         });
     }
 
-    @Override
-    public Boson fuse(Boson boson) {
-        return new BosonFuse(this,boson);
-    }
+//    @Override
+//    public Boson fuse(Boson boson) {
+//        return new BosonFuse(this,boson);
+//    }
 }

@@ -34,30 +34,7 @@ class BosonFuse(first: Boson, second: Boson) extends Boson {
         future
   }
 
-  override def go(bsonByteBufferEncoding: ByteBuffer): Future[ByteBuffer] = {
-    val future: Future[ByteBuffer] =
-      Future {
-        val firstFuture: Future[ByteBuffer] = first.go(bsonByteBufferEncoding)
-        //firstFuture.
-        //Await.result(firstFuture, Duration.Inf)
-        firstFuture.value.get match {
-          case Success(value) =>
-            val secondFuture = second.go(value)
-            //Await.result(secondFuture, Duration.Inf)
-            secondFuture.value.get match {
-              case Success(secondValue) =>
-                secondValue
-              case Failure(e) =>
-                bsonByteBufferEncoding
-            }
-          case Failure(e) =>
-            bsonByteBufferEncoding
-        }
-      }
-    future
-  }
-
-  override def fuse(boson: Boson) = new BosonFuse(this,boson)
+//  override def fuse(boson: Boson) = new BosonFuse(this,boson)
 
   override def go(bsonByteEncoding: String): Future[String] = ???
 }

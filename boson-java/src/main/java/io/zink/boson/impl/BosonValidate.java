@@ -8,6 +8,7 @@ import scala.Option;
 import scala.runtime.BoxedUnit;
 import scala.util.Try;
 import scala.util.parsing.combinator.Parsers;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -17,12 +18,12 @@ public class BosonValidate<T> implements Boson {
 
     private String expression;
     private Consumer<T> validateFunction;
-    private Function1<T,BoxedUnit> anon;
+    private Function1<T, BoxedUnit> anon;
 
     public BosonValidate(String expression, Consumer<T> validateFunction) {
         this.expression = expression;
         this.validateFunction = validateFunction;
-        this.anon = new Function1<T, BoxedUnit>(){
+        this.anon = new Function1<T, BoxedUnit>() {
             @Override
             public BoxedUnit apply(T v1) {
                 validateFunction.accept(v1);
@@ -64,7 +65,7 @@ public class BosonValidate<T> implements Boson {
     }
 
     @Override
-    public CompletableFuture<ByteBuffer> go(ByteBuffer bsonByteBufferEncoding) {
+    public CompletableFuture<String> go(String bsonByteBufferEncoding) {
         return CompletableFuture.supplyAsync(() -> {
 //            Option<ByteBuffer> opt = Option.apply(bsonByteBufferEncoding);
 //            Option e = Option.empty();
@@ -80,8 +81,8 @@ public class BosonValidate<T> implements Boson {
         });
     }
 
-    @Override
-    public Boson fuse(Boson boson) {
-        return null;
-    }
+//    @Override
+//    public Boson fuse(Boson boson) {
+//        return null;
+//    }
 }

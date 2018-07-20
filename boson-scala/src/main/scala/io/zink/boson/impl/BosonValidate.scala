@@ -33,15 +33,8 @@ class BosonValidate[T](expression: String, validateFunction: T => Unit) extends 
     }
   }
 
-  override def go(bsonByteBufferEncoding: ByteBuffer):Future[ByteBuffer] = {
-    Future{
-//      val boson:BosonImpl = new BosonImpl(javaByteBuf = Option(bsonByteBufferEncoding))
-//        callParse(boson,expression)
-        bsonByteBufferEncoding
-    }
-  }
 
-  override def fuse(boson: Boson) = ???
+//  override def fuse(boson: Boson) = ???
   //new BosonFuse(this,boson)
   override def go(bsonByteEncoding: String): Future[String] = ???
 }
