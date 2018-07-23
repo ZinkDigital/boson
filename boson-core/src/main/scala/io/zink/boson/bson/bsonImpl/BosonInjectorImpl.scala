@@ -476,7 +476,10 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_BSONARRAY =>
         val value0 = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
-          case SonArray(_, content) => if (isCodecJson(codec)) content.asInstanceOf[String] else content.asInstanceOf[ByteBuf].array
+          case SonArray(_, content) => content match {
+            case byteBuff: ByteBuf => byteBuff.array
+            case jsonString: String => jsonString
+          }
         }
         codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0))
 
