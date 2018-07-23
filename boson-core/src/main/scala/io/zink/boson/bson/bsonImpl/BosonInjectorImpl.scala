@@ -1576,18 +1576,9 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecMerged = codecWithSize + codecWithoutSize
 
-    val codecFinal = codecMerged.getCodecData match {
-      case Left(_) => codecMerged
-      case Right(jsonString) =>
-        if (jsonString.charAt(jsonString.length - 1).equals(','))
-          CodecObject.toCodec(s"[${
-            jsonString.dropRight(1)
-          }]") //Remove trailing comma
-        else
-          CodecObject.toCodec(s"[$jsonString]")
-    }
+    val codecFinal = codec.removeTrailingComma(codecMerged, rectBrackets = true)
 
-    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match { //TODO IMPLEMENT THIS OPERATIONS INSIDE THE CODECS
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
@@ -1596,16 +1587,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecMergedCopy = codecWithSizeCopy + codecWithoutSizeCopy
 
-    val codecFinalCopy = codecMergedCopy.getCodecData match {
-      case Left(_) => codecMergedCopy
-      case Right(jsonString) =>
-        if (jsonString.charAt(jsonString.length - 1).equals(','))
-          CodecObject.toCodec(s"[${
-            jsonString.dropRight(1)
-          }]") //Remove trailing comma
-        else
-          CodecObject.toCodec(s"[$jsonString]")
-    }
+    val codecFinalCopy = codec.removeTrailingComma(codecMergedCopy, rectBrackets = true)
 
     condition match {
       case TO_RANGE =>
@@ -1844,44 +1826,23 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(emptyCodec, createEmptyCodec(codec))
 
-    val finalSize = codecWithoutSize.getCodecData match {
+    val finalSize = codecWithoutSize.getCodecData match { //TODO IMPLEMENT THIS OPERATION INSIDE THE CODECS
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
-    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match {
+    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match { //TODO IMPLEMENT THIS OPERATION INSIDE THE CODECS
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => string.length + 4
     }
 
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
-
     val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy), ignoreForJson = true)
 
     val codecMerged = codecWithSize + codecWithoutSize
-
-    val finalCodec = codecMerged.getCodecData match {
-      case Left(_) => codecMerged
-      case Right(jsonString) =>
-        if (jsonString.charAt(jsonString.length - 1).equals(','))
-          CodecObject.toCodec(s"{${
-            jsonString.dropRight(1)
-          }}") //Remove trailing comma
-        else
-          CodecObject.toCodec(s"{$jsonString}")
-    }
-
     val codecMergedCopy = codecWithSizeCopy + codecWithoutSizeCopy
 
-    val finalCodecCopy = codecMergedCopy.getCodecData match {
-      case Left(_) => codecMergedCopy
-      case Right(jsonString) =>
-        if (jsonString.charAt(jsonString.length - 1).equals(','))
-          CodecObject.toCodec(s"{${
-            jsonString.dropRight(1)
-          }}") //Remove trailing comma
-        else
-          CodecObject.toCodec(s"{$jsonString}")
-    }
+    val finalCodec = codec.removeTrailingComma(codecMerged)
+    val finalCodecCopy = codec.removeTrailingComma(codecMergedCopy)
 
     condition match {
       case TO_RANGE =>
