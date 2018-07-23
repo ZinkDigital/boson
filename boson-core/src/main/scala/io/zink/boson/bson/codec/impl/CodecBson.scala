@@ -483,7 +483,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     val duplicated = copyByteBuf
     duplicated.writerIndex(buff.writerIndex())
     sumCodec.getCodecData match {
-      case Left(x) => duplicated.writeBytes(x) //TODO This moves the reader index from sumCodec's ByteBuf, this might be problematic
+      case Left(x) => duplicated.writeBytes(x)
     }
     duplicated.capacity(duplicated.writerIndex())
     new CodecBson(arg, Some(duplicated))
@@ -496,4 +496,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def removeEmptySpace: Unit = buff.capacity(buff.writerIndex())
 
+  /**
+    * Method that removes the trailing of a CodecJson in order to create a correct json
+    * This method, in case of CodecBson, simply returns the codec passed as argument
+    *
+    * @param codec - codec we wish to remove the trailing comma
+    * @return a new codec that does not have the last trailing comma in it
+    */
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = codec
 }

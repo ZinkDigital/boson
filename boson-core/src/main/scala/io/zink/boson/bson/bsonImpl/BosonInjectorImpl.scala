@@ -137,24 +137,22 @@ private[bsonImpl] object BosonInjectorImpl {
                 }
               case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  if (isCodecJson(codec)) {
-                    val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+                  codec.getCodecData match {
+                    case Right(jsonString) =>
+                      if (jsonString.charAt(0).equals('[')) {
+                        if (codec.getReaderIndex != 1) {
+                          //codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
+                          val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
+                          CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
+                        } else {
+                          codec.setReaderIndex(0)
+                          processTypesArray(4, codec, codecWithKey)
+                        }
+                      } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
 
-
-                    if (jsonString.charAt(0).equals('[')) {
-                      if (codec.getReaderIndex != 1) {
-                        //codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
-                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
-                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                      } else {
-                        codec.setReaderIndex(0)
-                        processTypesArray(4, codec, codecWithKey)
-                      }
-                    } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
-
-                  } else processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
-                }
-                else processTypesArray(dataType, codec, codecWithKey)
+                    case Left(_) => processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
+                  }
+                } else processTypesArray(dataType, codec, codecWithKey)
             }
         }
         writeCodec(newCodec, startReader, originalSize)
@@ -167,22 +165,13 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
 
-    val finalSize = codecWithoutSize.getCodecData match {
+    val finalSize = codecWithoutSize.getCodecData match { //TODO IMPLEMENT THIS FUNCTION INSIDE THE CODECS
       case Left(byteBuf) => byteBuf.writerIndex + 4
       case Right(string) => 0 //The size will not be written in CodecJson
     }
     val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
     val mergedCodecs = codecWithSize + codecWithoutSize
-    mergedCodecs.getCodecData match {
-      case Left(_) => mergedCodecs
-      case Right(jsonString) =>
-        if (jsonString.charAt(jsonString.length - 1).equals(',')) {
-          val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-          if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
-          else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
-          else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
-        } else CodecObject.toCodec(s"{$jsonString}")
-    }
+    codec.removeTrailingComma(mergedCodecs, checkOpenRect = true)
   }
 
   /**
@@ -249,14 +238,7 @@ private[bsonImpl] object BosonInjectorImpl {
     }
 
     val returnCodec = emptyDataStructure.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, size), ignoreForJson = true) + codecWithoutSize
-
-    if (isCodecJson(returnCodec)) {
-      val jsonString = returnCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-      if (jsonString.charAt(jsonString.length - 1).equals(','))
-        CodecObject.toCodec(s"{${jsonString.dropRight(1)}}")
-      else CodecObject.toCodec(s"{$jsonString}")
-
-    } else returnCodec
+    codec.removeTrailingComma(returnCodec)
   }
 
   /**
@@ -367,15 +349,7 @@ private[bsonImpl] object BosonInjectorImpl {
     }
     val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, modifiedSubSize), ignoreForJson = true)
     val modCodecWithSize = codecWithSize + modifiedSubCodec //Add the size of the resulting sub-codec (plus 4 bytes) with the actual sub-codec
-    val updatedCodec: Codec =
-      if (isCodecJson(modCodecWithSize)) {
-        val jsonString = modCodecWithSize.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-        if (jsonString.charAt(jsonString.length - 1).equals(','))
-          CodecObject.toCodec(s"[${jsonString.dropRight(1)}]")
-        else CodecObject.toCodec(s"[$jsonString]")
-
-      } else modCodecWithSize
-    writableCodec + updatedCodec //merge the modified sub-codec with the rest of the codec passed to this function as an argument
+    writableCodec + codec.removeTrailingComma(modCodecWithSize, rectBrackets = true)
   }
 
   /**
@@ -1544,10 +1518,10 @@ private[bsonImpl] object BosonInjectorImpl {
 
                       val modifiedPartialCodec =
                         if (isCodecJson(codec)) {
-                          if(dataType == D_BSONOBJECT) modifiedAuxCodec
+                          if (dataType == D_BSONOBJECT) modifiedAuxCodec
                           else {
-                            val aux = modifiedAuxCodec.getCodecData.asInstanceOf[Right[ByteBuf,String]].value
-                            CodecObject.toCodec("[" + aux.substring(1,aux.size - 1) + "]")
+                            val aux = modifiedAuxCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+                            CodecObject.toCodec("[" + aux.substring(1, aux.size - 1) + "]")
                           }
                         } else modifiedAuxCodec
 

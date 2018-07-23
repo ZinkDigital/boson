@@ -178,7 +178,7 @@ trait Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeToken(outCodec: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey : Boolean = false): Codec
+  def writeToken(outCodec: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure
@@ -188,7 +188,7 @@ trait Codec {
   def getCodecData: Either[ByteBuf, String]
 
   /**
-    * Method that adds 2 codecs and returns the reslut codec
+    * Method that adds 2 codecs and returns the result codec
     *
     * @param sumCodec - Codec to be added to the first
     * @return a codec with the added information of the other 2
@@ -201,6 +201,15 @@ trait Codec {
     * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
     */
   def removeEmptySpace: Unit
+
+  /**
+    * Method that removes the trailing of a CodecJson in order to create a correct json
+    * This method, in case of CodecBson, simply returns the codec passed as argument
+    *
+    * @param codec - codec we wish to remove the trailing comma
+    * @return a new codec that does not have the last trailing comma in it
+    */
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec
 }
 
 sealed trait CodecFacade {

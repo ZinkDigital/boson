@@ -679,5 +679,25 @@ class CodecJson(str: String) extends Codec {
     *
     */
   def removeEmptySpace: Unit = {}
+
+  /**
+    * Method that removes the trailing of a CodecJson in order to create a correct json
+    * This method, in case of CodecBson, simply returns the codec passed as argument
+    *
+    * @param codec - codec we wish to remove the trailing comma
+    * @return a new codec that does not have the last trailing comma in it
+    */
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = {
+    val codecString = str
+    val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+    val (openBracket, closedBracket) = if (!rectBrackets) ("{", "}") else ("[", "]")
+    if (jsonString.charAt(jsonString.length - 1).equals(',')) {
+      if (checkOpenRect) {
+        if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+        else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
+        else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
+      } else CodecObject.toCodec(s"${openBracket + jsonString.dropRight(1) + closedBracket}")
+    } else CodecObject.toCodec(s"${openBracket + jsonString + closedBracket}")
+  }
 }
 
