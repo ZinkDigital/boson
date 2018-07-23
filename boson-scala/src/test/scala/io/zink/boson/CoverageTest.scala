@@ -3,7 +3,6 @@ package io.zink.boson
 import java.time.Instant
 
 import bsonLib.{BsonArray, BsonObject}
-import com.jayway.jsonpath.{Configuration, JsonPath}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner

@@ -283,19 +283,8 @@ private[bsonImpl] object BosonInjectorImpl {
 
                     if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                       val modifiedSubCodec = BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
-                      if (isCodecJson(codec)) {
-                        val modCodecAux: Codec = CodecObject.toCodec(modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                        iterateDataStructure(writableCodec + modCodecAux)
-                      }
-                      else iterateDataStructure(codecWithKey + modifiedSubCodec)
-
-                    } else {
-                      if (isCodecJson(codec)) {
-                        val modCodecAux: Codec = CodecObject.toCodec(modifiedCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                        iterateDataStructure(writableCodec + modCodecAux)
-                      }
-                      else iterateDataStructure(codecWithKey + modifiedCodec)
-                    }
+                      iterateDataStructure(codec.decideCodec(codecWithKey, writableCodec) + modifiedSubCodec.addComma)
+                    } else iterateDataStructure(codec.decideCodec(codecWithKey, writableCodec) + modifiedCodec.addComma)
 
                   } else {
                     val modifiedCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)
@@ -304,19 +293,10 @@ private[bsonImpl] object BosonInjectorImpl {
                         BosonImpl.inject(modifiedCodec.getCodecData, statementsList, injFunction)
                       else
                         modifiedCodec
-                    if (isCodecJson(codec)) {
-                      val modCodecAux: Codec = CodecObject.toCodec(modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                      iterateDataStructure(writableCodec + modCodecAux)
-                    } else iterateDataStructure(codecWithKey + modifiedSubCodec)
+                    iterateDataStructure(codec.decideCodec(codecWithKey, writableCodec) + modifiedSubCodec.addComma)
                   }
 
-                } else {
-                  if (isCodecJson(codec)) {
-                    val modCodecAux: Codec = CodecObject.toCodec(partialCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                    iterateDataStructure(writableCodec + modCodecAux)
-                  }
-                  else iterateDataStructure(codecWithKey + partialCodec)
-                }
+                } else iterateDataStructure(codec.decideCodec(codecWithKey, writableCodec) + partialCodec.addComma)
 
               case _ =>
                 val codecToWrite = if (!isCodecJson(codec)) {

@@ -720,5 +720,16 @@ class CodecJson(str: String) extends Codec {
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
   def addComma: Codec = new CodecJson(str + ",")
+
+  /**
+    * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
+    * Since the writting and reading of Bson and Json is not identical some edge cases are necessary, this method
+    * allows us to not expose the codec type in BosonInjectorImpl.scala
+    *
+    * @param codecForBson - Codec to use in case the current codec is of type CodecBson
+    * @param codecForJson - Codec to use in case the current codec is of type CodecJson
+    * @return The codec to use according to the current codec's type
+    */
+  def decideCodec(codecForBson: Codec, codecForJson: Codec): Codec = codecForJson
 }
 
