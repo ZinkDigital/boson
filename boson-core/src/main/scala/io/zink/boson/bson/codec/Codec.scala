@@ -218,6 +218,11 @@ trait Codec {
     * @return A new codec with exactly the same information as the current codec but with the size information written in it
     */
   def writeCodecSize: Codec
+
+  /**
+    * Method that skips the next character in the current codec's data structure
+    */
+  def skipChar: Unit
 }
 
 sealed trait CodecFacade {

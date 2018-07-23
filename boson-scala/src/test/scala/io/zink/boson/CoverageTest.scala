@@ -123,7 +123,6 @@ class CoverageTest extends FunSuite {
   }
 
   test("Extract Seq[Type class Book]") {
-
     val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
     val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
     val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)

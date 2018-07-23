@@ -214,7 +214,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
               case _ =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  val processedCodec: Codec = processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction) //TODO IN HERE
+                  val processedCodec: Codec = processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction)
                   iterateDataStructure(processedCodec)
                 } else {
                   val processedCodec: Codec = processTypesArray(dataType, codec, codecWithKeyByte)
@@ -244,10 +244,7 @@ private[bsonImpl] object BosonInjectorImpl {
   private def searchAndModify[T](statementsList: StatementsList, codec: Codec, elem: String, injFunction: T => T, writableCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
-    //If it's a CodecJson we need to skip the "[" character
-    if (isCodecJson(codec))
-      codec.setReaderIndex(codec.getReaderIndex + 1)
-
+    codec.skipChar //If it's a CodecJson we need to skip the "[" character
 
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
@@ -363,9 +360,7 @@ private[bsonImpl] object BosonInjectorImpl {
             case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING))
 
             case D_BSONOBJECT | D_BSONARRAY =>
-              if (isCodecJson(codec)) {
-                codec.setReaderIndex(codec.getReaderIndex + 1) //Skip the ":" character
-              }
+              codec.skipChar //Skip the ":" character
               codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
 
             case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN))
@@ -1876,14 +1871,14 @@ private[bsonImpl] object BosonInjectorImpl {
               case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
 
               case D_BSONOBJECT =>
-                if (isCodecJson(codec)) codec.setReaderIndex(codec.getReaderIndex + 1) //skip the ":" character
+                codec.skipChar //skip the ":" character
                 codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
                   case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
                   case jsonString: String => extractTupleList(Right(jsonString))
                 }
 
               case D_BSONARRAY =>
-                //                if (isCodecJson(codec)) codec.setReaderIndex(codec.getReaderIndex + 1) //skip the ":" character
+                //                codec.skipChar //skip the ":" character
                 codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
                   case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
                   case jsonString: String => extractTupleList(Right(jsonString))

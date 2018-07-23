@@ -707,5 +707,10 @@ class CodecJson(str: String) extends Codec {
     * @return A new codec with exactly the same information as the current codec but with the size information written in it
     */
   def writeCodecSize: Codec = new CodecJson("")
+
+  /**
+    * Method that skips the next character in the current codec's data structure
+    */
+  def skipChar: Unit = setReaderIndex(getReaderIndex + 1)
 }
 

@@ -515,4 +515,9 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     val duplicatedWithSize = Unpooled.buffer().writeIntLE(getWriterIndex + 4)
     new CodecBson(arg, Some(duplicatedWithSize))
   }
+
+  /**
+    * Method that skips the next character in the current codec's data structure
+    */
+  def skipChar: Unit = {}
 }
