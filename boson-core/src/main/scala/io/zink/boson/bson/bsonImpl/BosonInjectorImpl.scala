@@ -164,13 +164,7 @@ private[bsonImpl] object BosonInjectorImpl {
     val emptyCodec: Codec = createEmptyCodec(codec)
 
     val codecWithoutSize = writeCodec(emptyCodec, startReader, originalSize)
-
-    val finalSize = codecWithoutSize.getCodecData match { //TODO IMPLEMENT THIS FUNCTION INSIDE THE CODECS
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => 0 //The size will not be written in CodecJson
-    }
-    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
-    val mergedCodecs = codecWithSize + codecWithoutSize
+    val mergedCodecs = codecWithoutSize.writeCodecSize + codecWithoutSize
     codec.removeTrailingComma(mergedCodecs, checkOpenRect = true)
   }
 
@@ -232,12 +226,7 @@ private[bsonImpl] object BosonInjectorImpl {
     }
 
     val codecWithoutSize = iterateDataStructure(emptyDataStructure) //Initiate recursion with an empty data structure
-    val size = codecWithoutSize.getCodecData match {
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
-    }
-
-    val returnCodec = emptyDataStructure.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, size), ignoreForJson = true) + codecWithoutSize
+    val returnCodec = codecWithoutSize.writeCodecSize + codecWithoutSize
     codec.removeTrailingComma(returnCodec)
   }
 
@@ -343,12 +332,7 @@ private[bsonImpl] object BosonInjectorImpl {
     }
 
     val modifiedSubCodec = iterateDataStructure(createEmptyCodec(codec)) //Search for the element of interest it and try to apply the injection function to it
-    val modifiedSubSize = modifiedSubCodec.getCodecData match {
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
-    }
-    val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, modifiedSubSize), ignoreForJson = true)
-    val modCodecWithSize = codecWithSize + modifiedSubCodec //Add the size of the resulting sub-codec (plus 4 bytes) with the actual sub-codec
+    val modCodecWithSize = modifiedSubCodec.writeCodecSize + modifiedSubCodec //Add the size of the resulting sub-codec (plus 4 bytes) with the actual sub-codec
     writableCodec + codec.removeTrailingComma(modCodecWithSize, rectBrackets = true)
   }
 
@@ -836,7 +820,6 @@ private[bsonImpl] object BosonInjectorImpl {
             case s if !s.startsWith(STAR) =>
               if (x.startsWith(list.head)) isHalfword(s.substring(list.head.length), extracted.substring(list.head.length))
               else false
-
           }
         case _ => false
       }
@@ -888,7 +871,6 @@ private[bsonImpl] object BosonInjectorImpl {
 
             case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
           }
-
 
         case byteArr: Array[Byte] =>
           Try(injFunction(new String(byteArr).asInstanceOf[T])) match {
@@ -945,7 +927,7 @@ private[bsonImpl] object BosonInjectorImpl {
           (CodecObject.toCodec("{" + jsonString + "}"), auxType)
       }
     }
-    val codecArrayEnd: Codec = (key, left, mid.toLowerCase(), right) match {
+    (key, left, mid.toLowerCase(), right) match {
       case (EMPTY_KEY, from, expr, to) if to.isInstanceOf[Int] =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList, formerType = formerType)
       case (EMPTY_KEY, from, expr, _) =>
@@ -955,7 +937,6 @@ private[bsonImpl] object BosonInjectorImpl {
       case (nonEmptyKey, from, expr, _) =>
         modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString)
     }
-    codecArrayEnd
   }
 
   /**
@@ -1567,26 +1548,10 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val (codecWithoutSize, codecWithoutSizeCopy, exceptions): (Codec, Codec, Int) = iterateDataStructure(emptyCodec, createEmptyCodec(codec), 0)
 
-    val finalSize = codecWithoutSize.getCodecData match {
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
-    }
-
-    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
-
-    val codecMerged = codecWithSize + codecWithoutSize
-
+    val codecMerged = codecWithoutSize.writeCodecSize + codecWithoutSize
     val codecFinal = codec.removeTrailingComma(codecMerged, rectBrackets = true)
 
-    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match { //TODO IMPLEMENT THIS OPERATIONS INSIDE THE CODECS
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
-    }
-
-    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy), ignoreForJson = true)
-
-    val codecMergedCopy = codecWithSizeCopy + codecWithoutSizeCopy
-
+    val codecMergedCopy = codecWithoutSizeCopy.writeCodecSize + codecWithoutSizeCopy
     val codecFinalCopy = codec.removeTrailingComma(codecMergedCopy, rectBrackets = true)
 
     condition match {
@@ -1822,24 +1787,10 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val emptyCodec = createEmptyCodec(codec)
+    val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(createEmptyCodec(codec), createEmptyCodec(codec))
 
-    val (codecWithoutSize, codecWithoutSizeCopy): (Codec, Codec) = iterateDataStructure(emptyCodec, createEmptyCodec(codec))
-
-    val finalSize = codecWithoutSize.getCodecData match { //TODO IMPLEMENT THIS OPERATION INSIDE THE CODECS
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
-    }
-    val finalSizeCopy = codecWithoutSizeCopy.getCodecData match { //TODO IMPLEMENT THIS OPERATION INSIDE THE CODECS
-      case Left(byteBuf) => byteBuf.writerIndex + 4
-      case Right(string) => string.length + 4
-    }
-
-    val codecWithSize: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSize), ignoreForJson = true)
-    val codecWithSizeCopy: Codec = emptyCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, finalSizeCopy), ignoreForJson = true)
-
-    val codecMerged = codecWithSize + codecWithoutSize
-    val codecMergedCopy = codecWithSizeCopy + codecWithoutSizeCopy
+    val codecMerged = codecWithoutSize.writeCodecSize + codecWithoutSize
+    val codecMergedCopy = codecWithoutSizeCopy.writeCodecSize + codecWithoutSizeCopy
 
     val finalCodec = codec.removeTrailingComma(codecMerged)
     val finalCodecCopy = codec.removeTrailingComma(codecMergedCopy)

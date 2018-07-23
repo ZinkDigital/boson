@@ -504,4 +504,15 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a new codec that does not have the last trailing comma in it
     */
   def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = codec
+
+  /**
+    * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.
+    * In case the current codec is a CodecJson this method simply returns and empty CodecJson representing a codec with a size inside it (nothing)
+    *
+    * @return A new codec with exactly the same information as the current codec but with the size information written in it
+    */
+  def writeCodecSize: Codec = {
+    val duplicatedWithSize = Unpooled.buffer().writeIntLE(getWriterIndex + 4)
+    new CodecBson(arg, Some(duplicatedWithSize))
+  }
 }

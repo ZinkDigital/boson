@@ -699,5 +699,13 @@ class CodecJson(str: String) extends Codec {
       } else CodecObject.toCodec(s"${openBracket + jsonString.dropRight(1) + closedBracket}")
     } else CodecObject.toCodec(s"${openBracket + jsonString + closedBracket}")
   }
+
+  /**
+    * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.
+    * In case the current codec is a CodecJson this method simply returns and empty CodecJson representing a codec with a size inside it (nothing)
+    *
+    * @return A new codec with exactly the same information as the current codec but with the size information written in it
+    */
+  def writeCodecSize: Codec = new CodecJson("")
 }
 
