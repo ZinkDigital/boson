@@ -222,7 +222,15 @@ trait Codec {
   /**
     * Method that skips the next character in the current codec's data structure
     */
-  def skipChar: Unit
+  def skipChar(back: Boolean = false): Unit
+
+  /**
+    * Method that adds a comma to the end of a CodecJson data structure
+    * In case the current codec is a CodecBson this method simply returns the current codec
+    *
+    * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
+    */
+  def addComma: Codec
 }
 
 sealed trait CodecFacade {
