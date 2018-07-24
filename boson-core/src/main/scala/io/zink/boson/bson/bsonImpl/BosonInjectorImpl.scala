@@ -27,6 +27,11 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
+    def anyToEither(result: Any): Either[ByteBuf, String] = result match {
+      case byteBuf: ByteBuf => Left(byteBuf)
+      case jsonString: String => Right(jsonString)
+    }
+
     /**
       * Recursive function to iterate through the given data structure and return the modified codec
       *
@@ -54,14 +59,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
                         val partialData = codec.readToken(token) match {
-                          case SonObject(_, result) => result match {
-                            case byteBuf: ByteBuf => Left(byteBuf)
-                            case string: String => Right(string)
-                          }
-                          case SonArray(_, result) => result match {
-                            case byteBuf: ByteBuf => Left(byteBuf)
-                            case string: String => Right(string)
-                          }
+                          case SonObject(_, result) => anyToEither(result)
+                          case SonArray(_, result) => anyToEither(result)
                         }
                         val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
                         modifierAll(subCodec, codecWithKey, dataType, injFunction)
@@ -77,14 +76,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       case D_BSONOBJECT | D_BSONARRAY =>
                         val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
                         val partialData = codec.readToken(token) match {
-                          case SonObject(_, result) => result match {
-                            case byteBuf: ByteBuf => Left(byteBuf)
-                            case string: String => Right(string)
-                          }
-                          case SonArray(_, result) => result match {
-                            case byteBuf: ByteBuf => Left(byteBuf)
-                            case string: String => Right(string)
-                          }
+                          case SonObject(_, result) => anyToEither(result)
+                          case SonArray(_, result) => anyToEither(result)
                         }
                         val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
                         val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)

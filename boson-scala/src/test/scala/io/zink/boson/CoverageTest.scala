@@ -26,7 +26,7 @@ class CoverageTest extends FunSuite {
 
   case class _Book1Ext(title: String, price: Double, specialEditions: SpecialEditions)
 
-  private val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition", 10).put("ForSale", true).put("nPages", 750L)
+  private val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition", 10).put("ForSale", true).put("nPages", 750000000000L)
   private val _store = new BsonObject().put("Book", _book1)
   private val _bson = new BsonObject().put("Store", _store)
 
@@ -101,14 +101,7 @@ class CoverageTest extends FunSuite {
   //**************            Extractor Tests            *********************
 
   test("Extract Type class Book") {
-    val expression: String = ".Store.Book"
-    val boson = Boson.extractor(expression, (in: BookExt) => {
-      assertEquals(BookExt(25.6, "Scala", 10, forSale = true, 750L), in)
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractCaseClassTest()
   }
 
   test("Extract Type class Book as byte[]") {
@@ -122,27 +115,10 @@ class CoverageTest extends FunSuite {
   }
 
   test("Extract Seq[Type class Book]") {
-    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
-    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
-    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
-    val books = new BsonArray().add(title1).add(title2).add(title3)
-    val store = new BsonObject().put("Book", books)
-    val bson = new BsonObject().put("Store", store)
-
-    val expression: String = ".Store.Book[0 to 1]"
-    val mutableBuffer: ArrayBuffer[Book1Ext] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Book1Ext) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(Book1Ext("Java", 15.5), Book1Ext("Scala", 21.5)), mutableBuffer)
-
+    extractSeqTypeClassBookTest()
   }
 
   test("Extract Seq[Type class Book] as Seq[byte[]]") {
-
     val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
     val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
     val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
@@ -163,79 +139,27 @@ class CoverageTest extends FunSuite {
   }
 
   test("Extract Embedded a Case Class") {
-    val e = new BsonObject().put("Title", "ScalaMachine").put("Price", 40).put("Availability", true)
-    val c = new BsonObject().put("Title", "Scala").put("Price", 30.5).put("SpecialEditions", e)
-    val b = new BsonArray().add(c)
-    val a = new BsonObject().put("Book", b)
-    val bsonEvent = new BsonObject().put("Store", a)
-
-    val expression: String = ".Store.Book[0]"
-    val boson = Boson.extractor(expression, (in: _Book1Ext) => {
-      assertEquals(_Book1Ext("Scala", 30.5, SpecialEditions("ScalaMachine", 40, availability = true)), in)
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bsonEvent.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractEmbeddedCaseClassTest()
   }
 
   test("Extract Embedded List of Case Classes") {
-    val e = new BsonObject().put("Title", "ScalaMachine").put("Price", 40).put("Availability", true)
-    val d = new BsonArray().add(e)
-    val c = new BsonObject().put("Title", "Scala").put("Price", 30.5).put("SpecialEditions", d)
-    val b = new BsonArray().add(c)
-    val a = new BsonObject().put("Book", b)
-    val bsonEvent = new BsonObject().put("Store", a)
-
-    val expression: String = ".Store.Book[0]"
-    val boson = Boson.extractor(expression, (in: _BookExt) => {
-      assertEquals(_BookExt("Scala", 30.5, Seq(SpecialEditions("ScalaMachine", 40, availability = true))), in)
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bsonEvent.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractEmbeddedListOfCaseClasses()
   }
 
   test("Extract Long") {
-    val expression: String = ".Store.Book.nPages"
-    val boson: Boson = Boson.extractor(expression, (in: Long) => {
-      assertEquals(750L, in)
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractLongTest()
   }
 
   test("Extract Boolean") {
-    val expression: String = ".Store.Book.ForSale"
-    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
-      assertEquals(true, in)
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractBooleanTest()
   }
 
   test("Extract Int") {
-    val expression: String = ".Store.Book.Edition"
-    val boson: Boson = Boson.extractor(expression, (in: Int) => {
-      assertEquals(10, in)
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractIntTest()
   }
 
   test("Extract Double") {
-    val expression: String = ".Store.Book.Price"
-    val boson: Boson = Boson.extractor(expression, (in: Double) => {
-      assert(25.6 === in)
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractDoubleTest()
   }
 
   test("Extract String") {
@@ -676,6 +600,142 @@ class CoverageTest extends FunSuite {
     val res = boson.go(xBson.encode.getBytes)
     Await.result(res, Duration.Inf)
     assert(expected === mutableBuffer)
+  }
+
+  test("CodecJson - Extract case class") {
+    extractCaseClassTest(json = true)
+  }
+
+  test("CodecJson - Extract Embedded Case class") {
+    extractEmbeddedCaseClassTest(json = true)
+  }
+
+  test("CodecJson - Extract Seq[Type class Book]") {
+    extractSeqTypeClassBookTest(json = true)
+  }
+
+  test("CodecJson - Extract Embedded List of Case Classes") {
+    extractEmbeddedListOfCaseClasses(json = true)
+  }
+
+  test("CodecJson - Extract Long") {
+    extractLongTest(json = true)
+  }
+
+  test("CodecJson - Extract Boolean") {
+    extractBooleanTest(json = true)
+  }
+
+  test("CodecJson - Extract Int") {
+    extractIntTest(json = true)
+  }
+
+  test("CodecJson - Extract Double") {
+    extractDoubleTest(json = true)
+  }
+
+  private def extractCaseClassTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book"
+    val boson = Boson.extractor(expression, (in: BookExt) => {
+      assertEquals(BookExt(25.6, "Scala", 10, forSale = true, 750000000000L), in)
+    })
+    val res = if (!json) boson.go(_bson.encodeToBarray) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractEmbeddedCaseClassTest(json: Boolean = false): Unit = {
+    val e = new BsonObject().put("Title", "ScalaMachine").put("Price", 40).put("Availability", true)
+    val c = new BsonObject().put("Title", "Scala").put("Price", 30.5).put("SpecialEditions", e)
+    val b = new BsonArray().add(c)
+    val a = new BsonObject().put("Book", b)
+    val bsonEvent = new BsonObject().put("Store", a)
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _Book1Ext) => {
+      assertEquals(_Book1Ext("Scala", 30.5, SpecialEditions("ScalaMachine", 40, availability = true)), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bsonEvent.encode.getBytes) else boson.go(bsonEvent.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractSeqTypeClassBookTest(json: Boolean = false): Unit = {
+    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
+    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
+    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
+    val books = new BsonArray().add(title1).add(title2).add(title3)
+    val store = new BsonObject().put("Book", books)
+    val bson = new BsonObject().put("Store", store)
+
+    val expression: String = ".Store.Book[0 to 1]"
+    val mutableBuffer: ArrayBuffer[Book1Ext] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Book1Ext) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encodeToBarray) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(Book1Ext("Java", 15.5), Book1Ext("Scala", 21.5)), mutableBuffer)
+  }
+
+  private def extractEmbeddedListOfCaseClasses(json: Boolean = false): Unit = {
+    val e = new BsonObject().put("Title", "ScalaMachine").put("Price", 40).put("Availability", true)
+    val d = new BsonArray().add(e)
+    val c = new BsonObject().put("Title", "Scala").put("Price", 30.5).put("SpecialEditions", d)
+    val b = new BsonArray().add(c)
+    val a = new BsonObject().put("Book", b)
+    val bsonEvent = new BsonObject().put("Store", a)
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _BookExt) => {
+      assertEquals(_BookExt("Scala", 30.5, Seq(SpecialEditions("ScalaMachine", 40, availability = true))), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bsonEvent.encode.getBytes) else boson.go(bsonEvent.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractLongTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book.nPages"
+    val boson: Boson = Boson.extractor(expression, (in: Long) => {
+      assertEquals(750000000000L, in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractBooleanTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book.ForSale"
+    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
+      assertEquals(true, in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractIntTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book.Edition"
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      assertEquals(10, in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractDoubleTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book.Price"
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
+      assert(25.6 === in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
   }
 
   //**************            Injectors Tests            *********************

@@ -616,30 +616,52 @@ class ChainedExtractorsTest extends FunSuite {
     assert(expected === mutableBuffer)
   }
 
-//  test("Iterate through .Key1[@Title], Seq[String]") {
-//    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
-//    val person2 = new BsonObject().put("name", "Jane Doe")
-//    val bsonArray = new BsonArray().add(person1).add(person2)
-//    val bson = new BsonObject().put("persons", bsonArray)
-//    val ex = ".persons[@name]"
-//    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
-//
-//    val boson: Boson = Boson.extractor(ex, (in: String) => {
-//      mutableBuffer += in
-//      println(s"in: $in")
-//      println("APPLIED")
-//    })
-//
-////    val expression: String = ".Store.Book.Title[@SpecialEditions]"
-////    val boson: Boson = Boson.extractor(expression, (in: String) => {
-////      mutableBuffer += in
-////      println(s"in: $in")
-////      println("APPLIED")
-////    })
-//    val res = boson.go(bson.encodeToBarray)
-//    Await.result(res, Duration.Inf)
-//    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
-//  }
+  // ---------------------------------------------- JSON -------------------------------------------------
 
+  test("CodecJson - Extract case class") {
+    val expression: String = ".Store.Book"
+    val boson = Boson.extractor(expression, (in: Book) => {
+      assertEquals(Book(25.6, "Scala", 10, forSale = true, 750L), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
 
+  test("CodecJson - Extract Seq[Type class Book]") {
+    val title3 = new BsonObject().put("Title", "C++").put("Price", 12.6)
+    val title2 = new BsonObject().put("Title", "Scala").put("Price", 21.5)
+    val title1 = new BsonObject().put("Title", "Java").put("Price", 15.5)
+    val books = new BsonArray().add(title1).add(title2).add(title3)
+    val store = new BsonObject().put("Book", books)
+    val bson = new BsonObject().put("Store", store)
+
+    val expression: String = ".Store.Book[0 to 1]"
+    val mutableBuffer: ArrayBuffer[Book1] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Book1) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(Book1("Java", 15.5), Book1("Scala", 21.5)), mutableBuffer)
+  }
+
+  test("CodecJson - Extract Embedded a Case Class") {
+    val e = new BsonObject().put("Title", "ScalaMachine").put("Price", 40).put("Availability", true)
+    val c = new BsonObject().put("Title", "Scala").put("Price", 30.5).put("SpecialEditions", e)
+    val b = new BsonArray().add(c)
+    val a = new BsonObject().put("Book", b)
+    val bsonEvent = new BsonObject().put("Store", a)
+
+    val expression: String = ".Store.Book[0]"
+    val boson = Boson.extractor(expression, (in: _Book1) => {
+      assertEquals(_Book1("Scala", 30.5, SpecialEditions("ScalaMachine", 40, true)), in)
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = boson.go(bsonEvent.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
 }
