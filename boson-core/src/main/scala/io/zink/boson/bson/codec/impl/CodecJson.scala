@@ -752,11 +752,20 @@ class CodecJson(str: String) extends Codec {
     * @param dataType - The data type of value to change
     * @return A new codec with exactly the same information but with the brackets changed
     */
-  def changeBrackets(dataType: Int): Codec = {
-    if (dataType == D_BSONOBJECT) duplicate
-    else {
-      val auxStr: String = str
-      CodecObject.toCodec("[" + auxStr.substring(1, auxStr.length - 1) + "]")
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = {
+    if (curlyToRect) {
+      if (dataType == D_BSONOBJECT) duplicate
+      else {
+        val auxStr: String = str
+        CodecObject.toCodec("[" + auxStr.substring(1, auxStr.length - 1) + "]")
+      }
+    } else {
+      val jsonString = str
+      val strAux =
+        if (dataType == 3 && jsonString.charAt(0) == '[')
+          "{" + jsonString.substring(1, jsonString.length - 1) + "},"
+        else jsonString + ","
+      new CodecJson(strAux)
     }
   }
 }

@@ -563,7 +563,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param dataType - The data type of value to change
     * @return A new codec with exactly the same information but with the brackets changed
     */
-  def changeBrackets(dataType: Int): Codec = completeDuplicate
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = completeDuplicate
 
   /**
     * This private method duplicates the current codecs data structure and sets the reader and writer index accordingly

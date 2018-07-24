@@ -261,7 +261,7 @@ trait Codec {
     * @param dataType - The data type of value to change
     * @return A new codec with exactly the same information but with the brackets changed
     */
-  def changeBrackets(dataType: Int): Codec
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec
 }
 
 sealed trait CodecFacade {

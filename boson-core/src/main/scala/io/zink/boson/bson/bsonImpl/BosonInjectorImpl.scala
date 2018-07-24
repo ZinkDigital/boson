@@ -1201,17 +1201,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         }
                       }
                       val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
-
-                      val codecComma = if (isCodecJson(codec)) {
-
-                        val jsonString = modifiedPartialCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-                        val strAux =
-                          if (dataType == 3 && jsonString.charAt(0) == '[')
-                            "{" + jsonString.substring(1, jsonString.length - 1) + "},"
-                          else jsonString + ","
-                        CodecObject.toCodec(strAux)
-                      } else modifiedPartialCodec
-
+                      val codecComma = modifiedPartialCodec.changeBrackets(dataType, curlyToRect = false)
                       val newCodecResult = codecWithKey + codecComma
                       val newCodecResultCopy = codecWithKeyCopy + codecComma
                       ((newCodecResult, newCodecResultCopy), exceptions)
@@ -1359,30 +1349,26 @@ private[bsonImpl] object BosonInjectorImpl {
                       val modToUse = modifiedAuxCodec.changeBrackets(dataType).addComma
                       ((codecWithKey + modToUse, codecWithKeyCopy + modToUse), exceptions)
 
-                    case _ =>
-                      ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                    case _ => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
                 } else ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
 
               case (_, _, _) if !isArray =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  codec.getCodecData match {
+                    case Left(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                    case Right(_) =>
+                      codec.skipChar(back = true)
+                      val key = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+                      val codecAux = codec.writeToken(codecWithKey, SonString(CS_STRING, key), isKey = true)
+                      val codecAuxCopy = codec.writeToken(codecWithKeyCopy, SonString(CS_STRING, key), isKey = true)
 
-                  if (!isCodecJson(codec)) {
-                    ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
-                  } else {
-                    codec.setReaderIndex(codec.getReaderIndex - 1)
-                    val key = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)) match {
-                      case SonString(_, value) => value.asInstanceOf[String]
-                    }
-                    val codecAux = codec.writeToken(codecWithKey, SonString(CS_STRING, key), isKey = true)
-                    val codecAuxCopy = codec.writeToken(codecWithKeyCopy, SonString(CS_STRING, key), isKey = true)
+                      val processedCodec = processTypesArray(dataType, codec.duplicate, codecAux)
+                      val processedCodecCopy = processTypesArray(dataType, codec, codecAuxCopy)
 
-                    val processedCodec = processTypesArray(dataType, codec.duplicate, codecAux)
-                    val processedCodecCopy = processTypesArray(dataType, codec, codecAuxCopy)
+                      codec.skipChar() // Skip the comma written
 
-                    codec.setReaderIndex(codec.getReaderIndex + 1) // Skip the comma written
-
-                    ((processedCodec, processedCodecCopy), exceptions)
+                      ((processedCodec, processedCodecCopy), exceptions)
                   }
                 } else throw CustomException("*modifyArrayEnd* Not a Array")
             }
@@ -1807,16 +1793,5 @@ private[bsonImpl] object BosonInjectorImpl {
       case _: Array[Byte] => Left(encodedObject.encodeToBarray)
       case _: String => Right(encodedObject.encodeToString)
     }
-  }
-
-  /**
-    * Private function used to determine if a given codec is a CodecJson or not
-    *
-    * @param codec - Codec that we want to know the type of
-    * @return - a Boolean saying if the given codec is a CodecJson or not
-    */
-  private def isCodecJson(codec: Codec): Boolean = codec.getCodecData match {
-    case Left(_) => false
-    case Right(_) => true
   }
 }
