@@ -237,11 +237,20 @@ trait Codec {
     * Since the writting and reading of Bson and Json is not identical some edge cases are necessary, this method
     * allows us to not expose the codec type in BosonInjectorImpl.scala
     *
-    * @param codecForBson - Codec to use in case the current codec is of type CodecBson
+    * @param codecForBson - Codec to use in case the current codec is of type CodecBson. By name parameter to only execute when necessary
     * @param codecForJson - Codec to use in case the current codec is of type CodecJson
     * @return The codec to use according to the current codec's type
     */
-  def decideCodec(codecForBson: Codec, codecForJson: Codec): Codec
+  def decideCodec(codecForBson: => Codec, codecForJson: Codec): Codec
+
+  /**
+    * Method that decides if a codec is able to read a key or not. If the codec type is CodecBson this method will always return true
+    * If the method is of type CodecJson this method will check if the initial character is not an open array bracket
+    * for that would break the reading process in the Json case
+    *
+    * @return a Boolean saying if the codec is able to read a key or not
+    */
+  def canReadKey: Boolean
 }
 
 sealed trait CodecFacade {
@@ -266,9 +275,6 @@ sealed trait DefaultCodecs {
     override def applyFunc(arg: String): CodecJson = new CodecJson(arg)
   }
 
-  //  implicit object ArrayCodec extends Codecs[Array[Byte]] {
-  //    override def applyFunc(arg:Array[Byte]): CodecBson = new CodecBson(arg) //call the array bytes codec
-  //  }
   implicit object ByteBufCodec extends Codecs[ByteBuf] {
     override def applyFunc(arg: ByteBuf): CodecBson = new CodecBson(arg) //call the array bytes codec
   }

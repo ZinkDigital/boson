@@ -21,7 +21,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param statementsList - A list with pairs that contains the key of interest and the type of operation
     * @param codec          - Structure from which we are reading the old values
     * @param fieldID        - Name of the field of interest
-    * @param injFunction    - The injectino function to be applied
+    * @param injFunction    - The injection function to be applied
     * @tparam T - The type of input and output of the injection function
     * @return A Codec containing the alterations made
     */
@@ -44,14 +44,7 @@ private[bsonImpl] object BosonInjectorImpl {
           case 0 =>
             writeCodec(codecWithDataType, startReader, originalSize)
           case _ =>
-            val (codecWithKey, key) = codec.getCodecData match {
-              case Left(_) =>
-                writeKeyAndByte(codec, codecWithDataType)
-              case Right(jsonString) =>
-                if (jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET) && codec.getReaderIndex == 1)
-                  (codecWithDataType, "")
-                else writeKeyAndByte(codec, codecWithDataType)
-            }
+            val (codecWithKey, key) = if (codec.canReadKey) writeKeyAndByte(codec, codecWithDataType) else (codecWithDataType, "")
 
             key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
@@ -70,7 +63,6 @@ private[bsonImpl] object BosonInjectorImpl {
                             case string: String => Right(string)
                           }
                         }
-
                         val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
                         val modifiedCodec = modifierAll(subCodec, codecWithKey, dataType, injFunction)
                         modifiedCodec.removeEmptySpace
@@ -299,9 +291,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 } else iterateDataStructure(codec.decideCodec(codecWithKey, writableCodec) + partialCodec.addComma)
 
               case _ =>
-                val codecToWrite = if (!isCodecJson(codec)) {
-                  writeKeyAndByte(codec, codecWithDataType)._1
-                } else writableCodec
+                val codecToWrite = codec.decideCodec(writeKeyAndByte(codec, codecWithDataType)._1, writableCodec)
                 iterateDataStructure(processTypesArray(dataType, codec, codecToWrite)) //If its not an object then it will not have the element we're looking for inside it
             }
         }

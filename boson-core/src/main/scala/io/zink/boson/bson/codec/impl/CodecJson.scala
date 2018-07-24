@@ -730,6 +730,15 @@ class CodecJson(str: String) extends Codec {
     * @param codecForJson - Codec to use in case the current codec is of type CodecJson
     * @return The codec to use according to the current codec's type
     */
-  def decideCodec(codecForBson: Codec, codecForJson: Codec): Codec = codecForJson
+  def decideCodec(codecForBson: => Codec, codecForJson: Codec): Codec = codecForJson
+
+  /**
+    * Method that decides if a codec is able to read a key or not. If the codec type is CodecBson this method will always return true
+    * If the method is of type CodecJson this method will check if the initial character is not an open array bracket
+    * for that would break the reading process in the Json case
+    *
+    * @return a Boolean saying if the codec is able to read a key or not
+    */
+  def canReadKey: Boolean = !str.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1
 }
 
