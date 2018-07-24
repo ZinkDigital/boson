@@ -163,116 +163,39 @@ class CoverageTest extends FunSuite {
   }
 
   test("Extract String") {
-    val expression: String = ".Store.Book.Title"
-    val boson: Boson = Boson.extractor(expression, (in: String) => {
-      assertEquals("Scala", in)
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractStringTest()
   }
 
   test("Extract byte[]") {
-
-    val obj = new BsonObject().put("byte", "Scala".getBytes)
-    val expression: String = ".byte"
-    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
-      assertArrayEquals("Scala".getBytes, in)
-      println("APPLIED")
-    })
-    val res = boson.go(obj.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractByteArrayTest()
   }
 
   test("Extract Instant") {
-    val now = Instant.now
-    val obj = new BsonObject().put("time", now)
-    val expression: String = ".time"
-    val boson: Boson = Boson.extractor(expression, (in: Instant) => {
-      assertEquals(now, in)
-      println("APPLIED")
-    })
-    val res = boson.go(obj.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractInstantTest()
   }
 
   test("Extract Float") {
-
-    val obj = new BsonObject().put("floating", 2.2f)
-    val expression: String = ".floating"
-    val boson: Boson = Boson.extractor(expression, (in: Float) => {
-      assertTrue(2.2f === in)
-      println("APPLIED")
-    })
-    val res = boson.go(obj.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractFloatTest()
   }
 
   test("Iterate simple Seq[Boolean]") {
-    val arr = new BsonArray().add(true).add(true).add(false)
-
-    val expression: String = ".[all]"
-    val mutableBuffer: ArrayBuffer[Boolean] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(arr.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assert(mutableBuffer.containsSlice(Seq(true, true, false)))
+    iterateSimpleSeqBooleanTest()
   }
 
   test("Iterate simple Seq[Int]") {
-    val arr = new BsonArray().add(1).add(2).add(3)
-    val expression: String = ".[all]"
-    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Int) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(arr.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assert(mutableBuffer.containsSlice(Seq(1, 2, 3)))
+    iterateSimpleSeqIntTest()
   }
 
   test("Iterate simple Seq[String]") {
-    val arr = new BsonArray().add("one").add("two").add("three")
-    val expression: String = ".[all]"
-    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: String) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(arr.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assert(mutableBuffer.containsSlice(Seq("one", "two", "three")))
+    iterateSimpleSeqStringTest()
   }
 
   test("Iterate simple Seq[Long]") {
-    val arr = new BsonArray().add(1000L).add(1001L).add(1002L)
-    val expression: String = ".[all]"
-    val mutableBuffer: ArrayBuffer[Long] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Long) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(arr.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assert(mutableBuffer.containsSlice(Seq(1000L, 1001L, 1002L)))
+    iterateSimpleSeqLongTest()
   }
 
   test("Iterate simple Seq[Double]") {
-    val arr = new BsonArray().add(1.1).add(2.2).add(3.3)
-    val expression: String = ".[all]"
-    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Double) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(arr.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assert(mutableBuffer.containsSlice(Seq(1.1, 2.2, 3.3)))
-
+    iterateSimpleSeqDoubleTest()
   }
 
   private val hat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
@@ -634,6 +557,42 @@ class CoverageTest extends FunSuite {
     extractDoubleTest(json = true)
   }
 
+  test("CodecJson - Extract String") {
+    extractStringTest(json = true)
+  }
+
+  test("CodecJson - Extract Instant") {
+    extractInstantTest(json = true)
+  }
+
+  test("CodecJson - Extract Float") {
+    extractFloatTest(json = true)
+  }
+
+  test("CodecJson - Extract ByteArray") {
+    extractByteArrayTest(json = true)
+  }
+
+  test("CodecJson - Iterate simple Seq[Boolean]") {
+    iterateSimpleSeqBooleanTest(json = true)
+  }
+
+  test("CodecJson - Iterate simple Seq[Int]") {
+    iterateSimpleSeqIntTest(json = true)
+  }
+
+  test("CodecJson - Iterate simple Seq[String]") {
+    iterateSimpleSeqStringTest(json = true)
+  }
+
+  test("CodecJson - Iterate simple Seq[Long]") {
+    iterateSimpleSeqLongTest(json = true)
+  }
+
+  test("CodecJson - Iterate simple Seq[Double]") {
+    iterateSimpleSeqDoubleTest(json = true)
+  }
+
   private def extractCaseClassTest(json: Boolean = false): Unit = {
     val expression: String = ".Store.Book"
     val boson = Boson.extractor(expression, (in: BookExt) => {
@@ -736,6 +695,117 @@ class CoverageTest extends FunSuite {
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
+  }
+
+  private def extractStringTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book.Title"
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      assertEquals("Scala", in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractInstantTest(json: Boolean = false): Unit = {
+    val now = Instant.now
+    val obj = new BsonObject().put("time", now)
+    val expression: String = ".time"
+    val boson: Boson = Boson.extractor(expression, (in: Instant) => {
+      assertEquals(now, in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractFloatTest(json: Boolean = false): Unit = {
+    val obj = new BsonObject().put("floating", 2.2f)
+    val expression: String = ".floating"
+    val boson: Boson = Boson.extractor(expression, (in: Float) => {
+      assertTrue(2.2f === in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def extractByteArrayTest(json: Boolean = false): Unit = {
+    val obj = new BsonObject().put("byte", "Scala".getBytes)
+    val expression: String = ".byte"
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      assertArrayEquals("Scala".getBytes, in)
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def iterateSimpleSeqBooleanTest(json: Boolean = false): Unit = {
+    val arr = new BsonArray().add(true).add(true).add(false)
+
+    val expression: String = ".[all]"
+    val mutableBuffer: ArrayBuffer[Boolean] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
+    Await.result(res, Duration.Inf)
+    mutableBuffer.foreach(println)
+    assert(mutableBuffer.containsSlice(Seq(true, true, false)))
+  }
+
+  private def iterateSimpleSeqIntTest(json: Boolean = false): Unit = {
+    val arr = new BsonArray().add(1).add(2).add(3)
+    val expression: String = ".[all]"
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
+    Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(1, 2, 3)))
+  }
+
+  private def iterateSimpleSeqStringTest(json: Boolean = false): Unit = {
+    val arr = new BsonArray().add("one").add("two").add("three")
+    val expression: String = ".[all]"
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
+    Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq("one", "two", "three")))
+  }
+
+  private def iterateSimpleSeqLongTest(json: Boolean = false): Unit = {
+    val arr = new BsonArray().add(1000000000000L).add(1000000000001L).add(1000000000002L)
+    val expression: String = ".[all]"
+    val mutableBuffer: ArrayBuffer[Long] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Long) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
+    Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(1000000000000L, 1000000000001L, 1000000000002L)))
+  }
+
+  private def iterateSimpleSeqDoubleTest(json: Boolean = false): Unit = {
+    val arr = new BsonArray().add(1.1).add(2.2).add(3.3)
+    val expression: String = ".[all]"
+    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
+    Await.result(res, Duration.Inf)
+    assert(mutableBuffer.containsSlice(Seq(1.1, 2.2, 3.3)))
   }
 
   //**************            Injectors Tests            *********************
