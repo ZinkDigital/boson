@@ -525,12 +525,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
-  def addComma: Codec = {
-    val newCodec = new CodecBson(arg, Some(buff))
-    newCodec.setReaderIndex(getReaderIndex)
-    newCodec.setWriterIndex(getWriterIndex)
-    newCodec
-  }
+  def addComma: Codec = completeDuplicate
 
   /**
     * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
@@ -560,4 +555,25 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return A Boolean specifying if the type of the current key is an array or not
     */
   def isArray(formerType: Int, key: String): Boolean = key.forall(b => b.isDigit)
+
+  /**
+    * Method that changes the brackets of a json string from curly brackets to rectangular brackets
+    * In case the current codec is of type CodecBson this method simple returns a duplicated codec
+    *
+    * @param dataType - The data type of value to change
+    * @return A new codec with exactly the same information but with the brackets changed
+    */
+  def changeBrackets(dataType: Int): Codec = completeDuplicate
+
+  /**
+    * This private method duplicates the current codecs data structure and sets the reader and writer index accordingly
+    *
+    * @return A new Codec that is exactly the same as this codec, it just has a different memory reference
+    */
+  private def completeDuplicate: Codec = {
+    val newCodec = new CodecBson(arg, Some(buff))
+    newCodec.setReaderIndex(getReaderIndex)
+    newCodec.setWriterIndex(getWriterIndex)
+    newCodec
+  }
 }

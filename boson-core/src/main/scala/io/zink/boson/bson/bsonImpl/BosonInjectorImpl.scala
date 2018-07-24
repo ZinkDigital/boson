@@ -1237,19 +1237,12 @@ private[bsonImpl] object BosonInjectorImpl {
                           }
                           val emptyCodec: Codec = createEmptyCodec(codec)
                           val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
-                          //Look inside the curent object for cases that match the user given expression
+                          //Look inside the current object for cases that match the user given expression
                           val mergedCodec =
                             if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT)) { //we only want to investigate inside this object if it has the property we're looking for
                               val auxCodec = BosonImpl.inject(modifiedPartialCodec.getCodecData, fullStatementsList, injFunction)
-                              if (isCodecJson(codec)) {
-                                if (dataType == D_BSONOBJECT) auxCodec
-                                else {
-                                  val auxStr: String = auxCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-                                  CodecObject.toCodec("[" + auxStr.substring(1, auxStr.size - 1) + "]")
-                                }
-                              } else auxCodec
-                            } else
-                              modifiedPartialCodec
+                              auxCodec.changeBrackets(dataType)
+                            } else modifiedPartialCodec
 
                           Try(modifierEnd(mergedCodec, dataType, injFunction, emptyCodec, createEmptyCodec(codec))) match {
                             case Success(_) =>
@@ -1361,25 +1354,15 @@ private[bsonImpl] object BosonInjectorImpl {
                         if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT))
                           if (fullStatementsList.head._2.contains(C_DOUBLEDOT)) BosonImpl.inject(partialCodec.getCodecData, fullStatementsList, injFunction)
                           else BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
-                        else
-                          partialCodec
+                        else partialCodec
 
-                      val modifiedPartialCodec =
-                        if (isCodecJson(codec)) {
-                          if (dataType == D_BSONOBJECT) modifiedAuxCodec
-                          else {
-                            val aux = modifiedAuxCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-                            CodecObject.toCodec("[" + aux.substring(1, aux.size - 1) + "]")
-                          }
-                        } else modifiedAuxCodec
-
-                      val modToUse = modifiedPartialCodec.addComma
+                      val modToUse = modifiedAuxCodec.changeBrackets(dataType).addComma
                       ((codecWithKey + modToUse, codecWithKeyCopy + modToUse), exceptions)
 
                     case _ =>
                       ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                   }
-                } else ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions) // Exceptions
+                } else ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
 
               case (_, _, _) if !isArray =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -1401,8 +1384,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
                     ((processedCodec, processedCodecCopy), exceptions)
                   }
-                } else
-                  throw CustomException("*modifyArrayEnd* Not a Array")
+                } else throw CustomException("*modifyArrayEnd* Not a Array")
             }
             iterateDataStructure(codecResult, codecResultCopy, exceptionsResult)
         }

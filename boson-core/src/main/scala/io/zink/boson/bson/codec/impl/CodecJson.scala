@@ -744,5 +744,20 @@ class CodecJson(str: String) extends Codec {
     * @return A Boolean specifying if the type of the current key is an array or not
     */
   def isArray(formerType: Int, key: String): Boolean = formerType == 4
+
+  /**
+    * Method that changes the brackets of a json string from curly brackets to rectangular brackets
+    * In case the current codec is of type CodecBson this method simple returns a duplicated codec
+    *
+    * @param dataType - The data type of value to change
+    * @return A new codec with exactly the same information but with the brackets changed
+    */
+  def changeBrackets(dataType: Int): Codec = {
+    if (dataType == D_BSONOBJECT) duplicate
+    else {
+      val auxStr: String = str
+      CodecObject.toCodec("[" + auxStr.substring(1, auxStr.length - 1) + "]")
+    }
+  }
 }
 
