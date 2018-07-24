@@ -103,7 +103,7 @@ class CoverageTest extends FunSuite {
   test("Extract Type class Book") {
     val expression: String = ".Store.Book"
     val boson = Boson.extractor(expression, (in: BookExt) => {
-      assertEquals(BookExt(25.6, "Scala", 10, true, 750L), in)
+      assertEquals(BookExt(25.6, "Scala", 10, forSale = true, 750L), in)
       println(s"in: $in")
       println("APPLIED")
     })
@@ -171,7 +171,7 @@ class CoverageTest extends FunSuite {
 
     val expression: String = ".Store.Book[0]"
     val boson = Boson.extractor(expression, (in: _Book1Ext) => {
-      assertEquals(_Book1Ext("Scala", 30.5, SpecialEditions("ScalaMachine", 40, true)), in)
+      assertEquals(_Book1Ext("Scala", 30.5, SpecialEditions("ScalaMachine", 40, availability = true)), in)
       println(s"in: $in")
       println("APPLIED")
     })
@@ -189,7 +189,7 @@ class CoverageTest extends FunSuite {
 
     val expression: String = ".Store.Book[0]"
     val boson = Boson.extractor(expression, (in: _BookExt) => {
-      assertEquals(_BookExt("Scala", 30.5, Seq(SpecialEditions("ScalaMachine", 40, true))), in)
+      assertEquals(_BookExt("Scala", 30.5, Seq(SpecialEditions("ScalaMachine", 40, availability = true))), in)
       println(s"in: $in")
       println("APPLIED")
     })

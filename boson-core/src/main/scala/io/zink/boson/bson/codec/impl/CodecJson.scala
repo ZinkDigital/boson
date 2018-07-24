@@ -638,7 +638,10 @@ class CodecJson(str: String) extends Codec {
 
         case SonArray(_, info) => duplicated + info.asInstanceOf[CharSequence]
 
-        case SonObject(_, info) => duplicated + info.asInstanceOf[CharSequence]
+        case SonObject(_, info) =>
+          val writableInfo = info.asInstanceOf[CharSequence]
+          val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
+          duplicated + infoToUse
 
         case SonNull(_, _) => duplicated + "null"
       }
@@ -671,14 +674,6 @@ class CodecJson(str: String) extends Codec {
     }
     new CodecJson(str + sum)
   }
-
-  /**
-    * This method will remove the empty space in this codec.
-    *
-    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
-    *
-    */
-  def removeEmptySpace: Unit = {}
 
   /**
     * Method that removes the trailing of a CodecJson in order to create a correct json
@@ -740,5 +735,14 @@ class CodecJson(str: String) extends Codec {
     * @return a Boolean saying if the codec is able to read a key or not
     */
   def canReadKey: Boolean = !str.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1
+
+  /**
+    * Method that decides if the type of the current key is an array or not
+    *
+    * @param formerType
+    * @param key
+    * @return A Boolean specifying if the type of the current key is an array or not
+    */
+  def isArray(formerType: Int, key: String): Boolean = formerType == 4
 }
 

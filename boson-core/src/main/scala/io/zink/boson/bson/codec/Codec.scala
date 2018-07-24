@@ -196,13 +196,6 @@ trait Codec {
   def +(sumCodec: Codec): Codec
 
   /**
-    * This method will remove the empty space in this codec.
-    *
-    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
-    */
-  def removeEmptySpace: Unit
-
-  /**
     * Method that removes the trailing of a CodecJson in order to create a correct json
     * This method, in case of CodecBson, simply returns the codec passed as argument
     *
@@ -251,6 +244,15 @@ trait Codec {
     * @return a Boolean saying if the codec is able to read a key or not
     */
   def canReadKey: Boolean
+
+  /**
+    * Method that decides if the type of the current key is an array or not
+    *
+    * @param formerType
+    * @param key
+    * @return A Boolean specifying if the type of the current key is an array or not
+    */
+  def isArray(formerType: Int, key: String): Boolean
 }
 
 sealed trait CodecFacade {

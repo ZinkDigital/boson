@@ -433,16 +433,20 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           new CodecBson(arg, Some(duplicated))
 
         case SonObject(dataType, info) =>
+          val infoToUse = info match {
+            case byteBuff: ByteBuf => byteBuff.array
+            case byteArr: Array[Byte] => byteArr
+          }
           dataType match {
 
             case CS_OBJECT_WITH_SIZE =>
-              val writableByteBuf = info.asInstanceOf[ByteBuf]
+              val writableByteBuf = infoToUse.asInstanceOf[ByteBuf]
               val writableByteSeq = writableByteBuf.array()
               duplicated.writeBytes(writableByteSeq)
               new CodecBson(arg, Some(duplicated))
 
             case _ =>
-              val writableByteSeq = info.asInstanceOf[Array[Byte]]
+              val writableByteSeq = infoToUse.asInstanceOf[Array[Byte]]
               duplicated.writeBytes(writableByteSeq)
               new CodecBson(arg, Some(duplicated))
           }
@@ -488,13 +492,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     duplicated.capacity(duplicated.writerIndex())
     new CodecBson(arg, Some(duplicated))
   }
-
-  /**
-    * This method will remove the empty space in this codec.
-    *
-    * For CodecBson this method will set the ByteBuf's capacity to the same index as writerIndex
-    */
-  def removeEmptySpace: Unit = buff.capacity(buff.writerIndex())
 
   /**
     * Method that removes the trailing of a CodecJson in order to create a correct json
@@ -554,4 +551,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a Boolean saying if the codec is able to read a key or not
     */
   def canReadKey: Boolean = true
+
+  /**
+    * Method that decides if the type of the current key is an array or not
+    *
+    * @param formerType
+    * @param key
+    * @return A Boolean specifying if the type of the current key is an array or not
+    */
+  def isArray(formerType: Int, key: String): Boolean = key.forall(b => b.isDigit)
 }
