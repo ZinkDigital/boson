@@ -216,15 +216,7 @@ class CoverageTest extends FunSuite {
   private val bson = new BsonObject().put("Store", store)
 
   test("Iterate through a key.* V1") {
-    val expression: String = ".Store.Book[0].SpecialEditions[0].*"
-    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Any) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq("JavaMachine", 39), mutableBuffer)
+    iterateThroughKeyStarV1Test()
   }
 
   test("Iterate through a key.* V2") {
@@ -240,90 +232,31 @@ class CoverageTest extends FunSuite {
   }
 
   test("Iterate through a complex Seq[String]") {
-    val expression: String = ".Store.Book[1 to end].Title"
-    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: String) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq("Scala", "C++"), mutableBuffer)
+    iterateComplexSeqStringTest()
   }
 
   test("Iterate through a complex Seq[Int]") {
-    val expression: String = ".Store.Book[0 until end].SpecialEditions[all].Price"
-    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Int) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(39, 40), mutableBuffer)
+    iterateComplexSeqIntTest()
   }
 
   test("Iterate through a complex Seq[Double]") {
-    val expression: String = ".Store.Book[1 to 3].Price"
-    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Double) => {
-      mutableBuffer += in
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(12.6), mutableBuffer)
+    iterateComplexSeqDoubleTest()
   }
 
   test("Extract Root") {
-    val expression: String = "."
-    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
-      assertArrayEquals(_bson.encodeToBarray(), in)
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(_bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
+    extractRootTest()
   }
 
   test("Iterate through ..Key, Seq[String]") {
-    val expression: String = "..Title"
-    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: String) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
+    iterateKeySeqStringTest()
   }
 
   test("Iterate through ..Key, Seq[Any]") {
-    val expression: String = "..Price"
-    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Any) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38), mutableBuffer)
+    iterateKeySeqAnyTest()
   }
 
   test("Iterate through ..*y[#]..[#], Seq[Array[Byte]]") {
-    val expression: String = "..*k[all]..[0]"
-    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
-    val expected: Seq[Array[Byte]] = Seq(edition1.encodeToBarray, edition2.encodeToBarray, edition3.encodeToBarray)
-    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
+    iterateTest1()
   }
 
   test("Iterate through ..*y[#]..Key2, Seq[Array[Byte]]") {
@@ -398,56 +331,20 @@ class CoverageTest extends FunSuite {
     assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
-  test("Iterate through ..Key1..Key2, Seq[Any] V1") { //TODO:implement search inside match
-    val expression: String = "..Book..Price"
-    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Any) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(15.5, 39, 40, 12.6, 38), mutableBuffer)
+  test("Iterate through ..Key1..Key2, Seq[Any] V1") {
+    iterateTestSeqAny()
   }
 
   test("Iterate through .Key1.Key2..Key3, Seq[String]") {
-    val expression: String = ".Store.Book..Title"
-    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: String) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
+    iterateTestSeqString()
   }
 
-  test("Iterate through .Key1.Key2..Key3, Seq[Int]") { //TODO:implement the applyFunc
-    val expression: String = ".Store.SpecialEditions..Price"
-    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Int) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(), mutableBuffer)
+  test("Iterate through .Key1.Key2..Key3, Seq[Int]") {
+    iterateTestSeqInt()
   }
 
   test("Extract .Key1..Key2..Key3, Seq[Int]") {
-    val expression: String = ".Store..SpecialEditions..Price"
-    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: Int) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-    val res = boson.go(bson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assertEquals(Seq(39, 40, 38), mutableBuffer)
+    extractTestSeqInt()
   }
 
   private val xHat3 = new BsonObject().put("Price", 38).put("Color", "Blue")
@@ -508,21 +405,7 @@ class CoverageTest extends FunSuite {
   }
 
   test("Extract ..key1..key2, Seq[String] V2") {
-    val expression: String = "..*k..Title"
-
-    val expected: Seq[String] =
-      Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "JavaMachine")
-
-    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
-    val boson: Boson = Boson.extractor(expression, (in: String) => {
-      mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
-    })
-
-    val res = boson.go(xBson.encode.getBytes)
-    Await.result(res, Duration.Inf)
-    assert(expected === mutableBuffer)
+    extractTestSeqString()
   }
 
   test("CodecJson - Extract case class") {
@@ -591,6 +474,59 @@ class CoverageTest extends FunSuite {
 
   test("CodecJson - Iterate simple Seq[Double]") {
     iterateSimpleSeqDoubleTest(json = true)
+  }
+
+  test("CodecJson - Iterate through a key.* V1") {
+    iterateThroughKeyStarV1Test(json = true)
+  }
+
+  test("CodecJson - Iterate through a complex Seq[String]") {
+    iterateComplexSeqStringTest(json = true)
+  }
+
+  test("CodecJson - Iterate through a complex Seq[Int]") {
+    iterateComplexSeqIntTest(json = true)
+  }
+
+  test("CodecJson - Iterate through a complex Seq[Double]") {
+    iterateComplexSeqDoubleTest(json = true)
+  }
+
+  test("CodecJson - Extract Root") {
+    extractRootTest(json = true)
+  }
+
+  test("CodecJson - Iterate through ..Key, Seq[String]") {
+    iterateKeySeqStringTest(json = true)
+  }
+
+  test("CodecJson - Iterate through ..Key, Seq[Any]") {
+    iterateKeySeqAnyTest(json = true)
+  }
+
+  //  test("CodecJson - Iterate through ..*y[#]..[#], Seq[Array[Byte]]") {
+  //    iterateTest1(json = true)
+  //  }
+
+
+  test("CodecJson - Iterate through ..Key1..Key2, Seq[Any] V1") { //TODO:implement search inside match
+    iterateTestSeqAny(json = true)
+  }
+
+  test("CodecJson - Iterate through .Key1.Key2..Key3, Seq[String]") {
+    iterateTestSeqString(json = true)
+  }
+
+  test("CodecJson - Iterate through .Key1.Key2..Key3, Seq[Int]") {
+    iterateTestSeqInt(json = true)
+  }
+
+  test("CodecJson - Extract .Key1..Key2..Key3, Seq[Int]") {
+    extractTestSeqInt(json = true)
+  }
+
+  test("CodecJson - Extract ..key1..key2, Seq[String] V2") {
+    extractTestSeqString(json = true)
   }
 
   private def extractCaseClassTest(json: Boolean = false): Unit = {
@@ -808,6 +744,182 @@ class CoverageTest extends FunSuite {
     assert(mutableBuffer.containsSlice(Seq(1.1, 2.2, 3.3)))
   }
 
+  private def iterateThroughKeyStarV1Test(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book[0].SpecialEditions[0].*"
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq("JavaMachine", 39), mutableBuffer)
+  }
+
+  private def iterateComplexSeqStringTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book[1 to end].Title"
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq("Scala", "C++"), mutableBuffer)
+  }
+
+  private def iterateComplexSeqIntTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book[0 until end].SpecialEditions[all].Price"
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(39, 40), mutableBuffer)
+  }
+
+  private def iterateComplexSeqDoubleTest(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book[1 to 3].Price"
+    val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Double) => {
+      mutableBuffer += in
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(12.6), mutableBuffer)
+  }
+
+  private def extractRootTest(json: Boolean = false): Unit = {
+    val expression: String = "."
+    val boson = if (!json) {
+      Boson.extractor(expression, (in: Array[Byte]) => {
+        assertArrayEquals(_bson.encodeToBarray(), in)
+        println(s"in: $in")
+        println("APPLIED")
+      })
+    } else {
+      Boson.extractor(expression, (in: String) => {
+        assertEquals(in, _bson.encodeToString())
+        println(s"in: $in")
+        println("APPLIED")
+      })
+    }
+    val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
+    Await.result(res, Duration.Inf)
+  }
+
+  private def iterateKeySeqStringTest(json: Boolean = false): Unit = {
+    val expression: String = "..Title"
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
+  }
+
+  private def iterateKeySeqAnyTest(json: Boolean = false): Unit = {
+    val expression: String = "..Price"
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38), mutableBuffer)
+  }
+
+  private def iterateTest1(json: Boolean = false): Unit = {
+    val expression: String = "..*k[all]..[0]"
+    val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
+    val expected: Seq[Array[Byte]] = Seq(edition1.encodeToBarray, edition2.encodeToBarray, edition3.encodeToBarray)
+    val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertTrue(expected.size === mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
+  }
+
+  private def iterateTestSeqAny(json: Boolean = false): Unit = {
+    val expression: String = "..Book..Price"
+    val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Any) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(15.5, 39, 40, 12.6, 38), mutableBuffer)
+  }
+
+  private def iterateTestSeqString(json: Boolean = false): Unit = {
+    val expression: String = ".Store.Book..Title"
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine"), mutableBuffer)
+  }
+
+  private def iterateTestSeqInt(json: Boolean = false): Unit = {
+    val expression: String = ".Store.SpecialEditions..Price"
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(), mutableBuffer)
+  }
+
+  private def extractTestSeqInt(json: Boolean = false): Unit = {
+    val expression: String = ".Store..SpecialEditions..Price"
+    val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: Int) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+    val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assertEquals(Seq(39, 40, 38), mutableBuffer)
+  }
+
+  private def extractTestSeqString(json: Boolean = false): Unit = {
+    val expression: String = "..*k..Title"
+
+    val expected: Seq[String] =
+      Seq("Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "Java", "JavaMachine", "Scala", "ScalaMachine", "C++", "C++Machine", "JavaMachine")
+
+    val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
+    val boson: Boson = Boson.extractor(expression, (in: String) => {
+      mutableBuffer += in
+      println(s"in: $in")
+      println("APPLIED")
+    })
+
+    val res = if (!json) boson.go(xBson.encode.getBytes) else boson.go(xBson.encodeToString)
+    Await.result(res, Duration.Inf)
+    assert(expected === mutableBuffer)
+  }
   //**************            Injectors Tests            *********************
 
   test("Root modification") {
