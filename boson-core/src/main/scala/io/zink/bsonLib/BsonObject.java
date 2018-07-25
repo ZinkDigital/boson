@@ -17,7 +17,7 @@
  * Derived from original file JsonObject.java from Vert.x
  */
 
-package io.zink.boson.bson.bsonImpl.bsonLib;
+package io.zink.bsonLib;
 
 
 import io.vertx.core.VertxException;

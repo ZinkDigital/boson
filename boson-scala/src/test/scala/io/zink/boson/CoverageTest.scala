@@ -920,6 +920,7 @@ class CoverageTest extends FunSuite {
     Await.result(res, Duration.Inf)
     assert(expected === mutableBuffer)
   }
+
   //**************            Injectors Tests            *********************
 
   test("Root modification") {
