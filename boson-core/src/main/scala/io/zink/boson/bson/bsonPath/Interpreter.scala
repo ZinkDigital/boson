@@ -23,10 +23,7 @@ class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
-  val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
-    case Success(result) => result
-    case Failure(excp) => throw excp
-  }
+  val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)
 
   val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) =
     buildExtractors(parsedStatements.statementList.head, parsedStatements.statementList.tail, parsedStatements.dotsList)
