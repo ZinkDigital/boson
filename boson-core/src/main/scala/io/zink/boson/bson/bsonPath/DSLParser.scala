@@ -5,7 +5,7 @@ import org.parboiled2._
 import scala.util.Try
 import io.zink.boson.bson.bsonImpl.Dictionary._
 
-sealed abstract class Statement
+sealed trait Statement
 
 case class KeyWithArrExpr(key: String, arrEx: ArrExpr) extends Statement
 case class RangeCondition(value: String) extends Statement

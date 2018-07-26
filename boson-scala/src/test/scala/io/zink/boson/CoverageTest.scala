@@ -509,7 +509,7 @@ class CoverageTest extends FunSuite {
   //  }
 
 
-  test("CodecJson - Iterate through ..Key1..Key2, Seq[Any] V1") { //TODO:implement search inside match
+  test("CodecJson - Iterate through ..Key1..Key2, Seq[Any] V1") {
     iterateTestSeqAny(json = true)
   }
 

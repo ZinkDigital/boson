@@ -4,7 +4,6 @@ package io.zink.boson;
 import io.zink.boson.bson.bsonImpl.CustomException;
 import io.zink.boson.impl.BosonExtractor;
 import io.zink.boson.impl.BosonInjector;
-import io.zink.boson.impl.BosonValidate;
 import net.jodah.typetools.TypeResolver;
 import shapeless.HList;
 
@@ -17,9 +16,9 @@ import java.util.function.Function;
 
 public interface Boson {
 
-    static <T> Boson validate(String expression, Consumer<T> validateFunction) {
-        return new BosonValidate<>(expression, validateFunction);
-    }
+//    static <T> Boson validate(String expression, Consumer<T> validateFunction) {
+//        return new BosonValidate<>(expression, validateFunction);
+//    }
 
     /**
      * Make an Extractor that will call the extract function (Consumer) according to
