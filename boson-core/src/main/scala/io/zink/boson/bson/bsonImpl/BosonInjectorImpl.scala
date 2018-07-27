@@ -587,7 +587,6 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     seqType match {
-      case D_FLOAT_DOUBLE => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
@@ -595,29 +594,22 @@ private[bsonImpl] object BosonInjectorImpl {
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
 
       case D_BSONOBJECT =>
-        val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)) match {
-          case SonObject(_, result) => result match {
-            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-            case jsonString: String => CodecObject.toCodec(jsonString)
-          }
+        val partialCodec: Codec = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
+          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+          case jsonString: String => CodecObject.toCodec(jsonString)
         }
-        val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
-        currentResCodec + codecAux
+        currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
 
       case D_BSONARRAY =>
-        val partialCodec: Codec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)) match {
-          case SonArray(_, result) => result match {
-            case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-            case jsonString: String => CodecObject.toCodec(jsonString)
-          }
+        val partialCodec: Codec = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
+          case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
+          case jsonString: String => CodecObject.toCodec(jsonString)
         }
-        val codecAux = modifyAll(statementsList, partialCodec, fieldID, injFunction)
-
-        currentResCodec + codecAux
-
-      case D_NULL => currentResCodec
+        currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
 
       case D_INT => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+
+      case D_FLOAT_DOUBLE => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
 
       case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
 
@@ -626,6 +618,8 @@ private[bsonImpl] object BosonInjectorImpl {
           case byte: Byte => byte == 1
         }
         codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value0))
+
+      case D_NULL => currentResCodec
     }
   }
 
@@ -682,12 +676,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case Failure(_) => value match {
         case double: Double =>
-          Try(injFunction(double.toFloat.asInstanceOf[T])) match {
-            //try with the value being a Double
-            case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
-
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
+          Try(injFunction(double.toFloat.asInstanceOf[T])).fold(_ => throwException(value.getClass.getSimpleName.toLowerCase), modifiedValue => modifiedValue)
 
         case byteArrOrJson if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T
 
@@ -698,16 +687,14 @@ private[bsonImpl] object BosonInjectorImpl {
 
           val convertFunct = convertFunction.get
           val convertedValue = convertFunct(extractedTuples)
-          Try(injFunction(convertedValue)) match {
-            case Success(modifiedValue) =>
+          Try(injFunction(convertedValue)).fold(_ => throwException(value.getClass.getSimpleName.toLowerCase),
+            modifiedValue => {
               val modifiedTupleList = toTupleList(modifiedValue)
               encodeTupleList(modifiedTupleList, byteArrOrJson) match {
                 case Left(modByteArr) => modByteArr.asInstanceOf[T]
                 case Right(modJsonString) => modJsonString.asInstanceOf[T]
               }
-
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
+            })
 
         case byteArr: Array[Byte] =>
           Try(injFunction(new String(byteArr).asInstanceOf[T])) match {
@@ -716,20 +703,11 @@ private[bsonImpl] object BosonInjectorImpl {
               modifiedValue.asInstanceOf[T]
 
             case Failure(_) =>
-              Try(injFunction(Instant.parse(new String(byteArr)).asInstanceOf[T])) match {
-                //try with the value being an Instant
-                case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
-
-                case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-              }
+              Try(injFunction(Instant.parse(new String(byteArr)).asInstanceOf[T])).fold(_ => throwException(value.getClass.getSimpleName.toLowerCase), modValue => modValue)
           }
 
         case str: String =>
-          Try(injFunction(Instant.parse(str).asInstanceOf[T])) match {
-            case Success(modifiedValue) => modifiedValue.asInstanceOf[T]
-
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
+          Try(injFunction(Instant.parse(str).asInstanceOf[T])).fold(_ => throwException(value.getClass.getSimpleName.toLowerCase), modValue => modValue)
       }
 
       case _ => throwException(value.getClass.getSimpleName.toLowerCase)
