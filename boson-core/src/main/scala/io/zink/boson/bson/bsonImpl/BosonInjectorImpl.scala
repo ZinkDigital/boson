@@ -522,79 +522,50 @@ private[bsonImpl] object BosonInjectorImpl {
     case D_BSONOBJECT =>
       val token = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
       val resCodecCopy = codec.writeToken(codecResCopy, token)
-      token match {
-        case SonObject(_, data) => data match {
-          case byteBuf: ByteBuf =>
-            val resCodec = applyFunction(injFunction, byteBuf.array()) match {
-              case arr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, arr))
-            }
-            (resCodec, resCodecCopy)
+      val resCodec: Codec = token.asInstanceOf[SonObject].info match {
+        case byteBuf: ByteBuf => codec.writeToken(codecRes, SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
 
-          case str: String =>
-            val resCodec = applyFunction(injFunction, str) match {
-              case resString: String => codec.writeToken(codecRes, SonString(CS_STRING, resString))
-            }
-            (resCodec, resCodecCopy)
-        }
+        case str: String => codec.writeToken(codecRes, SonString(CS_STRING, applyFunction(injFunction, str).asInstanceOf[String]))
       }
+      (resCodec, resCodecCopy)
 
     case D_BSONARRAY =>
       val token = codec.readToken(SonArray(CS_ARRAY))
       val resCodecCopy = codec.writeToken(codecResCopy, token)
-      token match {
-        case SonArray(_, data) => data match {
-          case byteArr: Array[Byte] =>
-            val resCodec = applyFunction(injFunction, byteArr) match {
-              case resByteArr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, resByteArr))
-            }
-            (resCodec, resCodecCopy)
+      val resCodec = token.asInstanceOf[SonArray].info match {
+        case byteArr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]))
 
-          case jsonString: String =>
-            val resCodec = applyFunction(injFunction, jsonString) match {
-              case resString: String => codec.writeToken(codecRes, SonString(CS_STRING, resString))
-            }
-            (resCodec, resCodecCopy)
-        }
+        case jsonString: String => codec.writeToken(codecRes, SonString(CS_STRING, applyFunction(injFunction, jsonString).asInstanceOf[String]))
       }
+      (resCodec, resCodecCopy)
 
     case D_BOOLEAN =>
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
-      val value0: Boolean = token match {
-        case SonBoolean(_, data) => data match {
-          case byte: Byte => byte == 1
-        }
+      val value0: Boolean = token.asInstanceOf[SonBoolean].info match {
+        case byte: Byte => byte == 1
       }
-      val resCodec = applyFunction(injFunction, value0) match {
-        case tkn: Boolean => codec.writeToken(codecRes, SonBoolean(CS_BOOLEAN, tkn))
-      }
+      val resCodec = codec.writeToken(codecRes, SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
       val resCodecCopy = codec.writeToken(codecResCopy, token)
       (resCodec, resCodecCopy)
 
     case D_FLOAT_DOUBLE =>
       val token = codec.readToken(SonNumber(CS_DOUBLE))
       val value0: Double = token.asInstanceOf[SonNumber].info.asInstanceOf[Double]
-      val resCodec = applyFunction(injFunction, value0) match {
-        case tkn: Double => codec.writeToken(codecRes, SonNumber(CS_DOUBLE, tkn))
-      }
+      val resCodec = codec.writeToken(codecRes, SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
       val resCodecCopy = codec.writeToken(codecResCopy, token)
       (resCodec, resCodecCopy)
 
     case D_INT =>
       val token = codec.readToken(SonNumber(CS_INTEGER))
       val value0: Int = token.asInstanceOf[SonNumber].asInstanceOf[Int]
-      val resCodec = applyFunction(injFunction, value0) match {
-        case tkn: Int => codec.writeToken(codecRes, SonNumber(CS_INTEGER, tkn))
-      }
+      val resCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
       val resCodecCopy = codec.writeToken(codecResCopy, token)
       (resCodec, resCodecCopy)
 
     case D_LONG =>
-
       val token = codec.readToken(SonNumber(CS_LONG))
       val value0: Long = token.asInstanceOf[SonNumber].asInstanceOf[Long]
-      val resCodec = applyFunction(injFunction, value0) match {
-        case tkn: Long => codec.writeToken(codecRes, SonNumber(CS_LONG, tkn))
-      }
+      val resCodec = codec.writeToken(codecRes, SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
       val resCodecCopy = codec.writeToken(codecResCopy, token)
       (resCodec, resCodecCopy)
 
