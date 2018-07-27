@@ -1,14 +1,7 @@
 package io.zink.boson;
 
-
-import io.zink.boson.bson.bsonImpl.CustomException;
 import io.zink.boson.impl.BosonExtractor;
 import io.zink.boson.impl.BosonInjector;
-import net.jodah.typetools.TypeResolver;
-import shapeless.HList;
-
-import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
