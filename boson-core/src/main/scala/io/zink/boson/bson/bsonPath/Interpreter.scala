@@ -6,7 +6,8 @@ import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
-import scala.util.{Failure, Success}
+
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -353,30 +354,18 @@ class Interpreter[T](expression: String,
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val input: Either[ByteBuf, String] = bsonEncoded match {
       case Left(byteArr) =>
-        val buf: ByteBuf = Unpooled.buffer(byteArr.length).writeBytes(byteArr)
+        val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
-
-    val result: Either[Array[Byte], String] = {
-      val x = BosonImpl.inject(input, statements, fInj.get)
-      x.getCodecData match {
-        case Left(byteBuf) => Left(byteBuf.array())
-        case Right(string) => Right(string)
-      }
-    }
-    //      Try(BosonImpl.inject(input, statements, fInj.get)) match { //TODO WHEN INJECTORS ARE WORKING, REPLACE ABOVE CODE WITH THIS
-    //        case Success(resultCodec) => resultCodec.getCodecData match {
-    //          case Left(byteBuf) => Left(byteBuf.array())
-    //          case Right(string) => Right(string)
-    //        }
-    //        case Failure(e) => throw CustomException(e.getMessage)
-    //      }
-    result match {
-      case Left(bb) => println("Result was : " + new String(bb))
-      case Right(str) => println("Result was : " + str)
-    }
-    result
+    Try(BosonImpl.inject(input, statements, fInj.get)).fold(
+      e => throw CustomException(e.getMessage),
+      resultCodec =>
+        resultCodec.getCodecData match {
+          case Left(byteBuf) => Left(byteBuf.array)
+          case Right(string) => Right(string)
+        }
+    )
   }
 
 }

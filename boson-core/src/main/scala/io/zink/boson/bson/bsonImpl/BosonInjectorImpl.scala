@@ -334,8 +334,7 @@ private[bsonImpl] object BosonInjectorImpl {
         as a String. We return that modified String and convert it back to a byte array in order to create a ByteBuf from it
        */
       val modifiedBytes: Array[Byte] = applyFunction(injFunction, bsonBytes).asInstanceOf[Array[Byte]]
-        val newBuf = Unpooled.buffer(modifiedBytes.length).writeBytes(modifiedBytes) //create a new ByteBuf from those bytes
-        CodecObject.toCodec(newBuf)
+        CodecObject.toCodec(Unpooled.copiedBuffer(modifiedBytes))
 
       case Right(jsonString) =>
         val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
@@ -830,7 +829,6 @@ private[bsonImpl] object BosonInjectorImpl {
                               case Right(jsonString) => CodecObject.toCodec(jsonString)
                             }
                           }
-
 
                         val partialCodecModified = BosonImpl.inject(partialData, statementsList, injFunction)
                         val subPartial = BosonImpl.inject(partialCodecModified.getCodecData, fullStatementsList, injFunction)
@@ -1392,7 +1390,6 @@ private[bsonImpl] object BosonInjectorImpl {
                     val newCodec = modifyArrayEnd(statementsList.drop(1), codec, injFunction, condition, from, to, statementsList, dataType)
                     (resCodec + newCodec, resCodecCopy + newCodec.duplicate)
                   }
-
                 }
               case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType != D_BSONARRAY =>
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr])
@@ -1411,13 +1408,9 @@ private[bsonImpl] object BosonInjectorImpl {
                         codec.setReaderIndex(codec.getReaderIndex - key.length - 3)
                         val keyType = codec.getDataType
                         processTypesArrayEnd(statementsList, fieldID, keyType, codec, injFunction, condition, from, to, codecWithDataType, codecWithDataTypeCopy)
-                      } else
-                        processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
-
-
+                      } else processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, resCodec, resCodecCopy)
                   }
-                } else
-                  (processTypesArray(dataType, codec.duplicate, resCodec), processTypesArray(dataType, codec, resCodecCopy))
+                } else (processTypesArray(dataType, codec.duplicate, resCodec), processTypesArray(dataType, codec, resCodecCopy))
 
               //If we found the desired elem but the dataType is not an array, or if we didn't find the desired elem
             }
