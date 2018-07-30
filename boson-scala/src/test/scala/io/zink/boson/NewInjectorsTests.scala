@@ -84,17 +84,17 @@ class NewInjectorsTests extends FunSuite {
   val nestedBson2Expected: BsonObject = new BsonObject().put("book", nestedBook2Expected)
 
   //
-  test("Root modification") {
-    val bson = new BsonObject().put("name", "john doe")
-    val ex = "."
-    val bsonInj = Boson.injector(ex, (in: Array[Byte]) => {
-      new String(in).toUpperCase.getBytes
-    })
-    val bsonEncoded = bson.encodeToBarray()
-    val future = bsonInj.go(bsonEncoded)
-    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
-  }
+  //  test("Root modification") {
+  //    val bson = new BsonObject().put("name", "john doe")
+  //    val ex = "."
+  //    val bsonInj = Boson.injector(ex, (in: Array[Byte]) => {
+  //      new String(in).toUpperCase.getBytes
+  //    })
+  //    val bsonEncoded = bson.encodeToBarray()
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+  //  }
   //
   //  test("Root Injection") {
   //    val bson = new BsonObject().put("name", "john doe")
@@ -861,20 +861,20 @@ class NewInjectorsTests extends FunSuite {
   //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   //  }
   //
-  //  test("Nested key injection - Multiple Layers- double then Double dots") {
-  //    val person = new BsonObject().put("name", "john doe").put("age", 21)
-  //    val client = new BsonObject().put("person", person)
-  //    val bson = new BsonObject().put("client", client)
-  //
-  //    val ex = "..person..age"
-  //    val bsonInj = Boson.injector(ex, (in: Int) => {
-  //      in + 20
-  //    })
-  //    val bsonEncoded = bson.encodeToBarray
-  //    val future = bsonInj.go(bsonEncoded)
-  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-  //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
-  //  }
+    test("Nested key injection - Multiple Layers- double then Double dots") {
+      val person = new BsonObject().put("name", "john doe").put("age", 21)
+      val client = new BsonObject().put("person", person)
+      val bson = new BsonObject().put("client", client)
+
+      val ex = "..person..age"
+      val bsonInj = Boson.injector(ex, (in: Int) => {
+        in + 20
+      })
+      val bsonEncoded = bson.encodeToBarray
+      val future = bsonInj.go(bsonEncoded)
+      val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+      assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+    }
   //
   //  test("Nested key injection - ..person[first]..age") {
   //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)

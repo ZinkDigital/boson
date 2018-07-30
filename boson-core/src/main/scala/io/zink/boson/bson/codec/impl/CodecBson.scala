@@ -369,12 +369,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a duplicated codec from the current codec, but with the new information
     */
   override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
-    val duplicated: ByteBuf = {
-      val byteBuf = outCodecOpt.getCodecData.asInstanceOf[Left[ByteBuf, String]].value
-      val newBuf = byteBuf.copy(0, byteBuf.capacity())
-      newBuf.readerIndex(byteBuf.readerIndex()) //Will always be 0
-      newBuf.writerIndex(byteBuf.writerIndex())
-    }
+    val duplicated = outCodecOpt.getCodecData.asInstanceOf[Left[ByteBuf, String]].value
     if (ignoreForBson) new CodecBson(arg, Some(duplicated)) else {
       token match {
 
