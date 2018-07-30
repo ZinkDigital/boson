@@ -358,14 +358,14 @@ class Interpreter[T](expression: String,
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
-    Try(BosonImpl.inject(input, statements, fInj.get)).fold(
-      e => throw CustomException(e.getMessage),
-      resultCodec =>
+    Try(BosonImpl.inject(input, statements, fInj.get)) match {
+      case Success(resultCodec) =>
         resultCodec.getCodecData match {
           case Left(byteBuf) => Left(byteBuf.array)
           case Right(string) => Right(string)
         }
-    )
+      case Failure(exception) => throw CustomException(exception.getMessage)
+    }
   }
 
 }

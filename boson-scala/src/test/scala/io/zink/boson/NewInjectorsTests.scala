@@ -861,20 +861,20 @@ class NewInjectorsTests extends FunSuite {
   //    assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   //  }
   //
-    test("Nested key injection - Multiple Layers- double then Double dots") {
-      val person = new BsonObject().put("name", "john doe").put("age", 21)
-      val client = new BsonObject().put("person", person)
-      val bson = new BsonObject().put("client", client)
-
-      val ex = "..person..age"
-      val bsonInj = Boson.injector(ex, (in: Int) => {
-        in + 20
-      })
-      val bsonEncoded = bson.encodeToBarray
-      val future = bsonInj.go(bsonEncoded)
-      val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-      assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
-    }
+  //    test("Nested key injection - Multiple Layers- double then Double dots") {
+  //      val person = new BsonObject().put("name", "john doe").put("age", 21)
+  //      val client = new BsonObject().put("person", person)
+  //      val bson = new BsonObject().put("client", client)
+  //
+  //      val ex = "..person..age"
+  //      val bsonInj = Boson.injector(ex, (in: Int) => {
+  //        in + 20
+  //      })
+  //      val bsonEncoded = bson.encodeToBarray
+  //      val future = bsonInj.go(bsonEncoded)
+  //      val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+  //      assert((resultValue containsSlice Array(41, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
+  //    }
   //
   //  test("Nested key injection - ..person[first]..age") {
   //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
@@ -1128,20 +1128,20 @@ class NewInjectorsTests extends FunSuite {
   //    assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray())
   //  }
   //
-  //  test("Case case injection - [0 until end]") {
-  //    val books = new BsonArray().add(bsonBookExpected).add(bsonBook2)
-  //    val store = new BsonObject().put("books", books)
-  //    val storeBsonExpected = new BsonObject().put("store", store)
-  //
-  //    val ex = ".store.books[0 until end].book"
-  //    val bsonInj = Boson.injector(ex, (in: Book) => {
-  //      Book(in.name, in.pages + 100)
-  //    })
-  //    val bsonEncoded = storeBson.encodeToBarray
-  //    val future = bsonInj.go(bsonEncoded)
-  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-  //    assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray())
-  //  }
+    test("Case case injection - [0 until end]") {
+      val books = new BsonArray().add(bsonBookExpected).add(bsonBook2)
+      val store = new BsonObject().put("books", books)
+      val storeBsonExpected = new BsonObject().put("store", store)
+
+      val ex = ".store.books[0 until end].book"
+      val bsonInj = Boson.injector(ex, (in: Book) => {
+        Book(in.name, in.pages + 100)
+      })
+      val bsonEncoded = storeBson.encodeToBarray
+      val future = bsonInj.go(bsonEncoded)
+      val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+      assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray())
+    }
   //
   //  test("Case case injection - [end]") {
   //    val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
@@ -2016,22 +2016,22 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.contains("41") && resultValue.length == jsonEncoded.length)
   //  }
   //
-  //  test("CodecJson - Nested key 3 - Double Dots") {
-  //    val obj = new BsonObject().put("name", "john doe").put("age", 21)
-  //    val person = new BsonObject().put("person", obj)
-  //    val client = new BsonObject().put("client", person)
-  //    val someObject = new BsonObject().put("SomeObject", client)
-  //    val anotherObject = new BsonObject().put("AnotherObject", someObject)
-  //    val json = new BsonObject().put("Wrapper", anotherObject)
-  //    val ex = "..client..age"
-  //    val jsonInj = Boson.injector(ex, (in: Int) => {
-  //      in + 20
-  //    })
-  //    val jsonEncoded = json.encodeToString()
-  //    val future = jsonInj.go(jsonEncoded)
-  //    val resultValue: String = Await.result(future, Duration.Inf)
-  //    assert(resultValue.contains("41") && resultValue.length == jsonEncoded.length)
-  //  }
+  //    test("CodecJson - Nested key 3 - Double Dots") {
+  //      val obj = new BsonObject().put("name", "john doe").put("age", 21)
+  //      val person = new BsonObject().put("person", obj)
+  //      val client = new BsonObject().put("client", person)
+  //      val someObject = new BsonObject().put("SomeObject", client)
+  //      val anotherObject = new BsonObject().put("AnotherObject", someObject)
+  //      val json = new BsonObject().put("Wrapper", anotherObject)
+  //      val ex = "..client..age"
+  //      val jsonInj = Boson.injector(ex, (in: Int) => {
+  //        in + 20
+  //      })
+  //      val jsonEncoded = json.encodeToString()
+  //      val future = jsonInj.go(jsonEncoded)
+  //      val resultValue: String = Await.result(future, Duration.Inf)
+  //      assert(resultValue.contains("41") && resultValue.length == jsonEncoded.length)
+  //    }
   //
   //  test("CodecJson - Java Instant injection") {
   //    val ins = Instant.now()
@@ -2592,19 +2592,19 @@ class NewInjectorsTests extends FunSuite {
   //    assert(resultValue.equals(storeBsonExpected.encodeToString))
   //  }
   //
-  //  test("CodecJson - Case case injection - [0 until end]") {
-  //    val books = new BsonArray().add(bsonBookExpected).add(bsonBook2)
-  //    val store = new BsonObject().put("books", books)
-  //    val storeBsonExpected = new BsonObject().put("store", store)
-  //
-  //    val ex = ".store.books[0 until end].book"
-  //    val jsonInj = Boson.injector(ex, (in: Book) => {
-  //      Book(in.name, in.pages + 100)
-  //    })
-  //    val future = jsonInj.go(storeBson.encodeToString)
-  //    val resultValue: String = Await.result(future, Duration.Inf)
-  //    assert(resultValue.equals(storeBsonExpected.encodeToString))
-  //  }
+//    test("CodecJson - Case case injection - [0 until end]") {
+//      val books = new BsonArray().add(bsonBookExpected).add(bsonBook2)
+//      val store = new BsonObject().put("books", books)
+//      val storeBsonExpected = new BsonObject().put("store", store)
+//
+//      val ex = ".store.books[0 until end].book"
+//      val jsonInj = Boson.injector(ex, (in: Book) => {
+//        Book(in.name, in.pages + 100)
+//      })
+//      val future = jsonInj.go(storeBson.encodeToString)
+//      val resultValue: String = Await.result(future, Duration.Inf)
+//      assert(resultValue.equals(storeBsonExpected.encodeToString))
+//    }
   //
   //  test("CodecJson - Case case injection - [end]") {
   //    val books = new BsonArray().add(bsonBook).add(bsonBook2Expected)
