@@ -907,18 +907,17 @@ private[bsonImpl] object BosonInjectorImpl {
                           case string: String => CodecObject.toCodec("{" + string + "}")
                         }
                         val partialToUse = partialCodec.addComma
-                        val newCodec: Codec = codecWithKeyCopy.duplicate
                         Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                           case Success(c) =>
                             val cToUse = c.addComma
                             if (codec.getDataType == 0) {
                               codec.skipChar(back = true)
-                              ((codecWithKey + cToUse, processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions)
+                              ((codecWithKey + cToUse, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                             } else {
                               codec.skipChar(back = true)
                               ((codecWithKey + partialToUse, processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions)
                             }
-                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, newCodec), processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions + 1)
+                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKeyCopy), processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions + 1)
                         }
                       case _ =>
                         ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions)
@@ -1014,7 +1013,6 @@ private[bsonImpl] object BosonInjectorImpl {
                           }
 
                           val partialToUse = partialCodec.addComma
-                          val newCodecCopy = codecWithKey.duplicate
                           Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) =>
                               val cToUse = c.addComma
@@ -1024,11 +1022,11 @@ private[bsonImpl] object BosonInjectorImpl {
                                   ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), exceptions)
                                 } else {
                                   codec.skipChar(back = true)
-                                  ((processTypesArray(dataType, codec.duplicate, newCodecCopy), codecWithKey + cToUse), exceptions)
+                                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), codecWithKey + cToUse), exceptions)
                                 }
-                              } else ((codecWithKey + cToUse, processTypesArray(dataType, codec.duplicate, newCodecCopy)), exceptions)
+                              } else ((codecWithKey + cToUse, processTypesArray(dataType, codec.duplicate, codecWithKey)), exceptions)
 
-                            case Failure(_) => ((codecWithKey, newCodecCopy), exceptions + 1)
+                            case Failure(_) => ((codecWithKey, codecWithKey), exceptions + 1)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
@@ -1089,9 +1087,8 @@ private[bsonImpl] object BosonInjectorImpl {
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
                         if (exceptions == 0) {
-                          val newCodecCopy = codecWithKey.duplicate
-                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, newCodecCopy)).fold(
-                            _ => ((codecWithKey, newCodecCopy), exceptions + 1),
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)).fold(
+                            _ => ((codecWithKey, codecWithKey), exceptions + 1),
                             tuple => (tuple, exceptions)
                           )
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
@@ -1109,9 +1106,8 @@ private[bsonImpl] object BosonInjectorImpl {
                           val codecMod = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                           ((codecWithKey + codecMod.addComma, codecWithKeyCopy + partialCodec.addComma), exceptions)
                         case _ =>
-                          val newCodecCopy = codecWithKey.duplicate
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)).fold(
-                            _ => ((codecWithKey, newCodecCopy), exceptions + 1),
+                            _ => ((codecWithKey, codecWithKey), exceptions + 1),
                             tuple => (tuple, exceptions)
                           )
                       }
@@ -1149,10 +1145,9 @@ private[bsonImpl] object BosonInjectorImpl {
                             case string: String => CodecObject.toCodec("{" + string + "}")
                           }
 
-                          val newCodecCopy = codecWithKey.duplicate
                           Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)).fold(
-                            _ => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec.duplicate, newCodecCopy)), exceptions),
-                            c => ((codecWithKey + c.addComma, processTypesArray(dataType, codec.duplicate, newCodecCopy)), exceptions)
+                            _ => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec.duplicate, codecWithKey)), exceptions),
+                            c => ((codecWithKey + c.addComma, processTypesArray(dataType, codec.duplicate, codecWithKey)), exceptions)
                           )
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>

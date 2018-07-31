@@ -354,7 +354,7 @@ class Interpreter[T](expression: String,
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val input: Either[ByteBuf, String] = bsonEncoded match {
       case Left(byteArr) =>
-        val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
+        val buf: ByteBuf = Unpooled.copiedBuffer(byteArr) // This line is consuming a lot of CPU
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
