@@ -492,7 +492,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param codecRes     - Structure that contains the information already processed and where we write the values
     * @param codecResCopy - Auxiliary structure to where we write the values in case the previous cycle was the last one
     * @tparam T - Type of the value being injected
-    * @return A Codec containing the alterations made and an Auxiliary Codec
+    * @return A Codec tuple containing the alterations made and an Auxiliary Codec
     */
   private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec)(implicit convertFunction: Option[TupleList => T] = None): (Codec, Codec) = dataType match {
 
@@ -755,12 +755,14 @@ private[bsonImpl] object BosonInjectorImpl {
     * This function iterates through the all the positions of an array to find the relevant elements to be changed
     * in the injection
     *
-    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
-    * @param codec          - Structure from which we are reading the values
-    * @param injFunction    - Function given by the user to alter specific values
-    * @param condition      - Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
-    * @param from           - Represent the inferior limit of a given range
-    * @param to             - Represent the superior limit of a given range
+    * @param statementsList     - A list with pairs that contains the key of interest and the type of operation
+    * @param codec              - Structure from which we are reading the values
+    * @param injFunction        - Function given by the user to alter specific values
+    * @param condition          - Represents a type of injection, it can be END, ALL, FIRST, # TO #, # UNTIL #
+    * @param from               - Represent the inferior limit of a given range
+    * @param to                 - Represent the superior limit of a given range
+    * @param fullStatementsList - The original statementsList passed in the first injection
+    * @param formerType         - The former type of the data read before
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
@@ -1284,7 +1286,7 @@ private[bsonImpl] object BosonInjectorImpl {
       *
       * @param currentCodec     - a codec to write the modified information into
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
-      * @return a codec containig the modifications made
+      * @return a codec tuple containing the modifications made
       */
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): (Codec, Codec) = {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
@@ -1305,7 +1307,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
-              //datatype is a BsonArray
+              //dataType is a BsonArray
               case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
                 if (statementsList.size == 1) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -1383,7 +1385,7 @@ private[bsonImpl] object BosonInjectorImpl {
     *
     * @param codec         - Structure from which we are reading the values
     * @param writableCodec - Structure that contains the information already processed and where we write the values
-    * @return
+    * @return the resulting codec and a string containing the key extracted
     */
   private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
     val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
@@ -1535,7 +1537,7 @@ private[bsonImpl] object BosonInjectorImpl {
     *
     * @param codec      - The codec from which to read the data type
     * @param writeCodec - The codec in which to write the data type
-    * @return A Tuple containig both the read data type and the written codec
+    * @return A Tuple containing both the read data type and the written codec
     */
   private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec) = {
     val dataType: Int = codec.readDataType(formerType)
