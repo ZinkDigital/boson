@@ -768,5 +768,22 @@ class CodecJson(str: String) extends Codec {
       new CodecJson(strAux)
     }
   }
+
+  /**
+    * Method that wraps a CodecJson in curly or rectangular brackets.
+    * For CodecBson this method simply returns a copy of this codec
+    *
+    * @param rectBracket - Boolean flag specifying if the brackets should be curly or rectangular
+    * @param key         - Json field to be written before this codec's content (optional)
+    * @return A new codec with the same information as before but with brackets encapsulating it
+    */
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = {
+    val (openBracket, closeBracket) = if (rectBracket) ("[", "]") else ("{", "}")
+    val jsonString = str
+    if (key.isEmpty)
+      new CodecJson(openBracket + str + closeBracket)
+    else
+      new CodecJson(openBracket + "\"" + key + "\":" + str)
+  }
 }
 

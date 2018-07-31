@@ -561,6 +561,16 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = completeDuplicate
 
   /**
+    * Method that wraps a CodecJson in curly or rectangular brackets.
+    * For CodecBson this method simply returns a copy of this codec
+    *
+    * @param rectBracket - Boolean flag specifying if the brackets should be curly or rectangular
+    * @param key         - Json field to be written before this codec's content (optional)
+    * @return A new codec with the same information as before but with brackets encapsulating it
+    */
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = completeDuplicate
+
+  /**
     * This private method duplicates the current codecs data structure and sets the reader and writer index accordingly
     *
     * @return A new Codec that is exactly the same as this codec, it just has a different memory reference
@@ -571,4 +581,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     newCodec.setWriterIndex(getWriterIndex)
     newCodec
   }
+
+
 }

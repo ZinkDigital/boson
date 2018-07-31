@@ -262,6 +262,16 @@ trait Codec {
     * @return A new codec with exactly the same information but with the brackets changed
     */
   def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec
+
+  /**
+    * Method that wraps a CodecJson in curly or rectangular brackets.
+    * For CodecBson this method simply returns a copy of this codec
+    *
+    * @param rectBracket - Boolean flag specifying if the brackets should be curly or rectangular
+    * @param key         - Json field to be written before this codec's content (optional)
+    * @return A new codec with the same information as before but with brackets encapsulating it
+    */
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec
 }
 
 sealed trait CodecFacade {
@@ -287,7 +297,21 @@ sealed trait DefaultCodecs {
   }
 
   implicit object ByteBufCodec extends Codecs[ByteBuf] {
-    override def applyFunc(arg: ByteBuf): CodecBson = new CodecBson(arg) //call the array bytes codec
+    override def applyFunc(arg: ByteBuf): CodecBson = new CodecBson(arg)
+  }
+
+  implicit object AnyCodec extends Codecs[Any] {
+    override def applyFunc(arg: Any): Codec = arg match {
+      case byteBuf: ByteBuf => new CodecBson(byteBuf)
+      case jsonString: String => new CodecJson(jsonString)
+    }
+  }
+
+  implicit object EitherCodec extends Codecs[Either[ByteBuf,String]] {
+    override def applyFunc(arg: Either[ByteBuf, String]): Codec = arg match {
+      case Left(byteBuf) => new CodecBson(byteBuf)
+      case Right(jsonString) => new CodecJson(jsonString)
+    }
   }
 
 }
