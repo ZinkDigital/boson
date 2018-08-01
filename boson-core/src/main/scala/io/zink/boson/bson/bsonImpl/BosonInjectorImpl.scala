@@ -404,10 +404,15 @@ private[bsonImpl] object BosonInjectorImpl {
         val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
         codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
 
-      case D_BSONOBJECT => codec.writeToken(currentResCodec, codec.readToken(SonObject(CS_OBJECT_INJ)))
+      case D_BSONOBJECT =>
+        val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info match {
+          case byteBuf: ByteBuf => byteBuf.array
+          case jsonString: String => jsonString
+        }
+        codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0))
 
       case D_BSONARRAY =>
-        val value0 = codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
+        val value0 = codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info match {
           case byteBuff: ByteBuf => byteBuff.array
           case jsonString: String => jsonString
         }
@@ -1109,7 +1114,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     dataType match {
                       case D_BSONARRAY | D_BSONOBJECT =>
                         if (exceptions == 0) {
-                          val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                          val partialCodec = CodecObject.toCodec(codec.duplicate.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                           val newCodecCopy = codecWithKey.duplicate
                           Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                             case Success(c) => ((codecWithKey + c.addComma, processTypesArray(dataType, codec.duplicate, newCodecCopy)), exceptions)
