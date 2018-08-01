@@ -273,8 +273,8 @@ class CodecJson(str: String) extends Codec {
     while (!input(readerIndex).isDigit) {
       readerIndex += 1
     }
-    lazy val strSliced = input.substring(readerIndex, inputSize)
-    lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
+     val strSliced = input.substring(readerIndex, inputSize)
+     val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
     val subStr1 = subStr.dropWhile(p => !p.isDigit)
