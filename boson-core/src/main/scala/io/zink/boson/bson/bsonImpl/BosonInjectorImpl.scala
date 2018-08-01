@@ -1117,7 +1117,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           val partialCodec = CodecObject.toCodec(codec.duplicate.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                           val newCodecCopy = codecWithKey.duplicate
                           Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
-                            case Success(c) => ((codecWithKey + c.addComma, processTypesArray(dataType, codec.duplicate, newCodecCopy)), exceptions)
+                            case Success(c) => ((codecWithKey + c.addComma, processTypesArray(dataType, codec, newCodecCopy)), exceptions)
                             case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, newCodecCopy)), exceptions)
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
