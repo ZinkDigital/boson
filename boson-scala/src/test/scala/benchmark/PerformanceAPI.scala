@@ -380,8 +380,7 @@ object PerformanceTests extends App {
   //
   //  performanceJsonPath("$.Markets[*].Tags", new Array[Byte](0))
   //
-  //
-  //  //  // .Markets[end].Tags
+  //  // .Markets[end].Tags
   //
   //  performanceJsonPath("$.Markets.[-1].Tags", tag)
   //
@@ -417,6 +416,32 @@ object PerformanceTests extends App {
   //
   //  performanceJsonPath("$.Markets[10].selectiongroupid", "")
 
+  //  //Relative Paths JsonPath
+  //
+  //  // $.Markets.[-1].Tags
+  //  performanceJsonPath("$..Markets.[-1].Tags", tag)
+  //
+  //  // $..Markets[@Selections]..Id
+  //  //  performanceJsonPath("$..Markets[@Selections]..Id", "")
+  //
+  //  // $..marketgroupid
+  //  performanceJsonPath("$..marketgroupid", "")
+  //
+  //  // $..Selections..Tradable
+  //  performanceJsonPath("$..Selections..Tradable", false)
+  //
+  //  // $..Markets..Selections[@Id]
+  //  //  performanceJsonPath("$..Markets..Selections[@Id]", "")
+  //
+  //  // $..Markets[first].Tags
+  //  performanceJsonPath("$..Markets[0].Tags", tag)
+  //
+  //  // $..Markets[all].Tags
+  //  performanceJsonPath("$..Markets[*].Tags", tag)
+  //
+  //  //$..Markets[end].Tags..marketgroupid
+  //  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag)
+
 
   //  //Injector .
   //  val bsonInj2: Boson = Boson.injector(".", (in: Array[Byte]) => in)
@@ -428,9 +453,9 @@ object PerformanceTests extends App {
   //  val doubleDotInj1: Boson = Boson.injector(".Markets[end].Tags", (in: Tags) => in)
   //  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags")
   //  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags", codecJson = true)
-
-  //    Injector .Markets[0 to 10].Tags
-  //    val bosonArticle8: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => in)
+  //
+  //  //      Injector .Markets[0 to 10].Tags
+  //  val bosonArticle8: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => in)
   //  performanceAnalysis(bosonArticle8, ".Markets[0 to 10].Tags")
   //  performanceAnalysis(bosonArticle8, ".Markets[0 to 10].Tags", codecJson = true)
   //
@@ -443,13 +468,13 @@ object PerformanceTests extends App {
   //  val bosonArticle10: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
   //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags")
   //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags", codecJson = true)
-
+  //
   //  //Injector ..Markets[@Selections]..Id
   //  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
   //  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
   //  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
-
-
+  //
+  //
   //  //  Injector ..Markets[end].Tags..marketgroupid
   //  val doubleDotInj3: Boson = Boson.injector("..Markets[end].Tags..marketgroupid", (in: String) => in)
   //  performanceAnalysis(doubleDotInj3, "..Markets[end].Tags..marketgroupid")
@@ -459,14 +484,14 @@ object PerformanceTests extends App {
   //  val doubleDotInj4: Boson = Boson.injector("..marketgroupid", (in: String) => in)
   //  performanceAnalysis(doubleDotInj4, "..marketgroupid")
   //  performanceAnalysis(doubleDotInj4, "..marketgroupid", codecJson = true)
-
-
-  //  Injector ..Selections..Tradable
+  //
+  //
+  //  //  Injector ..Selections..Tradable
   //  val doubleDotInj5: Boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
   //  performanceAnalysis(doubleDotInj5, "..Selections..Tradable")
   //  performanceAnalysis(doubleDotInj5, "..Selections..Tradable", codecJson = true)
-
-
+  //
+  //
   //  //  Injector ..Markets..Selections[@Id]
   //  val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
   //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
@@ -480,9 +505,9 @@ object PerformanceTests extends App {
   //
   //
   //  //  Injector ..Markets[all].Tags
-  //  val doubleDotInj8: Boson = Boson.injector("..Markets[all].Tags", (in: Tags) => in)
+  val doubleDotInj8: Boson = Boson.injector("..Markets[all].Tags", (in: Tags) => in)
   //  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags")
-  //  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags", codecJson = true)
+  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags", codecJson = true)
 
 
   //    Injector .Epoch
