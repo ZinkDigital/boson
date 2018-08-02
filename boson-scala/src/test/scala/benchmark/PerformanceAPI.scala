@@ -416,31 +416,31 @@ object PerformanceTests extends App {
   //
   //  performanceJsonPath("$.Markets[10].selectiongroupid", "")
 
-  //  //Relative Paths JsonPath
-  //
-  //  // $.Markets.[-1].Tags
-  //  performanceJsonPath("$..Markets.[-1].Tags", tag)
-  //
-  //  // $..Markets[@Selections]..Id
-  //  //  performanceJsonPath("$..Markets[@Selections]..Id", "")
-  //
-  //  // $..marketgroupid
-  //  performanceJsonPath("$..marketgroupid", "")
-  //
-  //  // $..Selections..Tradable
-  //  performanceJsonPath("$..Selections..Tradable", false)
-  //
-  //  // $..Markets..Selections[@Id]
-  //  //  performanceJsonPath("$..Markets..Selections[@Id]", "")
-  //
-  //  // $..Markets[first].Tags
-  //  performanceJsonPath("$..Markets[0].Tags", tag)
-  //
-  //  // $..Markets[all].Tags
-  //  performanceJsonPath("$..Markets[*].Tags", tag)
-  //
-  //  //$..Markets[end].Tags..marketgroupid
-  //  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag)
+  //Relative Paths JsonPath
+
+  // $.Markets.[-1].Tags
+//  performanceJsonPath("$..Markets.[-1].Tags", tag)
+
+  // $..Markets[@Selections]..Id
+  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "")
+
+  // $..marketgroupid
+//  performanceJsonPath("$..marketgroupid", "")
+//
+//  // $..Selections..Tradable
+//  performanceJsonPath("$..Selections..Tradable", false)
+
+  // $..Markets..Selections[@Id]
+  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "")
+
+  // $..Markets[first].Tags
+//  performanceJsonPath("$..Markets[0].Tags", tag)
+//
+//  // $..Markets[all].Tags
+//  performanceJsonPath("$..Markets[*].Tags", tag)
+//
+//  //$..Markets[end].Tags..marketgroupid
+//  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag)
 
 
   //  //Injector .
@@ -492,10 +492,10 @@ object PerformanceTests extends App {
   //  performanceAnalysis(doubleDotInj5, "..Selections..Tradable", codecJson = true)
   //
   //
-  //  //  Injector ..Markets..Selections[@Id]
-  //  val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
-  //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
-  //  //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
+    //  Injector ..Markets..Selections[@Id]
+    val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
+    performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
+    //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
   //
   //
   //  //  Injector ..Markets[first].Tags
@@ -505,49 +505,49 @@ object PerformanceTests extends App {
   //
   //
   //  //  Injector ..Markets[all].Tags
-  val doubleDotInj8: Boson = Boson.injector("..Markets[all].Tags", (in: Tags) => in)
-  //  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags")
-  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags", codecJson = true)
-
-
-  //    Injector .Epoch
-  val bosonArticle1: Boson = Boson.injector(".Epoch", (in: Int) => in)
-  performanceAnalysis(bosonArticle1, ".Epoch")
-  performanceAnalysis(bosonArticle1, ".Epoch", codecJson = true)
-
-  //      Injector .Participants[1].Tags.SSLNLastName
-  val bosonArticle2: Boson = Boson.injector(".Participants[1].Tags.SSLNLastName", (in: String) => in)
-  performanceAnalysis(bosonArticle2, ".Participants[1].Tags.SSLNLastName")
-  performanceAnalysis(bosonArticle2, ".Participants[1].Tags.SSLNLastName", codecJson = true)
-
-  //    Injector .Markets[all].Tags (.Markets[*].Tags) - Byte Array
-  val bosonArticle3: Boson = Boson.injector(".Markets[all].Tags", (in: Array[Byte]) => in)
-  val bosonArticle3Json: Boson = Boson.injector(".Markets[all].Tags", (in: String) => in)
-  performanceAnalysis(bosonArticle3, ".Markets[all].Tags")
-  performanceAnalysis(bosonArticle3Json, ".Markets[all].Tags", codecJson = true)
-
-  //    Injector .Markets[3 to 5] (.Markets[3:5].Tags)
-  val bosonArticle4: Boson = Boson.injector(".Markets[3 to 5]", (in: String) => in)
-  performanceAnalysis(bosonArticle4, ".Markets[3 to 5]")
-  performanceAnalysis(bosonArticle4, ".Markets[3 to 5]", codecJson = true)
-
-
-  //    Injector .Markets[10].selectiongroupid
-  val bosonArticle5: Boson = Boson.injector(".Markets[10].selectiongroupid", (in: String) => in)
-  performanceAnalysis(bosonArticle5, ".Markets[10].selectiongroupid")
-  performanceAnalysis(bosonArticle5, ".Markets[10].selectiongroupid", codecJson = true)
-
-
-  //    Injector .Markets[1].Tags
-  val bosonArticle6: Boson = Boson.injector(".Markets[1].Tags", (in: Tags) => in)
-  performanceAnalysis(bosonArticle6, ".Markets[1].Tags")
-  performanceAnalysis(bosonArticle6, ".Markets[1].Tags", codecJson = true)
-
-
-  //    Injector .Markets[all].Tags (.Markets[*].Tags)
-  val bosonArticle7: Boson = Boson.injector(".Markets[all].Tags", (in: Tags) => in)
-  performanceAnalysis(bosonArticle7, ".Markets[all].Tags")
-  performanceAnalysis(bosonArticle7, ".Markets[all].Tags", codecJson = true)
+//  val doubleDotInj8: Boson = Boson.injector("..Markets[all].Tags", (in: Tags) => in)
+//  //  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags")
+//  performanceAnalysis(doubleDotInj8, "..Markets[all].Tags", codecJson = true)
+//
+//
+//  //    Injector .Epoch
+//  val bosonArticle1: Boson = Boson.injector(".Epoch", (in: Int) => in)
+//  performanceAnalysis(bosonArticle1, ".Epoch")
+//  performanceAnalysis(bosonArticle1, ".Epoch", codecJson = true)
+//
+//  //      Injector .Participants[1].Tags.SSLNLastName
+//  val bosonArticle2: Boson = Boson.injector(".Participants[1].Tags.SSLNLastName", (in: String) => in)
+//  performanceAnalysis(bosonArticle2, ".Participants[1].Tags.SSLNLastName")
+//  performanceAnalysis(bosonArticle2, ".Participants[1].Tags.SSLNLastName", codecJson = true)
+//
+//  //    Injector .Markets[all].Tags (.Markets[*].Tags) - Byte Array
+//  val bosonArticle3: Boson = Boson.injector(".Markets[all].Tags", (in: Array[Byte]) => in)
+//  val bosonArticle3Json: Boson = Boson.injector(".Markets[all].Tags", (in: String) => in)
+//  performanceAnalysis(bosonArticle3, ".Markets[all].Tags")
+//  performanceAnalysis(bosonArticle3Json, ".Markets[all].Tags", codecJson = true)
+//
+//  //    Injector .Markets[3 to 5] (.Markets[3:5].Tags)
+//  val bosonArticle4: Boson = Boson.injector(".Markets[3 to 5]", (in: String) => in)
+//  performanceAnalysis(bosonArticle4, ".Markets[3 to 5]")
+//  performanceAnalysis(bosonArticle4, ".Markets[3 to 5]", codecJson = true)
+//
+//
+//  //    Injector .Markets[10].selectiongroupid
+//  val bosonArticle5: Boson = Boson.injector(".Markets[10].selectiongroupid", (in: String) => in)
+//  performanceAnalysis(bosonArticle5, ".Markets[10].selectiongroupid")
+//  performanceAnalysis(bosonArticle5, ".Markets[10].selectiongroupid", codecJson = true)
+//
+//
+//  //    Injector .Markets[1].Tags
+//  val bosonArticle6: Boson = Boson.injector(".Markets[1].Tags", (in: Tags) => in)
+//  performanceAnalysis(bosonArticle6, ".Markets[1].Tags")
+//  performanceAnalysis(bosonArticle6, ".Markets[1].Tags", codecJson = true)
+//
+//
+//  //    Injector .Markets[all].Tags (.Markets[*].Tags)
+//  val bosonArticle7: Boson = Boson.injector(".Markets[all].Tags", (in: Tags) => in)
+//  performanceAnalysis(bosonArticle7, ".Markets[all].Tags")
+//  performanceAnalysis(bosonArticle7, ".Markets[all].Tags", codecJson = true)
 
 
   /**

@@ -998,7 +998,8 @@ private[bsonImpl] object BosonInjectorImpl {
                         if (exceptions == 0) {
                           val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                           val partialToUse = partialCodec.addComma
-                          Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
+                          val stateToUse = if(statementsList.head._2.contains(C_DOUBLEDOT)) statementsList else statementsList.drop(1)
+                          Try(BosonImpl.inject(partialCodec.getCodecData, stateToUse, injFunction)) match {
                             case Success(c) =>
                               val cToUse = c.addComma
                               if (condition equals UNTIL_RANGE) {

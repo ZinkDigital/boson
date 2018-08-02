@@ -649,7 +649,10 @@ class CodecJson(str: String) extends Codec {
         val newCodec = new CodecJson(resultString + ":")
         newCodec.setReaderIndex(readerIndex)
         newCodec
-      } else new CodecJson(resultString + ",")
+      } else {
+        str + ','
+        this
+      } //new CodecJson(resultString + ",")
     }
   }
 
