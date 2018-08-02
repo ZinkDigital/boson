@@ -570,6 +570,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = completeDuplicate
 
+  /**
+    * Method that decides if a CodecJson can be wrapped in curly braces or not.
+    * For CodecBson this method simply returns false
+    *
+    * @return A Boolean specifying if this codec can be wrapped in curly braces or not
+    */
   def wrappable: Boolean = false
 
   /**

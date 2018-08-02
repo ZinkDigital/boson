@@ -786,6 +786,12 @@ class CodecJson(str: String) extends Codec {
       new CodecJson(openBracket + "\"" + key + "\":" + str)
   }
 
+  /**
+    * Method that decides if a CodecJson can be wrapped in curly braces or not.
+    * For CodecBson this method simply returns false
+    *
+    * @return A Boolean specifying if this codec can be wrapped in curly braces or not
+    */
   def wrappable: Boolean = !str.charAt(0).equals(CS_OPEN_BRACKET)
 }
 

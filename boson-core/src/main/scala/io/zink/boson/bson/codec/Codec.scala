@@ -243,7 +243,7 @@ trait Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey(searchAndModify : Boolean = false): Boolean
+  def canReadKey(searchAndModify: Boolean = false): Boolean
 
   /**
     * Method that decides if the type of the current key is an array or not
@@ -273,6 +273,12 @@ trait Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec
 
+  /**
+    * Method that decides if a CodecJson can be wrapped in curly braces or not.
+    * For CodecBson this method simply returns false
+    *
+    * @return A Boolean specifying if this codec can be wrapped in curly braces or not
+    */
   def wrappable: Boolean
 }
 
@@ -309,7 +315,7 @@ sealed trait DefaultCodecs {
     }
   }
 
-  implicit object EitherCodec extends Codecs[Either[ByteBuf,String]] {
+  implicit object EitherCodec extends Codecs[Either[ByteBuf, String]] {
     override def applyFunc(arg: Either[ByteBuf, String]): Codec = arg match {
       case Left(byteBuf) => new CodecBson(byteBuf)
       case Right(jsonString) => new CodecJson(jsonString)
