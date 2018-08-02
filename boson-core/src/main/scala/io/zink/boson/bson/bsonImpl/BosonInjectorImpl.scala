@@ -907,12 +907,12 @@ private[bsonImpl] object BosonInjectorImpl {
                             val cToUse = c.addComma
                             if (codec.getDataType == 0) {
                               codec.skipChar(back = true)
-                              ((codecWithKey + cToUse, processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
+                              ((codecWithKey + cToUse, codecWithKeyCopy + partialCodec), exceptions)
                             } else {
                               codec.skipChar(back = true)
-                              ((codecWithKey + partialCodec.addComma, processTypesArray(dataType, codec.duplicate, codecWithKeyCopy)), exceptions)
+                              ((codecWithKey + partialCodec.addComma, codecWithKeyCopy + partialCodec.addComma), exceptions)
                             }
-                          case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKeyCopy), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                          case Failure(_) => ((codecWithKeyCopy + partialCodec, codecWithKeyCopy + partialCodec), exceptions + 1) //Todo - Change here?
                         }
                       case _ =>
                         ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
