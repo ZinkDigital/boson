@@ -540,7 +540,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey: Boolean = true
+  def canReadKey(searchAndModify : Boolean = false): Boolean = true
 
   /**
     * Method that decides if the type of the current key is an array or not
@@ -569,6 +569,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = completeDuplicate
+
+  def wrappable: Boolean = false
 
   /**
     * This private method duplicates the current codecs data structure and sets the reader and writer index accordingly

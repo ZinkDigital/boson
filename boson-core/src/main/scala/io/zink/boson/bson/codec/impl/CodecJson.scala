@@ -273,8 +273,8 @@ class CodecJson(str: String) extends Codec {
     while (!input(readerIndex).isDigit) {
       readerIndex += 1
     }
-     val strSliced = input.substring(readerIndex, inputSize)
-     val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
+    val strSliced = input.substring(readerIndex, inputSize)
+    val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
     val subStr1 = subStr.dropWhile(p => !p.isDigit)
@@ -734,7 +734,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey: Boolean = !str.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1
+  def canReadKey(searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !str.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1 else false
 
   /**
     * Method that decides if the type of the current key is an array or not
@@ -785,5 +785,7 @@ class CodecJson(str: String) extends Codec {
     else
       new CodecJson(openBracket + "\"" + key + "\":" + str)
   }
+
+  def wrappable: Boolean = !str.charAt(0).equals(CS_OPEN_BRACKET)
 }
 
