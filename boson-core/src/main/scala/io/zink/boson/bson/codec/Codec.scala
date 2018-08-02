@@ -243,7 +243,7 @@ trait Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey: Boolean
+  def canReadKey(searchAndModify : Boolean = false): Boolean
 
   /**
     * Method that decides if the type of the current key is an array or not
@@ -272,6 +272,8 @@ trait Codec {
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec
+
+  def wrappable: Boolean
 }
 
 sealed trait CodecFacade {

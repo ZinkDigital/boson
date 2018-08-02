@@ -48,7 +48,7 @@ private[bsonImpl] object BosonInjectorImpl {
           case 0 => writeCodec(codecWithDataType)
 
           case _ =>
-            val (codecWithKey, key) = if (codec.canReadKey) writeKeyAndByte(codec, codecWithDataType) else (codecWithDataType, "")
+            val (codecWithKey, key) = if (codec.canReadKey()) writeKeyAndByte(codec, codecWithDataType) else (codecWithDataType, "")
 
             key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
@@ -78,7 +78,10 @@ private[bsonImpl] object BosonInjectorImpl {
                           case SonArray(_, result) => anyToEither(result)
                         }
                         val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-                        val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
+                        val modifidSubCodecToUse = if(dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4) else modifiedSubCodec
+//                        val x = CodecObject.toCodec("[" + modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(1).dropRight(1) + "]")
+//                        val y = x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.length - 5)
+                        val subCodec = BosonImpl.inject(modifidSubCodecToUse.getCodecData, statementsList, injFunction)
                         codecWithKey + subCodec
 
                       case _ => processTypesAll(statementsList, dataType, codec, codecWithKey, fieldID, injFunction)
@@ -168,7 +171,7 @@ private[bsonImpl] object BosonInjectorImpl {
           case 0 => iterateDataStructure(codecWithDataType)
           case _ => //In case its not the end
 
-            val (codecWithKeyByte, key) = writeKeyAndByte(codec, codecWithDataType)
+            val (codecWithKeyByte, key) = if (codec.canReadKey()) writeKeyAndByte(codec, codecWithDataType) else (codecWithDataType, "")
 
             //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
             //or they're halfword's
@@ -183,7 +186,7 @@ private[bsonImpl] object BosonInjectorImpl {
               case _ =>
                 val processedCodec: Codec =
                   if (statementsList.head._2.contains(C_DOUBLEDOT))
-                    processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction)
+                    processTypesHasElem(statementsList, dataType, fieldID, elem, codec, codecWithKeyByte, injFunction, key)
                   else
                     processTypesArray(dataType, codec, codecWithKeyByte)
                 iterateDataStructure(processedCodec)
@@ -229,8 +232,8 @@ private[bsonImpl] object BosonInjectorImpl {
           case _ =>
             dataType match {
               case D_BSONOBJECT =>
-                val (codecWithKey, key) = writeKeyAndByte(codec, codecWithDataType)
-                val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info).wrapInBrackets(key = key)
+                val (codecWithKey, key) = if (codec.canReadKey(searchAndModify = true)) writeKeyAndByte(codec, codecWithDataType) else (codecWithDataType, "")
+                val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
                 if (hasElem(partialCodec.duplicate, elem)) {
                   if (statementsList.size == 1) {
 
@@ -351,10 +354,11 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of input and output of the injection function
     * @return a new Codec with the copied information
     */
-  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = dataType match {
+  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = dataType match {
     case D_BSONOBJECT =>
       val objectCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-      val modifiedCodec: Codec = modifyHasElem(statementsList, objectCodec, fieldID, elem, injFunction)
+      val objectCodecToUse: Codec = if (objectCodec.wrappable) objectCodec.wrapInBrackets(key = key) else objectCodec
+      val modifiedCodec: Codec = modifyHasElem(statementsList, objectCodecToUse, fieldID, elem, injFunction)
       resultCodec + modifiedCodec
 
     case D_BSONARRAY =>
