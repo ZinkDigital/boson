@@ -1011,7 +1011,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           }
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
-                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions + 1)
+                        ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), exceptions)
                     }
                   }
                 }
