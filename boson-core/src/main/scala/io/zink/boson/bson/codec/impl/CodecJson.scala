@@ -22,6 +22,7 @@ class CodecJson(str: String) extends Codec {
     */
   val input: StringBuilder = StringBuilder.newBuilder
   input.append(str)
+
   /**
     * inputSize is a constant with the size of the input
     * this constant is used several times along the code
@@ -609,50 +610,45 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
-    val duplicated: String = outCodecOpt.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-
-    if (ignoreForJson) new CodecJson(duplicated) else {
-      val resultString: String = token match {
-        case SonBoolean(_, info) => duplicated + info.asInstanceOf[Boolean]
+  override def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
+    if (ignoreForJson) this else {
+      token match {
+        case SonBoolean(_, info) => input.append(info.asInstanceOf[Boolean])
 
         case SonNumber(numberType, info) =>
           numberType match {
-            case CS_BYTE => duplicated + info.asInstanceOf[Byte]
+            case CS_BYTE => input.append(info.asInstanceOf[Byte])
 
-            case CS_INTEGER => duplicated + info.asInstanceOf[Int]
+            case CS_INTEGER => input.append(info.asInstanceOf[Int])
 
-            case CS_DOUBLE => duplicated + info.asInstanceOf[Double]
+            case CS_DOUBLE => input.append(info.asInstanceOf[Double])
 
-            case CS_FLOAT => duplicated + info.asInstanceOf[Float]
+            case CS_FLOAT => input.append(info.asInstanceOf[Float])
 
-            case CS_LONG => duplicated + info.asInstanceOf[Long]
+            case CS_LONG => input.append(info.asInstanceOf[Long])
 
           }
 
         case SonString(tokenString, info) => tokenString match {
-          case CS_STRING_NO_QUOTES => duplicated + info.asInstanceOf[CharSequence]
+          case CS_STRING_NO_QUOTES => input.append(info.asInstanceOf[CharSequence])
 
-          case _ => duplicated + "\"" + info.asInstanceOf[CharSequence] + "\""
+          case _ => input.append("\"" + info.asInstanceOf[CharSequence] + "\"")
         }
 
-        case SonArray(_, info) => duplicated + info.asInstanceOf[CharSequence]
+        case SonArray(_, info) => input.append(info.asInstanceOf[CharSequence])
 
         case SonObject(_, info) =>
           val writableInfo = info.asInstanceOf[CharSequence]
           val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
-          duplicated + infoToUse
+          input.append(infoToUse)
 
-        case SonNull(_, _) => duplicated + "null"
+        case SonNull(_, _) => input.append("null")
       }
-      if (isKey) {
-        val newCodec = new CodecJson(resultString + ":")
-        newCodec.setReaderIndex(readerIndex)
-        newCodec
-      } else {
-        str + ','
-        this
-      } //new CodecJson(resultString + ",")
+      if (isKey)
+        input.append(":")
+      else
+        input.append(',')
+      this
     }
   }
 
@@ -662,8 +658,8 @@ class CodecJson(str: String) extends Codec {
     * @return a duplicate of the codec's data structure
     */
   override def getCodecData: Either[ByteBuf, String] = {
-    val duplicate = str
-    Right(duplicate)
+//    val duplicate = str
+    Right(input.toString)
   }
 
   /**
@@ -686,7 +682,7 @@ class CodecJson(str: String) extends Codec {
     * @return a new codec that does not have the last trailing comma in it
     */
   def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = {
-    val codecString = str
+    val codecString = input
     val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
     val (openBracket, closedBracket) = if (!rectBrackets) ("{", "}") else ("[", "]")
     if (jsonString.charAt(jsonString.length - 1).equals(',')) {

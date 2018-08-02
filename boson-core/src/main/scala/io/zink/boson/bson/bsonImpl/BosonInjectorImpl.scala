@@ -78,9 +78,9 @@ private[bsonImpl] object BosonInjectorImpl {
                           case SonArray(_, result) => anyToEither(result)
                         }
                         val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-                        val modifidSubCodecToUse = if(dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4) else modifiedSubCodec
-//                        val x = CodecObject.toCodec("[" + modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(1).dropRight(1) + "]")
-//                        val y = x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.length - 5)
+                        val modifidSubCodecToUse = if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4) else modifiedSubCodec
+                        //                        val x = CodecObject.toCodec("[" + modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(1).dropRight(1) + "]")
+                        //                        val y = x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.length - 5)
                         val subCodec = BosonImpl.inject(modifidSubCodecToUse.getCodecData, statementsList, injFunction)
                         codecWithKey + subCodec
 
@@ -366,26 +366,29 @@ private[bsonImpl] object BosonInjectorImpl {
       resultCodec + arrayCodec
 
 
-    case D_FLOAT_DOUBLE => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+    case D_FLOAT_DOUBLE => resultCodec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
 
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
       val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-      val codecWithValue = codec.writeToken(createEmptyCodec(codec), SonString(CS_STRING, value0))
-      val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-      val codecWithZeroByte = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-      ((resultCodec + codecWithSize) + codecWithValue) + codecWithZeroByte
+      resultCodec.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+      resultCodec.writeToken(SonString(CS_STRING, value0))
+      resultCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+    //      val codecWithValue = createEmptyCodec(codec).writeToken(SonString(CS_STRING, value0))
+    //      val codecWithSize = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+    //      val codecWithZeroByte = codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+    //      ((resultCodec + codecWithSize) + codecWithValue) + codecWithZeroByte
 
-    case D_INT => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_INTEGER)))
+    case D_INT => resultCodec.writeToken(codec.readToken(SonNumber(CS_INTEGER)))
 
-    case D_LONG => codec.writeToken(resultCodec, codec.readToken(SonNumber(CS_LONG)))
+    case D_LONG => resultCodec.writeToken(codec.readToken(SonNumber(CS_LONG)))
 
     case D_BOOLEAN =>
       val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
         case byte: Byte => byte == 1
       }
-      codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN, value0))
+      resultCodec.writeToken(SonBoolean(CS_BOOLEAN, value0))
 
-    case D_NULL => codec.writeToken(resultCodec, codec.readToken(SonNull(CS_NULL)))
+    case D_NULL => resultCodec.writeToken(codec.readToken(SonNull(CS_NULL)))
   }
 
   /**
@@ -401,38 +404,41 @@ private[bsonImpl] object BosonInjectorImpl {
     dataType match {
       case D_ZERO_BYTE => currentResCodec
 
-      case D_FLOAT_DOUBLE => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+      case D_FLOAT_DOUBLE => currentResCodec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-        codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        currentResCodec.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+        currentResCodec.writeToken(SonString(CS_STRING, value0))
+        currentResCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+      //        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+      //        codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
 
       case D_BSONOBJECT =>
         val value0 = codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info match {
           case byteBuf: ByteBuf => byteBuf.array
           case jsonString: String => jsonString
         }
-        codec.writeToken(currentResCodec, SonObject(CS_OBJECT, value0))
+        currentResCodec.writeToken(SonObject(CS_OBJECT, value0))
 
       case D_BSONARRAY =>
         val value0 = codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info match {
           case byteBuff: ByteBuf => byteBuff.array
           case jsonString: String => jsonString
         }
-        codec.writeToken(currentResCodec, SonArray(CS_ARRAY, value0))
+        currentResCodec.writeToken(SonArray(CS_ARRAY, value0))
 
-      case D_NULL => codec.writeToken(currentResCodec, codec.readToken(SonNull(CS_NULL)))
+      case D_NULL => currentResCodec.writeToken(codec.readToken(SonNull(CS_NULL)))
 
-      case D_INT => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+      case D_INT => currentResCodec.writeToken(codec.readToken(SonNumber(CS_INTEGER)))
 
-      case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+      case D_LONG => currentResCodec.writeToken(codec.readToken(SonNumber(CS_LONG)))
 
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
           case byte: Byte => byte == 1
         }
-        codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value0))
+        currentResCodec.writeToken(SonBoolean(CS_BOOLEAN, value0))
     }
   }
 
@@ -450,45 +456,48 @@ private[bsonImpl] object BosonInjectorImpl {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
-        codec.writeToken(currentResCodec, SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
+        currentResCodec.writeToken(SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
         applyFunction(injFunction, value0) match {
           case valueAny: Any =>
             val value = valueAny.toString
-            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1), ignoreForJson = true)
-            codec.writeToken(strSizeCodec, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+            currentResCodec.writeToken(SonNumber(CS_INTEGER, value.length + 1), ignoreForJson = true)
+            currentResCodec.writeToken(SonString(CS_STRING, value))
+            currentResCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+          //            val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value.length + 1), ignoreForJson = true)
+          //            codec.writeToken(, SonString(CS_STRING, value)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
         }
 
       case D_BSONOBJECT =>
         codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
-          case byteBuf: ByteBuf => codec.writeToken(currentResCodec, SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
-          case str: String => codec.writeToken(currentResCodec, SonString(CS_STRING_NO_QUOTES, applyFunction(injFunction, str).asInstanceOf[String]))
+          case byteBuf: ByteBuf => currentResCodec.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
+          case str: String => currentResCodec.writeToken(SonString(CS_STRING_NO_QUOTES, applyFunction(injFunction, str).asInstanceOf[String]))
         }
 
       case D_BSONARRAY =>
         codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
-          case byteBuf: ByteBuf => codec.writeToken(currentResCodec, SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
+          case byteBuf: ByteBuf => currentResCodec.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
 
-          case str: String => codec.writeToken(currentResCodec, SonString(CS_STRING_NO_QUOTES, applyFunction(injFunction, str).asInstanceOf[String]))
+          case str: String => currentResCodec.writeToken(SonString(CS_STRING_NO_QUOTES, applyFunction(injFunction, str).asInstanceOf[String]))
         }
 
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
           case byte: Byte => byte == 1
         }
-        codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
+        currentResCodec.writeToken(SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
 
       case D_NULL => throw CustomException(s"NULL field. Can not be changed")
 
       case D_INT =>
         val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info.asInstanceOf[Int]
-        codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
+        currentResCodec.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
 
       case D_LONG =>
         val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info.asInstanceOf[Long]
-        codec.writeToken(currentResCodec, SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
+        currentResCodec.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
     }
   }
 
@@ -511,62 +520,66 @@ private[bsonImpl] object BosonInjectorImpl {
       val resCodec = applyFunction(injFunction, value0) match {
         case value: Any => //This Any is exclusively either String or Instant
           val str = value.toString
-          val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1), ignoreForJson = true)
-          codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+          codecRes.writeToken(SonNumber(CS_INTEGER, str.length + 1), ignoreForJson = true)
+          codecRes.writeToken(SonString(CS_STRING, str))
+          codecRes.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        //          val strSizeCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, str.length + 1), ignoreForJson = true)
+        //          codec.writeToken(strSizeCodec, SonString(CS_STRING, str)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
       }
-      val strSizeCodec = codec.writeToken(codecResCopy, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-      val resCodecCopy = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + codec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-      (resCodec, resCodecCopy)
+      codecResCopy.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+      codecResCopy.writeToken(SonString(CS_STRING, value0))
+      codecResCopy.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+      (resCodec, codecResCopy)
 
     case D_BSONOBJECT =>
       val token = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
-      val resCodecCopy = codec.writeToken(codecResCopy, token)
+      val resCodecCopy = codecResCopy.writeToken(token)
       val resCodec: Codec = token.asInstanceOf[SonObject].info match {
-        case byteBuf: ByteBuf => codec.writeToken(codecRes, SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
+        case byteBuf: ByteBuf => codecRes.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
 
-        case str: String => codec.writeToken(codecRes, SonString(CS_STRING, applyFunction(injFunction, str).asInstanceOf[String]))
+        case str: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, str).asInstanceOf[String]))
       }
       (resCodec, resCodecCopy)
 
     case D_BSONARRAY =>
       val token = codec.readToken(SonArray(CS_ARRAY))
-      val resCodecCopy = codec.writeToken(codecResCopy, token)
-      val resCodec = token.asInstanceOf[SonArray].info match {
-        case byteArr: Array[Byte] => codec.writeToken(codecRes, SonArray(CS_ARRAY, applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]))
+      codecResCopy.writeToken(token)
+      token.asInstanceOf[SonArray].info match {
+        case byteArr: Array[Byte] => codecRes.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]))
 
-        case jsonString: String => codec.writeToken(codecRes, SonString(CS_STRING, applyFunction(injFunction, jsonString).asInstanceOf[String]))
+        case jsonString: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, jsonString).asInstanceOf[String]))
       }
-      (resCodec, resCodecCopy)
+      (codecRes, codecResCopy)
 
     case D_BOOLEAN =>
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
       val value0: Boolean = token.asInstanceOf[SonBoolean].info match {
         case byte: Byte => byte == 1
       }
-      val resCodec = codec.writeToken(codecRes, SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
-      val resCodecCopy = codec.writeToken(codecResCopy, token)
-      (resCodec, resCodecCopy)
+      codecRes.writeToken(SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
+      codecResCopy.writeToken(token)
+      (codecRes, codecResCopy)
 
     case D_FLOAT_DOUBLE =>
       val token = codec.readToken(SonNumber(CS_DOUBLE))
       val value0: Double = token.asInstanceOf[SonNumber].info.asInstanceOf[Double]
-      val resCodec = codec.writeToken(codecRes, SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
-      val resCodecCopy = codec.writeToken(codecResCopy, token)
-      (resCodec, resCodecCopy)
+      codecRes.writeToken(SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
+      codecResCopy.writeToken(token)
+      (codecRes, codecResCopy)
 
     case D_INT =>
       val token = codec.readToken(SonNumber(CS_INTEGER))
       val value0: Int = token.asInstanceOf[SonNumber].asInstanceOf[Int]
-      val resCodec = codec.writeToken(codecRes, SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
-      val resCodecCopy = codec.writeToken(codecResCopy, token)
-      (resCodec, resCodecCopy)
+      codecRes.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
+      codecResCopy.writeToken(token)
+      (codecRes, codecResCopy)
 
     case D_LONG =>
       val token = codec.readToken(SonNumber(CS_LONG))
       val value0: Long = token.asInstanceOf[SonNumber].asInstanceOf[Long]
-      val resCodec = codec.writeToken(codecRes, SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
-      val resCodecCopy = codec.writeToken(codecResCopy, token)
-      (resCodec, resCodecCopy)
+      codecRes.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
+      codecResCopy.writeToken(token)
+      (codecRes, codecResCopy)
 
     case D_NULL => throw CustomException(s"NULL field. Can not be changed")
   }
@@ -589,8 +602,9 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-        val strSizeCodec = codec.writeToken(currentResCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-        codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        currentResCodec.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+        currentResCodec.writeToken(SonString(CS_STRING, value0))
+        currentResCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
 
       case D_BSONOBJECT =>
         val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
@@ -600,19 +614,19 @@ private[bsonImpl] object BosonInjectorImpl {
         val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
         currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
 
-      case D_INT => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_INTEGER)))
+      case D_INT => currentResCodec.writeToken(codec.readToken(SonNumber(CS_INTEGER)))
 
-      case D_FLOAT_DOUBLE => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_DOUBLE)))
+      case D_FLOAT_DOUBLE => currentResCodec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
 
-      case D_LONG => codec.writeToken(currentResCodec, codec.readToken(SonNumber(CS_LONG)))
+      case D_LONG => currentResCodec.writeToken(codec.readToken(SonNumber(CS_LONG)))
 
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
           case byte: Byte => byte == 1
         }
-        codec.writeToken(currentResCodec, SonBoolean(CS_BOOLEAN, value0))
+        currentResCodec.writeToken(SonBoolean(CS_BOOLEAN, value0))
 
-      case D_NULL => codec.writeToken(currentResCodec, codec.readToken(SonNull(CS_NULL)))
+      case D_NULL => currentResCodec.writeToken(codec.readToken(SonNull(CS_NULL)))
     }
   }
 
@@ -799,7 +813,7 @@ private[bsonImpl] object BosonInjectorImpl {
         (currentCodec, currentCodecCopy, exceptions)
       else {
         val (dataType, codecWithDataType) = readWriteDataType(codec, currentCodec, formerType)
-        val codecWithDataTypeCopy = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+        val codecWithDataTypeCopy = currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         dataType match {
           case 0 => iterateDataStructure(codecWithDataType, codecWithDataTypeCopy, exceptions)
 
@@ -812,11 +826,11 @@ private[bsonImpl] object BosonInjectorImpl {
             }
             val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
 
-            val codecWithoutKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key), ignoreForJson = true)
-            val codecWithKey = codec.writeToken(codecWithoutKey, SonNumber(CS_BYTE, b), ignoreForJson = true)
+            val codecWithoutKey = codecWithDataType.writeToken(SonString(CS_STRING, key), ignoreForJson = true)
+            val codecWithKey = codecWithoutKey.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
 
-            val codecWithoutKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key), ignoreForJson = true)
-            val codecWithKeyCopy = codec.writeToken(codecWithoutKeyCopy, SonNumber(CS_BYTE, b), ignoreForJson = true)
+            val codecWithoutKeyCopy = codecWithDataTypeCopy.writeToken(SonString(CS_STRING, key), ignoreForJson = true)
+            val codecWithKeyCopy = codecWithoutKeyCopy.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
 
             val isArray = codec.isArray(formerType, key)
 
@@ -998,7 +1012,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         if (exceptions == 0) {
                           val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                           val partialToUse = partialCodec.addComma
-                          val stateToUse = if(statementsList.head._2.contains(C_DOUBLEDOT)) statementsList else statementsList.drop(1)
+                          val stateToUse = if (statementsList.head._2.contains(C_DOUBLEDOT)) statementsList else statementsList.drop(1)
                           Try(BosonImpl.inject(partialCodec.getCodecData, stateToUse, injFunction)) match {
                             case Success(c) =>
                               val cToUse = c.addComma
@@ -1161,8 +1175,8 @@ private[bsonImpl] object BosonInjectorImpl {
                     case Right(_) =>
                       codec.skipChar(back = true)
                       val key = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
-                      val codecAux = codec.writeToken(codecWithKey, SonString(CS_STRING, key), isKey = true)
-                      val codecAuxCopy = codec.writeToken(codecWithKeyCopy, SonString(CS_STRING, key), isKey = true)
+                      val codecAux = codecWithKey.writeToken(SonString(CS_STRING, key), isKey = true)
+                      val codecAuxCopy = codecWithKeyCopy.writeToken(SonString(CS_STRING, key), isKey = true)
 
                       val processedCodec = processTypesArray(dataType, codec.duplicate, codecAux)
                       val processedCodecCopy = processTypesArray(dataType, codec, codecAuxCopy)
@@ -1236,15 +1250,22 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_FLOAT_DOUBLE =>
         val token = codec.readToken(SonNumber(CS_DOUBLE))
-        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+        (resultCodec.writeToken(token), resultCodecCopy.writeToken(token))
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-        val strSizeCodec = codec.writeToken(resultCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-        val strSizeCodecCopy = codec.writeToken(resultCodecCopy, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-        val codecWithLastByte = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-        val codecWithLastByteCopy = codec.writeToken(strSizeCodecCopy, SonString(CS_STRING, value0)) + strSizeCodecCopy.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-        (codecWithLastByte, codecWithLastByteCopy)
+        resultCodec.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+        resultCodec.writeToken(SonString(CS_STRING, value0))
+        resultCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+
+        resultCodecCopy.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+        resultCodecCopy.writeToken(SonString(CS_STRING, value0))
+        resultCodecCopy.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        //        val strSizeCodec = codec.writeToken(resultCodec, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+        //        val strSizeCodecCopy = codec.writeToken(resultCodecCopy, SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+        //        val codecWithLastByte = codec.writeToken(strSizeCodec, SonString(CS_STRING, value0)) + strSizeCodec.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        //        val codecWithLastByteCopy = codec.writeToken(strSizeCodecCopy, SonString(CS_STRING, value0)) + strSizeCodecCopy.writeToken(createEmptyCodec(codec), SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        (resultCodec, resultCodecCopy)
 
       case D_BSONOBJECT =>
         val codecObj = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
@@ -1259,21 +1280,21 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_NULL =>
         val nullValue = codec.readToken(SonNull(CS_NULL)).asInstanceOf[SonNull].info
-        (codec.writeToken(resultCodec, SonNull(CS_NULL)), codec.writeToken(resultCodecCopy, SonNull(CS_NULL)))
+        (resultCodec.writeToken(SonNull(CS_NULL)), resultCodecCopy.writeToken(SonNull(CS_NULL)))
 
       case D_INT =>
         val token = codec.readToken(SonNumber(CS_INTEGER))
-        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+        (resultCodec.writeToken(token), resultCodecCopy.writeToken(token))
 
       case D_LONG =>
         val token = codec.readToken(SonNumber(CS_LONG))
-        (codec.writeToken(resultCodec, token), codec.writeToken(resultCodecCopy, token))
+        (resultCodec.writeToken(token), resultCodecCopy.writeToken(token))
 
       case D_BOOLEAN =>
         val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
           case byte: Byte => byte == 1
         }
-        (codec.writeToken(resultCodec, SonBoolean(CS_BOOLEAN, value0)), codec.writeToken(resultCodecCopy, SonBoolean(CS_BOOLEAN, value0)))
+        (resultCodec.writeToken(SonBoolean(CS_BOOLEAN, value0)), resultCodecCopy.writeToken(SonBoolean(CS_BOOLEAN, value0)))
     }
   }
 
@@ -1311,18 +1332,18 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
       else {
         val (dataType, codecWithDataType) = readWriteDataType(codec, currentCodec)
-        val codecWithDataTypeCopy: Codec = codec.writeToken(currentCodecCopy, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+        val codecWithDataTypeCopy: Codec = currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         val (codecTo, codecUntil): (Codec, Codec) = dataType match {
           case 0 => (codecWithDataType, codecWithDataTypeCopy)
           case _ =>
             val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
             val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
 
-            val codecWithKey = codec.writeToken(codecWithDataType, SonString(CS_STRING, key), isKey = true)
-            val resCodec = codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), ignoreForJson = true)
+            val codecWithKey = codecWithDataType.writeToken(SonString(CS_STRING, key), isKey = true)
+            val resCodec = codecWithKey.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
 
-            val codecWithKeyCopy = codec.writeToken(codecWithDataTypeCopy, SonString(CS_STRING, key), isKey = true)
-            val resCodecCopy = codec.writeToken(codecWithKeyCopy, SonNumber(CS_BYTE, b), ignoreForJson = true)
+            val codecWithKeyCopy = codecWithDataTypeCopy.writeToken(SonString(CS_STRING, key), isKey = true)
+            val resCodecCopy = codecWithKeyCopy.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
 
             key match {
               //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
@@ -1409,8 +1430,9 @@ private[bsonImpl] object BosonInjectorImpl {
   private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
     val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
     val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
-    val codecWithKey = codec.writeToken(writableCodec, SonString(CS_STRING, key), isKey = true)
-    (codec.writeToken(codecWithKey, SonNumber(CS_BYTE, b), ignoreForJson = true), key)
+    writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
+    writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+    (writableCodec, key)
   }
 
   /**
@@ -1560,7 +1582,7 @@ private[bsonImpl] object BosonInjectorImpl {
     */
   private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec) = {
     val dataType: Int = codec.readDataType(formerType)
-    val codecWithDataType = codec.writeToken(writeCodec, SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
-    (dataType, codecWithDataType)
+    writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+    (dataType, writeCodec)
   }
 }
