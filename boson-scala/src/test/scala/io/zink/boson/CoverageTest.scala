@@ -2044,7 +2044,6 @@ class CoverageTest extends FunSuite {
       Book(in.name, in.pages + 100)
     })
     val bsonEncoded = storeBson.encodeToBarray
-    println(bsonEncoded.mkString(" "))
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
     assertArrayEquals(resultValue, storeBsonExpected.encodeToBarray())
@@ -2096,7 +2095,6 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = booksArr.encodeToBarray
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(resultValue.mkString(" "))
     assertArrayEquals(resultValue, booksExpected)
   }
 
@@ -2170,7 +2168,6 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = booksArr.encodeToBarray
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(resultValue.mkString(" "))
     assertArrayEquals(resultValue, booksExpected)
   }
 
@@ -2182,7 +2179,6 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = booksArr.encodeToBarray
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(resultValue.mkString(" "))
     assertArrayEquals(resultValue, booksExpected.encodeToBarray())
   }
 
@@ -2653,8 +2649,6 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToString()
     val future = jsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
-    println(resultValue)
-    println(bsonExpected.encodeToString())
     assert(resultValue.equals(bsonExpected.encodeToString()))
   }
 
@@ -3445,8 +3439,6 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(storeBson.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
-    println(resultValue)
-    println(storeBsonExpected.encodeToString)
     assert(resultValue.equals(storeBsonExpected.encodeToString))
   }
 
@@ -3462,8 +3454,6 @@ class CoverageTest extends FunSuite {
 
     val future = jsonInj.go(storeBson.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
-    println(resultValue)
-    println(storeBsonExpected.encodeToString)
     assert(resultValue.equals(storeJsonExpected.encodeToString))
   }
 
@@ -3946,7 +3936,6 @@ class CoverageTest extends FunSuite {
     val jsonInj = Boson.injector(expr, (in: String) => {
       in.toUpperCase
     })
-    println(bsonSpeciesObj.encodeToString)
     val future = jsonInj.go(bsonSpeciesObj.encodeToString)
     val result: String = Await.result(future, Duration.Inf)
     assert(result equals expectedEncoded)
@@ -4314,8 +4303,6 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(json.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
-    println(resultValue)
-    println(jsonExpected.encodeToString)
     assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
@@ -4707,8 +4694,6 @@ class CoverageTest extends FunSuite {
 
     val future = jsonInj.go(persons.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
-    println(resultValue)
-    println(personsExpected.encodeToString)
     assert(resultValue.equals(personsExpected.encodeToString))
   }
 
