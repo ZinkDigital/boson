@@ -893,14 +893,14 @@ private[bsonImpl] object BosonInjectorImpl {
       *
       * @param currentCodec     - The codec where we right the values of the processed data
       * @param currentCodecCopy - An Auxiliary codec to where we write the values in case the previous cycle was the last one
-      * @return a codec pair with the modifications made and the amount of exceptions that occured
+      * @return a codec pair with the modifications made and the amount of exceptions that occurred
       */
     def iterateDataStructure(currentCodec: Codec, currentCodecCopy: Codec): (Codec, Codec) = {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize)
         (currentCodec, currentCodecCopy)
       else {
-        val (dataType, codecWithDataType) = readWriteDataType(codec, currentCodec, formerType)
-        val codecWithDataTypeCopy = currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+        val (dataType, _) = readWriteDataType(codec, currentCodec, formerType)
+        currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         dataType match {
           case 0 => iterateDataStructure(currentCodec, currentCodecCopy)
 
@@ -1060,7 +1060,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       case _ =>
                         Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
                           case Success(tuple) => tuple
-                          case Failure(_) => (currentCodec, currentCodec)
+                          case Failure(_) => (currentCodec, currentCodecCopy)
                         }
                     }
                   } else {
@@ -1140,7 +1140,7 @@ private[bsonImpl] object BosonInjectorImpl {
                               }
                             } else (currentCodec + cToUse, currentCodecCopy + partialToUse)
 
-                          case Failure(_) => (currentCodec, currentCodec)
+                          case Failure(_) => (currentCodec, currentCodecCopy)
                         }
                       case _ =>
                         (processTypesArray(dataType, codec.duplicate, currentCodec), processTypesArray(dataType, codec, currentCodecCopy))
@@ -1195,7 +1195,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       case _ =>
                         Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
                           case Success(tuple) => tuple
-                          case Failure(_) => (currentCodec, currentCodec)
+                          case Failure(_) => (currentCodec, currentCodecCopy)
                         }
                     }
                   } else {
@@ -1212,7 +1212,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       case _ =>
                         Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
                           case Success(tuple) => tuple
-                          case Failure(_) => (currentCodec, currentCodec)
+                          case Failure(_) => (currentCodec, currentCodecCopy)
                         }
                     }
                   }
@@ -1278,11 +1278,11 @@ private[bsonImpl] object BosonInjectorImpl {
                     case Right(_) =>
                       codec.skipChar(back = true)
                       val key = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
-                      val codecAux = currentCodec.writeToken(SonString(CS_STRING, key), isKey = true)
-                      val codecAuxCopy = currentCodecCopy.writeToken(SonString(CS_STRING, key), isKey = true)
+                      currentCodec.writeToken(SonString(CS_STRING, key), isKey = true)
+                      currentCodecCopy.writeToken(SonString(CS_STRING, key), isKey = true)
 
-                      val processedCodec = processTypesArray(dataType, codec.duplicate, codecAux)
-                      val processedCodecCopy = processTypesArray(dataType, codec, codecAuxCopy)
+                      val processedCodec = processTypesArray(dataType, codec.duplicate, currentCodec)
+                      val processedCodecCopy = processTypesArray(dataType, codec, currentCodecCopy)
 
                       codec.skipChar() // Skip the comma written
 
@@ -1416,6 +1416,7 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((codec.getReaderIndex - startReaderIndex) >= originalSize) (currentCodec, currentCodecCopy)
       else {
         val (dataType, codecWithDataType) = readWriteDataType(codec, currentCodec)
+
         val codecWithDataTypeCopy = currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
         val (codecTo, codecUntil): (Codec, Codec) = dataType match {
           case 0 => (currentCodec, currentCodecCopy)
