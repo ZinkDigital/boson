@@ -531,7 +531,7 @@ class CodecJson(str: String) extends Codec {
     * @return a new duplicate Codec
     */
   override def duplicate: Codec = {
-    val newCodec = new CodecJson(str)
+    val newCodec = new CodecJson(input.toString)
     newCodec.setReaderIndex(readerIndex)
     newCodec.setWriterIndex(writerIndex)
     newCodec
@@ -657,10 +657,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a duplicate of the codec's data structure
     */
-  override def getCodecData: Either[ByteBuf, String] = {
-//    val duplicate = str
-    Right(input.toString)
-  }
+  override def getCodecData: Either[ByteBuf, String] = Right(input.toString)
 
   /**
     *
@@ -668,10 +665,8 @@ class CodecJson(str: String) extends Codec {
     * @return
     */
   override def +(sumCodec: Codec): Codec = {
-    val sum = sumCodec.getCodecData match {
-      case Right(jsonString) => jsonString
-    }
-    new CodecJson(str + sum)
+    val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+    new CodecJson(input.append(sum).toString)
   }
 
   /**
@@ -713,7 +708,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
-  def addComma: Codec = new CodecJson(str + ",")
+  def addComma: Codec = new CodecJson(input.toString + ",")
 
   /**
     * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
@@ -733,7 +728,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey(searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !str.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1 else false
+  def canReadKey(searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1 else false
 
   /**
     * Method that decides if the type of the current key is an array or not
@@ -755,11 +750,11 @@ class CodecJson(str: String) extends Codec {
     if (curlyToRect) {
       if (dataType == D_BSONOBJECT) duplicate
       else {
-        val auxStr: String = str
+        val auxStr: String = input.toString
         CodecObject.toCodec("[" + auxStr.substring(1, auxStr.length - 1) + "]")
       }
     } else {
-      val jsonString = str
+      val jsonString = input.toString
       val strAux =
         if (dataType == 3 && jsonString.charAt(0) == '[')
           "{" + jsonString.substring(1, jsonString.length - 1) + "},"
@@ -778,11 +773,10 @@ class CodecJson(str: String) extends Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = {
     val (openBracket, closeBracket) = if (rectBracket) ("[", "]") else ("{", "}")
-    val jsonString = str
     if (key.isEmpty)
-      new CodecJson(openBracket + str + closeBracket)
+      new CodecJson(openBracket + input.toString + closeBracket)
     else
-      new CodecJson(openBracket + "\"" + key + "\":" + str)
+      new CodecJson(openBracket + "\"" + key + "\":" + input.toString)
   }
 
   /**
@@ -791,6 +785,6 @@ class CodecJson(str: String) extends Codec {
     *
     * @return A Boolean specifying if this codec can be wrapped in curly braces or not
     */
-  def wrappable: Boolean = !str.charAt(0).equals(CS_OPEN_BRACKET)
+  def wrappable: Boolean = !input.toString.charAt(0).equals(CS_OPEN_BRACKET)
 }
 
