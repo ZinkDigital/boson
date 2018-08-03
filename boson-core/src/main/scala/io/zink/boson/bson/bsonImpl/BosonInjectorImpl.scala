@@ -859,10 +859,10 @@ private[bsonImpl] object BosonInjectorImpl {
 
                         if (codec.getDataType == 0) {
                           codec.skipChar(back = true)
-                          ((codecWithKey + subPartial.addComma, codecWithKeyCopy + partialCodecToUse), 0)
+                          (codecWithKey + subPartial.addComma, codecWithKeyCopy + partialCodecToUse)
                         } else {
                           codec.skipChar(back = true)
-                          ((codecWithKey + partialCodecToUse, codecWithKeyCopy + partialCodecToUse), 0)
+                          (codecWithKey + partialCodecToUse, codecWithKeyCopy + partialCodecToUse)
                         }
                       case _ =>
                         Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy.duplicate)) match {
@@ -997,9 +997,9 @@ private[bsonImpl] object BosonInjectorImpl {
                             }
                             else {
                               codec.skipChar(back = true)
-                              ((codecWithKey + partialCodec.addComma, codecWithKeyCopy + changedInsideCodec.addComma), exceptions)
+                              (codecWithKey + partialCodec.addComma, codecWithKeyCopy + changedInsideCodec.addComma)
                             }
-                          } else ((codecWithKey + changedInsideCodec.addComma, codecWithKeyCopy + partialCodec.addComma), exceptions)
+                          } else (codecWithKey + changedInsideCodec.addComma, codecWithKeyCopy + partialCodec.addComma)
                         case _ =>
                           Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey.duplicate)) match {
                             case Success(tuple) => tuple
@@ -1028,13 +1028,13 @@ private[bsonImpl] object BosonInjectorImpl {
                               if (condition equals UNTIL_RANGE) {
                                 if (codec.getDataType == 0) {
                                   codec.skipChar(back = true)
-                                  ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), 0)
+                                  (codecWithKey + partialToUse, codecWithKeyCopy + partialToUse)
                                 } else {
                                   codec.skipChar(back = true)
-                                  ((codecWithKey + partialToUse, codecWithKeyCopy + c.addComma), 0)
+                                  (codecWithKey + partialToUse, codecWithKeyCopy + c.addComma)
                                 }
-                              } else ((codecWithKey + c.addComma, codecWithKeyCopy + partialToUse), 0)
-                            case Failure(_) => ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), 1)
+                              } else (codecWithKey + c.addComma, codecWithKeyCopy + partialToUse)
+                            case Failure(_) => (codecWithKey + partialToUse, codecWithKeyCopy + partialToUse)
                           }
                         } else (codecWithKey, codecWithKeyCopy)
 
