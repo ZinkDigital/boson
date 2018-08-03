@@ -315,6 +315,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   override def duplicate: Codec = {
     val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
     newB.readerIndex(buff.readerIndex)
+    newB.writerIndex(buff.writerIndex)
     new CodecBson(arg, Some(newB))
   }
 

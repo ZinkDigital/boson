@@ -859,7 +859,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         val partialCodecToUse = partialCodec.addComma
                         ((codecWithKeyCopy + subPartialToUse, codecWithKeyCopy + partialCodecToUse), 0)
                       case _ =>
-                        Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
+                        Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy.duplicate)) match {
                           case Success(tuple) => (tuple, 0)
                           case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
                         }
@@ -876,7 +876,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           case Failure(_) => ((processTypesArray(dataType, codec.duplicate, codecWithKey), processTypesArray(dataType, codec, codecWithKeyCopy)), 1)
                         }
                       case _ =>
-                        Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy)) match {
+                        Try(modifierEnd(codec, dataType, injFunction, codecWithKeyCopy, codecWithKeyCopy.duplicate)) match {
                           case Success(tuple) => (tuple, 0)
                           case Failure(_) => ((codecWithKey, codecWithKeyCopy), 1)
                         }
@@ -962,7 +962,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         }
                       case _ =>
                         if (exceptions == 0)
-                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey.duplicate)) match {
                             case Success(tuple) => (tuple, exceptions)
                             case Failure(_) => ((codecWithKey, codecWithKey), exceptions + 1)
                           }
@@ -976,7 +976,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           val interiorObjCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                           ((codecWithKey + interiorObjCodec.addComma, codecWithKey + partialCodec.addComma), exceptions)
                         case _ =>
-                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey.duplicate)) match {
                             case Success(tuple) => (tuple, exceptions)
                             case Failure(_) => ((codecWithKey, codecWithKey), exceptions + 1)
                           }
@@ -1083,7 +1083,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         } else ((codecWithKey, codecWithKeyCopy), exceptions + 1)
                       case _ =>
                         if (exceptions == 0) {
-                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey)) match {
+                          Try(modifierEnd(codec, dataType, injFunction, codecWithKey, codecWithKey.duplicate)) match {
                             case Success(tuple) => (tuple, exceptions)
                             case Failure(_) => ((codecWithKey, codecWithKey), exceptions + 1)
                           }
