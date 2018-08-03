@@ -1055,9 +1055,9 @@ private[bsonImpl] object BosonInjectorImpl {
                                   ((codecWithKey + partialToUse, codecWithKeyCopy + partialToUse), exceptions)
                                 } else {
                                   codec.skipChar(back = true)
-                                  ((processTypesArray(dataType, codec.duplicate, codecWithKey), codecWithKey + cToUse), exceptions)
+                                  ((codecWithKey + partialToUse, codecWithKeyCopy + cToUse), exceptions)
                                 }
-                              } else ((codecWithKey + cToUse, processTypesArray(dataType, codec.duplicate, codecWithKey)), exceptions)
+                              } else ((codecWithKey + cToUse, codecWithKeyCopy + partialToUse), exceptions)
 
                             case Failure(_) => ((codecWithKey, codecWithKey), exceptions + 1)
                           }
