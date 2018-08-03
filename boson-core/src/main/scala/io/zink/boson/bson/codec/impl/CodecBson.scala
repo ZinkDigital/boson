@@ -485,6 +485,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     }
     duplicated.capacity(duplicated.writerIndex())
     new CodecBson(arg, Some(duplicated))
+
+//    sumCodec.setReaderIndex(0)
+//    buff.writerIndex(buff.writerIndex())
+//    sumCodec.getCodecData match {
+//      case Left(x) => buff.writeBytes(x)
+//    }
+//    buff.capacity(buff.writerIndex())
+//    this
   }
 
   /**
