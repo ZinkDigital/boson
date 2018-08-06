@@ -7,7 +7,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-import io.zink.boson.bson.bsonImpl.BosonInjectorImpl._
+
 import io.zink.bsonLib.BsonObject
 
 import scala.util.{Failure, Success, Try}

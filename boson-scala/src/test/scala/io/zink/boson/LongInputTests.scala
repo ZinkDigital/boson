@@ -55,7 +55,6 @@ class LongInputTests extends FunSuite {
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
-    println()
     assertEquals(3, mutableBuffer.size)
   }
 

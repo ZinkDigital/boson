@@ -30,8 +30,6 @@ class codecs extends FunSuite {
     val expression: String = "."
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(validatedByteArray, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -45,8 +43,6 @@ class codecs extends FunSuite {
     val expression: String = "."
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(json, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -61,8 +57,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -75,8 +69,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -91,8 +83,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Double) => {
       assert(3.0 == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -105,8 +95,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: Double) => {
       assert(3.0 == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -121,8 +109,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Long) => {
       assert(30000000000000000L == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -134,10 +120,7 @@ class codecs extends FunSuite {
 
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: Long) => {
-
       assert(30000000000000000L == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -152,8 +135,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -167,8 +148,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Boolean) => {
 
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -183,8 +162,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -196,10 +173,7 @@ class codecs extends FunSuite {
 
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: Boolean) => {
-
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -214,8 +188,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: String) => {
       assert(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -229,8 +201,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assert(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -245,8 +215,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: String) => {
       assert(in.equals("notNull"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -260,8 +228,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assert(in.equals("notNull"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -277,8 +243,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assert(new String(in).equals("notNull"))
-      println(s"in: ${new String(in)}")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -292,8 +256,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Array[Byte]) => {
 
       assert(new String(in).equals("notNull"))
-      println(s"in: ${new String(in)}")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -309,8 +271,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Instant) => {
       assert(in.equals(inst))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -324,8 +284,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Instant) => {
 
       assert(in.equals(inst))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -340,8 +298,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new bsonLib.BsonObject(new JsonObject().put("key", "value")).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -355,8 +311,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assertEquals(in,"""{"key":"value"}""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -371,8 +325,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonArray(new JsonArray().add("key").add("value")).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -385,8 +337,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(in,"""["key","value"]""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -401,8 +351,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(4, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -415,8 +363,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(4, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -431,8 +377,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Double) => {
       assert(4.0 == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -445,8 +389,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val joson = Boson.extractor(expression, (in: Double) => {
       assert(4.0 == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -461,8 +403,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Long) => {
       assert(30000000000000000L == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -476,8 +416,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Long) => {
 
       assert(30000000000000000L == in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -492,8 +430,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -507,8 +443,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Boolean) => {
 
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -523,8 +457,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -538,8 +470,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Boolean) => {
 
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -554,8 +484,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: String) => {
       assert(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -569,8 +497,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assert(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -585,8 +511,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: String) => {
       assert(in.equals("notNull"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -600,8 +524,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assert(in.equals("someNull"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -617,8 +539,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assert(new String(in).equals("notNull"))
-      println(s"in: ${new String(in)}")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -633,8 +553,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Array[Byte]) => {
 
       assert(new String(in).equals("notNull"))
-      println(s"in: ${new String(in)}")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -650,8 +568,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Instant) => {
       assert(in.equals(inst))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -666,8 +582,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: Instant) => {
 
       assert(in.equals(inst))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -682,8 +596,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new bsonLib.BsonObject(new JsonObject().put("key", "value")).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -697,8 +609,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assertEquals(in,"""{"key":"value"}""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -713,8 +623,6 @@ class codecs extends FunSuite {
     val expression: String = ".EpochX"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonArray(new JsonArray().add("key").add("value")).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -728,8 +636,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assertEquals(in,"""["key","value"]""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -745,8 +651,6 @@ class codecs extends FunSuite {
     val expression: String = "."
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(validatedByteArray, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -759,8 +663,6 @@ class codecs extends FunSuite {
     val expression: String = "."
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(json, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -775,8 +677,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -789,8 +689,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -805,8 +703,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Double) => {
       assertTrue(3.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -819,8 +715,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Double) => {
       assertTrue(3.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -835,8 +729,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Long) => {
       assertTrue(300000000000000000L === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -849,8 +741,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Long) => {
       assertTrue(300000000000000000L === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -865,8 +755,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -879,8 +767,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -895,8 +781,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -909,8 +793,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -925,8 +807,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -939,8 +819,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -955,8 +833,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Epoch"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -969,8 +845,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Epoch"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -986,8 +860,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, bytes)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1000,8 +872,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, bytes)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1017,8 +887,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(in, instant)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1031,8 +899,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(in, instant)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1048,8 +914,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonObject().put("Epoch", 3).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1062,8 +926,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(in, """{"Epoch":3}""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1079,8 +941,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonArray().add("Epoch").add(3).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1093,8 +953,6 @@ class codecs extends FunSuite {
     val expression: String = ".[0]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(in, """["Epoch",3]""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1109,8 +967,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1123,8 +979,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1139,8 +993,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Double) => {
       assertTrue(3.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1153,8 +1005,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Double) => {
       assertTrue(3.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1169,8 +1020,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Long) => {
       assertTrue(300000000000000000L === in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1183,8 +1033,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Long) => {
       assertTrue(300000000000000000L === in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1199,8 +1048,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1213,8 +1061,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1229,8 +1076,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1243,8 +1089,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertTrue(!in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1259,8 +1103,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1273,8 +1115,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Null"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1289,8 +1129,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Epoch"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1303,8 +1141,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertTrue(in.equals("Epoch"))
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1321,8 +1157,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, bytes)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1336,8 +1170,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, bytes)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1354,8 +1186,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(in, instant)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1369,8 +1199,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(in, instant)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1386,8 +1214,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonObject().put("Epoch", 3).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1400,8 +1226,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(in, """{"Epoch":3}""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1417,8 +1241,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonArray().add("Epoch").add(3).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1431,8 +1253,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(in, """["Epoch",3]""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1448,8 +1268,6 @@ class codecs extends FunSuite {
     val expression: String = ".numbers"
     val boson = Boson.extractor(expression, (in: Numbers) => {
       assertEquals(Numbers(0, 1, 2), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1463,8 +1281,7 @@ class codecs extends FunSuite {
     val expression: String = ".numbers"
     val boson = Boson.extractor(expression, (in: Numbers) => {
       assertEquals(Numbers(0, 1, 2), in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(json)
     Await.result(res, Duration.Inf)
@@ -1478,8 +1295,6 @@ class codecs extends FunSuite {
     val expression: String = ".Store.Book[0 to 1]"
     val boson = Boson.extractor(expression, (in: Seq[Book1]) => {
       assertEquals(Seq(Book1("Java", 15.5), Book1("Scala", 21.5)), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(json)
     Await.result(res, Duration.Inf)
@@ -1493,8 +1308,6 @@ class codecs extends FunSuite {
     val expression: String = ".Store.Book[0]"
     val boson = Boson.extractor(expression, (in: _Book1) => {
       assertEquals(_Book1("Scala", 30.5, SpecialEditions("ScalaMachine", 40, true)), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(json)
     Await.result(res, Duration.Inf)
@@ -1509,8 +1322,6 @@ class codecs extends FunSuite {
     val expression: String = ".Store.Book[0]"
     val boson = Boson.extractor(expression, (in: _Book) => {
       assertEquals(_Book("Scala", 30.5, Seq(SpecialEditions("ScalaMachine", 40, true))), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(json)
     Await.result(res, Duration.Inf)
@@ -1526,8 +1337,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1540,8 +1349,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1556,8 +1363,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Double) => {
       assertTrue(3.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1570,8 +1375,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Double) => {
       assertTrue(3.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1586,8 +1389,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Long) => {
       assertEquals(3000000000000000L, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1600,8 +1401,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Long) => {
       assertEquals(3000000000000000L, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1616,8 +1415,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(true, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1630,8 +1427,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(true, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1646,8 +1441,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(false, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1660,8 +1453,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(false, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1676,8 +1467,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: String) => {
       assertEquals("Null", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1690,8 +1479,7 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals("Null", in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1706,8 +1494,7 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: String) => {
       assertEquals("string", in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1720,8 +1507,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals("string", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1737,8 +1522,7 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(jsonStr, in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1751,8 +1535,7 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(jsonStr, in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1768,8 +1551,7 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val boson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(jsonStr, in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1782,8 +1564,7 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch"
     val joson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(jsonStr, in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1798,8 +1579,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch.key"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new bsonLib.BsonObject(new JsonObject().put("value", 3)).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1813,8 +1592,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assertEquals(in,"""{"value":3}""")
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1829,8 +1606,6 @@ class codecs extends FunSuite {
     val expression: String = ".Epoch.field"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(in, new BsonArray(new JsonArray().add("key").add("value")).encodeToBarray())
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1844,8 +1619,7 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
 
       assertEquals(in,"""["key","value"]""")
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1861,8 +1635,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(1, in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1875,8 +1648,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(1, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1891,8 +1662,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val boson = Boson.extractor(expression, (in: Double) => {
       assertTrue(1.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1905,8 +1674,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val joson = Boson.extractor(expression, (in: Double) => {
       assertTrue(1.0 === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1921,8 +1688,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val boson = Boson.extractor(expression, (in: Long) => {
       assertTrue(300000000000000000L === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1935,8 +1700,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val joson = Boson.extractor(expression, (in: Long) => {
       assertTrue(300000000000000000L === in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1951,8 +1714,7 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(new BsonObject().put("field2", 2).encodeToBarray(), in)
-      println(s"in: $in")
-      println("APPLIED")
+
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1965,8 +1727,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals("""{"field2":2}""", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -1981,8 +1741,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(new BsonArray().add("field2").add(2).encodeToBarray(), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -1995,8 +1753,6 @@ class codecs extends FunSuite {
     val expression: String = ".[1].[0]"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals("""["field2",2]""", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2012,8 +1768,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2026,8 +1780,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: Int) => {
       assertEquals(3, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2068,8 +1820,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Long) => {
       assertEquals(300000000000000000L, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2082,8 +1832,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: Long) => {
       assertEquals(300000000000000000L, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2098,8 +1846,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(true, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2112,8 +1858,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(true, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2128,8 +1872,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(false, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2142,8 +1884,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(false, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2158,8 +1898,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: String) => {
       assertEquals("Null", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2172,8 +1910,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals("Null", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2188,8 +1924,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: String) => {
       assertEquals("Value", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2202,8 +1936,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals("Value", in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2219,8 +1951,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(bytes, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2233,8 +1963,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(bytes, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2250,8 +1978,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(bytes, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2264,8 +1990,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(bytes, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2279,8 +2003,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(new bsonLib.BsonObject().put("newO", "newV").encodeToBarray(), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2293,8 +2015,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val joson = Boson.extractor(expression, (in: String) => {
       assertEquals(bytes.encode(), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2308,8 +2028,6 @@ class codecs extends FunSuite {
     val expression: String = "..Epoch"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(new BsonArray().add(3).add("three").encodeToBarray(), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2348,7 +2066,6 @@ class codecs extends FunSuite {
     val expression: String = ".field.Epoch.[0 to 2]"
     val result: ArrayBuffer[Any] = ArrayBuffer()
     val joson = Boson.extractor(expression, (in: Any) => {
-      println("APPLIED")
       result += in
     })
     val res = joson.go(json)
@@ -2366,8 +2083,6 @@ class codecs extends FunSuite {
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
       println(s"in: $in")
       assertArrayEquals(new bsonLib.BsonObject().put("Epoch", new BsonArray().add(3).add("three").add(true)).encodeToBarray(), in)
-
-      println("APPLIED")
     })
     val res = boson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2381,7 +2096,6 @@ class codecs extends FunSuite {
     val joson = Boson.extractor(expression, (in: String) => {
       println(s"in: $in")
       assertEquals(new JsonObject().put("Epoch", new JsonArray().add(3).add("three").add(true)).encode(), in)
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2399,9 +2113,7 @@ class codecs extends FunSuite {
   test("jsonOutPut Epoch BSON") {
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: Int) => {
-      println(s"in: $in")
       assertEquals(3, in)
-      println("APPLIED")
     })
     val res = joson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2410,9 +2122,7 @@ class codecs extends FunSuite {
   test("jsonOutPut Epoch JSON") {
     val expression: String = ".Epoch"
     val joson = Boson.extractor(expression, (in: Int) => {
-      println(s"in: $in")
       assertEquals(3, in)
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
@@ -2422,9 +2132,7 @@ class codecs extends FunSuite {
   test("jsonOutPut SSLNLastName BSON") {
     val expression: String = "..SSLNLastName"
     val joson = Boson.extractor(expression, (in: String) => {
-      println(s"in: $in")
       assertEquals("de Huanuco", in)
-      println("APPLIED")
     })
     val res = joson.go(validatedByteArray)
     Await.result(res, Duration.Inf)
@@ -2433,9 +2141,7 @@ class codecs extends FunSuite {
   test("jsonOutPut SSLNLastName JSON") {
     val expression: String = "..SSLNLastName"
     val joson = Boson.extractor(expression, (in: String) => {
-      println(s"in: $in")
       assertEquals("de Huanuco", in)
-      println("APPLIED")
     })
     val res = joson.go(json)
     Await.result(res, Duration.Inf)
