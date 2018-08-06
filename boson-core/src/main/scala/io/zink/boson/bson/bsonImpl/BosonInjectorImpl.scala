@@ -1397,6 +1397,7 @@ private[bsonImpl] object BosonInjectorImpl {
         (resultCodec + auxCodec, resultCodecCopy + auxCodec)
 
       case D_NULL =>
+        val token = codec.readToken(SonNull(CS_NULL))
         (resultCodec.writeToken(SonNull(CS_NULL)), resultCodecCopy.writeToken(SonNull(CS_NULL)))
 
       case D_INT =>
