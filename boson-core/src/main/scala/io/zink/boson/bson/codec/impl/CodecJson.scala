@@ -665,12 +665,12 @@ class CodecJson(str: String) extends Codec {
     * @return
     */
   override def +(sumCodec: Codec): Codec = {
-    val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-    new CodecJson(input.append(sum).toString)
-
     //    val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-    //    input.append(sum)
-    //    this
+    //    new CodecJson(input.append(sum).toString)
+
+    val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+    input.append(sum)
+    this
   }
 
   /**

@@ -477,22 +477,22 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a codec with the added information of the other 2
     */
   override def +(sumCodec: Codec): Codec = {
-    sumCodec.setReaderIndex(0)
-    val duplicated = copyByteBuf
-    duplicated.writerIndex(buff.writerIndex())
-    sumCodec.getCodecData match {
-      case Left(x) => duplicated.writeBytes(x)
-    }
-    duplicated.capacity(duplicated.writerIndex())
-    new CodecBson(arg, Some(duplicated))
+    //    sumCodec.setReaderIndex(0)
+    //    val duplicated = copyByteBuf
+    //    duplicated.writerIndex(buff.writerIndex())
+    //    sumCodec.getCodecData match {
+    //      case Left(x) => duplicated.writeBytes(x)
+    //    }
+    //    duplicated.capacity(duplicated.writerIndex())
+    //    new CodecBson(arg, Some(duplicated))
 
-//    sumCodec.setReaderIndex(0)
-//    buff.writerIndex(buff.writerIndex())
-//    sumCodec.getCodecData match {
-//      case Left(x) => buff.writeBytes(x)
-//    }
-//    buff.capacity(buff.writerIndex())
-//    this
+    sumCodec.setReaderIndex(0)
+    buff.writerIndex(buff.writerIndex())
+    sumCodec.getCodecData match {
+      case Left(x) => buff.writeBytes(x)
+    }
+    buff.capacity(buff.writerIndex())
+    this
   }
 
   /**
