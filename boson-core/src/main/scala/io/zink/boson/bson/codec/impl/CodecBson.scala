@@ -596,4 +596,9 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     newCodec.setWriterIndex(getWriterIndex)
     newCodec
   }
+
+  def clear: Codec = {
+    buff.clear()
+    this
+  }
 }

@@ -280,6 +280,8 @@ trait Codec {
     * @return A Boolean specifying if this codec can be wrapped in curly braces or not
     */
   def wrappable: Boolean
+
+  def clear: Codec
 }
 
 sealed trait CodecFacade {
