@@ -174,3 +174,13 @@ lazy val bosonJava = project.in(file("boson-java"))
     autoScalaLibrary := false
   )
 
+lazy val bosonTesting = project.in(file("boson-testing"))
+  .dependsOn(bosonCore)
+  .settings(basicSettings: _*)
+  .settings(javaDoc:  _*)
+  .settings(
+    libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
+    javacOptions in Test += "-g", // needed for bytecode rewriting
+    crossPaths := false,
+    autoScalaLibrary := false
+  )
