@@ -3692,7 +3692,6 @@ public class CoverageTestsJava {
                 mutableBuffer.add(out);
         });
         boson.go(bsonApiTests.encodeToBarray()).thenRun(() -> {
-            System.out.println(mutableBuffer);
             List<Number> expected = new ArrayList<>();
             expected.add(15.5);
             expected.add(39);
@@ -4564,7 +4563,6 @@ public class CoverageTestsJava {
             mutableBuffer.add(obj);
         });
         boson.go(arr1.encodeToBarray()).thenRun(() -> {
-            System.out.println(mutableBuffer);
             assert (mutableBuffer.isEmpty());
         }).join();
     }
@@ -4574,7 +4572,6 @@ public class CoverageTestsJava {
         BsonArray arr1 = new BsonArray().add(new BsonArray().add(33)).add(false).add(2.2).addNull().add(1000L).add("Hat").add(2)
                 .add(new BsonArray().addNull().add(new BsonObject().put("Store", new BsonArray().addNull())));
         BsonObject bE = new BsonObject().put("Store", arr1);
-        System.out.println(bE);
         String expression = "Store[end].*";
         ArrayList<Object> mutableBuffer = new ArrayList<>();
         Boson boson = Boson.extractor(expression, (Object obj) -> {
@@ -4884,8 +4881,6 @@ public class CoverageTestsJava {
     }
 
     private <T> void completeFuture(CompletableFuture future, T extractedValue) {
-        System.out.println("APPLIED");
-        System.out.println("Extracted type: " + extractedValue.getClass());
         future.complete(extractedValue);
     }
 
@@ -4995,7 +4990,6 @@ public class CoverageTestsJava {
         Boson boson = Boson.extractor(expression, (byte[] out) -> completeFuture(future1, out));
         boson.go(bson.encodeToBarray());
         byte[] result = future1.join();
-        System.out.println(result);
         assertArrayEquals(new BsonObject().put("Title", "Java").encodeToBarray(), result);
     }
 
@@ -5034,8 +5028,6 @@ public class CoverageTestsJava {
         String expression = ".Store.Book[0].Title";
         CompletableFuture<String> future1 = new CompletableFuture<>();
         Boson boson = Boson.extractor(expression, (String title) -> {
-            System.out.println("title: " + title);
-            System.out.println("Class of title: " + title.getClass());
             future1.complete(title);
         });
         boson.go(bsonApiTests.encodeToBarray());

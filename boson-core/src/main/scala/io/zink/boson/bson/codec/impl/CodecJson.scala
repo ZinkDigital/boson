@@ -567,35 +567,27 @@ class CodecJson(str: String) extends Codec {
     */
   override def consumeValue(seqType: Int): Unit = seqType match {
     case D_FLOAT_DOUBLE =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
 
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
-    //    case D_BSONOBJECT=> ???
-    //    case D_BSONARRAY=> ???
     case D_BOOLEAN =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
     case D_NULL =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
     case D_INT =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
     case D_LONG =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size

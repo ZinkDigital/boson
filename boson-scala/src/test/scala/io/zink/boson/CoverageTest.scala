@@ -108,7 +108,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book"
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(_book1.encodeToBarray(), in)
-      println("APPLIED")
     })
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -131,7 +130,6 @@ class CoverageTest extends FunSuite {
     val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(), title2.encodeToBarray())
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -265,8 +263,6 @@ class CoverageTest extends FunSuite {
     val expected: Seq[Any] = Seq(15.5, 39, 40, 12.6, 38, 48, 35, 38)
     val boson: Boson = Boson.extractor(expression, (in: Any) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -279,8 +275,6 @@ class CoverageTest extends FunSuite {
     val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(), title2.encodeToBarray(), title3.encodeToBarray(), hat1.encodeToBarray, hat2.encodeToBarray, hat3.encodeToBarray)
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -293,8 +287,6 @@ class CoverageTest extends FunSuite {
     val expected: Seq[Array[Byte]] = Seq(title1.encodeToBarray(), title2.encodeToBarray(), title3.encodeToBarray())
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -308,8 +300,6 @@ class CoverageTest extends FunSuite {
       Seq(title1.encodeToBarray, edition1.encodeToBarray, title2.encodeToBarray, edition2.encodeToBarray, title3.encodeToBarray, edition3.encodeToBarray, hat1.encodeToBarray, hat2.encodeToBarray, hat3.encodeToBarray)
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -323,8 +313,6 @@ class CoverageTest extends FunSuite {
       Seq(title1.encodeToBarray, edition1.encodeToBarray, edition2.encodeToBarray, edition3.encodeToBarray, hat1.encodeToBarray)
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -378,8 +366,6 @@ class CoverageTest extends FunSuite {
 
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
 
     val res = boson.go(xBson.encode.getBytes)
@@ -395,8 +381,6 @@ class CoverageTest extends FunSuite {
 
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
 
     val res = boson.go(xBson.encode.getBytes)
@@ -548,8 +532,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book[0]"
     val boson = Boson.extractor(expression, (in: _Book1Ext) => {
       assertEquals(_Book1Ext("Scala", 30.5, SpecialEditions("ScalaMachine", 40, availability = true)), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bsonEvent.encode.getBytes) else boson.go(bsonEvent.encodeToString)
     Await.result(res, Duration.Inf)
@@ -567,7 +549,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Book1Ext] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Book1Ext) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encodeToBarray) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -585,8 +566,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book[0]"
     val boson = Boson.extractor(expression, (in: _BookExt) => {
       assertEquals(_BookExt("Scala", 30.5, Seq(SpecialEditions("ScalaMachine", 40, availability = true))), in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bsonEvent.encode.getBytes) else boson.go(bsonEvent.encodeToString)
     Await.result(res, Duration.Inf)
@@ -596,8 +575,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book.nPages"
     val boson: Boson = Boson.extractor(expression, (in: Long) => {
       assertEquals(750000000000L, in)
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -607,7 +584,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book.ForSale"
     val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
       assertEquals(true, in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -617,7 +593,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book.Edition"
     val boson: Boson = Boson.extractor(expression, (in: Int) => {
       assertEquals(10, in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -627,7 +602,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book.Price"
     val boson: Boson = Boson.extractor(expression, (in: Double) => {
       assert(25.6 === in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -637,7 +611,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".Store.Book.Title"
     val boson: Boson = Boson.extractor(expression, (in: String) => {
       assertEquals("Scala", in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -649,7 +622,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".time"
     val boson: Boson = Boson.extractor(expression, (in: Instant) => {
       assertEquals(now, in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -660,7 +632,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".floating"
     val boson: Boson = Boson.extractor(expression, (in: Float) => {
       assertTrue(2.2f === in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -671,7 +642,6 @@ class CoverageTest extends FunSuite {
     val expression: String = ".byte"
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals("Scala".getBytes, in)
-      println("APPLIED")
     })
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -684,7 +654,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Boolean] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Boolean) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
     Await.result(res, Duration.Inf)
@@ -698,7 +667,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Int) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
     Await.result(res, Duration.Inf)
@@ -711,7 +679,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: String) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
     Await.result(res, Duration.Inf)
@@ -724,7 +691,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Long] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Long) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
     Await.result(res, Duration.Inf)
@@ -737,7 +703,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Double) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
     Await.result(res, Duration.Inf)
@@ -749,7 +714,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Any) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -761,7 +725,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: String) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -773,7 +736,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Int) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -785,7 +747,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Double] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Double) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -797,14 +758,10 @@ class CoverageTest extends FunSuite {
     val boson = if (!json) {
       Boson.extractor(expression, (in: Array[Byte]) => {
         assertArrayEquals(_bson.encodeToBarray(), in)
-        println(s"in: $in")
-        println("APPLIED")
       })
     } else {
       Boson.extractor(expression, (in: String) => {
         assertEquals(in, _bson.encodeToString())
-        println(s"in: $in")
-        println("APPLIED")
       })
     }
     val res = if (!json) boson.go(_bson.encode.getBytes) else boson.go(_bson.encodeToString)
@@ -816,8 +773,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: String) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -829,8 +784,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Any) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -843,8 +796,6 @@ class CoverageTest extends FunSuite {
     val expected: Seq[Array[Byte]] = Seq(edition1.encodeToBarray, edition2.encodeToBarray, edition3.encodeToBarray)
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -856,8 +807,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Any] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Any) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -869,8 +818,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: String) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -882,8 +829,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Int) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -895,8 +840,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Int] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Int) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
     val res = if (!json) boson.go(bson.encode.getBytes) else boson.go(bson.encodeToString)
     Await.result(res, Duration.Inf)
@@ -912,8 +855,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[String] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: String) => {
       mutableBuffer += in
-      println(s"in: $in")
-      println("APPLIED")
     })
 
     val res = if (!json) boson.go(xBson.encode.getBytes) else boson.go(xBson.encodeToString)

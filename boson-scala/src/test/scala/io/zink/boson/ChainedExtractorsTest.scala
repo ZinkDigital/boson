@@ -366,7 +366,6 @@ class ChainedExtractorsTest extends FunSuite {
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       assertArrayEquals(_bson.encodeToBarray(), in)
       println(s"in: $in")
-      println("APPLIED")
     })
     val res = boson.go(_bson.encode.getBytes)
     Await.result(res, Duration.Inf)

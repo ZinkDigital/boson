@@ -1294,7 +1294,7 @@ class jpPlusPlusTests extends FunSuite {
   //  }
 
   test("Ex ..key1[#].*..key2") {
-    println(bsonEvent)
+
     val expression: String = "Book[0 to end].*..Title"
     val result: ArrayBuffer[String] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (out: String) => result += out)
@@ -2257,7 +2257,6 @@ class jpPlusPlusTests extends FunSuite {
 
     val expected: Seq[String] = Seq("JavaMachine", "ScalaMachine", "C++", "C++Machine", "C++Machine", "Java", "JavaMachine", "JavaMachine")
     assert(expected.size === result.size)
-    println(result)
     assertTrue(expected.zip(result).forall {
       case (e, r) => e.equals(r)
     })
