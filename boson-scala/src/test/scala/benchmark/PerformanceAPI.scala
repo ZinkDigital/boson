@@ -14,7 +14,7 @@ import org.scalameter._
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.io.Source
-import scala.xml.Document
+
 
 object Lib {
 

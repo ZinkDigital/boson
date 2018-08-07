@@ -1094,7 +1094,7 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(bsonEncoded.mkString(" ") + "\n" + resultValue.mkString(" "))
+
     assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
   }
 

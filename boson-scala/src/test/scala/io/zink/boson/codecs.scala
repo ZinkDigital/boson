@@ -2081,7 +2081,6 @@ class codecs extends FunSuite {
 
     val expression: String = ".field[@Epoch]"
     val boson = Boson.extractor(expression, (in: Array[Byte]) => {
-      println(s"in: $in")
       assertArrayEquals(new bsonLib.BsonObject().put("Epoch", new BsonArray().add(3).add("three").add(true)).encodeToBarray(), in)
     })
     val res = boson.go(validatedByteArray)
@@ -2094,7 +2093,6 @@ class codecs extends FunSuite {
 
     val expression: String = ".field[@Epoch]"
     val joson = Boson.extractor(expression, (in: String) => {
-      println(s"in: $in")
       assertEquals(new JsonObject().put("Epoch", new JsonArray().add(3).add("three").add(true)).encode(), in)
     })
     val res = joson.go(json)
