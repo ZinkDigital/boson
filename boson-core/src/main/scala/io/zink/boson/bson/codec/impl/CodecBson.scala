@@ -597,6 +597,10 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     newCodec
   }
 
+  /**
+    *
+    * @return
+    */
   def clear: Codec = {
     buff.clear()
     this
