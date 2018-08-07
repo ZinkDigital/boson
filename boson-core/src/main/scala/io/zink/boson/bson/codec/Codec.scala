@@ -36,7 +36,7 @@ case object SonZero extends SonNamedType
   */
 trait Codec {
   /**
-    * getToken is used to obtain a value correponding to the SonNamedType request, without consuming the value from the stream
+    * getToken is used to obtain a value corresponding to the SonNamedType request, without consuming the value from the stream
     *
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
