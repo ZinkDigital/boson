@@ -174,7 +174,7 @@ lazy val bosonJava = project.in(file("boson-java"))
     autoScalaLibrary := false
   )
 
-lazy val bosonTesting = project.in(file("boson-testing"))
+lazy val bosonPerformance = project.in(file("boson-performance"))
   .dependsOn(bosonCore)
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
