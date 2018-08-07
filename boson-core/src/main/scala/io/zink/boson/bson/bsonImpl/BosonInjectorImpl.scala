@@ -72,9 +72,8 @@ private[bsonImpl] object BosonInjectorImpl {
                         case SonArray(_, result) => anyToEither(result)
                       }
                       val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-                      val modifiedSubCodecToUse = if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4) else modifiedSubCodec
-
-                      val subCodec = BosonImpl.inject(modifiedSubCodecToUse.getCodecData, statementsList, injFunction)
+                      val modifidSubCodecToUse = if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4) else modifiedSubCodec
+                      val subCodec = BosonImpl.inject(modifidSubCodecToUse.getCodecData, statementsList, injFunction)
                       currentCodec + subCodec
 
                     case _ => processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
@@ -470,7 +469,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - Type of the value being injected
     * @return A Codec tuple containing the alterations made and an Auxiliary Codec
     */
-  private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec)(implicit convertFunction: Option[TupleList => T] = None): (Codec, Codec) = dataType match {
+  private def modifierEnd[T](codec: Codec, dataType: Int, injFunction: T => T, codecRes: Codec, codecResCopy: Codec)(implicit convertFunction: Option[TupleList => T] = None): Unit = dataType match {
 
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
       val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
@@ -485,7 +484,6 @@ private[bsonImpl] object BosonInjectorImpl {
       codecResCopy.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
       codecResCopy.writeToken(SonString(CS_STRING, value0))
       codecResCopy.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-      (codecRes, codecResCopy)
 
     case D_BSONOBJECT =>
       val token = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
@@ -505,7 +503,6 @@ private[bsonImpl] object BosonInjectorImpl {
 
         case jsonString: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, jsonString).asInstanceOf[String]))
       }
-      (codecRes, codecResCopy)
 
     case D_BOOLEAN =>
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
@@ -514,28 +511,24 @@ private[bsonImpl] object BosonInjectorImpl {
       }
       codecRes.writeToken(SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
       codecResCopy.writeToken(token)
-      (codecRes, codecResCopy)
 
     case D_FLOAT_DOUBLE =>
       val token = codec.readToken(SonNumber(CS_DOUBLE))
       val value0: Double = token.asInstanceOf[SonNumber].info.asInstanceOf[Double]
       codecRes.writeToken(SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
       codecResCopy.writeToken(token)
-      (codecRes, codecResCopy)
 
     case D_INT =>
       val token = codec.readToken(SonNumber(CS_INTEGER))
       val value0: Int = token.asInstanceOf[SonNumber].asInstanceOf[Int]
       codecRes.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
       codecResCopy.writeToken(token)
-      (codecRes, codecResCopy)
 
     case D_LONG =>
       val token = codec.readToken(SonNumber(CS_LONG))
       val value0: Long = token.asInstanceOf[SonNumber].asInstanceOf[Long]
       codecRes.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
       codecResCopy.writeToken(token)
-      (codecRes, codecResCopy)
 
     case D_NULL => throw CustomException(s"NULL field. Can not be changed")
   }
@@ -814,8 +807,9 @@ private[bsonImpl] object BosonInjectorImpl {
                         currentCodecCopy + partialCodecToUse
                       }
                     case _ =>
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodecCopy.duplicate, currentCodecCopy)) match {
-                        case Success(tuple) => currentCodec.clear + tuple._1
+                      val newCodecCopy = currentCodecCopy.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, newCodecCopy, currentCodecCopy)) match {
+                        case Success(_) => currentCodec.clear + newCodecCopy
                         case Failure(_) =>
                       }
                   }
@@ -841,8 +835,9 @@ private[bsonImpl] object BosonInjectorImpl {
                           processTypesArray(dataType, codec, currentCodecCopy)
                       }
                     case _ =>
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodecCopy.duplicate, currentCodecCopy)) match {
-                        case Success(tuple) => currentCodec.clear + tuple._1
+                      val newCodecCopy = currentCodecCopy.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, newCodecCopy, currentCodecCopy)) match {
+                        case Success(_) => currentCodec.clear + newCodecCopy
                         case Failure(_) =>
                       }
                   }
@@ -935,8 +930,9 @@ private[bsonImpl] object BosonInjectorImpl {
                         currentCodecCopy + subCodecToUse
                       }
                     case _ =>
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
-                        case Success(tuple) => currentCodecCopy.clear + tuple._2
+                      val newCodecCopy = currentCodec.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
+                        case Success(_) => currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
                       }
                   }
@@ -967,8 +963,9 @@ private[bsonImpl] object BosonInjectorImpl {
                         currentCodecCopy + partialCodec.addComma
                       }
                     case _ =>
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
-                        case Success(tuple) => currentCodecCopy.clear + tuple._2
+                      val newCodecCopy = currentCodec.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
+                        case Success(_) => currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
                       }
                   }
@@ -1092,8 +1089,9 @@ private[bsonImpl] object BosonInjectorImpl {
                           currentCodecCopy + currentCodec
                       }
                     case _ =>
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
-                        case Success(tuple) => currentCodecCopy.clear + tuple._2
+                      val newCodecCopy = currentCodec.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
+                        case Success(_) => currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
                       }
                   }
@@ -1110,8 +1108,9 @@ private[bsonImpl] object BosonInjectorImpl {
                       currentCodec + codecMod.addComma
                       currentCodecCopy + partialCodec.addComma
                     case _ =>
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, currentCodec.duplicate)) match {
-                        case Success(tuple) => currentCodecCopy.clear + tuple._2
+                      val newCodecCopy = currentCodec.duplicate
+                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
+                        case Success(_) => currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
                       }
                   }

@@ -621,7 +621,7 @@ object Experiment extends App {
 
   val boson11: Boson = Boson.extractor(".Store.Book[all].Price", (out: Seq[Any]) => {
     val end = System.nanoTime()
-    println(s"(.Store.Book[all].Price) Extracted -> $out")
+//    println(s"(.Store.Book[all].Price) Extracted -> $out")
     //endTimeBuffer.append(end)
   })
 
@@ -636,7 +636,7 @@ object Experiment extends App {
 
   val boson1: Boson = Boson.extractor("Price", (out: Seq[Any]) => {
     //val end = System.nanoTime()
-    println(s"(Price) Extracted -> $out")
+//    println(s"(Price) Extracted -> $out")
     //endTimeBuffer.append(end)
   })
 
