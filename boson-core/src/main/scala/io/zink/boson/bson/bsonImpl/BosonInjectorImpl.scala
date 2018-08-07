@@ -7,9 +7,9 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-
 import io.zink.bsonLib.BsonObject
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 private[bsonImpl] object BosonInjectorImpl {
@@ -114,8 +114,8 @@ private[bsonImpl] object BosonInjectorImpl {
                     if (jsonString.charAt(0).equals('[')) {
                       if (codec.getReaderIndex != 1) {
                         //codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
-//                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
-//                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
+                        //                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
+                        //                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
                         processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction).addComma
                       } else {
                         codec.setReaderIndex(0)
@@ -1196,7 +1196,6 @@ private[bsonImpl] object BosonInjectorImpl {
                           currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
                           processTypesArray(dataType, codec, currentCodec)
-//                          currentCodecCopy.clear + processTypesArray(dataType, codec, newCodecCopy)
                           currentCodecCopy.clear + currentCodec.duplicate
                       }
                     case _ =>
@@ -1514,56 +1513,47 @@ private[bsonImpl] object BosonInjectorImpl {
     }
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
+    val extractedTuples: ListBuffer[(String, Any)] = ListBuffer.empty[(String, Any)]
 
-    /**
-      * Iterate inside the object passed as parameter in order to extract all of its field names and filed values
-      *
-      * @param writableList - The list to store the extracted field names and field values
-      * @return A TupleList containing the extracted field names and field values
-      */
-    def iterateObject(writableList: TupleList): TupleList = {
-      if ((codec.getReaderIndex - startReader) >= originalSize) writableList
-      else {
-        val dataType: Int = codec.readDataType()
-        dataType match {
-          case 0 => iterateObject(writableList)
-          case _ =>
-            val fieldName: String = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].info.asInstanceOf[String]
-            val fieldValue = dataType match {
-              case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
+    while (codec.getReaderIndex - startReader < originalSize) {
+      val dataType: Int = codec.readDataType()
+      dataType match {
+        case 0 =>
+        case _ =>
+          val fieldName: String = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].info.asInstanceOf[String]
+          val fieldValue = dataType match {
+            case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
 
-              case D_BSONOBJECT =>
-                codec.skipChar() //skip the ":" character
-                codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
-                  case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
-                  case jsonString: String => extractTupleList(Right(jsonString))
-                }
-
-              case D_BSONARRAY =>
-                //                codec.skipChar() //skip the ":" character
-                codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
-                  case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
-                  case jsonString: String => extractTupleList(Right(jsonString))
-                }
-
-              case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
-
-              case D_INT => codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info.asInstanceOf[Int]
-
-              case D_LONG => codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info.asInstanceOf[Long]
-
-              case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
-                case byte: Byte => byte == 1
+            case D_BSONOBJECT =>
+              codec.skipChar() //skip the ":" character
+              codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
+                case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
+                case jsonString: String => extractTupleList(Right(jsonString))
               }
 
-              case D_NULL => codec.readToken(SonNull(CS_NULL)); null;
+            case D_BSONARRAY =>
+              //                codec.skipChar() //skip the ":" character
+              codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
+                case byteBuff: ByteBuf => extractTupleList(Left(byteBuff.array))
+                case jsonString: String => extractTupleList(Right(jsonString))
+              }
+
+            case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
+
+            case D_INT => codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info.asInstanceOf[Int]
+
+            case D_LONG => codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info.asInstanceOf[Long]
+
+            case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
+              case byte: Byte => byte == 1
             }
-            iterateObject(writableList :+ (fieldName, fieldValue))
-        }
+
+            case D_NULL => codec.readToken(SonNull(CS_NULL)); null;
+          }
+          extractedTuples += ((fieldName, fieldValue))
       }
     }
-
-    iterateObject(List())
+    extractedTuples.toList
   }
 
   /**
