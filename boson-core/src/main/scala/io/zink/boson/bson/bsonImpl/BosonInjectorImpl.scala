@@ -73,8 +73,6 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                       val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
                       val modifidSubCodecToUse = if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4) else modifiedSubCodec
-                      //                        val x = CodecObject.toCodec("[" + modifiedSubCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(1).dropRight(1) + "]")
-                      //                        val y = x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(x.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.length - 5)
                       val subCodec = BosonImpl.inject(modifidSubCodecToUse.getCodecData, statementsList, injFunction)
                       currentCodec + subCodec
 
@@ -113,9 +111,6 @@ private[bsonImpl] object BosonInjectorImpl {
                   case Right(jsonString) =>
                     if (jsonString.charAt(0).equals('[')) {
                       if (codec.getReaderIndex != 1) {
-                        //codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
-                        //                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
-                        //                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
                         processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
                         currentCodec.addComma
                       } else {
@@ -175,49 +170,6 @@ private[bsonImpl] object BosonInjectorImpl {
           }
       }
     }
-
-
-    /**
-      * Recursive function to iterate through the given data structure and return the modified codec
-      *
-      * @param writableCodec - the codec to write the modified information into
-      * @return A Codec containing the alterations made
-      */
-    //    def iterateDataStructure(writableCodec: Codec): Codec = {
-    //      if ((codec.getReaderIndex - startReader) >= originalSize) writableCodec
-    //      else {
-    //        val (dataType, _) = readWriteDataType(codec, writableCodec)
-    //        dataType match {
-    //          case 0 => iterateDataStructure(writableCodec)
-    //          case _ => //In case its not the end
-    //
-    //            val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writableCodec) else (writableCodec, "")
-    //
-    //            //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
-    //            //or they're halfword's
-    //            //in all other cases we just want to copy the data from one codec to the other (using "process" like functions)
-    //            key match {
-    //              case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
-    //                //the key is a halfword and matches with the extracted key, dataType is an array
-    //                //So we will look for the "elem" of interest inside the current object
-    //                val modifiedCodec: Codec = searchAndModify(statementsList, codec, elem, injFunction, writableCodec)
-    //                iterateDataStructure(modifiedCodec)
-    //
-    //              case _ =>
-    //                val processedCodec: Codec =
-    //                  if (statementsList.head._2.contains(C_DOUBLEDOT))
-    //                    processTypesHasElem(statementsList, dataType, fieldID, elem, codec, writableCodec, injFunction, key)
-    //                  else
-    //                    processTypesArray(dataType, codec, writableCodec)
-    //                iterateDataStructure(processedCodec)
-    //            }
-    //        }
-    //      }
-    //    }
-
-    //    val codecWithoutSize = iterateDataStructure(createEmptyCodec(codec)) //Initiate recursion with an empty data structure
-    //    val returnCodec = codecWithoutSize.writeCodecSize + codecWithoutSize
-    //    codec.removeTrailingComma(returnCodec)
     val returnCodec = currentCodec.writeCodecSize + currentCodec
     codec.removeTrailingComma(returnCodec, checkOpenRect = true)
   }

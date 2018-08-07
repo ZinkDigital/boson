@@ -53,7 +53,7 @@ class BosonExtractorObj[T, R <: HList](expression: String,
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
     val future: Future[Array[Byte]] = Future {
       val midRes: Any = runInterpreter(Left(bsonByteEncoding))
-      println(midRes)
+      //      println(midRes)
       val seqTuples = TypeCase[Seq[List[(String, Any)]]]
       val result: Seq[T] =
         midRes match {

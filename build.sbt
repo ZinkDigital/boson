@@ -131,7 +131,7 @@ val testLibraries = Seq(
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",
   "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
-  "com.storm-enroute" %% "scalameter" % "0.8.2",
+//  "com.storm-enroute" %% "scalameter" % "0.8.2",
   "de.undercouch" % "bson4jackson" % "2.7.0"
 )
 
@@ -179,7 +179,7 @@ lazy val bosonPerformance = project.in(file("boson-performance"))
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
   .settings(
-    libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
+    libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil, perform),
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false

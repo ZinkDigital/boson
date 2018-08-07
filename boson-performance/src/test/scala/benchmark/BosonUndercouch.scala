@@ -54,8 +54,8 @@ object BosonUndercouch extends App {
 
 
   val bosonTimes = startTimeBuffer zip(endTimeBuffer) map {  case ( start: Long, end: Long)  => end - start }
-  bosonTimes.foreach(println _)
-  println ("Avg :" + (bosonTimes.sum / bosonTimes.size))
+//  bosonTimes.foreach(println _)
+//  println ("Avg :" + (bosonTimes.sum / bosonTimes.size))
 
   println("****** Undercouch Jackson *******")
 
@@ -90,8 +90,8 @@ object BosonUndercouch extends App {
   })
 
   val bsonJacksonTimes = startTimeBuffer zip(endTimeBuffer) map {  case ( start: Long, end: Long)  => end - start }
-  bsonJacksonTimes.foreach(println _)
-  println ("Avg :" + (bsonJacksonTimes.sum / bsonJacksonTimes.size))
+//  bsonJacksonTimes.foreach(println _)
+//  println ("Avg :" + (bsonJacksonTimes.sum / bsonJacksonTimes.size))
 
 
 

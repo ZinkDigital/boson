@@ -593,7 +593,6 @@ class CodecJson(str: String) extends Codec {
       readerIndex += size
   }
 
-  //
   //-------------------------------------Injector functions--------------------------
 
   /**
