@@ -281,6 +281,11 @@ trait Codec {
     */
   def wrappable: Boolean
 
+  /**
+    * This methods clears all the information insde the codec so it can be rewritten
+    *
+    * @return
+    */
   def clear: Codec
 }
 

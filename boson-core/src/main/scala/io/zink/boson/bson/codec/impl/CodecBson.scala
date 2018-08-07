@@ -597,6 +597,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     newCodec
   }
 
+  /**
+    * This methods clears all the information insde the codec so it can be rewritten
+    *
+    * @return
+    */
   def clear: Codec = {
     buff.clear()
     this

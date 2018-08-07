@@ -783,6 +783,11 @@ class CodecJson(str: String) extends Codec {
     */
   def wrappable: Boolean = !input.toString.charAt(0).equals(CS_OPEN_BRACKET)
 
+  /**
+    * This methods clears all the information insde the codec so it can be rewritten
+    *
+    * @return
+    */
   def clear: Codec = {
     input.clear()
     this
