@@ -598,6 +598,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
+    * This methods clears all the information insde the codec so it can be rewritten
     *
     * @return
     */

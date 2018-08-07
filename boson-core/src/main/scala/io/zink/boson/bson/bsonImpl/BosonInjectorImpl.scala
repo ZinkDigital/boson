@@ -35,7 +35,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case jsonString: String => Right(jsonString)
     }
 
-    val currentCodec = createEmptyCodec(codec) //TODO IN ORDER TO USE THIS WHILE LOOP WE NEED TO CHANGE THE + METHOD INSIDE THE CODECS TO THE COMMENT CODE IN THERE
+    val currentCodec = createEmptyCodec(codec)
     while ((codec.getReaderIndex - startReader) < originalSize) {
       val (dataType, codecWithDataType) = readWriteDataType(codec, currentCodec)
       dataType match {
@@ -114,9 +114,10 @@ private[bsonImpl] object BosonInjectorImpl {
                     if (jsonString.charAt(0).equals('[')) {
                       if (codec.getReaderIndex != 1) {
                         //codec.setReaderIndex(codec.getReaderIndex - (key.length + 4)) //Go back the size of the key plus a ":", two quotes and the beginning "{"
-//                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
-//                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
-                        processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction).addComma
+                        //                        val processedObj = processTypesAll(statementsList, dataType, codec, codecWithDataType, fieldID, injFunction)
+                        //                        CodecObject.toCodec(processedObj.getCodecData.asInstanceOf[Right[ByteBuf, String]].value + ",")
+                        processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
+                        currentCodec.addComma
                       } else {
                         codec.setReaderIndex(0)
                         processTypesArray(4, codec, currentCodec)
@@ -239,7 +240,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val currentCodec = createEmptyCodec(codec)
     while ((codec.getReaderIndex - startReader) < originalSize) {
-      val (dataType, codecWithDataType) = readWriteDataType(codec, currentCodec)
+      val (dataType, _) = readWriteDataType(codec, currentCodec)
       dataType match {
         case 0 =>
 
@@ -366,7 +367,8 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of input and output of the injection function
     * @return a new Codec with the copied information
     */
-  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = dataType match {
+  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Unit =
+    dataType match {
     case D_BSONOBJECT =>
       val objectCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
       val objectCodecToUse: Codec = if (objectCodec.wrappable) objectCodec.wrapInBrackets(key = key) else objectCodec
@@ -376,7 +378,6 @@ private[bsonImpl] object BosonInjectorImpl {
     case D_BSONARRAY =>
       val arrayCodec: Codec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).addComma
       resultCodec + arrayCodec
-
 
     case D_FLOAT_DOUBLE => resultCodec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
 
@@ -409,9 +410,9 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @return A Codec containing the alterations made
     */
-  private def processTypesArray[T](dataType: Int, codec: Codec, currentResCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  private def processTypesArray[T](dataType: Int, codec: Codec, currentResCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Unit = {
     dataType match {
-      case D_ZERO_BYTE => currentResCodec
+      case D_ZERO_BYTE =>
 
       case D_FLOAT_DOUBLE => currentResCodec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
 
@@ -459,7 +460,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
-  private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Unit = {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
@@ -600,7 +601,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
-  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Unit = {
     seqType match {
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -1196,7 +1197,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
                           processTypesArray(dataType, codec, currentCodec)
-//                          currentCodecCopy.clear + processTypesArray(dataType, codec, newCodecCopy)
+                          //                          currentCodecCopy.clear + processTypesArray(dataType, codec, newCodecCopy)
                           currentCodecCopy.clear + currentCodec.duplicate
                       }
                     case _ =>
