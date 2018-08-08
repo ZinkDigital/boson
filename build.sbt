@@ -176,7 +176,7 @@ lazy val bosonJava = project.in(file("boson-java"))
 
 lazy val bosonPerformance = project.in(file("boson-performance"))
   .dependsOn(bosonScala)
-  .dependsOn(bosonJava)
+  //.dependsOn(bosonJava)
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
   .settings(
