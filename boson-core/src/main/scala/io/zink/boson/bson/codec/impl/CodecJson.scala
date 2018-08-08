@@ -656,8 +656,7 @@ class CodecJson(str: String) extends Codec {
     * @return
     */
   override def +(sumCodec: Codec): Codec = {
-    val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-    input.append(sum)
+    input.append(sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value)
     this
   }
 
@@ -669,30 +668,28 @@ class CodecJson(str: String) extends Codec {
     * @return a new codec that does not have the last trailing comma in it
     */
   def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = {
-//    val codecString = input
-//    val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-//    val (openBracket, closedBracket) = if (rectBrackets) ("[", "]") else ("{", "}")
-//    if (jsonString.charAt(jsonString.length - 1).equals(',')) {
-//      if (checkOpenRect) {
-//        if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
-//        else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
-//        else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
-//      } else CodecObject.toCodec(s"${openBracket + jsonString.dropRight(1) + closedBracket}")
-//    } else CodecObject.toCodec(s"${openBracket + jsonString + closedBracket}")
-//
-    val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf,String]].value
+    val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
     val (openBracket, closedBracket) = if (rectBrackets) ("[", "]") else ("{", "}")
 
-    if(input.charAt(input.length-1).equals(',')) {
-      if(checkOpenRect) {
-        if(codecString.charAt(0).equals('[') && !input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) { input.insert(0, '['); input.replace(input.length-1,input.length,"]") }
-        else if (codecString.charAt(0).equals('[') && input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) input.replace(input.length-1,input.length,"")
-        else {
-          input.replace(input.length-1,input.length,"}")
-          input.insert(0,'{')
+    if (input.charAt(input.length - 1).equals(',')) {
+      if (checkOpenRect) {
+        if (codecString.charAt(0).equals('[') && !input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) {
+          input.insert(0, '[');
+          input.replace(input.length - 1, input.length, "]")
         }
-      } else { input.replace(input.length-1,input.length,closedBracket); input.insert(0,openBracket) }
-    } else { input.insert(0, openBracket); input.append(closedBracket) }
+        else if (codecString.charAt(0).equals('[') && input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) input.replace(input.length - 1, input.length, "")
+        else {
+          input.replace(input.length - 1, input.length, "}")
+          input.insert(0, '{')
+        }
+      } else {
+        input.replace(input.length - 1, input.length, closedBracket);
+        input.insert(0, openBracket)
+      }
+    } else {
+      input.insert(0, openBracket);
+      input.append(closedBracket)
+    }
     this
   }
 
@@ -755,18 +752,18 @@ class CodecJson(str: String) extends Codec {
     */
   def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = {
     if (curlyToRect) {
-      if (dataType == D_BSONOBJECT) this
-      else {
-        val auxStr: String = input.toString
-        CodecObject.toCodec("[" + auxStr.substring(1, auxStr.length - 1) + "]")
+      if (dataType != D_BSONOBJECT) {
+        input.replace(0, 1, "[")
+        input.replace(input.length - 1, input.length, "]")
       }
+      this
     } else {
-      val jsonString = input.toString
-      val strAux =
-        if (dataType == 3 && jsonString.charAt(0) == '[')
-          "{" + jsonString.substring(1, jsonString.length - 1) + "},"
-        else jsonString + ","
-      new CodecJson(strAux)
+      if (dataType == 3 && input.charAt(0) == '[') {
+        input.replace(0, 1, "{")
+        input.replace(input.length - 1, input.length, "},")
+      } else
+        input.append(",")
+      this
     }
   }
 
@@ -780,10 +777,16 @@ class CodecJson(str: String) extends Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = {
     val (openBracket, closeBracket) = if (rectBracket) ("[", "]") else ("{", "}")
-    if (key.isEmpty)
-      new CodecJson(openBracket + input.toString + closeBracket)
-    else
-      new CodecJson(openBracket + "\"" + key + "\":" + input.toString)
+    if (key.isEmpty) {
+      input.insert(0, openBracket)
+      input.append(closeBracket)
+      this
+    }
+    else {
+      //      input.insert(0, openBracket + "\"" + key + "\":") //TODO erroring in CodecJson performanceAPI test - 10
+      new CodecJson(openBracket + "\"" + key + "\":" + input.toString)  //TODO Change this to the above
+    }
+    //    this
   }
 
   /**
