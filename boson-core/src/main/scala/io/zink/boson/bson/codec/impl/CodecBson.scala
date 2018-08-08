@@ -102,7 +102,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val buf0 = buff.duplicate()
           var i: Int = buff.readerIndex()
           val key: ListBuffer[Byte] = new ListBuffer[Byte]
-          while (buf0.getByte(i) != 0) { //  || key.length<1 ??? TODO
+          while (buf0.getByte(i) != 0) {
             key.append(buf0.readByte())
             i += 1
           }
@@ -422,7 +422,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           this
 
         case SonArray(_, info) =>
-          val writableByteSeq = info.asInstanceOf[Array[Byte]] //TODO exactly the same as bellow
+          val writableByteSeq = info.asInstanceOf[Array[Byte]]
           buff.writeBytes(writableByteSeq)
           this
 
@@ -487,7 +487,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param codec - codec we wish to remove the trailing comma
     * @return a new codec that does not have the last trailing comma in it
     */
-  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = codec
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = this
 
   /**
     * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.
