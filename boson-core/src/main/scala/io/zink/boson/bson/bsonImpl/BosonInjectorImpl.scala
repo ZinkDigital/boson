@@ -1083,7 +1083,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         case Failure(_) =>
                           val mergedToUse = mergedCodec.addComma
                           currentCodec + mergedToUse
-                          currentCodecCopy + currentCodec
+                          currentCodecCopy + partialCodec
                       }
                     case _ =>
                       val newCodecCopy = currentCodec.duplicate
