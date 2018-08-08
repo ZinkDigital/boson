@@ -463,12 +463,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a duplicate of the codec's data structure
     */
-  override def getCodecData: Either[ByteBuf, String] = {
-    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
-    newB.readerIndex(buff.readerIndex) //Set the reader index to be the same as it is in this moment
-    newB.writerIndex(buff.writerIndex()) //Set the writer index to be the same as it is in this moment
-    Left(newB)
-  }
+  override def getCodecData: Either[ByteBuf, String] = Left(buff)
 
   /**
     * Method that adds 2 Codecs and returns the result codec

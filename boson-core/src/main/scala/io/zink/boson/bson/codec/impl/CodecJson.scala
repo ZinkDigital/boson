@@ -740,7 +740,7 @@ class CodecJson(str: String) extends Codec {
     */
   def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = {
     if (curlyToRect) {
-      if (dataType == D_BSONOBJECT) duplicate
+      if (dataType == D_BSONOBJECT) this
       else {
         val auxStr: String = input.toString
         CodecObject.toCodec("[" + auxStr.substring(1, auxStr.length - 1) + "]")
