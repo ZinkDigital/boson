@@ -477,17 +477,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a codec with the added information of the other 2
     */
   override def +(sumCodec: Codec): Codec = {
-    //    sumCodec.setReaderIndex(0)
-    //    val duplicated = copyByteBuf
-    //    duplicated.writerIndex(buff.writerIndex())
-    //    sumCodec.getCodecData match {
-    //      case Left(x) => duplicated.writeBytes(x)
-    //    }
-    //    duplicated.capacity(duplicated.writerIndex())
-    //    new CodecBson(arg, Some(duplicated))
-
     sumCodec.setReaderIndex(0)
-    buff.writerIndex(buff.writerIndex())
     sumCodec.getCodecData match {
       case Left(x) => buff.writeBytes(x)
     }
@@ -511,8 +501,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return A new codec with exactly the same information as the current codec but with the size information written in it
     */
   def writeCodecSize: Codec = {
-    val duplicatedWithSize = Unpooled.buffer().writeIntLE(getWriterIndex + 4)
-    new CodecBson(arg, Some(duplicatedWithSize))
+    val duplicated = Unpooled.buffer().writeIntLE(getWriterIndex + 4)
+    duplicated.writeBytes(buff)
+    duplicated.capacity(getWriterIndex + 4)
+
+    new CodecBson(arg, Some(duplicated))
   }
 
   /**

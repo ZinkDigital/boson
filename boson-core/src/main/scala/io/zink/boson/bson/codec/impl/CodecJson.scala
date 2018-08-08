@@ -656,9 +656,6 @@ class CodecJson(str: String) extends Codec {
     * @return
     */
   override def +(sumCodec: Codec): Codec = {
-    //    val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-    //    new CodecJson(input.append(sum).toString)
-
     val sum = sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
     input.append(sum)
     this
@@ -690,7 +687,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return A new codec with exactly the same information as the current codec but with the size information written in it
     */
-  def writeCodecSize: Codec = new CodecJson("")
+  def writeCodecSize: Codec = this
 
   /**
     * Method that skips the next character in the current codec's data structure

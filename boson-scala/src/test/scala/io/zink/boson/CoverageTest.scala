@@ -890,6 +890,7 @@ class CoverageTest extends FunSuite {
 
   test("Top level key modification") {
     val bson = new BsonObject().putNull("nullKey").put("name", "john doe")
+    val bsonExpected = new BsonObject().putNull("nullKey").put("name", "JOHN DOE")
     val ex = ".name"
     val bsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
@@ -897,7 +898,8 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == bsonEncoded.length)
+    println(resultValue.mkString(" "))
+    assertArrayEquals(resultValue, bsonExpected.encodeToBarray)
   }
 
   test("Nested key modification - Single Dots") {

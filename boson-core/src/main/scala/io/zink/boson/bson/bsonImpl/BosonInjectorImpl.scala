@@ -124,8 +124,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val mergedCodec = currentCodec.writeCodecSize + currentCodec
-    codec.removeTrailingComma(mergedCodec, checkOpenRect = true)
+    codec.removeTrailingComma(currentCodec.writeCodecSize, checkOpenRect = true)
   }
 
   /**
@@ -169,8 +168,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val returnCodec = currentCodec.writeCodecSize + currentCodec
-    codec.removeTrailingComma(returnCodec, checkOpenRect = true)
+    codec.removeTrailingComma(currentCodec.writeCodecSize, checkOpenRect = true)
   }
 
   /**
@@ -240,8 +238,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val modCodecWithSize = currentCodec.writeCodecSize + currentCodec //Add the size of the resulting sub-codec (plus 4 bytes) with the actual sub-codec
-    writableCodec + codec.removeTrailingComma(modCodecWithSize, rectBrackets = true)
+    writableCodec + codec.removeTrailingComma(currentCodec.writeCodecSize, rectBrackets = true)
   }
 
   /**
@@ -297,7 +294,7 @@ private[bsonImpl] object BosonInjectorImpl {
     codec.getCodecData match {
       case Left(byteBuf) =>
 
-      val modifiedBytes: Array[Byte] = applyFunction(injFunction, byteBuf.array).asInstanceOf[Array[Byte]]
+        val modifiedBytes: Array[Byte] = applyFunction(injFunction, byteBuf.array).asInstanceOf[Array[Byte]]
         CodecObject.toCodec(Unpooled.copiedBuffer(modifiedBytes))
 
       case Right(jsonString) =>
@@ -1206,11 +1203,8 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val codecMerged = currentCodec.writeCodecSize + currentCodec
-    val codecFinal = codec.removeTrailingComma(codecMerged, rectBrackets = true)
-
-    val codecMergedCopy = currentCodecCopy.writeCodecSize + currentCodecCopy
-    val codecFinalCopy = codec.removeTrailingComma(codecMergedCopy, rectBrackets = true)
+    val codecFinal = codec.removeTrailingComma(currentCodec.writeCodecSize, rectBrackets = true)
+    val codecFinalCopy = codec.removeTrailingComma(currentCodecCopy.writeCodecSize, rectBrackets = true)
 
     condition match {
       case UNTIL_RANGE => codecFinalCopy
@@ -1403,11 +1397,8 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val codecMerged = currentCodec.writeCodecSize + currentCodec
-    val codecMergedCopy = currentCodecCopy.writeCodecSize + currentCodecCopy
-
-    val finalCodec = codec.removeTrailingComma(codecMerged)
-    val finalCodecCopy = codec.removeTrailingComma(codecMergedCopy)
+    val finalCodec = codec.removeTrailingComma(currentCodec.writeCodecSize)
+    val finalCodecCopy = codec.removeTrailingComma(currentCodecCopy.writeCodecSize)
 
     condition match {
       case UNTIL_RANGE =>
