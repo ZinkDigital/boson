@@ -124,7 +124,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    codec.removeTrailingComma(currentCodec.writeCodecSize, checkOpenRect = true)
+    currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
   /**
@@ -168,7 +168,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    codec.removeTrailingComma(currentCodec.writeCodecSize, checkOpenRect = true)
+    currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
   /**
@@ -238,7 +238,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    writableCodec + codec.removeTrailingComma(currentCodec.writeCodecSize, rectBrackets = true)
+    writableCodec + currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
   }
 
   /**
@@ -1203,8 +1203,8 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val codecFinal = codec.removeTrailingComma(currentCodec.writeCodecSize, rectBrackets = true)
-    val codecFinalCopy = codec.removeTrailingComma(currentCodecCopy.writeCodecSize, rectBrackets = true)
+    val codecFinal = currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
+    val codecFinalCopy = currentCodecCopy.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
 
     condition match {
       case UNTIL_RANGE => codecFinalCopy
@@ -1397,8 +1397,8 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val finalCodec = codec.removeTrailingComma(currentCodec.writeCodecSize)
-    val finalCodecCopy = codec.removeTrailingComma(currentCodecCopy.writeCodecSize)
+    val finalCodec = currentCodec.writeCodecSize.removeTrailingComma(codec)
+    val finalCodecCopy = currentCodecCopy.writeCodecSize.removeTrailingComma(codec)
 
     condition match {
       case UNTIL_RANGE =>

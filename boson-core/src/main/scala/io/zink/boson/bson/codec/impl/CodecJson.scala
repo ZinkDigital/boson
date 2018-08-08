@@ -150,7 +150,7 @@ class CodecJson(str: String) extends Codec {
         case C_DOT =>
           SonObject(request, input.mkString)
         case CS_OBJECT | CS_OBJECT_WITH_SIZE | CS_OBJECT_INJ =>
-          val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonObject(request, subStr1)
@@ -160,19 +160,19 @@ class CodecJson(str: String) extends Codec {
         case C_DOT =>
           SonArray(request, input.mkString)
         case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
-          val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonArray(request, subStr1)
         case CS_ARRAY_INJ =>
           if (input(readerIndex).equals('[')) {
-            val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
             val subStr1 = input.substring(readerIndex, readerIndex + size)
             readerIndex += size
             SonArray(request, subStr1)
           } else {
             if (input(readerIndex).equals('{')) {
-              val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+              val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
               val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
               readerIndex += size
               SonArray(request, subStr1)
@@ -669,16 +669,31 @@ class CodecJson(str: String) extends Codec {
     * @return a new codec that does not have the last trailing comma in it
     */
   def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = {
-    val codecString = input
-    val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-    val (openBracket, closedBracket) = if (!rectBrackets) ("{", "}") else ("[", "]")
-    if (jsonString.charAt(jsonString.length - 1).equals(',')) {
-      if (checkOpenRect) {
-        if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
-        else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
-        else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
-      } else CodecObject.toCodec(s"${openBracket + jsonString.dropRight(1) + closedBracket}")
-    } else CodecObject.toCodec(s"${openBracket + jsonString + closedBracket}")
+//    val codecString = input
+//    val jsonString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+//    val (openBracket, closedBracket) = if (rectBrackets) ("[", "]") else ("{", "}")
+//    if (jsonString.charAt(jsonString.length - 1).equals(',')) {
+//      if (checkOpenRect) {
+//        if (codecString.charAt(0).equals('[') && !jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"[${jsonString.dropRight(1)}]") //Remove trailing comma
+//        else if (codecString.charAt(0).equals('[') && jsonString.charAt(0).equals(CS_OPEN_RECT_BRACKET)) CodecObject.toCodec(s"${jsonString.dropRight(1)}") //Remove trailing comma
+//        else CodecObject.toCodec(s"{${jsonString.dropRight(1)}}") //Remove trailing comma
+//      } else CodecObject.toCodec(s"${openBracket + jsonString.dropRight(1) + closedBracket}")
+//    } else CodecObject.toCodec(s"${openBracket + jsonString + closedBracket}")
+//
+    val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf,String]].value
+    val (openBracket, closedBracket) = if (rectBrackets) ("[", "]") else ("{", "}")
+
+    if(input.charAt(input.length-1).equals(',')) {
+      if(checkOpenRect) {
+        if(codecString.charAt(0).equals('[') && !input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) { input.insert(0, '['); input.replace(input.length-1,input.length,"]") }
+        else if (codecString.charAt(0).equals('[') && input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) input.replace(input.length-1,input.length,"")
+        else {
+          input.replace(input.length-1,input.length,"}")
+          input.insert(0,'{')
+        }
+      } else { input.replace(input.length-1,input.length,closedBracket); input.insert(0,openBracket) }
+    } else { input.insert(0, openBracket); input.append(closedBracket) }
+    this
   }
 
   /**
@@ -780,7 +795,7 @@ class CodecJson(str: String) extends Codec {
   def wrappable: Boolean = !input.toString.charAt(0).equals(CS_OPEN_BRACKET)
 
   /**
-    * This methods clears all the information insde the codec so it can be rewritten
+    * This methods clears all the information inside the codec so it can be rewritten
     *
     * @return
     */
