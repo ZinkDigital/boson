@@ -712,7 +712,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
-  def addComma: Codec = { input.append(","); this }
+  def addComma: Codec = {input.append(","); this}//new CodecJson(input.toString + ",")
 
   /**
     * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type

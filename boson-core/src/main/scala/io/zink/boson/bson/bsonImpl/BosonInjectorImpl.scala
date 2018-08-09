@@ -471,6 +471,8 @@ private[bsonImpl] object BosonInjectorImpl {
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
       val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
 
+//      val str = applyFunction(injFunction, value0).asInstanceOf[Any].toString
+
       applyFunction(injFunction, value0) match {
         case value: Any => //This Any is exclusively either String or Instant
           val str = value.toString
