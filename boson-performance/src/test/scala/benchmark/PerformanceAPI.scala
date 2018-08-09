@@ -21,9 +21,9 @@ object Lib {
 
   def bestTimeMeasure[R](block: => R): Quantity[Double] = {
     val time = config(
-      Key.exec.benchRuns -> 5000,
-      Key.exec.minWarmupRuns -> 5000,
-      Key.exec.maxWarmupRuns -> 5000
+      Key.exec.benchRuns -> 1000,
+      Key.exec.minWarmupRuns -> 1000,
+      Key.exec.maxWarmupRuns -> 1000
     ) withWarmer {
       new Warmer.Default
     } measure {
@@ -32,7 +32,7 @@ object Lib {
     time
   }
 
-  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/SportingMarkets.json"))
   val jsonStr: String = bufferedSource.getLines.toSeq.head
   bufferedSource.close
   val jsonObj: JsonObject = new JsonObject(jsonStr)

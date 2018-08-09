@@ -18,7 +18,7 @@ import scala.io.Source
 object BosonUndercouch extends App {
 
   // get the input doc into JSON and encoding to BSON
-  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/SportingMarkets.json"))
   val jsonStr: String = bufferedSource.getLines.toSeq.head
   bufferedSource.close
   val jsonObj: JsonObject = new JsonObject(jsonStr)
