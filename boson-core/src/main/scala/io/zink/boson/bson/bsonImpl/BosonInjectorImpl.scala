@@ -912,15 +912,15 @@ private[bsonImpl] object BosonInjectorImpl {
                         if (codec.getDataType == 0) {
                           codec.skipChar(back = true)
                           currentCodec + partialCodec.addComma
-                          currentCodecCopy + partialCodec.addComma
+                          currentCodecCopy + partialCodec
                         } else {
                           codec.skipChar(back = true)
                           currentCodec + subCodec.addComma
-                          currentCodecCopy + subCodec.addComma
+                          currentCodecCopy + subCodec
                         }
                       } else {
                         currentCodec + subCodec.addComma
-                        currentCodecCopy + subCodec.addComma
+                        currentCodecCopy + subCodec
                       }
                     case _ =>
                       val newCodecCopy = currentCodec.duplicate
@@ -944,7 +944,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         if (codec.getDataType == 0) {
                           codec.skipChar(back = true)
                           currentCodec + partialCodec.addComma
-                          currentCodecCopy + partialCodec.addComma
+                          currentCodecCopy + partialCodec
                         }
                         else {
                           codec.skipChar(back = true)
@@ -975,27 +975,25 @@ private[bsonImpl] object BosonInjectorImpl {
                         else
                           partialCodec
 
-                      val partialToUse = partialCodec.addComma
-
                       Try(BosonImpl.inject(subCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                         case Success(c) =>
                           if (condition equals UNTIL_RANGE) {
                             if (codec.getDataType == 0) {
                               codec.skipChar(back = true)
-                              currentCodec + partialToUse
-                              currentCodecCopy + partialToUse
+                              currentCodec + partialCodec.addComma
+                              currentCodecCopy + partialCodec
                             } else {
                               codec.skipChar(back = true)
-                              currentCodec + partialToUse
+                              currentCodec + partialCodec.addComma
                               currentCodecCopy + c.addComma
                             }
                           } else {
                             currentCodec + c.addComma
-                            currentCodecCopy + partialToUse
+                            currentCodecCopy + partialCodec.addComma
                           }
                         case Failure(_) =>
-                          currentCodec + partialToUse
-                          currentCodecCopy + partialToUse
+                          currentCodec + partialCodec.addComma
+                          currentCodecCopy + partialCodec
                       }
 
                     case _ => processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
@@ -1004,7 +1002,7 @@ private[bsonImpl] object BosonInjectorImpl {
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
                       val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
-                      val partialToUse = partialCodec.addComma
+//                      val partialToUse = partialCodec.addComma
                       val statementsToUse = if (statementsList.head._2.contains(C_DOUBLEDOT)) statementsList else statementsList.drop(1)
                       Try(BosonImpl.inject(partialCodec.getCodecData, statementsToUse, injFunction)) match {
                         case Success(c) =>
@@ -1012,16 +1010,16 @@ private[bsonImpl] object BosonInjectorImpl {
                           if (condition equals UNTIL_RANGE) {
                             if (codec.getDataType == 0) {
                               codec.skipChar(back = true)
-                              currentCodec + partialToUse
-                              currentCodecCopy + partialToUse
+                              currentCodec + partialCodec.addComma
+                              currentCodecCopy + partialCodec
                             } else {
                               codec.skipChar(back = true)
-                              currentCodec + partialToUse
+                              currentCodec + partialCodec.addComma
                               currentCodecCopy + cToUse
                             }
                           } else {
                             currentCodec + cToUse
-                            currentCodecCopy + partialToUse
+                            currentCodecCopy + partialCodec.addComma
                           }
 
                         case Failure(_) =>
