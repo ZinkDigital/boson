@@ -137,7 +137,7 @@ val testLibraries = Seq(
 
 
 
-lazy val root = project.in(file("."))
+lazy val boson = project.in(file("."))
   .aggregate(bosonCore, bosonScala, bosonJava)
   .settings(basicSettings: _*)
   .settings(noPublishing: _*)
