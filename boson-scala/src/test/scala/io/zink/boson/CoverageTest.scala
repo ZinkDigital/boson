@@ -2639,10 +2639,10 @@ class CoverageTest extends FunSuite {
 //    performanceTest(boson)
 //  }
 
-  test("performanceAPI Test - 9") {
-    val boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
-    performanceTest(boson)
-  }
+//  test("performanceAPI Test - 9") {
+//    val boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
+//    performanceTest(boson)
+//  }
 
 //  test("performanceAPI Test - 10") {
 //    val boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
@@ -5048,10 +5048,10 @@ class CoverageTest extends FunSuite {
 //    performanceTest(boson, isJson = true)
 //  }
 
-//  test("CodecJson performanceAPI Test - 9") {
-//    val boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
-//    performanceTest(boson, isJson = true)
-//  }
+  test("CodecJson performanceAPI Test - 9") {
+    val boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
+    performanceTest(boson, isJson = true)
+  }
 
 //  test("CodecJson performanceAPI Test - 10") {
 //    val boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)

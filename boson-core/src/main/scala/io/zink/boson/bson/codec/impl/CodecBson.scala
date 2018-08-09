@@ -511,7 +511,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
-  def addComma: Codec = completeDuplicate
+  def addComma: Codec = this
 
   /**
     * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
@@ -549,7 +549,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param dataType - The data type of value to change
     * @return A new codec with exactly the same information but with the brackets changed
     */
-  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = completeDuplicate
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = this
 
   /**
     * Method that wraps a CodecJson in curly or rectangular brackets.
@@ -559,7 +559,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param key         - Json field to be written before this codec's content (optional)
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
-  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = completeDuplicate
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = this
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.
@@ -574,12 +574,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return A new Codec that is exactly the same as this codec, it just has a different memory reference
     */
-  private def completeDuplicate: Codec = {
-    val newCodec = new CodecBson(arg, Some(buff))
-    newCodec.setReaderIndex(getReaderIndex)
-    newCodec.setWriterIndex(getWriterIndex)
-    newCodec
-  }
+//  private def completeDuplicate: Codec = {
+//    val newCodec = new CodecBson(arg, Some(buff))
+//    newCodec.setReaderIndex(getReaderIndex)
+//    newCodec.setWriterIndex(getWriterIndex)
+//    newCodec
+//  }
 
   /**
     * This methods clears all the information inside the codec so it can be rewritten
