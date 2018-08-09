@@ -139,14 +139,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
     */
-  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match { //TODO:Unpooled, does it fit?
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
     case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
 
     case SonArray(x, _) =>
       x match {
         case C_DOT =>
           val b: ByteBuf = buff.copy(0, buff.capacity)
-          buff.readerIndex(buff.capacity) //TODO: probably isn't needed
           SonArray(x, b)
 
         case CS_ARRAY =>
@@ -255,7 +254,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return either a SonArray or SonObject representing a BsonArray/JsonArray root or BsonObject/JsonObject root
     */
   override def rootType: SonNamedType = {
-    val buf = buff.duplicate()
+    val buf = buff.duplicate
     if (buf.capacity > 5) {
       buf.readerIndex(5)
       val key: ListBuffer[Byte] = new ListBuffer[Byte]
@@ -351,10 +350,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def consumeValue(seqType: Int): Unit = seqType match {
     case D_FLOAT_DOUBLE => buff.skipBytes(8)
-    case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-      buff.skipBytes(buff.readIntLE())
-    //    case D_BSONOBJECT=>buff.skipBytes(buff.readIntLE())
-    //    case D_BSONARRAY=>buff.skipBytes(buff.readIntLE())
+    case D_ARRAYB_INST_STR_ENUM_CHRSEQ => buff.skipBytes(buff.readIntLE())
     case D_BOOLEAN => buff.skipBytes(1)
     case D_INT => buff.skipBytes(4)
     case D_LONG => buff.skipBytes(8)
@@ -378,7 +374,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         case SonBoolean(_, info) =>
           val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
           buff.writeBoolean(writableBoolean) // write the boolean to the buff ByteBuf
-          this //return a new codec with the buff ByteBuf
+          this
 
         case SonNumber(numberType, info) =>
           numberType match {
@@ -586,7 +582,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
-    * This methods clears all the information insde the codec so it can be rewritten
+    * This methods clears all the information inside the codec so it can be rewritten
     *
     * @return
     */

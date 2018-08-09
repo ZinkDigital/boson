@@ -343,7 +343,7 @@ class CodecJson(str: String) extends Codec {
         val size = findObjectSize(inputAux, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
         size
       case CS_OPEN_RECT_BRACKET =>
-        val inputAux: Seq[Char] = input.substring(readerIndex, inputSize)
+        val inputAux: Seq[Char] = input.substring(readerIndex, input.length)
         val size = findObjectSize(inputAux, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
         size
       case CS_QUOTES =>
@@ -780,13 +780,8 @@ class CodecJson(str: String) extends Codec {
     if (key.isEmpty) {
       input.insert(0, openBracket)
       input.append(closeBracket)
-      this
-    }
-    else {
-      //      input.insert(0, openBracket + "\"" + key + "\":") //TODO erroring in CodecJson performanceAPI test - 10
-      new CodecJson(openBracket + "\"" + key + "\":" + input.toString)  //TODO Change this to the above
-    }
-    //    this
+    } else input.insert(0, openBracket + "\"" + key + "\":")
+    this
   }
 
   /**

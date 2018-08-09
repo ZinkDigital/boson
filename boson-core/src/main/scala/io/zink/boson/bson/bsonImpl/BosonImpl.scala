@@ -48,7 +48,7 @@ object BosonImpl {
 
       case Success(value) =>
         val size: Int = value
-        val seqTypeCodec: SonNamedType = nettyC.rootType
+        val seqTypeCodec: SonNamedType = nettyC.rootType //TODO - look into this
         seqTypeCodec match {
 
           case SonZero => Nil
