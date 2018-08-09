@@ -3068,7 +3068,7 @@ class NewInjectorsTests extends FunSuite {
     assert(result equals expectedEncoded)
   }
 
-  test("CodecJson - Key with Array Exp ..[1 to end] - Double Dots") { //TODO
+  test("CodecJson - Key with Array Exp ..[1 to end] - Double Dots") {
     val expr = "..[1 to end]"
     val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
     val expectedEncoded = bsonArrayExpected.encodeToString
@@ -3512,6 +3512,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = jsonInj.go(json.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+    println(resultValue + "\n" + jsonExpected.encodeToString)
     assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
