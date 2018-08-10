@@ -235,7 +235,6 @@ class CoverageTest extends FunSuite {
     val mutableBuffer: ArrayBuffer[Array[Byte]] = ArrayBuffer()
     val boson: Boson = Boson.extractor(expression, (in: Array[Byte]) => {
       mutableBuffer += in
-      println("APPLIED")
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
@@ -670,7 +669,6 @@ class CoverageTest extends FunSuite {
     })
     val res = if (!json) boson.go(arr.encode.getBytes) else boson.go(arr.encodeToString)
     Await.result(res, Duration.Inf)
-    mutableBuffer.foreach(println)
     assert(mutableBuffer.containsSlice(Seq(true, true, false)))
   }
 
@@ -911,7 +909,6 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(resultValue.mkString(" "))
     assertArrayEquals(resultValue, bsonExpected.encodeToBarray)
   }
 
@@ -1123,6 +1120,7 @@ class CoverageTest extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
+    println("\n" + result.mkString(", ") + "\n" + expectedEncoded.mkString(", "))
     assertArrayEquals(result, expectedEncoded)
   }
 
@@ -1162,6 +1160,7 @@ class CoverageTest extends FunSuite {
     })
     val future = bsonInj.go(bsonObjArrayEncoded)
     val result = Await.result(future, Duration.Inf)
+    println("\n" + result.mkString(", ") + "\n" + expectedEncoded.mkString(", "))
     assertArrayEquals(result, expectedEncoded)
   }
 
@@ -1830,8 +1829,6 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToBarray()
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-    println(resultValue.length)
-    println(bsonEncoded.length)
     assertArrayEquals(resultValue, bsonExpected.encodeToBarray)
   }
 
