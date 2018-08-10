@@ -674,7 +674,7 @@ class CodecJson(str: String) extends Codec {
     if (input.charAt(input.length - 1).equals(',')) {
       if (checkOpenRect) {
         if (codecString.charAt(0).equals('[') && !input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) {
-          input.insert(0, '[');
+          input.insert(0, '[')
           input.replace(input.length - 1, input.length, "]")
         }
         else if (codecString.charAt(0).equals('[') && input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) input.replace(input.length - 1, input.length, "")
@@ -683,11 +683,11 @@ class CodecJson(str: String) extends Codec {
           input.insert(0, '{')
         }
       } else {
-        input.replace(input.length - 1, input.length, closedBracket);
+        input.replace(input.length - 1, input.length, closedBracket)
         input.insert(0, openBracket)
       }
     } else {
-      input.insert(0, openBracket);
+      input.insert(0, openBracket)
       input.append(closedBracket)
     }
     this
@@ -712,7 +712,10 @@ class CodecJson(str: String) extends Codec {
     *
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
-  def addComma: Codec = {input.append(","); this} /*new CodecJson(input.toString + ",")*/
+  def addComma: Codec = {
+    input.append(",")
+    this
+  }
 
   /**
     * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
