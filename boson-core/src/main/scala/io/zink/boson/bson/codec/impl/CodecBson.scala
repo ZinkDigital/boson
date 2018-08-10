@@ -311,12 +311,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a new duplicated Codec
     */
-  override def duplicate: Codec = {
-    val newB = buff.copy(0, buff.capacity) //TODO:this is too heavy, find another way
-    newB.readerIndex(buff.readerIndex)
-    newB.writerIndex(buff.writerIndex)
-    new CodecBson(arg, Some(newB))
-  }
+  override def duplicate: Codec = internalDuplicate(buff)
 
   /**
     * release is used to free the resources that are no longer used
@@ -570,6 +565,26 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   def wrappable: Boolean = false
 
   /**
+    * Method that creates a Codec with an empty data structure inside it.
+    *
+    * For CodecBson it creates a ByteBuf with capacity 256.
+    * For CodecJson it creates an empty String
+    *
+    * @return a Codec with an empty data structure inside it
+    */
+  def createEmptyCodec(emptyBuf : ByteBuf): Codec = internalDuplicate(emptyBuf)
+
+  /**
+    * This methods clears all the information inside the codec so it can be rewritten
+    *
+    * @return
+    */
+  def clear: Codec = {
+    buff.clear()
+    this
+  }
+
+  /**
     * This private method duplicates the current codecs data structure and sets the reader and writer index accordingly
     *
     * @return A new Codec that is exactly the same as this codec, it just has a different memory reference
@@ -581,13 +596,10 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     newCodec
   }
 
-  /**
-    * This methods clears all the information inside the codec so it can be rewritten
-    *
-    * @return
-    */
-  def clear: Codec = {
-    buff.clear()
-    this
+  private def internalDuplicate(byteBuf: ByteBuf): Codec = {
+    val newB = byteBuf.copy(0, byteBuf.capacity)
+    newB.readerIndex(byteBuf.readerIndex)
+    newB.writerIndex(byteBuf.writerIndex)
+    new CodecBson(arg, Some(newB))
   }
 }
