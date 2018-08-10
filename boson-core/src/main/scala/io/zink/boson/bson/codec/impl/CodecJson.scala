@@ -778,12 +778,14 @@ class CodecJson(str: String) extends Codec {
     * @param key         - Json field to be written before this codec's content (optional)
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
-  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = {
-    val (openBracket, closeBracket) = if (rectBracket) ("[", "]") else ("{", "}")
-    if (key.isEmpty) {
-      input.insert(0, openBracket)
-      input.append(closeBracket)
-    } else input.insert(0, openBracket + "\"" + key + "\":")
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = {
+    if (dataType == -1 || dataType == D_BSONOBJECT) {
+      val (openBracket, closeBracket) = if (rectBracket) ("[", "]") else ("{", "}")
+      if (key.isEmpty) {
+        input.insert(0, openBracket)
+        input.append(closeBracket)
+      } else input.insert(0, openBracket + "\"" + key + "\":")
+    }
     this
   }
 

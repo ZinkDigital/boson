@@ -559,7 +559,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param key         - Json field to be written before this codec's content (optional)
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
-  def wrapInBrackets(rectBracket: Boolean = false, key: String = ""): Codec = completeDuplicate
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = completeDuplicate
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.

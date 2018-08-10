@@ -713,10 +713,10 @@ private[bsonImpl] object BosonInjectorImpl {
       case (EMPTY_KEY, from, expr, _) =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType = formerType)
 
-      case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] && formerType == 4 =>
+      case (_, from, expr, to) if to.isInstanceOf[Int] && formerType == 4 =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, to.toString, fullStatementsList = statementsList, formerType = formerType)
 
-      case (nonEmptyKey, from, expr, _) if formerType == 4 =>
+      case (_, from, expr, _) if formerType == 4 =>
         modifyArrayEnd(statementsList, arrayTokenCodec, injFunction, expr, from.toString, fullStatementsList = statementsList, formerType = formerType)
 
       case (nonEmptyKey, from, expr, to) if to.isInstanceOf[Int] =>
@@ -1046,12 +1046,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   dataType match {
                     case D_BSONOBJECT | D_BSONARRAY =>
-                      val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info match {  //TODO remove this ptmatch and use wrapInBrackets
-                        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                        case string: String =>
-                          if (dataType == D_BSONOBJECT) CodecObject.toCodec("{" + string + "}")
-                          else CodecObject.toCodec(string)
-                      }
+                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets(dataType = dataType)
                       val modifiedPartialCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                       //Look inside the current object for cases that match the user given expression
                       val mergedCodec =
@@ -1078,13 +1073,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 } else {
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
-                      val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info match {
-                        case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                        case string: String =>
-                          if (dataType == D_BSONOBJECT) CodecObject.toCodec("{" + string + "}") // TODO - Check this case
-                          else CodecObject.toCodec(string)
-                      }
-
+                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets(dataType = dataType)
                       val codecMod = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                       currentCodec + codecMod.addComma
                       currentCodecCopy + partialCodec.addComma
@@ -1138,12 +1127,7 @@ private[bsonImpl] object BosonInjectorImpl {
               if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                 dataType match {
                   case D_BSONOBJECT | D_BSONARRAY =>
-                    val partialCodec = codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info match { //TODO - Check this case
-                      case byteBuf: ByteBuf => CodecObject.toCodec(byteBuf)
-                      case string: String =>
-                        if (dataType == D_BSONOBJECT) CodecObject.toCodec("{" + string + "}")
-                        else CodecObject.toCodec(string)
-                    }
+                    val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets(dataType = dataType)
                     val modifiedAuxCodec =
                       if (!statementsList.equals(fullStatementsList) && fullStatementsList.head._2.contains(C_DOUBLEDOT))
                         if (fullStatementsList.head._2.contains(C_DOUBLEDOT))
