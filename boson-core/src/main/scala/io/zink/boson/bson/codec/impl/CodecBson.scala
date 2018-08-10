@@ -311,7 +311,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a new duplicated Codec
     */
-  override def duplicate: Codec = internalDuplicate(buff)
+  override def duplicate: Codec = new CodecBson(buff.duplicate) //internalDuplicate(buff)
 
   /**
     * release is used to free the resources that are no longer used
@@ -364,38 +364,23 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     if (!ignoreForBson) {
       token match {
 
-        case SonNull(_, _) => this
+        case SonNull(_, _) =>
 
         case SonBoolean(_, info) =>
-          val writableBoolean = info.asInstanceOf[Boolean] //cast received info as boolean or else throw an exception
-          buff.writeBoolean(writableBoolean) // write the boolean to the buff ByteBuf
-          this
+          buff.writeBoolean(info.asInstanceOf[Boolean]) // write the boolean to the buff ByteBuf
 
         case SonNumber(numberType, info) =>
           numberType match {
+            case CS_BYTE => buff.writeByte(info.asInstanceOf[Byte])
 
-            case CS_BYTE =>
-              val writableByte = info.asInstanceOf[Byte]
-              buff.writeByte(writableByte)
+            case CS_INTEGER => buff.writeIntLE(info.asInstanceOf[Int])
 
-            case CS_INTEGER =>
-              val writableInt = info.asInstanceOf[Int]
-              buff.writeIntLE(writableInt)
+            case CS_DOUBLE => buff.writeDoubleLE(info.asInstanceOf[Double])
 
-            case CS_DOUBLE =>
-              val writableDouble = info.asInstanceOf[Double]
-              buff.writeDoubleLE(writableDouble)
+            case CS_FLOAT => buff.writeFloatLE(info.asInstanceOf[Float])
 
-            case CS_FLOAT =>
-              val writableFloat = info.asInstanceOf[Float]
-              buff.writeFloatLE(writableFloat)
-
-            case CS_LONG =>
-              val writableLong = info.asInstanceOf[Long]
-              buff.writeLongLE(writableLong)
-
+            case CS_LONG => buff.writeLongLE(info.asInstanceOf[Long])
           }
-          this
 
         case SonString(objType, info) =>
           objType match {
@@ -406,16 +391,10 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
               buff.writeBytes(bytes)
               bytes.release()
 
-            case _ =>
-              val writableCharSeq = info.asInstanceOf[CharSequence]
-              buff.writeCharSequence(writableCharSeq, Charset.defaultCharset())
+            case _ => buff.writeCharSequence(info.asInstanceOf[CharSequence], Charset.defaultCharset())
           }
-          this
 
-        case SonArray(_, info) =>
-          val writableByteSeq = info.asInstanceOf[Array[Byte]]
-          buff.writeBytes(writableByteSeq)
-          this
+        case SonArray(_, info) => buff.writeBytes(info.asInstanceOf[Array[Byte]])
 
         case SonObject(dataType, info) =>
           val infoToUse = info match {
@@ -424,29 +403,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           }
           dataType match {
 
-            case CS_OBJECT_WITH_SIZE =>
-              val writableByteBuf = infoToUse.asInstanceOf[ByteBuf]
-              val writableByteSeq = writableByteBuf.array()
-              buff.writeBytes(writableByteSeq)
-              this
+            case CS_OBJECT_WITH_SIZE => buff.writeBytes(infoToUse.asInstanceOf[ByteBuf].array())
 
-            case _ =>
-              val writableByteSeq = infoToUse.asInstanceOf[Array[Byte]]
-              buff.writeBytes(writableByteSeq)
-              this
+            case _ => buff.writeBytes(infoToUse.asInstanceOf[Array[Byte]])
           }
       }
-    } else this
-  }
-
-  /**
-    * Private method that returns an exact copy of this codec's ByteBuf in order to manipulate this copied ByteBuf
-    *
-    * @return an exact copy of the current codec's ByteBuf
-    */
-  private def copyByteBuf: ByteBuf = {
-    val newBuf = buff.copy(0, buff.capacity)
-    newBuf.readerIndex(buff.readerIndex)
+    }
+    this
   }
 
   /**
@@ -491,7 +454,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     duplicated.writeBytes(buff)
     duplicated.capacity(getWriterIndex + 4)
 
-    new CodecBson(arg, Some(duplicated))
+    new CodecBson(duplicated)
   }
 
   /**
@@ -506,7 +469,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
     */
-  def addComma: Codec = completeDuplicate
+  def addComma: Codec = this
 
   /**
     * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
@@ -544,7 +507,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param dataType - The data type of value to change
     * @return A new codec with exactly the same information but with the brackets changed
     */
-  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = completeDuplicate
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = this
 
   /**
     * Method that wraps a CodecJson in curly or rectangular brackets.
@@ -554,7 +517,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param key         - Json field to be written before this codec's content (optional)
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
-  def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = completeDuplicate
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = this
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.
@@ -572,7 +535,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a Codec with an empty data structure inside it
     */
-  def createEmptyCodec(emptyBuf : ByteBuf): Codec = internalDuplicate(emptyBuf)
+  def createEmptyCodec(emptyBuf: ByteBuf): Codec = internalDuplicate(emptyBuf)
 
   /**
     * This methods clears all the information inside the codec so it can be rewritten
@@ -584,22 +547,10 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
-  /**
-    * This private method duplicates the current codecs data structure and sets the reader and writer index accordingly
-    *
-    * @return A new Codec that is exactly the same as this codec, it just has a different memory reference
-    */
-  private def completeDuplicate: Codec = {
-    val newCodec = new CodecBson(arg, Some(buff))
-    newCodec.setReaderIndex(getReaderIndex)
-    newCodec.setWriterIndex(getWriterIndex)
-    newCodec
-  }
-
   private def internalDuplicate(byteBuf: ByteBuf): Codec = {
-    val newB = byteBuf.copy(0, byteBuf.capacity)
+    val newB = byteBuf.copy(0, byteBuf.writerIndex)
     newB.readerIndex(byteBuf.readerIndex)
     newB.writerIndex(byteBuf.writerIndex)
-    new CodecBson(arg, Some(newB))
+    new CodecBson(newB)
   }
 }
