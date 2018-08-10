@@ -311,7 +311,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a new duplicated Codec
     */
-  override def duplicate: Codec = new CodecBson(buff.duplicate) //internalDuplicate(buff)
+  override def duplicate: Codec = new CodecBson(buff.copy) //internalDuplicate(buff)
 
   /**
     * release is used to free the resources that are no longer used
