@@ -2,16 +2,17 @@ package benchmark
 
 object  IncrementValue extends Metered {
 
-  val WarmUpRuns = 1000
-  val MeasuredRuns = 10000
+  val WarmUpRuns = 5
+  val MeasuredRuns = 10
 
   override def startUp: Unit = {}
   override def shutDown: Unit = {}
 
 
   val stats = measure {
-    Thread.sleep(10)
+    // TODO Increment a value in a long JSON string
   }
 
-  println(s"Avg :${stats.mean}")
+  println(s"Avg :${stats.mean}  StandDev :${stats.standardDev}")
+
 }

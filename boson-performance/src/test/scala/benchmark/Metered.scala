@@ -2,10 +2,19 @@ package benchmark
 
 
 case class Stats(val times : Seq[Long]) {
+
+  private val meanNanos = times.sum.toDouble / times.size.toDouble
+  private val squaredDiffNanos = times.map( v => (v - meanNanos) * (v - meanNanos) )
+  private val varianceNanos : Double = squaredDiffNanos.sum / squaredDiffNanos.size.toDouble
+
+
   def millisConversion(nanos : Double) : Double = nanos / 1000000
   def slowest : Double = millisConversion(times max )
   def fastest : Double = millisConversion(times min )
-  def mean    : Double = millisConversion(times.sum.toDouble / times.size.toDouble )
+  def mean    : Double = millisConversion(meanNanos )
+  def standardDev = millisConversion( Math.sqrt(varianceNanos))
+
+
 }
 
 abstract class Metered extends App {
