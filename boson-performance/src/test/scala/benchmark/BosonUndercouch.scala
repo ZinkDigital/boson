@@ -33,10 +33,7 @@ object BosonUndercouch extends App {
   val startTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
   val endTimeBuffer: ListBuffer[Long] = new ListBuffer[Long]
 
-
   val expression = ".Markets[1].Tags"
-
-
 
   println("****** Boson *******")
 

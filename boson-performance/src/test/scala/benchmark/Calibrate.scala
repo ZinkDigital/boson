@@ -1,6 +1,6 @@
 package benchmark
 
-object  IncrementValue extends Metered {
+object  Calibrate extends Metered {
 
   val WarmUpRuns = 1000
   val MeasuredRuns = 10000

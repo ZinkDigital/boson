@@ -28,9 +28,18 @@ abstract class Metered extends App {
 
 
   private[Metered] def measureOverhead(): Long = {
-    val start = System.nanoTime()
-    val end = System.nanoTime()
-    end - start
+    // Deliberately flattened
+    val s1 = System.nanoTime
+    val s2 = System.nanoTime
+    val s3 = System.nanoTime
+    val s4 = System.nanoTime
+    val s5 = System.nanoTime
+    val s6 = System.nanoTime
+    val s7 = System.nanoTime
+    val s8 = System.nanoTime
+    val diffs = List(s1,s2,s3,s4,s5,s6,s7,s8).sliding(2).map( l => l.last - l.head).toList
+    val mean = (diffs.sum)  / (diffs.size)
+    mean
   }
 
 
