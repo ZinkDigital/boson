@@ -535,7 +535,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a Codec with an empty data structure inside it
     */
-  def createEmptyCodec(emptyBuf: ByteBuf): Codec = internalDuplicate(emptyBuf)
+  def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = internalDuplicate(emptyBuf)
 
   /**
     * This methods clears all the information inside the codec so it can be rewritten
