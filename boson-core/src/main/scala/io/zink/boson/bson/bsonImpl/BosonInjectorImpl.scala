@@ -848,21 +848,15 @@ private[bsonImpl] object BosonInjectorImpl {
 
                       val partialToUse = CodecObject.toCodec(partialData).addComma
 
-                      Try(BosonImpl.inject(codecData, statementsList.drop(1), injFunction)) match {
-                        case Success(c) =>
-                          if (codec.getDataType == 0) {
-                            codec.skipChar(back = true)
-                            currentCodec + c.addComma
-                            currentCodecCopy + partialToUse
-                          } else {
-                            codec.skipChar(back = true)
-                            currentCodec + partialToUse
-                            currentCodecCopy + partialToUse
-                          }
-
-                        case Failure(_) =>
-                          currentCodec + partialToUse
-                          currentCodecCopy + partialToUse
+                      val subCodec = BosonImpl.inject(codecData, statementsList.drop(1), injFunction)
+                      if (codec.getDataType == 0) {
+                        codec.skipChar(back = true)
+                        currentCodec + subCodec.addComma
+                        currentCodecCopy + partialToUse
+                      } else {
+                        codec.skipChar(back = true)
+                        currentCodec + partialToUse
+                        currentCodecCopy + partialToUse
                       }
 
                     case _ => processTypesArrayEnd(statementsList, EMPTY_KEY, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
