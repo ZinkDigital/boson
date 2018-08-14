@@ -46,13 +46,24 @@ private[bsonImpl] object BosonInjectorImpl {
                           case SonObject(_, result) => anyToEither(result)
                           case SonArray(_, result) => anyToEither(result)
                         }
-                        val modifySubCodecTask = task {
-                          val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
-                          modifierAll(subCodec, dataTypeAndKeyCodec, dataType, injFunction)
-                        }
-                        modifySubCodecTask.join() + iterateDataStructure()
+                        val (a, b) = parallel(
+                          {
+                            val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
+                            modifierAll(subCodec, dataTypeAndKeyCodec, dataType, injFunction)
+                          },
+                          iterateDataStructure()
+                        )
+                        a + b
+                      //                                              val modifySubCodecTask = task {
+                      //                                                val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
+                      //                                                modifierAll(subCodec, dataTypeAndKeyCodec, dataType, injFunction)
+                      //                                              }
+                      //                                              val iterateTask = task {
+                      //                                                iterateDataStructure()
+                      //                                              }
+                      //                                              modifySubCodecTask.join() + iterateTask.join()
 
-                      case _ => modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure() //should we parallel this ?
+                      case _ => modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure() //should we parallel this ? maybe check how many bytes to "skip" ?
                     }
                   } else modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure()
 
@@ -65,16 +76,32 @@ private[bsonImpl] object BosonInjectorImpl {
                           case SonObject(_, result) => anyToEither(result)
                           case SonArray(_, result) => anyToEither(result)
                         }
-                        val modifySubCodecTask = task {
-                          val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-                          if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4)
+                        //                                                val modifySubCodecTask = task {
+                        //                                                  val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
+                        //                                                  if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4)
+                        //
+                        //                                                  val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
+                        //                                                  dataTypeAndKeyCodec + subCodec
+                        //                                                }
+                        //                                                val iterateTask = task {
+                        //                                                  iterateDataStructure()
+                        //                                                }
+                        //                                                modifySubCodecTask.join() + iterateTask.join()
 
-                          val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
-                          dataTypeAndKeyCodec + subCodec
-                        }
-                        modifySubCodecTask.join() + iterateDataStructure()
+                        val (a, b) = parallel(
+                          {
+                            val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
+                            if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4)
 
-                      case _ => processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                            val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
+                            dataTypeAndKeyCodec + subCodec
+                          },
+                          iterateDataStructure()
+                        )
+                        a + b
+
+                      case _ =>
+                        processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
                     }
                   } else {
                     dataType match {
@@ -84,13 +111,27 @@ private[bsonImpl] object BosonInjectorImpl {
                           case SonObject(_, result) => anyToEither(result)
                           case SonArray(_, result) => anyToEither(result)
                         }
-                        val modifySubCodecTask = task {
-                          val subCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-                          dataTypeAndKeyCodec + subCodec
-                        }
-                        modifySubCodecTask.join() + iterateDataStructure()
+                        //                        val modifySubCodecTask task {
+                        //                          val subCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
+                        //                          dataTypeAndKeyCodec + subCodec
+                        //                        }
+                        //                        val iterateTask = task {
+                        //                          iterateDataStructure()
+                        //                        }
+                        //                        modifySubCodecTask.join() + iterateTask.join()
 
-                      case _ => processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure()
+                        val (a, b) = parallel(
+                          {
+                            val subCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
+                            dataTypeAndKeyCodec + subCodec
+                          },
+                          iterateDataStructure()
+                        )
+                        a + b
+
+
+                      case _ =>
+                        processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure()
                     }
                   }
                 }
@@ -101,18 +142,21 @@ private[bsonImpl] object BosonInjectorImpl {
                     case Right(jsonString) =>
                       if (jsonString.charAt(0).equals('[')) {
                         if (codec.getReaderIndex != 1) {
-                          processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction)
-                          dataTypeAndKeyCodec.addComma + iterateDataStructure()
+                          processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
                         } else {
                           codec.setReaderIndex(0)
                           processTypesArray(4, codec, dataTypeAndKeyCodec) + iterateDataStructure()
                         }
-                      } else processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                      } else {
+                        processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                      }
 
                     case Left(_) => processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
                   }
 
-                } else processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure()
+                } else {
+                  processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure()
+                }
             }
         }
       }
