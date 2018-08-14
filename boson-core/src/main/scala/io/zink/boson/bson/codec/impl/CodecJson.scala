@@ -815,6 +815,6 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a Codec with an empty data structure inside it
     */
-  def createEmptyCodec(emptyBuf : ByteBuf): Codec = new CodecJson("")
+  def createEmptyCodec()(implicit emptyBuf : ByteBuf): Codec = new CodecJson("")
 }
 

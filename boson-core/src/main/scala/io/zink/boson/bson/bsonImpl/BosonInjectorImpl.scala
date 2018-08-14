@@ -8,6 +8,7 @@ import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.bsonLib.BsonObject
+import io.zink.utils.ThreadUtils._
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -15,8 +16,19 @@ import scala.util.{Failure, Success, Try}
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  lazy val emptyBuff: ByteBuf = Unpooled.buffer()
+  implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
+
+//  def modifyAllPar[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+//    val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
+//    def iterateDataStrcuture(currentCodec: Codec) : Codec = {
+//      if ((codec.getReaderIndex - startReader) >= originalSize) currentCodec
+//      else {
+//
+//      }
+//    }
+//    val resultCodec = iterateDataStrcuture(codec.createEmptyCodec(emptyBuff))
+//  }
 
   /**
     * Function that recursively searches for the keys that are of interest to the injection
@@ -37,7 +49,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case jsonString: String => Right(jsonString)
     }
 
-    val currentCodec = codec.createEmptyCodec(emptyBuff)
+    val currentCodec = codec.createEmptyCodec()
     while ((codec.getReaderIndex - startReader) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec)
       dataType match {
@@ -143,8 +155,8 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
-    val currentCodec = codec.createEmptyCodec(emptyBuff)
-    while ((codec.getReaderIndex - startReader) < originalSize) {
+    val currentCodec = codec.createEmptyCodec
+    while((codec.getReaderIndex - startReader) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec)
       dataType match {
         case 0 => //Nothing
@@ -188,7 +200,7 @@ private[bsonImpl] object BosonInjectorImpl {
     val originalSize: Int = codec.readSize
     codec.skipChar() //If it's a CodecJson we need to skip the "[" character
 
-    val currentCodec = codec.createEmptyCodec(emptyBuff)
+    val currentCodec = codec.createEmptyCodec
     while ((codec.getReaderIndex - startReader) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec)
       dataType match {
@@ -748,8 +760,8 @@ private[bsonImpl] object BosonInjectorImpl {
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
     var counter: Int = -1
 
-    val currentCodec = codec.createEmptyCodec(emptyBuff)
-    val currentCodecCopy = codec.createEmptyCodec(emptyBuff)
+    val currentCodec = codec.createEmptyCodec
+    val currentCodecCopy = codec.createEmptyCodec
     while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec, formerType)
       currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
@@ -1050,7 +1062,7 @@ private[bsonImpl] object BosonInjectorImpl {
                           auxCodec.changeBrackets(dataType)
                         } else modifiedPartialCodec
 
-                      Try(modifierEnd(mergedCodec, dataType, injFunction, codec.createEmptyCodec(emptyBuff), codec.createEmptyCodec(emptyBuff))) match {
+                      Try(modifierEnd(mergedCodec, dataType, injFunction, codec.createEmptyCodec, codec.createEmptyCodec)) match {
                         case Success(_) =>
                           currentCodec + mergedCodec
                           currentCodecCopy + partialCodec
@@ -1277,8 +1289,8 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
 
-    val currentCodec = codec.createEmptyCodec(emptyBuff)
-    val currentCodecCopy = codec.createEmptyCodec(emptyBuff)
+    val currentCodec = codec.createEmptyCodec
+    val currentCodecCopy = codec.createEmptyCodec
     while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec)
       currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)

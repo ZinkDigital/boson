@@ -296,7 +296,7 @@ trait Codec {
     *
     * @return a Codec with an empty data structure inside it
     */
-  def createEmptyCodec(emptyBuf : ByteBuf): Codec
+  def createEmptyCodec()(implicit emptyBuf : ByteBuf): Codec
 }
 
 sealed trait CodecFacade {
