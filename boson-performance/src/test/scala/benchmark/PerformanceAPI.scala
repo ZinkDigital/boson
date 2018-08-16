@@ -454,6 +454,10 @@ object PerformanceTests extends App {
 //  val doubleDotInj1: Boson = Boson.injector("..Markets[end].Tags", (in: Tags) => in)
 //  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags")
 //  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags", codecJson = true)
+
+  val doubleDotInj1: Boson = Boson.injector("..NonExistingKey[end].Tags", (in: Tags) => in)
+  performanceAnalysis(doubleDotInj1, "..NonExistingKey[end].Tags")
+  performanceAnalysis(doubleDotInj1, "..NonExistingKey[end].Tags", codecJson = true)
 //
 //  //      Injector .Markets[0 to 10].Tags
 //  val bosonArticle8: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => in)
