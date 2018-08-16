@@ -22,7 +22,6 @@ object Dictionary {
   val D_NULL: Int = 10
   val D_INT: Int = 16
   val D_LONG: Int = 18
-  val CONSTANTS_SEQ: Seq[Int] = Seq(1, 2, 3, 4, 8, 10, 16, 18)
 
 
   // EXPRESSIONS CONSTANTS

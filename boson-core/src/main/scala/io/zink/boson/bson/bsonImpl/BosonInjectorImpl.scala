@@ -30,8 +30,6 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return A Codec containing the alterations made
     */
   def modifyAll[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
-    if (!fieldID.contains(STAR) && !codec.containsKey(fieldID)) codec
-    else {
 
       val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
@@ -129,7 +127,6 @@ private[bsonImpl] object BosonInjectorImpl {
       }
 
       currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
-    }
   }
 
   /**
@@ -144,8 +141,6 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return a modified Codec where the injection function may have been applied to the desired element (if it exists)
     */
   def modifyHasElem[T](statementsList: StatementsList, codec: Codec, fieldID: String, elem: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
-    if ((!fieldID.contains(STAR) && !codec.containsKey(fieldID)) || (!elem.contains(STAR) && !codec.containsKey(elem))) codec
-    else {
       val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
       val currentCodec = codec.createEmptyCodec
@@ -175,7 +170,6 @@ private[bsonImpl] object BosonInjectorImpl {
       }
 
       currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
-    }
   }
 
   /**
@@ -698,8 +692,6 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return A Codec containing the alterations made
     */
   def arrayInjection[T](statementsList: StatementsList, codec: Codec, currentCodec: Codec, injFunction: T => T, key: String, left: Int, mid: String, right: Any)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
-    if (!key.isEmpty && !key.contains(STAR) && !codec.containsKey(key)) codec
-    else {
       val (arrayTokenCodec, formerType): (Codec, Int) = codec.readToken(SonArray(CS_ARRAY_INJ)) match {
         case SonArray(_, data) => data match {
           case byteBuf: ByteBuf => (CodecObject.toCodec(byteBuf), 0)
@@ -731,7 +723,6 @@ private[bsonImpl] object BosonInjectorImpl {
         case (nonEmptyKey, from, expr, _) =>
           modifyArrayEndWithKey(statementsList, arrayTokenCodec, nonEmptyKey, injFunction, expr, from.toString)
       }
-    }
   }
 
   /**

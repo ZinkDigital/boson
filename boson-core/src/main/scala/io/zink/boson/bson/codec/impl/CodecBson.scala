@@ -311,7 +311,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return a new duplicated Codec
     */
-  override def duplicate: Codec = internalDuplicate(buff)
+  override def duplicate: Codec = new CodecBson(buff.copy)//internalDuplicate(buff)
 
   /**
     * release is used to free the resources that are no longer used
@@ -526,24 +526,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return A Boolean specifying if this codec can be wrapped in curly braces or not
     */
   def wrappable: Boolean = false
-
-  /**
-    * Method that verifies if this codec contains a specific key passed as an argument
-    *
-    * @param key - The specific key to be verified
-    * @return A boolean flag specifying if this codec contains the specific key or not
-    */
-  def containsKey(key: String): Boolean = {
-    val keyWithZeroByte = key.getBytes :+ 0
-    val buffArr = buff.array()
-    var boolToReturn = false
-    CONSTANTS_SEQ.foreach(dataType => {
-      if (!boolToReturn) //Short circuit the foreach to not execute more containsSlice if it found a key already
-        if (buffArr.containsSlice(dataType +: keyWithZeroByte))
-          boolToReturn = true
-    })
-    boolToReturn
-  }
 
   /**
     * Method that creates a Codec with an empty data structure inside it.
