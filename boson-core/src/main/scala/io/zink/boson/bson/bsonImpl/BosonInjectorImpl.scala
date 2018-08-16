@@ -19,6 +19,7 @@ private[bsonImpl] object BosonInjectorImpl {
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
+
   /**
     * Function that recursively searches for the keys that are of interest to the injection
     *
@@ -943,6 +944,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                     case _ =>
                       val newCodecCopy = currentCodec.duplicate
+
                       Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
                         case Success(_) => currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
@@ -1072,11 +1074,14 @@ private[bsonImpl] object BosonInjectorImpl {
                       currentCodec + codecMod.addComma
                       currentCodecCopy + partialCodec.addComma
                     case _ =>
-                      val newCodecCopy = currentCodec.duplicate
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
-                        case Success(_) => currentCodecCopy.clear + newCodecCopy
-                        case Failure(_) =>
-                      }
+
+                                            modifierEnd(codec, dataType, injFunction, currentCodec, currentCodecCopy)
+
+//                      val newCodecCopy = currentCodec.duplicate //TODO - Duplicate breaks this line
+//                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
+//                        case Success(_) => currentCodecCopy.clear + newCodecCopy
+//                        case Failure(_) =>
+//                      }
                   }
                 }
               } else {
@@ -1166,6 +1171,8 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val codecFinal = currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
     val codecFinalCopy = currentCodecCopy.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
+
+    //    codecFinal
 
     condition match {
       case UNTIL_RANGE => codecFinalCopy
