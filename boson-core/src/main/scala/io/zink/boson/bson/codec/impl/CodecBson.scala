@@ -528,24 +528,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   def wrappable: Boolean = false
 
   /**
-    * Method that verifies if this codec contains a specific key passed as an argument
-    *
-    * @param key - The specific key to be verified
-    * @return A boolean flag specifying if this codec contains the specific key or not
-    */
-  def containsKey(key: String): Boolean = {
-    val keyWithZeroByte = key.getBytes :+ 0
-    val buffArr = buff.array()
-    var boolToReturn = false
-    CONSTANTS_SEQ.foreach(dataType => {
-      if (!boolToReturn) //Short circuit the foreach to not execute more containsSlice if it found a key already
-        if (buffArr.containsSlice(dataType +: keyWithZeroByte))
-          boolToReturn = true
-    })
-    boolToReturn
-  }
-
-  /**
     * Method that creates a Codec with an empty data structure inside it.
     *
     * For CodecBson it creates a ByteBuf with capacity 256.

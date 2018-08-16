@@ -282,14 +282,6 @@ trait Codec {
   def wrappable: Boolean
 
   /**
-    * Method that verifies if this codec contains a specific key passed as an argument
-    *
-    * @param key - The specific key to be verified
-    * @return A boolean flag specifying if this codec contains the specific key or not
-    */
-  def containsKey(key: String): Boolean
-
-  /**
     * This methods clears all the information insde the codec so it can be rewritten
     *
     * @return
