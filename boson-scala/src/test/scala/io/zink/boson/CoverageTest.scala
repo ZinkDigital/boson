@@ -3903,7 +3903,7 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(bsonHuman.encodeToString)
     val result: String = Await.result(future, Duration.Inf)
-    println(result +"\n"+ bsonObjArray.encodeToString)
+    println(result +"\n"+ bsonHuman.encodeToString)
     assert(result.equals(expectedEncoded))
   }
 
