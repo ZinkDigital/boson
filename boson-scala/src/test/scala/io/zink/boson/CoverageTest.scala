@@ -3903,7 +3903,6 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(bsonHuman.encodeToString)
     val result: String = Await.result(future, Duration.Inf)
-    println(result +"\n"+ bsonHuman.encodeToString)
     assert(result.equals(expectedEncoded))
   }
 
@@ -4215,6 +4214,7 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(json.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+    println(resultValue +"\n"+ jsonExpected.encodeToString)
     assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
