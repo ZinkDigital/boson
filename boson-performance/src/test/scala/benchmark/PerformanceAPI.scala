@@ -369,79 +369,79 @@ object PerformanceTests extends App {
 
   val tag: Tags = new Tags("", "", "", "", "", "")
 
-  //  performanceJsonPath("$.Markets[1].Tags", tag)
-  //
-  //  // .Markets[first].Tags
-  //
-  //  performanceJsonPath("$.Markets[0].Tags", tag)
-  //
-  //  // .Markets[all].Tags
-  //
-  //  performanceJsonPath("$.Markets[*].Tags", tag)
-  //
-  //  performanceJsonPath("$.Markets[*].Tags", new Array[Byte](0))
-  //
-  //  // .Markets[end].Tags
-  //
-  //  performanceJsonPath("$.Markets.[-1].Tags", tag)
-  //
-  //  // .Markets[0 to 10].Tags
-  //
-  //  performanceJsonPath("$.Markets[0:10].Tags", tag)
-  //
-  //  // .Markets[0 until 10].Tags
-  //
-  //  performanceJsonPath("$.Markets[0:9].Tags", tag)
-  //
-  //  // .Markets[0 to end].Tags
-  //
-  //  performanceJsonPath("$.Markets[*].Tags", tag)
-  //
-  //  // .Markets[0 until end].Tags
-  //
-  //  performanceJsonPath("$.Markets[:-1].Tags", tag)
-  //
-  //  // .Epoch
-  //
-  //  performanceJsonPath("$.Epoch", new Integer(0))
-  //
-  //  //   .Participants[1].Tags.SSLNLastName
-  //
-  //  performanceJsonPath("$.Participants[1].Tags.SSLNLastName", "")
-  //
-  //  // .Markets[3 to 5]
-  //
-  //  performanceJsonPath("$.Markets[3:5]", "")
-  //
-  //  // .Markets[10].selectiongroupid
-  //
-  //  performanceJsonPath("$.Markets[10].selectiongroupid", "")
-  //
-  //  //  Relative Paths JsonPath
-  //
-  //  //  $.Markets.[-1].Tags
-  //  performanceJsonPath("$..Markets.[-1].Tags", tag)
-  //
-  //  // $..Markets[@Selections]..Id
-  //  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "")
-  //
-  //  // $..marketgroupid
-  //  performanceJsonPath("$..marketgroupid", "")
-  //
-  //  // $..Selections..Tradable
-  //  performanceJsonPath("$..Selections..Tradable", false)
-  //
-  //  // $..Markets..Selections[@Id]
-  //  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "")
-  //
-  //  // $..Markets[first].Tags
-  //  performanceJsonPath("$..Markets[0].Tags", tag)
-  //
-  //  // $..Markets[all].Tags
-  //  performanceJsonPath("$..Markets[*].Tags", tag)
-  //
-  //  //$..Markets[end].Tags..marketgroupid
-  //  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag)
+  performanceJsonPath("$.Markets[1].Tags", tag)
+
+//  // .Markets[first].Tags
+//
+//  performanceJsonPath("$.Markets[0].Tags", tag)
+//
+//  // .Markets[all].Tags
+//
+//  performanceJsonPath("$.Markets[*].Tags", tag)
+//
+//  performanceJsonPath("$.Markets[*].Tags", new Array[Byte](0))
+//
+//  // .Markets[end].Tags
+//
+//  performanceJsonPath("$.Markets.[-1].Tags", tag)
+//
+//  // .Markets[0 to 10].Tags
+//
+//  performanceJsonPath("$.Markets[0:10].Tags", tag)
+//
+//  // .Markets[0 until 10].Tags
+//
+//  performanceJsonPath("$.Markets[0:9].Tags", tag)
+//
+//  // .Markets[0 to end].Tags
+//
+//  performanceJsonPath("$.Markets[*].Tags", tag)
+//
+//  // .Markets[0 until end].Tags
+//
+//  performanceJsonPath("$.Markets[:-1].Tags", tag)
+//
+//  // .Epoch
+//
+//  performanceJsonPath("$.Epoch", new Integer(0))
+//
+//  //   .Participants[1].Tags.SSLNLastName
+//
+//  performanceJsonPath("$.Participants[1].Tags.SSLNLastName", "")
+//
+//  // .Markets[3 to 5]
+//
+//  performanceJsonPath("$.Markets[3:5]", "")
+//
+//  // .Markets[10].selectiongroupid
+//
+//  performanceJsonPath("$.Markets[10].selectiongroupid", "")
+//
+//  //  Relative Paths JsonPath
+//
+//  //  $.Markets.[-1].Tags
+//  performanceJsonPath("$..Markets.[-1].Tags", tag)
+//
+//  // $..Markets[@Selections]..Id
+//  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "")
+//
+//  // $..marketgroupid
+//  performanceJsonPath("$..marketgroupid", "")
+//
+//  // $..Selections..Tradable
+//  performanceJsonPath("$..Selections..Tradable", false)
+//
+//  // $..Markets..Selections[@Id]
+//  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "")
+//
+//  // $..Markets[first].Tags
+//  performanceJsonPath("$..Markets[0].Tags", tag)
+//
+//  // $..Markets[all].Tags
+//  performanceJsonPath("$..Markets[*].Tags", tag)
+//
+//  //$..Markets[end].Tags..marketgroupid
+//  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag)
 
 
   //Injector .
@@ -576,7 +576,7 @@ object PerformanceTests extends App {
   private def performanceJsonPath(path: String, value: Any): Unit = {
     (0 to CYCLES).foreach(_ => {
       val start = System.nanoTime()
-      val _: DocumentContext = JsonPath.using(conf2).parse(Lib.bson.asJson().toString).set(path, value)
+      JsonPath.using(conf2).parse(Lib.bson.asJson().toString).set(path, value)
       val end = System.nanoTime()
       timesBuffer.append(end - start)
     })

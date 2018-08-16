@@ -287,6 +287,8 @@ trait Codec {
     * @return
     */
   def clear: Codec
+
+  def writeRest(codec:Codec): Codec
 }
 
 sealed trait CodecFacade {

@@ -1145,8 +1145,11 @@ private[bsonImpl] object BosonInjectorImpl {
                     processTypesArray(dataType, codec, currentCodecCopy)
                 }
               } else {
-                processTypesArray(dataType, codec.duplicate, currentCodec)
-                processTypesArray(dataType, codec, currentCodecCopy)
+                currentCodec.writeRest(codec.duplicate)
+                currentCodecCopy.writeRest(codec)
+
+//                processTypesArray(dataType, codec.duplicate, currentCodec)
+//                processTypesArray(dataType, codec, currentCodecCopy)
               }
 
             case (_, _, _) if !isArray =>
