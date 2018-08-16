@@ -798,6 +798,14 @@ class CodecJson(str: String) extends Codec {
   def wrappable: Boolean = !input.toString.charAt(0).equals(CS_OPEN_BRACKET)
 
   /**
+    * Method that verifies if this codec contains a specific key passed as an argument
+    *
+    * @param key - The specific key to be verified
+    * @return A boolean flag specifying if this codec contains the specific key or not
+    */
+  def containsKey(key: String): Boolean = input.containsSlice("\"" + key + "\":")
+
+  /**
     * This methods clears all the information inside the codec so it can be rewritten
     *
     * @return
@@ -815,6 +823,6 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a Codec with an empty data structure inside it
     */
-  def createEmptyCodec()(implicit emptyBuf : ByteBuf): Codec = new CodecJson("")
+  def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
 }
 

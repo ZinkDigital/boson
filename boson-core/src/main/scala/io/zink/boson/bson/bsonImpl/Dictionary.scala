@@ -22,6 +22,7 @@ object Dictionary {
   val D_NULL: Int = 10
   val D_INT: Int = 16
   val D_LONG: Int = 18
+  val CONSTANTS_SEQ: Seq[Int] = Seq(1, 2, 3, 4, 8, 10, 16, 18)
 
 
   // EXPRESSIONS CONSTANTS
@@ -134,7 +135,7 @@ object Dictionary {
   TYPES_LIST.add("Null")
   TYPES_LIST.add("CharSequence")
 
-  val SCALA_TYPES_LIST:List[String] = List("int", "string", "double", "long", "float", "byte[]", "instant", "boolean", "null", "charsequence", "integer", "[b")
+  val SCALA_TYPES_LIST: List[String] = List("int", "string", "double", "long", "float", "byte[]", "instant", "boolean", "null", "charsequence", "integer", "[b")
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }

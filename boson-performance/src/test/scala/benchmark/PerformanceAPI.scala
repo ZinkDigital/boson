@@ -471,9 +471,9 @@ object PerformanceTests extends App {
 //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags", codecJson = true)
 //
 //  //Injector ..Markets[@Selections]..Id
-//  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
-//  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
-//  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
+  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
 //
 //
 //  //  Injector ..Markets[end].Tags..marketgroupid
@@ -494,10 +494,10 @@ object PerformanceTests extends App {
 //
 //
 //  //  Injector ..Markets..Selections[@Id]
-//  val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
-//  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
-//  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
-//
+  val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
+  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
+  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
+
 //
 //  //  Injector ..Markets[first].Tags
 //  val doubleDotInj7: Boson = Boson.injector("..Markets[first].Tags", (in: Tags) => in)
