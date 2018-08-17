@@ -591,7 +591,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
-  def writeRest(codec: Codec): Codec = {
+  def writeRest(codec: Codec, dataType: Int): Codec = {
     val rest = codec.getCodecData.asInstanceOf[Left[ByteBuf, String]].value
     val aux = rest.copy(codec.getReaderIndex, codec.getWriterIndex - codec.getReaderIndex -1)
     buff.writeBytes(aux)

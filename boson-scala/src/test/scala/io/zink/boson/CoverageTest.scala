@@ -1323,7 +1323,7 @@ class CoverageTest extends FunSuite {
     })
     val future = bsonInj.go(bsonSpeciesEncoded)
     val result: Array[Byte] = Await.result(future, Duration.Inf)
-    println(result +"\n"+ expectedEncoded)
+    println(result.mkString(", ") +"\n"+ expectedEncoded.mkString(", "))
     assertArrayEquals(result, expectedEncoded)
   }
 

@@ -807,11 +807,18 @@ class CodecJson(str: String) extends Codec {
     this
   }
 
-  def writeRest(codec: Codec): Codec = {
+  def writeRest(codec: Codec, dataType: Int): Codec = {
     val res = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-    val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
-    input.append(aux.asInstanceOf[String])
-    input.append("}")
+
+    if(dataType == 3){
+      val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
+      input.append(aux.asInstanceOf[String])
+      input.append("}")
+    } else {
+      val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex-1)
+      input.append(aux.asInstanceOf[String])
+//      input.append("]")
+    }
     codec.setReaderIndex(codec.getWriterIndex)
     this
   }
