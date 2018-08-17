@@ -812,7 +812,7 @@ class CodecJson(str: String) extends Codec {
 
     if(dataType == 3){
       if(res.endsWith("]}")){
-        val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex - 1)
+        val aux = res.substring(codec.getReaderIndex, res.length - 2)
         input.append(aux.asInstanceOf[String])
       } else {
         val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
