@@ -127,12 +127,12 @@ private[bsonImpl] object BosonInjectorImpl {
       case jsonString: String => Right(jsonString)
     }
 
-    def iterateDataStructure(): Codec = {
+    def iterateDataStructure: Codec = {
       if ((codec.getReaderIndex - startReader) >= originalSize) codec.createEmptyCodec //probably won't work for CodecBson
       else {
         val (dataType, dataTypeAndKeyCodec) = readWriteDataType(codec, codec.createEmptyCodec)
         dataType match {
-          case 0 => dataTypeAndKeyCodec + iterateDataStructure()
+          case 0 => dataTypeAndKeyCodec + iterateDataStructure
           case _ =>
             val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, dataTypeAndKeyCodec) else (dataTypeAndKeyCodec, "")
             key match {
@@ -151,12 +151,12 @@ private[bsonImpl] object BosonInjectorImpl {
                             val subCodec = BosonImpl.inject(partialData, statementsList, injFunction)
                             modifierAll(subCodec, dataTypeAndKeyCodec, dataType, injFunction)
                           },
-                          iterateDataStructure()
+                          iterateDataStructure
                         )
                         a + b
-                      case _ => modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure() //should we parallel this ? maybe check how many bytes to "skip" ?
+                      case _ => modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure //should we parallel this ? maybe check how many bytes to "skip" ?
                     }
-                  } else modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure()
+                  } else modifierAll(codec, dataTypeAndKeyCodec, dataType, injFunction) + iterateDataStructure
 
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -175,10 +175,10 @@ private[bsonImpl] object BosonInjectorImpl {
                             val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
                             dataTypeAndKeyCodec + subCodec
                           },
-                          iterateDataStructure()
+                          iterateDataStructure
                         )
                         a + b
-                      case _ => processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                      case _ => processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure
                     }
                   } else {
                     dataType match {
@@ -193,10 +193,10 @@ private[bsonImpl] object BosonInjectorImpl {
                             val subCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
                             dataTypeAndKeyCodec + subCodec
                           },
-                          iterateDataStructure()
+                          iterateDataStructure
                         )
                         a + b
-                      case _ => processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure()
+                      case _ => processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure
                     }
                   }
                 }
@@ -207,27 +207,27 @@ private[bsonImpl] object BosonInjectorImpl {
                     case Right(jsonString) =>
                       if (jsonString.charAt(0).equals('[')) {
                         if (codec.getReaderIndex != 1) {
-                          processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                          processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure
                         } else {
                           codec.setReaderIndex(0)
-                          processTypesArray(4, codec, dataTypeAndKeyCodec) + iterateDataStructure()
+                          processTypesArray(4, codec, dataTypeAndKeyCodec) + iterateDataStructure
                         }
                       } else {
-                        processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                        processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure
                       }
 
-                    case Left(_) => processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure()
+                    case Left(_) => processTypesAll(statementsList, dataType, codec, dataTypeAndKeyCodec, fieldID, injFunction) + iterateDataStructure
                   }
 
                 } else {
-                  processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure()
+                  processTypesArray(dataType, codec, dataTypeAndKeyCodec) + iterateDataStructure
                 }
             }
         }
       }
     }
 
-    val resultCodec = iterateDataStructure()
+    val resultCodec = iterateDataStructure
     resultCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
@@ -374,6 +374,24 @@ private[bsonImpl] object BosonInjectorImpl {
   }
 
   private def searchAndModifyPar[T](statementsList: StatementsList, codec: Codec, elem: String, injFunction: T => T, writableCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+    val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
+    codec.skipChar() //If it's a CodecJson we need to skip the "[" character
+
+    def iterateDataStructure: Codec = {
+      if ((codec.getReaderIndex - startReader) >= originalSize) codec.createEmptyCodec //probably won't work for CodecBson
+      else {
+        val (dataType, dataTypeAndKeyCodec) = readWriteDataType(codec, codec.createEmptyCodec)
+        dataType match {
+          case 0 => dataTypeAndKeyCodec + iterateDataStructure
+          case D_BSONOBJECT =>
+            if (codec.canReadKey(searchAndModify = true)) writeKeyAndByte(codec, dataTypeAndKeyCodec)
+            val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+            ???
+
+          case _ => ???
+        }
+      }
+    }
     ???
   }
 
@@ -388,9 +406,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of input and output of the injection function
     * @return a new Codec with the value injected
     */
-  private def searchAndModify[T](statementsList: StatementsList, codec: Codec, elem: String, injFunction: T => T, writableCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+  private def searchAndModify[T](statementsList: StatementsList, codec: Codec, elem: String, injFunction: T => T, writableCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val startReader: Int = codec.getReaderIndex
     val originalSize: Int = codec.readSize
     codec.skipChar() //If it's a CodecJson we need to skip the "[" character
@@ -406,7 +422,10 @@ private[bsonImpl] object BosonInjectorImpl {
             case D_BSONOBJECT =>
               if (codec.canReadKey(searchAndModify = true)) writeKeyAndByte(codec, currentCodec)
               val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-              if (hasElem(partialCodec.duplicate, elem)) {
+              val (oldReaderIndex, oldWriterIndex) = (partialCodec.getReaderIndex, partialCodec.getWriterIndex)
+              if (hasElem(partialCodec, elem)) {
+                partialCodec.setReaderIndex(oldReaderIndex)
+                partialCodec.setWriterIndex(oldWriterIndex)
                 if (statementsList.size == 1) {
 
                   val newStatementList: StatementsList = statementsList.map {
@@ -436,6 +455,8 @@ private[bsonImpl] object BosonInjectorImpl {
                 }
 
               } else {
+                partialCodec.setReaderIndex(oldReaderIndex)
+                partialCodec.setWriterIndex(oldWriterIndex)
                 currentCodec + partialCodec.addComma
               }
 
@@ -456,9 +477,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param elem  - The name of the element to look for
     * @return A boolean value saying if the given element is present in that object
     */
-  private def hasElem(codec: Codec, elem: String): Boolean
-
-  = {
+  private def hasElem(codec: Codec, elem: String): Boolean = {
     val size: Int = codec.readSize
     var key: String = ""
     //Iterate through all of the keys from the dataStructure in order to see if it contains the elem
@@ -525,9 +544,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of input and output of the injection function
     * @return a new Codec with the copied information
     */
-  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Unit
-
-  =
+  private def processTypesHasElem[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, injFunction: T => T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Unit =
     dataType match {
       case D_BSONOBJECT =>
         val objectCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
@@ -570,9 +587,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @return A Codec containing the alterations made
     */
-  private def processTypesArray[T](dataType: Int, codec: Codec, currentResCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+  private def processTypesArray[T](dataType: Int, codec: Codec, currentResCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     dataType match {
       case D_ZERO_BYTE =>
 
@@ -623,9 +638,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
-  private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+  private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
@@ -763,9 +776,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - Type of the value being injected
     * @return A Codec containing the alterations made
     */
-  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     seqType match {
 
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -842,9 +853,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type of the value
     * @return A modified value in which the injector function was applied
     */
-  private def applyFunction[T](injFunction: T => T, value: Any)(implicit convertFunction: Option[TupleList => T] = None): T
-
-  = {
+  private def applyFunction[T](injFunction: T => T, value: Any)(implicit convertFunction: Option[TupleList => T] = None): T = {
 
     def throwException(className: String): T = throw CustomException(s"Type Error. Cannot Cast $className inside the Injector Function.")
 
@@ -966,9 +975,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return A Codec containing the alterations made
     */
   private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END, fullStatementsList: StatementsList, formerType: Int)(implicit
-                                                                                                                                                                                                             convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+                                                                                                                                                                                                             convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
     var counter: Int = -1
 
@@ -1430,9 +1437,7 @@ private[bsonImpl] object BosonInjectorImpl {
                                       from: String = C_ZERO,
                                       to: String = C_END,
                                       resultCodec: Codec,
-                                      resultCodecCopy: Codec)(implicit convertFunction: Option[TupleList => T] = None): Unit
-
-  = {
+                                      resultCodecCopy: Codec)(implicit convertFunction: Option[TupleList => T] = None): Unit = {
     dataType match {
 
       case D_FLOAT_DOUBLE =>
@@ -1505,9 +1510,7 @@ private[bsonImpl] object BosonInjectorImpl {
                                        injFunction: T => T,
                                        condition: String,
                                        from: String,
-                                       to: String = C_END)(implicit convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+                                       to: String = C_END)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
 
@@ -1614,9 +1617,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param writableCodec - Structure that contains the information already processed and where we write the values
     * @return the resulting codec and a string containing the key extracted
     */
-  private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String)
-
-  = {
+  private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
     val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
     val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
     writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
@@ -1630,9 +1631,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param value - Object of type T encoded in a array of bytes
     * @return a List of tuples containing the name of a field of the object the value for that field
     */
-  private def extractTupleList(value: Either[Array[Byte], String]): TupleList
-
-  = {
+  private def extractTupleList(value: Either[Array[Byte], String]): TupleList = {
     val codec: Codec = value match {
       case Left(byteArr) => CodecObject.toCodec(Unpooled.copiedBuffer(byteArr))
 
@@ -1691,9 +1690,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type T of the object to be iterated
     * @return A list of tuples consisting in pairs of field names and field values
     */
-  private def toTupleList[T](modifiedValue: T): TupleList
-
-  = {
+  private def toTupleList[T](modifiedValue: T): TupleList = {
     val tupleArray = for {
       field <- modifiedValue.getClass.getDeclaredFields //Iterate through this object's fields
       if !field.getName.equals("$outer") //remove shapeless added $outer param
@@ -1714,9 +1711,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param tupleList - List of tuples to be encoded
     * @return An array of bytes representing the encoded list of tuples
     */
-  private def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String]
-
-  = {
+  private def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String] = {
     val encodedObject = new BsonObject()
     tupleList.foreach {
       case (fieldName: String, fieldValue: Any) =>
@@ -1746,9 +1741,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param writeCodec - The codec in which to write the data type
     * @return A Tuple containing both the read data type and the written codec
     */
-  private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec)
-
-  = {
+  private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec) = {
     val dataType: Int = codec.readDataType(formerType)
     writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
     (dataType, writeCodec)

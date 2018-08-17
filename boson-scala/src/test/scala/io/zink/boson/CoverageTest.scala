@@ -3521,7 +3521,7 @@ class CoverageTest extends FunSuite {
     assert(result.equals(jsonObjExpected.encodeToString))
   }
 
-  test("CodecJson - Nested case class injection - Non existing key") {
+  test("CodecJson - Nested case class injection - Non existing key") {  //TODO, hummmm... ?
     val jsonArr = new BsonArray().add(nestedBson)
     val jsonObj = new BsonObject().put("books", jsonArr)
 
