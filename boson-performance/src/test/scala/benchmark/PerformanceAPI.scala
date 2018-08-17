@@ -445,60 +445,60 @@ object PerformanceTests extends App {
 
 
   //Injector .
-//  val bsonInj2: Boson = Boson.injector(".", (in: Array[Byte]) => in)
-//  val bsonInj2Json: Boson = Boson.injector(".", (in: String) => in)
-//  performanceAnalysis(bsonInj2, ".")
-//  performanceAnalysis(bsonInj2Json, ".", codecJson = true)
-//
-//  //    Injector ..Markets[end].Tags
-//  val doubleDotInj1: Boson = Boson.injector("..Markets[end].Tags", (in: Tags) => in)
-//  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags")
-//  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags", codecJson = true)
+  //  val bsonInj2: Boson = Boson.injector(".", (in: Array[Byte]) => in)
+  //  val bsonInj2Json: Boson = Boson.injector(".", (in: String) => in)
+  //  performanceAnalysis(bsonInj2, ".")
+  //  performanceAnalysis(bsonInj2Json, ".", codecJson = true)
+  //
+  //  //    Injector ..Markets[end].Tags
+  //  val doubleDotInj1: Boson = Boson.injector("..Markets[end].Tags", (in: Tags) => in)
+  //  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags")
+  //  performanceAnalysis(doubleDotInj1, "..Markets[end].Tags", codecJson = true)
 
-  val doubleDotInj1: Boson = Boson.injector("..NonExistingKey[end].Tags", (in: Tags) => in)
-  performanceAnalysis(doubleDotInj1, "..NonExistingKey[end].Tags")
-  performanceAnalysis(doubleDotInj1, "..NonExistingKey[end].Tags", codecJson = true)
-//
-//  //      Injector .Markets[0 to 10].Tags
-//  val bosonArticle8: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => in)
-//  performanceAnalysis(bosonArticle8, ".Markets[0 to 10].Tags")
-//  performanceAnalysis(bosonArticle8, ".Markets[0 to 10].Tags", codecJson = true)
-//
-//  //    Injector .Markets[0 to 9].Tags
-//  val bosonArticle9: Boson = Boson.injector(".Markets[0 to 9].Tags", (in: Tags) => in)
-//  performanceAnalysis(bosonArticle9, ".Markets[0 to 9].Tags")
-//  performanceAnalysis(bosonArticle9, ".Markets[0 to 9].Tags", codecJson = true)
-//
-//  //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)
-//  val bosonArticle10: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
-//  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags")
-//  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags", codecJson = true)
+//  val doubleDotInj1: Boson = Boson.injector("..NonExistingKey[end].Tags", (in: Tags) => in)
+  //  performanceAnalysis(doubleDotInj1, "..NonExistingKey[end].Tags")
+  //  performanceAnalysis(doubleDotInj1, "..NonExistingKey[end].Tags", codecJson = true)
+  //
+  //  //      Injector .Markets[0 to 10].Tags
+  //  val bosonArticle8: Boson = Boson.injector(".Markets[0 to 10].Tags", (in: Tags) => in)
+  //  performanceAnalysis(bosonArticle8, ".Markets[0 to 10].Tags")
+  //  performanceAnalysis(bosonArticle8, ".Markets[0 to 10].Tags", codecJson = true)
+  //
+  //  //    Injector .Markets[0 to 9].Tags
+  //  val bosonArticle9: Boson = Boson.injector(".Markets[0 to 9].Tags", (in: Tags) => in)
+  //  performanceAnalysis(bosonArticle9, ".Markets[0 to 9].Tags")
+  //  performanceAnalysis(bosonArticle9, ".Markets[0 to 9].Tags", codecJson = true)
+  //
+  //  //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)
+  //  val bosonArticle10: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
+  //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags")
+  //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags", codecJson = true)
 
   //Injector ..Markets[@Selections]..Id
-//  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
-//  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
-//  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
+  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
 
 
   //  Injector ..Markets[end].Tags..marketgroupid
-//  val doubleDotInj3: Boson = Boson.injector("..Markets[end].Tags..marketgroupid", (in: String) => in)
-//  performanceAnalysis(doubleDotInj3, "..Markets[end].Tags..marketgroupid")
-//  performanceAnalysis(doubleDotInj3, "..Markets[end].Tags..marketgroupid", codecJson = true)
+  //  val doubleDotInj3: Boson = Boson.injector("..Markets[end].Tags..marketgroupid", (in: String) => in)
+  //  performanceAnalysis(doubleDotInj3, "..Markets[end].Tags..marketgroupid")
+  //  performanceAnalysis(doubleDotInj3, "..Markets[end].Tags..marketgroupid", codecJson = true)
 
-//    Injector ..marketgroupid
-//  val doubleDotInj4: Boson = Boson.injector("..marketgroupid", (in: String) => in)
-//  performanceAnalysis(doubleDotInj4, "..marketgroupid")
-//  performanceAnalysis(doubleDotInj4, "..marketgroupid", codecJson = true)
+  //    Injector ..marketgroupid
+  //  val doubleDotInj4: Boson = Boson.injector("..marketgroupid", (in: String) => in)
+  //  performanceAnalysis(doubleDotInj4, "..marketgroupid")
+  //  performanceAnalysis(doubleDotInj4, "..marketgroupid", codecJson = true)
 
-  val doubleDotInj4: Boson = Boson.injector("..NonExistingKey", (in: String) => in)
-  performanceAnalysis(doubleDotInj4, "..NonExistingKey")
-  performanceAnalysis(doubleDotInj4, "..NonExistingKey", codecJson = true)
-
-
-  //  Injector ..Selections..Tradable
-  val doubleDotInj5: Boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
-  performanceAnalysis(doubleDotInj5, "..Selections..Tradable")
-  performanceAnalysis(doubleDotInj5, "..Selections..Tradable", codecJson = true)
+  //  val doubleDotInj4: Boson = Boson.injector("..NonExistingKey", (in: String) => in)
+  //  performanceAnalysis(doubleDotInj4, "..NonExistingKey")
+  //  performanceAnalysis(doubleDotInj4, "..NonExistingKey", codecJson = true)
+  //
+  //
+  //  //  Injector ..Selections..Tradable
+  //  val doubleDotInj5: Boson = Boson.injector("..Selections..Tradable", (in: Boolean) => in)
+  //  performanceAnalysis(doubleDotInj5, "..Selections..Tradable")
+  //  performanceAnalysis(doubleDotInj5, "..Selections..Tradable", codecJson = true)
 
 
   //  Injector ..Markets..Selections[@Id]
