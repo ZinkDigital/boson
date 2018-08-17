@@ -811,14 +811,20 @@ class CodecJson(str: String) extends Codec {
     val res = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
 
     if(dataType == 3){
-      val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
-      input.append(aux.asInstanceOf[String])
-      input.append("}")
+      if(res.endsWith("]}")){
+        val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex - 1)
+        input.append(aux.asInstanceOf[String])
+      } else {
+        val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
+        input.append(aux.asInstanceOf[String])
+      }
+      if(!input.endsWith("}"))
+        input.append("}")
     } else {
-      val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex-1)
+      val aux = res.substring(codec.getReaderIndex, res.length)
       input.append(aux.asInstanceOf[String])
     }
-    codec.setReaderIndex(codec.getWriterIndex)
+    codec.setReaderIndex(res.length)
     this
   }
 }
