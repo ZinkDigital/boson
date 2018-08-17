@@ -821,8 +821,13 @@ class CodecJson(str: String) extends Codec {
       if(!input.endsWith("}"))
         input.append("}")
     } else {
-      val aux = res.substring(codec.getReaderIndex, res.length)
-      input.append(aux.asInstanceOf[String])
+      if(res.endsWith("]}")) {
+        val aux = res.substring(codec.getReaderIndex, res.length-2)
+        input.append(aux.asInstanceOf[String])
+      } else {
+        val aux = res.substring(codec.getReaderIndex, res.length)
+        input.append(aux.asInstanceOf[String])
+      }
     }
     codec.setReaderIndex(res.length)
     this
