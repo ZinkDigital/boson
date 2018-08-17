@@ -839,5 +839,16 @@ class CodecJson(str: String) extends Codec {
     codec.setReaderIndex(res.length)
     this
   }
+                                                
+  /**
+    * Method that creates a Codec with an empty data structure inside it.
+    *
+    * For CodecBson it creates a ByteBuf with capacity 256.
+    * For CodecJson it creates an empty String
+    *
+    * @return a Codec with an empty data structure inside it
+    */
+  def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
+
 }
 

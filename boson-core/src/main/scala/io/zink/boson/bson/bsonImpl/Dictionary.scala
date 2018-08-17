@@ -134,7 +134,7 @@ object Dictionary {
   TYPES_LIST.add("Null")
   TYPES_LIST.add("CharSequence")
 
-  val SCALA_TYPES_LIST:List[String] = List("int", "string", "double", "long", "float", "byte[]", "instant", "boolean", "null", "charsequence", "integer", "[b")
+  val SCALA_TYPES_LIST: List[String] = List("int", "string", "double", "long", "float", "byte[]", "instant", "boolean", "null", "charsequence", "integer", "[b")
 
   val charset: Charset = java.nio.charset.Charset.availableCharsets().get("UTF-8")
 }
