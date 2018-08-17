@@ -364,13 +364,13 @@ object PerformanceTests extends App {
   //  println()
 
   println("-------------------------INJECTORS----------------------------------")
-
-  // .Markets[1].Tags
-
-  val tag: Tags = new Tags("", "", "", "", "", "")
-
-  performanceJsonPath("$.Markets[1].Tags", tag)
-
+//
+//  // .Markets[1].Tags
+//
+//  val tag: Tags = new Tags("", "", "", "", "", "")
+//
+//  performanceJsonPath("$.Markets[1].Tags", tag)
+//
 //  // .Markets[first].Tags
 //
 //  performanceJsonPath("$.Markets[0].Tags", tag)
