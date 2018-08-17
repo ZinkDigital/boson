@@ -817,7 +817,6 @@ class CodecJson(str: String) extends Codec {
     } else {
       val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex-1)
       input.append(aux.asInstanceOf[String])
-//      input.append("]")
     }
     codec.setReaderIndex(codec.getWriterIndex)
     this
