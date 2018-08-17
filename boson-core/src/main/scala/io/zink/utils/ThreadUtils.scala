@@ -1,6 +1,9 @@
 package io.zink.utils
 
 import java.util.concurrent._
+
+import io.zink.boson.bson.bsonImpl.CustomException
+
 import scala.util.DynamicVariable
 
 object ThreadUtils {
@@ -14,10 +17,20 @@ object ThreadUtils {
     def schedule[T](body: => T): ForkJoinTask[T]
 
     def parallel[A, B](taskA: => A, taskB: => B): (A, B) = {
+      //      val right = new Thread {
+      //        var valueToBe: Option[B] = None
+      //
+      //        override def run(): Unit = valueToBe = Some(taskB)
+      //      }
+
       val right = task {
         taskB
       }
+      //      right.start()
       val left = taskA
+      //      right.join()
+
+      //      (left, right.valueToBe.getOrElse(throw CustomException("The right-side computation on parallel failed to execute")))
       (left, right.join())
     }
   }

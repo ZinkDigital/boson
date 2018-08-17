@@ -10,7 +10,7 @@ import BosonImpl.{DataStructure, StatementsList}
 import io.zink.bsonLib.BsonObject
 import io.zink.utils.ThreadUtils._
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 private[bsonImpl] object BosonInjectorImpl {
@@ -378,7 +378,7 @@ private[bsonImpl] object BosonInjectorImpl {
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
     codec.skipChar() //If it's a CodecJson we need to skip the "[" character
 
-    val codecBuffer : ListBuffer[Codec] = new ListBuffer[Codec]()
+    val codecBuffer: ListBuffer[Codec] = new ListBuffer[Codec]()
     while ((codec.getReaderIndex - startReader) < originalSize) {
       val (dataType, dataTypeAndKeyCodec) = readWriteDataType(codec, codec.createEmptyCodec)
       dataType match {
@@ -817,63 +817,71 @@ private[bsonImpl] object BosonInjectorImpl {
 
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
       val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-
-      //      val str = applyFunction(injFunction, value0).asInstanceOf[Any].toString
-
-      applyFunction(injFunction, value0) match {
-        case value: Any => //This Any is exclusively either String or Instant
-          val str = value.toString
-          codecRes.writeToken(SonNumber(CS_INTEGER, str.length + 1), ignoreForJson = true)
-          codecRes.writeToken(SonString(CS_STRING, str))
-          codecRes.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-      }
-      codecResCopy.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-      codecResCopy.writeToken(SonString(CS_STRING, value0))
-      codecResCopy.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+      parallel(
+        {
+          applyFunction(injFunction, value0) match {
+            case value: Any => //This Any is exclusively either String or Instant
+              val str = value.toString
+              codecRes.writeToken(SonNumber(CS_INTEGER, str.length + 1), ignoreForJson = true)
+              codecRes.writeToken(SonString(CS_STRING, str))
+              codecRes.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+          }
+        },
+        {
+          codecResCopy.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
+          codecResCopy.writeToken(SonString(CS_STRING, value0))
+          codecResCopy.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        }
+      )
 
     case D_BSONOBJECT =>
       val token = codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
-      codecResCopy.writeToken(token)
-      token.asInstanceOf[SonObject].info match {
-        case byteBuf: ByteBuf => codecRes.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
+      parallel(
+        codecResCopy.writeToken(token),
+        {
+          token.asInstanceOf[SonObject].info match {
+            case byteBuf: ByteBuf => codecRes.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
 
-        case str: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, str).asInstanceOf[String]))
-      }
+            case str: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, str).asInstanceOf[String]))
+          }
+        }
+      )
 
     case D_BSONARRAY =>
       val token = codec.readToken(SonArray(CS_ARRAY))
-      codecResCopy.writeToken(token)
-      token.asInstanceOf[SonArray].info match {
-        case byteArr: Array[Byte] => codecRes.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]))
+      parallel(
+        codecResCopy.writeToken(token),
+        {
+          token.asInstanceOf[SonArray].info match {
+            case byteArr: Array[Byte] => codecRes.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteArr).asInstanceOf[Array[Byte]]))
 
-        case jsonString: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, jsonString).asInstanceOf[String]))
-      }
+            case jsonString: String => codecRes.writeToken(SonString(CS_STRING, applyFunction(injFunction, jsonString).asInstanceOf[String]))
+          }
+        }
+      )
 
     case D_BOOLEAN =>
       val token = codec.readToken(SonBoolean(CS_BOOLEAN))
       val value0: Boolean = token.asInstanceOf[SonBoolean].info match {
         case byte: Byte => byte == 1
       }
-      codecRes.writeToken(SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
-      codecResCopy.writeToken(token)
+      parallel(codecRes.writeToken(SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean])), codecResCopy.writeToken(token))
+
 
     case D_FLOAT_DOUBLE =>
       val token = codec.readToken(SonNumber(CS_DOUBLE))
       val value0: Double = token.asInstanceOf[SonNumber].info.asInstanceOf[Double]
-      codecRes.writeToken(SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
-      codecResCopy.writeToken(token)
+      parallel(codecRes.writeToken(SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double])), codecResCopy.writeToken(token))
 
     case D_INT =>
       val token = codec.readToken(SonNumber(CS_INTEGER))
       val value0: Int = token.asInstanceOf[SonNumber].asInstanceOf[Int]
-      codecRes.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
-      codecResCopy.writeToken(token)
+      parallel(codecRes.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int])), codecResCopy.writeToken(token))
 
     case D_LONG =>
       val token = codec.readToken(SonNumber(CS_LONG))
       val value0: Long = token.asInstanceOf[SonNumber].asInstanceOf[Long]
-      codecRes.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
-      codecResCopy.writeToken(token)
+      parallel(codecRes.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long])), codecResCopy.writeToken(token))
 
     case D_NULL => throw CustomException(s"NULL field. Can not be changed")
   }
