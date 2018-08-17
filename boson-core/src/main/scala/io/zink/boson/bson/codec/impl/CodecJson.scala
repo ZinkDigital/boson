@@ -807,6 +807,13 @@ class CodecJson(str: String) extends Codec {
     this
   }
 
+  /**
+    * this method is called to complete writing the rest of an array when the desired modifications have been made
+    *
+    * @param codec    - The Codec to read the information from
+    * @param dataType - The current data Type (not used in CodecBson
+    * @return
+    */
   def writeRest(codec: Codec, dataType: Int): Codec = {
     val res = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
 

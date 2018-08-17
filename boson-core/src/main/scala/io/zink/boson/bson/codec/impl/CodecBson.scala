@@ -591,6 +591,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
+  /**
+    * this method is called to complete writing the rest of an array when the desired modifications have been made
+    *
+    * @param codec    - The Codec to read the information from
+    * @param dataType - The current data Type (not used in CodecBson
+    * @return
+    */
   def writeRest(codec: Codec, dataType: Int): Codec = {
     val rest = codec.getCodecData.asInstanceOf[Left[ByteBuf, String]].value
     val aux = rest.copy(codec.getReaderIndex, codec.getWriterIndex - codec.getReaderIndex -1)
