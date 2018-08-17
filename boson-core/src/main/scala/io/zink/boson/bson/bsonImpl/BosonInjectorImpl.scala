@@ -184,8 +184,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return a new Codec with the value injected
     */
   private def searchAndModify[T](statementsList: StatementsList, codec: Codec, elem: String, injFunction: T => T, writableCodec: Codec)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
-    val startReader: Int = codec.getReaderIndex
-    val originalSize: Int = codec.readSize
+    val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
     codec.skipChar() //If it's a CodecJson we need to skip the "[" character
 
     val currentCodec = codec.createEmptyCodec
@@ -197,7 +196,10 @@ private[bsonImpl] object BosonInjectorImpl {
         case D_BSONOBJECT =>
           if (codec.canReadKey(searchAndModify = true)) writeKeyAndByte(codec, currentCodec)
           val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-          if (hasElem(partialCodec.duplicate, elem)) {
+          val (oldReaderIndex, oldWriterIndex) = (partialCodec.getReaderIndex, partialCodec.getWriterIndex)
+          if (hasElem(partialCodec, elem)) {
+            partialCodec.setReaderIndex(oldReaderIndex)
+            partialCodec.setWriterIndex(oldWriterIndex)
             if (statementsList.size == 1) {
 
               val newStatementList: StatementsList = statementsList.map {
@@ -227,6 +229,8 @@ private[bsonImpl] object BosonInjectorImpl {
             }
 
           } else {
+            partialCodec.setReaderIndex(oldReaderIndex)
+            partialCodec.setWriterIndex(oldWriterIndex)
             currentCodec + partialCodec.addComma
           }
 
