@@ -289,7 +289,15 @@ trait Codec {
   def clear: Codec
 
   /**
-    * Method that creates a Codec with an empty data structure inside it.
+    * this method is called to complete writing the rest of an array when the desired modifications have been made
+    *
+    * @param codec    - The Codec to read the information from
+    * @param dataType - The current data Type (not used in CodecBson
+    * @return
+    */
+  def writeRest(codec: Codec, dataType: Int): Codec
+
+   /** Method that creates a Codec with an empty data structure inside it.
     *
     * For CodecBson it creates a ByteBuf with capacity 256.
     * For CodecJson it creates an empty String

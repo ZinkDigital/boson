@@ -1151,8 +1151,13 @@ private[bsonImpl] object BosonInjectorImpl {
                     processTypesArray(dataType, codec, currentCodecCopy)
                 }
               } else {
-                processTypesArray(dataType, codec.duplicate, currentCodec)
-                processTypesArray(dataType, codec, currentCodecCopy)
+                if(l.toInt < x.toInt){
+                  currentCodec.writeRest(codec.duplicate, dataType)
+                  currentCodecCopy.writeRest(codec, dataType)
+                } else {
+                  processTypesArray(dataType, codec.duplicate, currentCodec)
+                  processTypesArray(dataType, codec, currentCodecCopy)
+                }
               }
 
             case (_, _, _) if !isArray =>
@@ -1330,7 +1335,8 @@ private[bsonImpl] object BosonInjectorImpl {
                   currentCodec + newInjectCodec
                   currentCodecCopy + newInjectCodec
                 } else {
-                  val newCodec = modifyArrayEnd(statementsList, codec, injFunction, condition, from, to, statementsList, dataType)
+                  val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
+                  val newCodec = modifyArrayEnd(statementsList, partialCodec, injFunction, condition, from, to, statementsList, dataType)
                   currentCodec + newCodec
                   currentCodecCopy + newCodec
                 }

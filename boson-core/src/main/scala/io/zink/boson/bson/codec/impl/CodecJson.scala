@@ -808,6 +808,39 @@ class CodecJson(str: String) extends Codec {
   }
 
   /**
+    * this method is called to complete writing the rest of an array when the desired modifications have been made
+    *
+    * @param codec    - The Codec to read the information from
+    * @param dataType - The current data Type (not used in CodecBson
+    * @return
+    */
+  def writeRest(codec: Codec, dataType: Int): Codec = {
+    val res = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+
+    if(dataType == 3){
+      if(res.endsWith("]}")){
+        val aux = res.substring(codec.getReaderIndex, res.length - 2)
+        input.append(aux.asInstanceOf[String])
+      } else {
+        val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
+        input.append(aux.asInstanceOf[String])
+      }
+      if(!input.endsWith("}"))
+        input.append("}")
+    } else {
+      if(res.endsWith("]}")) {
+        val aux = res.substring(codec.getReaderIndex, res.length-2)
+        input.append(aux.asInstanceOf[String])
+      } else {
+        val aux = res.substring(codec.getReaderIndex, res.length)
+        input.append(aux.asInstanceOf[String])
+      }
+    }
+    codec.setReaderIndex(res.length)
+    this
+  }
+                                                
+  /**
     * Method that creates a Codec with an empty data structure inside it.
     *
     * For CodecBson it creates a ByteBuf with capacity 256.
@@ -816,5 +849,6 @@ class CodecJson(str: String) extends Codec {
     * @return a Codec with an empty data structure inside it
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
+
 }
 
