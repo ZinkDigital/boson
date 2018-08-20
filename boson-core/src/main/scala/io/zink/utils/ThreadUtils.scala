@@ -8,7 +8,7 @@ import scala.util.DynamicVariable
 
 object ThreadUtils {
 
-  val forkJoinPool = new ForkJoinPool
+  val forkJoinPool = new ForkJoinPool // ForkJoinPool.comonPool()
 
   /**
     * Abstract class that defines how a task runs in parallel
