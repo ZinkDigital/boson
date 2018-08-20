@@ -1232,7 +1232,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_BSONOBJECT =>
         val codecObj = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
         val auxCodec = BosonImpl.inject(codecObj.getCodecData, statementList, injFunction)
-        resultCodec + auxCodec
+        resultCodec + auxCodec.addComma
         resultCodecCopy + auxCodec
 
       case D_BSONARRAY =>
