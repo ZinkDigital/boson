@@ -1081,14 +1081,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       currentCodec + codecMod.addComma
                       currentCodecCopy + partialCodec.addComma
                     case _ =>
-
                       modifierEnd(codec, dataType, injFunction, currentCodec, currentCodecCopy)
-
-                    //                      val newCodecCopy = currentCodec.duplicate //TODO - Duplicate breaks this line
-                    //                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
-                    //                        case Success(_) => currentCodecCopy.clear + newCodecCopy
-                    //                        case Failure(_) =>
-                    //                      }
                   }
                 }
               } else {
@@ -1366,11 +1359,18 @@ private[bsonImpl] object BosonInjectorImpl {
 
                   case Right(jsonString) =>
                     if ((jsonString.charAt(codec.getReaderIndex - 1) equals ',') || (jsonString.charAt(codec.getReaderIndex - 1) equals ']')) {
-                      //If this happens if key is not a key but a value
+                      //This happens if key is not a key but a value
                       codec.setReaderIndex(codec.getReaderIndex - key.length - 3)
                       val keyType = codec.getDataType
                       processTypesArrayEnd(statementsList, fieldID, keyType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
-                    } else processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
+                    } else {
+                      if(dataType == 4){
+                        val codecArr = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
+                        val resCodec = arrayInjection(statementsList, codecArr, currentCodec, injFunction, key, left = 0, TO_RANGE, C_END)
+                        currentCodec + resCodec
+                        currentCodecCopy + resCodec
+                      } else processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
+                    }
                 }
               } else {
                 processTypesArray(dataType, codec.duplicate, currentCodec)
