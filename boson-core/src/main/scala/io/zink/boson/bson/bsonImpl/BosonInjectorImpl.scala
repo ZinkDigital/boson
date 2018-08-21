@@ -20,8 +20,7 @@ import scala.util.{Failure, Success, Try}
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  protected implicit val context =
-    asExecutionContext(Executors.newFixedThreadPool(2))
+  protected implicit val context = asExecutionContext(Executors.newFixedThreadPool(2))
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
