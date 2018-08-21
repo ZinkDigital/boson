@@ -2761,6 +2761,19 @@ class CoverageTest extends FunSuite {
     println(resultValue)
     assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
   }
+
+  test("Top level key modification") {
+    val bson = new BsonObject().put("name", "john doe")
+    val ex = ".name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    println(resultValue)
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
   //
   //  test("CodecJson - Top level key modification - non existing key") {
   //    val bson = new BsonObject().put("name", "john doe")

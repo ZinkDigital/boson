@@ -336,6 +336,12 @@ class CodecJson(str: String) extends Codec {
   def getLength : Int = input.length
 
   /**
+    * Method that gets the initial index to read from the codec
+    * @return
+    */
+  def getInitialIndex : Int = getReaderIndex + 1
+
+  /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
     *
     * @return this function return the size of the next token, if the next token is an Object, Array or String

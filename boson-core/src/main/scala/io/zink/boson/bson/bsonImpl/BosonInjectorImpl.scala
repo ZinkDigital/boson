@@ -355,10 +355,10 @@ private[bsonImpl] object BosonInjectorImpl {
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
 
     while ((codec.getReaderIndex - startReader) < originalSize) {//Main iteration ove the read-only codec
+    val startIndexMainCodec = codec.getInitialIndex
       val (dataType, _) = readWriteDataType(codec, writeCodec, readOnly = true)
-      val startIndexMainCodec = codec.getReaderIndex
       dataType match {
-        case 0 =>
+        case 0 => indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
         case _ =>
           val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
           key match {

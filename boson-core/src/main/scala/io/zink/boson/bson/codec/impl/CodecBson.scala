@@ -243,7 +243,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * Method used to determine the length of the data structure
     * @return the length of the data structure
     */
-  def getLength : Int = buff.capacity()
+  def getLength : Int = buff.writerIndex()
+
+  /**
+    * Method that gets the initial index to read from the codec
+    * @return
+    */
+  def getInitialIndex : Int = getReaderIndex
 
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
@@ -427,7 +433,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return The same codec but with the desired information written in it
     */
   def writeInformation(codecToReadFrom: Codec, start: Int, end: Int) : Codec = {
-    codecToReadFrom.getCodecData.asInstanceOf[Left[ByteBuf, String]].value.getBytes(start, buff, end - start)
+    buff.writeBytes(codecToReadFrom.getCodecData.asInstanceOf[Left[ByteBuf, String]].value.slice(start, end - start))
+    buff.capacity(buff.writerIndex())
     this
   }
 
