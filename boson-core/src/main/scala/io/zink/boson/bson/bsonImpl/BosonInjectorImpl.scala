@@ -343,26 +343,34 @@ private[bsonImpl] object BosonInjectorImpl {
     resultCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
-  def modifyAllSingleCodec[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex : Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def modifyAllSingleCodec[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReader: Int, originalSize: Int) =
-      if(startIndex == 0 && endIndex == 0)
+      if (startIndex == 0 && endIndex == 0)
         (codec.getReaderIndex, codec.readSize)
       else
         (startIndex, endIndex - startReader)
 
-    val writeCodec: Codec = codec.createEmptyCodec()  //Single codec in which everything will be written
-    while((codec.getReaderIndex - startReader) < originalSize) {  //Main iteration ove the read-only codec
-      val (dataType, _) = readWriteDataType(codec, writeCodec)
+    val indexBuffer: ListBuffer[(Int, Int, Codec)] = new ListBuffer[(Int, Int, Codec)] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
+
+    val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
+
+    while ((codec.getReaderIndex - startReader) < originalSize) { //Main iteration ove the read-only codec
+      val (dataType, _) = readWriteDataType(codec, writeCodec, readOnly = true)
       dataType match {
         case 0 =>
         case _ =>
-          val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec) else (writeCodec, "")
+          val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
           key match {
             case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
               if (statementsList.lengthCompare(1) == 0) {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   ???
-                } else modifierAll(codec, writeCodec, dataType, injFunction)
+                } else {
+                  val startIndex = codec.getReaderIndex
+                  val codecToReadFrom = modifierAll(codec, codec.createEmptyCodec, dataType, injFunction)
+                  val endIndex = codec.getReaderIndex
+                  indexBuffer += ((startIndex, endIndex, codecToReadFrom))
+                } //Aqui por (start, end, qual codec)
               } else {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   ???
@@ -373,21 +381,18 @@ private[bsonImpl] object BosonInjectorImpl {
                       val start = codec.getReaderIndex
                       codec.readToken(token)
                       val end = codec.getReaderIndex
-//                      val partialData = codec.readToken(token) match {
-//                        case SonObject(_, result) => anyToEither(result)
-//                        case SonArray(_, result) => anyToEither(result)
-//                      }
                       val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, start = start, end = end)
-                      writeCodec + subCodec
-
-                    case _ => processTypesArray(dataType, codec, writeCodec)
+                      indexBuffer += ((0, subCodec.getSize, subCodec)) //Read the bytes of subCodec from 0 to its size
+                    //                      writeCodec + subCodec
+                    //aqui por (start, end, qual codec)
+                    case _ => processTypesArray(dataType, codec, _) //aqui por (start, end, qual codec)
                   }
                 }
               }
             case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
               if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                 ???
-              } else processTypesArray(dataType, codec, writeCodec)
+              } else processTypesArray(dataType, codec, _) //aqui por (start, end, qual codec)
           }
       }
     }
@@ -2146,13 +2151,13 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param writableCodec - Structure that contains the information already processed and where we write the values
     * @return the resulting codec and a string containing the key extracted
     */
-  private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String)
-
-  = {
+  private def writeKeyAndByte(codec: Codec, writableCodec: Codec, readOnly: Boolean = false): (Codec, String) = {
     val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
     val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
-    writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
-    writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+    if (!readOnly) {
+      writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
+      writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+    }
     (writableCodec, key)
   }
 
@@ -2162,9 +2167,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param value - Object of type T encoded in a array of bytes
     * @return a List of tuples containing the name of a field of the object the value for that field
     */
-  private def extractTupleList(value: Either[Array[Byte], String]): TupleList
-
-  = {
+  private def extractTupleList(value: Either[Array[Byte], String]): TupleList = {
     val codec: Codec = value match {
       case Left(byteArr) => CodecObject.toCodec(Unpooled.copiedBuffer(byteArr))
 
@@ -2223,9 +2226,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type T of the object to be iterated
     * @return A list of tuples consisting in pairs of field names and field values
     */
-  private def toTupleList[T](modifiedValue: T): TupleList
-
-  = {
+  private def toTupleList[T](modifiedValue: T): TupleList = {
     val tupleArray = for {
       field <- modifiedValue.getClass.getDeclaredFields //Iterate through this object's fields
       if !field.getName.equals("$outer") //remove shapeless added $outer param
@@ -2246,9 +2247,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param tupleList - List of tuples to be encoded
     * @return An array of bytes representing the encoded list of tuples
     */
-  private def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String]
-
-  = {
+  private def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String] = {
     val encodedObject = new BsonObject()
     tupleList.foreach {
       case (fieldName: String, fieldValue: Any) =>
@@ -2278,11 +2277,10 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param writeCodec - The codec in which to write the data type
     * @return A Tuple containing both the read data type and the written codec
     */
-  private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec)
-
-  = {
+  private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0, readOnly: Boolean = false): (Int, Codec) = {
     val dataType: Int = codec.readDataType(formerType)
-    writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+    if (!readOnly)
+      writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
     (dataType, writeCodec)
   }
 }
