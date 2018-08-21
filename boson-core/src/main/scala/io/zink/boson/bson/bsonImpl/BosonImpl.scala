@@ -126,19 +126,24 @@ object BosonImpl {
     * @tparam T - The type of the input and output of the injection function
     * @return a new codec with the changes applied to it
     */
-  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
+  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T, readerIndextoUse: Int = 0, start: Int = 0, end: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
     val codec: Codec = dataStructure match {
       case Right(jsonString: String) =>
         val returnCodec = new CodecJson(jsonString)
         returnCodec.setReaderIndex(readerIndextoUse)
         returnCodec
-      case Left(byteBuf: ByteBuf) => new CodecBson(byteBuf)
+      case Left(byteBuf: ByteBuf) =>
+        val returnCodec = new CodecBson(byteBuf)
+        returnCodec.setReaderIndex(readerIndextoUse)
+        returnCodec
     }
 
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction)
 
-      case Key(key: String) => modifyAll(statements, codec, key, injFunction)
+      case Key(key: String) => modifyAllSingleCodec(statements, codec, key, injFunction, startIndex = start, endIndex = end)
+
+//      case Key(key: String) => modifyAll(statements, codec, key, injFunction)
 
       case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
 
