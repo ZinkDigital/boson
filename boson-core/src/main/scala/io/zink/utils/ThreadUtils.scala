@@ -8,7 +8,8 @@ import scala.util.DynamicVariable
 
 object ThreadUtils {
 
-  val forkJoinPool = new ForkJoinPool // ForkJoinPool.comonPool()
+  val forkJoinPool = new ForkJoinPool
+  val pool = java.util.concurrent.Executors.newFixedThreadPool(50)
 
   /**
     * Abstract class that defines how a task runs in parallel
@@ -17,20 +18,11 @@ object ThreadUtils {
     def schedule[T](body: => T): ForkJoinTask[T]
 
     def parallel[A, B](taskA: => A, taskB: => B): (A, B) = {
-      //      val right = new Thread {
-      //        var valueToBe: Option[B] = None
-      //
-      //        override def run(): Unit = valueToBe = Some(taskB)
-      //      }
-
       val right = task {
         taskB
       }
-      //      right.start()
-      val left = taskA
-      //      right.join()
 
-      //      (left, right.valueToBe.getOrElse(throw CustomException("The right-side computation on parallel failed to execute")))
+      val left = taskA
       (left, right.join())
     }
   }
@@ -84,7 +76,20 @@ object ThreadUtils {
     * @return - The result of executing task A and task B in parallel, after they've joined the main thread pool
     */
   def parallel[A, B](taskA: => A, taskB: => B): (A, B) = {
-    scheduler.value.parallel(taskA, taskB)
+        scheduler.value.parallel(taskA, taskB)
+//    pool.execute(
+//      new Thread {
+//        var valueToBe: Option[B] = None
+//
+//        override def run(): Unit = valueToBe = Some(taskB)
+//      }
+//    )
+//
+//    right.start()
+//    val left = taskA
+//    right.join()
+//
+//    (left, right.valueToBe.getOrElse(throw CustomException("The right-side computation on parallel failed to execute")))
   }
 
   /**
