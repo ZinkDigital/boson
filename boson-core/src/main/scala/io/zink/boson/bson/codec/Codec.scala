@@ -98,6 +98,12 @@ trait Codec {
   def getSize: Int
 
   /**
+    * Method used to determine the length of the data structure
+    * @return the length of the data structure
+    */
+  def getLength : Int
+
+  /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
     *
     * @return this function return the size of the next token, if the next token is an Object, Array or String
@@ -179,6 +185,15 @@ trait Codec {
     * @return a duplicated codec from the current codec, but with the new information
     */
   def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
+
+  /**
+    * Method that writes the bytes/characters from codecToReadFrom from the start index to the end index
+    * @param codecToReadFrom - Codec from which to read the bytes/characters
+    * @param start - Index in which to start
+    * @param end - Index in which to end
+    * @return The same codec but with the desired information written in it
+    */
+  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int) : Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure

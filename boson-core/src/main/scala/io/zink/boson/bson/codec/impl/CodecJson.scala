@@ -330,6 +330,12 @@ class CodecJson(str: String) extends Codec {
   override def getSize: Int = this.readSize
 
   /**
+    * Method used to determine the length of the data structure
+    * @return the length of the data structure
+    */
+  def getLength : Int = input.length
+
+  /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
     *
     * @return this function return the size of the next token, if the next token is an Object, Array or String
@@ -641,6 +647,18 @@ class CodecJson(str: String) extends Codec {
         input.append(',')
       this
     }
+  }
+
+  /**
+    * Method that writes the bytes/characters from codecToReadFrom from the start index to the end index
+    * @param codecToReadFrom - Codec from which to read the bytes/characters
+    * @param start - Index in which to start
+    * @param end - Index in which to end
+    * @return The same codec but with the desired information written in it
+    */
+  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int) : Codec = {
+    input.append(codecToReadFrom.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(start, end))
+    this
   }
 
   /**
