@@ -7,7 +7,6 @@ import io.zink.boson.bson.codec._
 import BosonExtractorImpl._
 import BosonInjectorImpl._
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
-import shapeless.TypeCase
 
 import scala.util.{Failure, Success, Try}
 
@@ -195,4 +194,19 @@ object BosonImpl {
         throw CustomException("Wrong Statements, Bad Expression.")
     }
   }
+
+  def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: T, readerIndextoUse: Int = 0): Codec = {
+    val codec: Codec = dataStructure match {
+      case Right(jsonString: String) =>
+        val returnCodec = new CodecJson(jsonString)
+        returnCodec.setReaderIndex(readerIndextoUse)
+        returnCodec
+      case Left(byteBuf: ByteBuf) => new CodecBson(byteBuf)
+    }
+
+    //TODO - stuff goes here
+
+    codec
+  }
+
 }

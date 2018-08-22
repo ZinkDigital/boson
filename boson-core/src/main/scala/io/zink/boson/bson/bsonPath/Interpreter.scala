@@ -22,6 +22,7 @@ import scala.util.{Failure, Success, Try}
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
+                     vInj: Option[T] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)
@@ -158,7 +159,7 @@ class Interpreter[T](expression: String,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
+  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined || vInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
 
   /**
     * Method that initiates the process of extraction based on a Statement list provided by the parser.
@@ -341,7 +342,8 @@ class Interpreter[T](expression: String,
     */
   private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
-    executeMultipleKeysInjector(zipped, bsonEncoded)
+    if(fInj.isDefined) executeMultipleKeysInjector(zipped, bsonEncoded)
+    else executeValueInjection(zipped, bsonEncoded)
   }
 
   /**
@@ -371,6 +373,20 @@ class Interpreter[T](expression: String,
                 case Left(byteBuf) => Left(byteBuf.array)
                 case Right(string) => Right(string)
               }
+  }
+
+  private def executeValueInjection(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
+    val input: Either[ByteBuf, String] = bsonEncoded match {
+      case Left(byteArr) =>
+        val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
+        Left(buf)
+      case Right(jsString) => Right(jsString)
+    }
+
+    BosonImpl.injectValue(input, statements, vInj.get).getCodecData match {
+      case Left(byteBuf) => Left(byteBuf.array)
+      case Right(string) => Right(string)
+    }
   }
 
 }

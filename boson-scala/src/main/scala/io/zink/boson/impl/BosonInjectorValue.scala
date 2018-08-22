@@ -1,17 +1,14 @@
 package io.zink.boson.impl
 
-import java.nio.ByteBuffer
-
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonPath.Interpreter
 import shapeless.TypeCase
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: Option[TypeCase[T]]) extends Boson {
+class BosonInjectorValue[T](expression: String, injectValue: T)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction))(tp, None)
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(injectValue))(tp, None)
 
   /**
     * Method that delegates the injection process to Interpreter passing to it the data structure to be used (either a byte array or a String)
@@ -31,6 +28,9 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
     * @return Future with original or a modified Array[Byte].
     */
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
+    import java.util.concurrent.Executors
+    import scala.concurrent.JavaConversions.asExecutionContext
+    implicit val context = asExecutionContext(Executors.newSingleThreadExecutor())
     Future {
       runInterpreter(Left(bsonByteEncoding)) match {
         case Left(byteArr) => byteArr
@@ -47,12 +47,14 @@ class BosonInjector[T](expression: String, injectFunction: T => T)(implicit tp: 
     * @return Future with original or a modified String.
     */
   override def go(bsonByteEncoding: String): Future[String] = {
+    import java.util.concurrent.Executors
+    import scala.concurrent.JavaConversions.asExecutionContext
+    implicit val context = asExecutionContext(Executors.newSingleThreadExecutor())
     Future {
       runInterpreter(Right(bsonByteEncoding)) match {
         case Right(jsonString) => jsonString
       }
     }
   }
-
-//  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 }
+
