@@ -331,15 +331,23 @@ class CodecJson(str: String) extends Codec {
 
   /**
     * Method used to determine the length of the data structure
+    *
     * @return the length of the data structure
     */
-  def getLength : Int = input.length
+  def getLength: Int = input.length
 
   /**
     * Method that gets the initial index to read from the codec
+    *
     * @return
     */
-  def getInitialIndex : Int = getReaderIndex + 1
+  def getInitialIndex: Int = if(getReaderIndex == 0) 1 else getReaderIndex
+
+  /**
+    * Method that gets the last index to read from the codec
+    * @return
+    */
+  def getLastIndex : Int = getReaderIndex - 1
 
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
@@ -657,12 +665,13 @@ class CodecJson(str: String) extends Codec {
 
   /**
     * Method that writes the bytes/characters from codecToReadFrom from the start index to the end index
+    *
     * @param codecToReadFrom - Codec from which to read the bytes/characters
-    * @param start - Index in which to start
-    * @param end - Index in which to end
+    * @param start           - Index in which to start
+    * @param end             - Index in which to end
     * @return The same codec but with the desired information written in it
     */
-  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int) : Codec = {
+  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int): Codec = {
     input.append(codecToReadFrom.getCodecData.asInstanceOf[Right[ByteBuf, String]].value.substring(start, end))
     this
   }
