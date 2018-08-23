@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  //  protected implicit val context = asExecutionContext(Executors.newFixedThreadPool(2))
+  protected implicit val context = asExecutionContext(Executors.newFixedThreadPool(4))
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
@@ -353,62 +353,138 @@ private[bsonImpl] object BosonInjectorImpl {
         (startIndex, endIndex - startIndex)
       }
 
-    val indexBuffer: ListBuffer[(Int, Int, Codec)] = new ListBuffer[(Int, Int, Codec)] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
+    //    val indexBuffer: ListBuffer[(Int, Int, Codec)] = new ListBuffer[(Int, Int, Codec)] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
 
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
 
-    while ((codec.getReaderIndex - startReader) < originalSize) {
-      //Main iteration ove the read-only codec
-      val startIndexMainCodec = codec.getInitialIndex
-      val (dataType, _) = readWriteDataType(codec, writeCodec, readOnly = true)
-      dataType match {
-        case 0 => indexBuffer += ((startIndexMainCodec, codec.getLastIndex, codec))
-        case _ =>
-          val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
-          key match {
-            case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
-              if (statementsList.lengthCompare(1) == 0) {
-                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  ???
+    def iterateDataStructure: Seq[(Int, Int, Option[Codec])] = {
+      if ((codec.getReaderIndex - startReader) >= originalSize) Seq.empty
+      else {
+        //        val indexBuffer: ListBuffer[(Int, Int, Option[Codec])] = new ListBuffer[(Int, Int, Option[Codec])] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
+        val startIndexMainCodec = codec.getInitialIndex
+        val (dataType, _) = readWriteDataType(codec, writeCodec, readOnly = true)
+        dataType match {
+          case 0 =>
+            Seq((startIndexMainCodec, codec.getLastIndex, None)) ++ iterateDataStructure
+          //            indexBuffer += ((startIndexMainCodec, codec.getLastIndex, None))
+          //            indexBuffer ++ iterateDataStructure
+          case _ =>
+            val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
+            key match {
+              case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    ???
+                  } else {
+
+                    val readerIndx = codec.getReaderIndex
+                    //                    indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
+                    val codecToReadFrom = modifierAll(codec, codec.createEmptyCodec, dataType, injFunction)
+                    //                    indexBuffer += ((0, codecToReadFrom.getLength, Some(codecToReadFrom)))
+                    //                    indexBuffer ++ iterateDataStructure
+                    Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))) ++ iterateDataStructure
+                  }
                 } else {
-                  indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
-                  val codecToReadFrom = modifierAll(codec, codec.createEmptyCodec, dataType, injFunction)
-                  indexBuffer += ((0, codecToReadFrom.getLength, codecToReadFrom))
-                }
-              } else {
-                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                  ???
-                } else {
-                  dataType match {
-                    case D_BSONOBJECT | D_BSONARRAY =>
-                      val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
-                      indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
-                      val start = codec.getReaderIndex
-                      codec.readToken(token)
-                      val end = codec.getReaderIndex
-                      val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = start, start = start, end = end) //put in a new thread/Future
-                      indexBuffer += ((0, subCodec.getLength, subCodec)) //Read the bytes of subCodec from 0 to its size
-                    case _ =>
-                      indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
-                      val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
-                      indexBuffer += ((0, codecToBeRead.getLength, codecToBeRead))
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    ???
+                  } else {
+                    dataType match {
+                      case D_BSONOBJECT | D_BSONARRAY =>
+                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+                        val readerIndx = codec.getReaderIndex
+//                        indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
+                        val start = codec.getReaderIndex
+                        codec.readToken(token)
+                        val end = codec.getReaderIndex
+                        val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = start, start = start, end = end) //put in a new thread/Future
+//                        indexBuffer += ((0, subCodec.getLength, Some(subCodec))) //Read the bytes of subCodec from 0 to its size
+//                        indexBuffer ++ iterateDataStructure
+                        Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec))) ++ iterateDataStructure
+                      case _ =>
+                        val readerIndx = codec.getReaderIndex
+//                        indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
+                        val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
+//                        indexBuffer += ((0, codecToBeRead.getLength, Some(codecToBeRead)))
+//                        indexBuffer ++ iterateDataStructure
+                        Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))) ++ iterateDataStructure
+                    }
                   }
                 }
-              }
-            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
-              if (statementsList.head._2.contains(C_DOUBLEDOT)) {
-                ???
-              } else {
-                indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
-                val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
-                indexBuffer += ((0, codecToBeRead.getLength, codecToBeRead))
-              }
-          }
+              case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  ???
+                } else {
+                  val readerIndx = codec.getReaderIndex
+//                  indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
+                  val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
+//                  indexBuffer += ((0, codecToBeRead.getLength, Some(codecToBeRead)))
+//                  indexBuffer ++ iterateDataStructure
+                  Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))) ++ iterateDataStructure
+                }
+            }
+        }
       }
     }
-    indexBuffer.foreach(tuple =>
-      writeCodec.writeInformation(tuple._3, tuple._1, tuple._2)
+
+    //    while ((codec.getReaderIndex - startReader) < originalSize) {
+    //      //Main iteration ove the read-only codec
+    //      val startIndexMainCodec = codec.getInitialIndex
+    //      val (dataType, _) = readWriteDataType(codec, writeCodec, readOnly = true)
+    //      dataType match {
+    //        case 0 => indexBuffer += ((startIndexMainCodec, codec.getLastIndex, codec))
+    //        case _ =>
+    //          val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
+    //          key match {
+    //            case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
+    //              if (statementsList.lengthCompare(1) == 0) {
+    //                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+    //                  ???
+    //                } else {
+    //                  indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
+    //                  val codecToReadFrom = modifierAll(codec, codec.createEmptyCodec, dataType, injFunction)
+    //                  indexBuffer += ((0, codecToReadFrom.getLength, codecToReadFrom))
+    //                }
+    //              } else {
+    //                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+    //                  ???
+    //                } else {
+    //                  dataType match {
+    //                    case D_BSONOBJECT | D_BSONARRAY =>
+    //                      val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+    //                      indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
+    //                      val start = codec.getReaderIndex
+    //                      codec.readToken(token)
+    //                      val end = codec.getReaderIndex
+    //                      val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = start, start = start, end = end) //put in a new thread/Future
+    //                      indexBuffer += ((0, subCodec.getLength, subCodec)) //Read the bytes of subCodec from 0 to its size
+    //                    case _ =>
+    //                      indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
+    //                      val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
+    //                      indexBuffer += ((0, codecToBeRead.getLength, codecToBeRead))
+    //                  }
+    //                }
+    //              }
+    //            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
+    //              if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+    //                ???
+    //              } else {
+    //                indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
+    //                val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
+    //                indexBuffer += ((0, codecToBeRead.getLength, codecToBeRead))
+    //              }
+    //          }
+    //      }
+    //    }
+    //    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
+    //    Await.result(resultList, Duration.Inf).foreach(tuple =>
+    //      writeCodec.writeInformation(if (tuple._3 != null) tuple._3 else codec, tuple._1, tuple._2)
+    //    )
+    iterateDataStructure.foreach(tuple =>
+      writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
     )
+    //    indexBuffer.foreach(tuple =>
+    //      writeCodec.writeInformation(tuple._3, tuple._1, tuple._2)
+    //    )
     writeCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
