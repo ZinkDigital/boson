@@ -341,13 +341,14 @@ class CodecJson(str: String) extends Codec {
     *
     * @return
     */
-  def getInitialIndex: Int = if(getReaderIndex == 0) 1 else getReaderIndex
+  def getInitialIndex: Int = if (getReaderIndex == 0) 1 else getReaderIndex
 
   /**
     * Method that gets the last index to read from the codec
+    *
     * @return
     */
-  def getLastIndex : Int = getReaderIndex - 1
+  def getLastIndex: Int = getReaderIndex - 1
 
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
@@ -356,6 +357,11 @@ class CodecJson(str: String) extends Codec {
     *         which are the case that make sense to obtain a size
     */
   override def readSize: Int = {
+    readSizeAux(readerIndex)
+  }
+
+  private def readSizeAux(indexToUse: Int): Int = {
+    var readerIndex = indexToUse
     input(readerIndex) match {
       case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex == 0 => inputSize
       case CS_OPEN_BRACKET =>
@@ -376,6 +382,11 @@ class CodecJson(str: String) extends Codec {
         s + 1
     }
   }
+
+  def readSizeWithCounter(counter: Int): Int = {
+    readerIndex(counter)
+  }
+
 
   /**
     * findObjectSize is used to compute the size of the next JsonObject/jsonArray in stream, without consuming the value

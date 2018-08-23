@@ -241,21 +241,26 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
   /**
     * Method used to determine the length of the data structure
+    *
     * @return the length of the data structure
     */
-  def getLength : Int = buff.writerIndex()
+  def getLength: Int = buff.writerIndex()
 
   /**
     * Method that gets the initial index to read from the codec
+    *
     * @return
     */
-  def getInitialIndex : Int = getReaderIndex
+  def getInitialIndex: Int = getReaderIndex
+
+  def getInitialIndexWithCounter(counter: Int): Int = counter
 
   /**
     * Method that gets the last index to read from the codec
+    *
     * @return
     */
-  def getLastIndex : Int = getReaderIndex
+  def getLastIndex: Int = getReaderIndex
 
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
@@ -264,6 +269,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *         which are the case that make sense to obtain a size
     */
   override def readSize: Int = buff.readIntLE
+
+  def readSizeWithCounter(counter: Int): Int = {
+    buff.getIntLE(counter)
+    counter + 4
+  }
 
   /**
     * rootType is used at the beginning of the first executed function (extract) to know if the input is a BsonObject/JsonObject
@@ -433,12 +443,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
   /**
     * Method that writes the bytes/characters from codecToReadFrom from the start index to the end index
+    *
     * @param codecToReadFrom - Codec from which to read the bytes/characters
-    * @param start - Index in which to start
-    * @param end - Index in which to end
+    * @param start           - Index in which to start
+    * @param end             - Index in which to end
     * @return The same codec but with the desired information written in it
     */
-  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int) : Codec = {
+  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int): Codec = {
     buff.writeBytes(codecToReadFrom.getCodecData.asInstanceOf[Left[ByteBuf, String]].value.slice(start, end - start))
     buff.capacity(buff.writerIndex())
     this

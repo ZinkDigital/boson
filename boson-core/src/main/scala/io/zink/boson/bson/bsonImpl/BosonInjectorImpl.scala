@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  protected implicit val context = asExecutionContext(Executors.newFixedThreadPool(4))
+  protected implicit val context = asExecutionContext(Executors.newFixedThreadPool(2))
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
@@ -343,6 +343,25 @@ private[bsonImpl] object BosonInjectorImpl {
     resultCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
+  def modifyAllSingleCodecCounter[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+    var counter: Int = startIndex
+    val (startReader: Int, originalSize: Int) =
+      if (startIndex == 0 && endIndex == 0)
+        (0, codec.readSizeWithCounter(counter))
+      else {
+        codec.readSizeWithCounter(counter)
+        (startIndex, endIndex - startIndex)
+      }
+
+    val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
+    def iterateDataStructure: Seq[Future[Seq[(Int, Int, Option[Codec])]]] = {
+      if((counter - startReader) >= originalSize) Seq.empty
+      else {
+        val startIndexMainCodec =
+      }
+    }
+  }
+
   def modifyAllSingleCodec[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     codec.skipChar()
     val (startReader: Int, originalSize: Int) =
@@ -353,21 +372,17 @@ private[bsonImpl] object BosonInjectorImpl {
         (startIndex, endIndex - startIndex)
       }
 
-    //    val indexBuffer: ListBuffer[(Int, Int, Codec)] = new ListBuffer[(Int, Int, Codec)] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
-
+    //    val indexBuffer: ListBuffer[(Int, Int, Codec)] = new ListBuffer[(Int, Int, Codec)] //Buffer that will store the information as to which codec to read the bytes and from what index and to what index
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
 
-    def iterateDataStructure: Seq[(Int, Int, Option[Codec])] = {
+    def iterateDataStructure: Seq[Future[Seq[(Int, Int, Option[Codec])]]] = {
       if ((codec.getReaderIndex - startReader) >= originalSize) Seq.empty
       else {
-        //        val indexBuffer: ListBuffer[(Int, Int, Option[Codec])] = new ListBuffer[(Int, Int, Option[Codec])] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
         val startIndexMainCodec = codec.getInitialIndex
         val (dataType, _) = readWriteDataType(codec, writeCodec, readOnly = true)
         dataType match {
           case 0 =>
-            Seq((startIndexMainCodec, codec.getLastIndex, None)) ++ iterateDataStructure
-          //            indexBuffer += ((startIndexMainCodec, codec.getLastIndex, None))
-          //            indexBuffer ++ iterateDataStructure
+            Seq(Future(Seq((startIndexMainCodec, codec.getLastIndex, None)))) ++ iterateDataStructure
           case _ =>
             val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
             key match {
@@ -376,13 +391,11 @@ private[bsonImpl] object BosonInjectorImpl {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     ???
                   } else {
-
-                    val readerIndx = codec.getReaderIndex
-                    //                    indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
-                    val codecToReadFrom = modifierAll(codec, codec.createEmptyCodec, dataType, injFunction)
-                    //                    indexBuffer += ((0, codecToReadFrom.getLength, Some(codecToReadFrom)))
-                    //                    indexBuffer ++ iterateDataStructure
-                    Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))) ++ iterateDataStructure
+                    Seq(Future {
+                      val readerIndx = codec.getReaderIndex
+                      lazy val codecToReadFrom = modifierAll(codec, codec.createEmptyCodec, dataType, injFunction)
+                      Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom)))
+                    }) ++ iterateDataStructure
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -390,23 +403,21 @@ private[bsonImpl] object BosonInjectorImpl {
                   } else {
                     dataType match {
                       case D_BSONOBJECT | D_BSONARRAY =>
-                        val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
-                        val readerIndx = codec.getReaderIndex
-//                        indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
-                        val start = codec.getReaderIndex
-                        codec.readToken(token)
-                        val end = codec.getReaderIndex
-                        val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = start, start = start, end = end) //put in a new thread/Future
-//                        indexBuffer += ((0, subCodec.getLength, Some(subCodec))) //Read the bytes of subCodec from 0 to its size
-//                        indexBuffer ++ iterateDataStructure
-                        Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec))) ++ iterateDataStructure
+                        Seq(Future {
+                          val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+                          val readerIndx = codec.getReaderIndex
+                          val start = codec.getReaderIndex
+                          codec.readToken(token)
+                          val end = codec.getReaderIndex
+                          lazy val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = start, start = start, end = end) //put in a new thread/Future
+                          Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec)))
+                        }) ++ iterateDataStructure
                       case _ =>
-                        val readerIndx = codec.getReaderIndex
-//                        indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
-                        val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
-//                        indexBuffer += ((0, codecToBeRead.getLength, Some(codecToBeRead)))
-//                        indexBuffer ++ iterateDataStructure
-                        Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))) ++ iterateDataStructure
+                        Seq(Future {
+                          val readerIndx = codec.getReaderIndex
+                          lazy val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
+                          Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead)))
+                        }) ++ iterateDataStructure
                     }
                   }
                 }
@@ -414,12 +425,11 @@ private[bsonImpl] object BosonInjectorImpl {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   ???
                 } else {
-                  val readerIndx = codec.getReaderIndex
-//                  indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, None))
-                  val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
-//                  indexBuffer += ((0, codecToBeRead.getLength, Some(codecToBeRead)))
-//                  indexBuffer ++ iterateDataStructure
-                  Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))) ++ iterateDataStructure
+                  Seq(Future {
+                    val readerIndx = codec.getReaderIndex
+                    lazy val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
+                    Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead)))
+                  }) ++ iterateDataStructure
                 }
             }
         }
@@ -475,13 +485,13 @@ private[bsonImpl] object BosonInjectorImpl {
     //          }
     //      }
     //    }
-    //    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
-    //    Await.result(resultList, Duration.Inf).foreach(tuple =>
-    //      writeCodec.writeInformation(if (tuple._3 != null) tuple._3 else codec, tuple._1, tuple._2)
-    //    )
-    iterateDataStructure.foreach(tuple =>
+    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
+    Await.result(resultList, Duration.Inf).foreach(tuple =>
       writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
     )
+    //    iterateDataStructure.foreach(tuple =>
+    //      writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
+    //    )
     //    indexBuffer.foreach(tuple =>
     //      writeCodec.writeInformation(tuple._3, tuple._1, tuple._2)
     //    )
@@ -544,8 +554,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                       val modifiedSubCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
                       if (dataType == D_BSONARRAY) modifiedSubCodec.changeBrackets(4)
-                      val subCodec = BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
-                      currentCodec + subCodec
+                      currentCodec + BosonImpl.inject(modifiedSubCodec.getCodecData, statementsList, injFunction)
 
                     case _ => processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
                   }
@@ -557,8 +566,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         case SonObject(_, result) => anyToEither(result)
                         case SonArray(_, result) => anyToEither(result)
                       }
-                      val subCodec = BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
-                      currentCodec + subCodec
+                      currentCodec + BosonImpl.inject(partialData, statementsList.drop(1), injFunction)
 
                     case _ => processTypesArray(dataType, codec, currentCodec)
                   }
@@ -1591,9 +1599,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return A Codec containing the alterations made
     */
   private def modifyArrayEnd[T](statementsList: StatementsList, codec: Codec, injFunction: T => T, condition: String, from: String, to: String = C_END, fullStatementsList: StatementsList, formerType: Int)(implicit
-                                                                                                                                                                                                             convertFunction: Option[TupleList => T] = None): Codec
-
-  = {
+                                                                                                                                                                                                             convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
     var counter: Int = -1
 
@@ -1623,6 +1629,7 @@ private[bsonImpl] object BosonInjectorImpl {
           val isArray = codec.isArray(formerType, key)
 
           (key, condition, to) match {
+            //when the condition is end
             case (_, C_END, _) if isArray =>
               if (statementsList.size == 1) {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -1682,7 +1689,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                   }
                 }
-              } else {
+              }
+              else {
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
@@ -1800,7 +1808,8 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                   }
                 }
-              } else {
+              }
+              else {
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
@@ -1865,7 +1874,6 @@ private[bsonImpl] object BosonInjectorImpl {
                   }
                 }
               }
-
             case (x, _, C_END) if isArray && from.toInt > x.toInt =>
               if (statementsList.head._2.contains(C_DOUBLEDOT) && !statementsList.head._1.isInstanceOf[KeyWithArrExpr]) {
                 //this is the case where we haven't yet reached the condition the user sent us
@@ -1881,11 +1889,11 @@ private[bsonImpl] object BosonInjectorImpl {
                     processTypesArray(dataType, codec.duplicate, currentCodec)
                     processTypesArray(dataType, codec, currentCodecCopy)
                 }
-              } else {
+              }
+              else {
                 processTypesArray(dataType, codec.duplicate, currentCodec)
                 processTypesArray(dataType, codec, currentCodecCopy)
               }
-
             case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
               if (statementsList.lengthCompare(1) == 0) {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -1933,7 +1941,8 @@ private[bsonImpl] object BosonInjectorImpl {
                     //                      }
                   }
                 }
-              } else {
+              }
+              else {
                 if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[ArrExpr]) {
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
@@ -1992,11 +2001,11 @@ private[bsonImpl] object BosonInjectorImpl {
                     processTypesArray(dataType, codec.duplicate, currentCodec)
                     processTypesArray(dataType, codec, currentCodecCopy)
                 }
-              } else {
+              }
+              else {
                 processTypesArray(dataType, codec.duplicate, currentCodec)
                 processTypesArray(dataType, codec, currentCodecCopy)
               }
-
             case (_, _, _) if !isArray =>
               if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                 codec.getCodecData match {
@@ -2013,7 +2022,8 @@ private[bsonImpl] object BosonInjectorImpl {
                     processTypesArray(dataType, codec, currentCodecCopy)
                     codec.skipChar() // Skip the comma written
                 }
-              } else throw CustomException("*modifyArrayEnd* Not a Array")
+              }
+              else throw CustomException("*modifyArrayEnd* Not a Array")
           }
       }
     }

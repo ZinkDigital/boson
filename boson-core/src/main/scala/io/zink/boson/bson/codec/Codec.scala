@@ -99,21 +99,26 @@ trait Codec {
 
   /**
     * Method used to determine the length of the data structure
+    *
     * @return the length of the data structure
     */
-  def getLength : Int
+  def getLength: Int
 
   /**
     * Method that gets the initial index to read from the codec
+    *
     * @return
     */
-  def getInitialIndex : Int
+  def getInitialIndex: Int
+
+  def getInitialIndexWithCounter(counter: Int): Int
 
   /**
     * Method that gets the last index to read from the codec
+    *
     * @return
     */
-  def getLastIndex : Int
+  def getLastIndex: Int
 
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
@@ -122,6 +127,9 @@ trait Codec {
     *         which are the case that make sense to obtain a size
     */
   def readSize: Int
+
+
+  def readSizeWithCounter(counter: Int): Int
 
   /**
     * downOneLevel is only used when dealing with JSON, it is used to consume the first Character of a BsonArray('[') or BsonObject('{')
@@ -200,12 +208,13 @@ trait Codec {
 
   /**
     * Method that writes the bytes/characters from codecToReadFrom from the start index to the end index
+    *
     * @param codecToReadFrom - Codec from which to read the bytes/characters
-    * @param start - Index in which to start
-    * @param end - Index in which to end
+    * @param start           - Index in which to start
+    * @param end             - Index in which to end
     * @return The same codec but with the desired information written in it
     */
-  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int) : Codec
+  def writeInformation(codecToReadFrom: Codec, start: Int, end: Int): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure
