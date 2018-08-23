@@ -2792,6 +2792,21 @@ class CoverageTest extends FunSuite {
     assert(resultValue.contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
   }
 
+  test("Nested key modification, Multi key1") {
+    val obj = new BsonObject().put("name", "john doe")
+    val json = new BsonObject().put("person", obj)
+    val ex = ".person.name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = json.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    println(resultValue.mkString(" "))
+    println(jsonEncoded.mkString(" "))
+    assert(new String(resultValue).contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
   test("Nested key modification, Multi key") {
     val obj = new BsonObject().put("name", "john doe")
     val person = new BsonObject().put("person", obj)
@@ -2806,6 +2821,8 @@ class CoverageTest extends FunSuite {
     val jsonEncoded = json.encodeToBarray()
     val future = jsonInj.go(jsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    println(resultValue.mkString(" "))
+    println(jsonEncoded.mkString(" "))
     assert(new String(resultValue).contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
   }
 

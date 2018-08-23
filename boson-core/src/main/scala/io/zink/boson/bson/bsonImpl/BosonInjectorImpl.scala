@@ -344,11 +344,14 @@ private[bsonImpl] object BosonInjectorImpl {
   }
 
   def modifyAllSingleCodec[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+    codec.skipChar()
     val (startReader: Int, originalSize: Int) =
       if (startIndex == 0 && endIndex == 0)
         (codec.getReaderIndex, codec.readSize)
-      else
+      else {
+        codec.readSize
         (startIndex, endIndex - startIndex)
+      }
 
     val indexBuffer: ListBuffer[(Int, Int, Codec)] = new ListBuffer[(Int, Int, Codec)] //Buffer that will the information as to which codec to read the bytes and from what index and to what index
 
@@ -380,7 +383,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     case D_BSONOBJECT | D_BSONARRAY =>
                       val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
                       indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
-                      val start = codec.getReaderIndex + 1
+                      val start = codec.getReaderIndex
                       codec.readToken(token)
                       val end = codec.getReaderIndex
                       val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = start, start = start, end = end) //put in a new thread/Future
@@ -389,7 +392,6 @@ private[bsonImpl] object BosonInjectorImpl {
                       indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
                       val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
                       indexBuffer += ((0, codecToBeRead.getLength, codecToBeRead))
-                    //aqui por (start, end, qual codec)
                   }
                 }
               }
@@ -398,7 +400,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 ???
               } else {
                 indexBuffer += ((startIndexMainCodec, codec.getReaderIndex, codec))
-                val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec) //aqui por (start, end, qual codec)
+                val codecToBeRead = processTypesArray(dataType, codec, codec.createEmptyCodec)
                 indexBuffer += ((0, codecToBeRead.getLength, codecToBeRead))
               }
           }
