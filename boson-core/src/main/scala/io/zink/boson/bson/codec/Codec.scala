@@ -51,6 +51,8 @@ trait Codec {
     */
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
 
+  def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int)
+
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
@@ -129,7 +131,7 @@ trait Codec {
   def readSize: Int
 
 
-  def readSizeWithCounter(counter: Int): Int
+  def readSizeWithCounter(counter: Int): (Int, Int)
 
   /**
     * downOneLevel is only used when dealing with JSON, it is used to consume the first Character of a BsonArray('[') or BsonObject('{')
@@ -176,6 +178,8 @@ trait Codec {
     *         18: represents a Long
     */
   def readDataType(former: Int = 0): Int
+
+  def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int)
 
   /**
     * duplicate is used to create a duplicate of the codec, all information is duplicate so that operations

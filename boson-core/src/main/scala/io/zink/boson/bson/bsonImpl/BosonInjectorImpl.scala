@@ -346,18 +346,31 @@ private[bsonImpl] object BosonInjectorImpl {
   def modifyAllSingleCodecCounter[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     var counter: Int = startIndex
     val (startReader: Int, originalSize: Int) =
-      if (startIndex == 0 && endIndex == 0)
-        (0, codec.readSizeWithCounter(counter))
+      if (startIndex == 0 && endIndex == 0) {
+        val (size, newCounter) = codec.readSizeWithCounter(counter)
+        counter = newCounter
+        (0, size)
+      }
       else {
-        codec.readSizeWithCounter(counter)
+        counter = codec.readSizeWithCounter(counter)._2
         (startIndex, endIndex - startIndex)
       }
 
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
     def iterateDataStructure: Seq[Future[Seq[(Int, Int, Option[Codec])]]] = {
-      if((counter - startReader) >= originalSize) Seq.empty
+      if ((counter - startReader) >= originalSize) Seq.empty
       else {
-        val startIndexMainCodec =
+        val startIndexMainCodec = codec.getInitialIndexWithCounter(counter)
+        val (dataType, _, newConter) = readWriteDataTypeCounter(codec, writeCodec, counter, readOnly = true)
+        counter = newConter
+        dataType match {
+
+          case 0 =>
+            Seq(Future(Seq((startIndexMainCodec, codec.getLastIndex, None)))) ++ iterateDataStructure
+
+          case _ =>
+            val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
+        }
       }
     }
   }
@@ -2260,6 +2273,16 @@ private[bsonImpl] object BosonInjectorImpl {
     (writableCodec, key)
   }
 
+  private def writeKeyAndByteCounter(codec: Codec, writableCodec: Codec, counter: Int, readOnly: Boolean = false): (Codec, String, Int) = {
+    val key: String = codec.readTokenWithCounter(counter, SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+    val b: Byte = codec.readTokenWithCounter(counter, SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
+    if (!readOnly) {
+      writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
+      writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+    }
+    (writableCodec, key)
+  }
+
   /**
     * Method that extracts a list of tuples containing the name of a field of the object the value for that field
     *
@@ -2381,5 +2404,12 @@ private[bsonImpl] object BosonInjectorImpl {
     if (!readOnly)
       writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
     (dataType, writeCodec)
+  }
+
+  private def readWriteDataTypeCounter(codec: Codec, writeCodec: Codec, counter: Int, formerType: Int = 0, readOnly: Boolean = false): (Int, Codec, Int) = {
+    val (dataType: Int, newCounter: Int) = codec.readDataTypeCounter(counter, formerType)
+    if (!readOnly)
+      writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+    (dataType, writeCodec, newCounter)
   }
 }

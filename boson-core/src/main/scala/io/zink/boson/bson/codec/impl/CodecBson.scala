@@ -231,6 +231,10 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       }
   }
 
+  override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = {
+
+  }
+
   /**
     * getSize is used to obtain the size of the next tokens, without consuming
     *
@@ -270,10 +274,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def readSize: Int = buff.readIntLE
 
-  def readSizeWithCounter(counter: Int): Int = {
-    buff.getIntLE(counter)
-    counter + 4
-  }
+  def readSizeWithCounter(counter: Int): (Int, Int) = (buff.getIntLE(counter), counter + 4)
 
   /**
     * rootType is used at the beginning of the first executed function (extract) to know if the input is a BsonObject/JsonObject
@@ -331,6 +332,9 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *         18: represents a Long
     */
   override def readDataType(former: Int = 0): Int = buff.readByte()
+
+
+  override def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int) = (buff.getByte(counter), counter + 1)
 
 
   /**
