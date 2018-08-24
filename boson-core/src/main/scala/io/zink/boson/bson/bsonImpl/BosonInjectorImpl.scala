@@ -361,15 +361,39 @@ private[bsonImpl] object BosonInjectorImpl {
       if ((counter - startReader) >= originalSize) Seq.empty
       else {
         val startIndexMainCodec = codec.getInitialIndexWithCounter(counter)
-        val (dataType, _, newConter) = readWriteDataTypeCounter(codec, writeCodec, counter, readOnly = true)
-        counter = newConter
+        val (dataType, _, newCounter) = readWriteDataTypeCounter(codec, writeCodec, counter, readOnly = true)
+        counter = newCounter
         dataType match {
 
           case 0 =>
             Seq(Future(Seq((startIndexMainCodec, codec.getLastIndex, None)))) ++ iterateDataStructure
 
           case _ =>
-            val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, writeCodec, readOnly = true) else (writeCodec, "")
+            val (_, key, modifiedCounter) = if (codec.canReadKey()) writeKeyAndByteCounter(codec, writeCodec, counter, readOnly = true) else (writeCodec, "", counter)
+            counter = modifiedCounter
+            key match {
+              case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    ???
+                  } else {
+
+                  }
+                } else {
+                  if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    ???
+                  } else {
+
+                  }
+                }
+
+              case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfword(fieldID, x) =>
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                  ???
+                } else {
+
+                }
+            }
         }
       }
     }
@@ -2274,13 +2298,15 @@ private[bsonImpl] object BosonInjectorImpl {
   }
 
   private def writeKeyAndByteCounter(codec: Codec, writableCodec: Codec, counter: Int, readOnly: Boolean = false): (Codec, String, Int) = {
-    val key: String = codec.readTokenWithCounter(counter, SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
-    val b: Byte = codec.readTokenWithCounter(counter, SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
+    val (resultToken, newCounter) = codec.readTokenWithCounter(counter, SonString(CS_NAME_NO_LAST_BYTE))
+    val (resultByteToken, newCounterMod) = codec.readTokenWithCounter(newCounter, SonBoolean(C_ZERO), ignore = true)
+    val key: String = resultToken.asInstanceOf[SonString].info.asInstanceOf[String]
+    val b: Byte = resultByteToken.asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
     if (!readOnly) {
       writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
       writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
     }
-    (writableCodec, key)
+    (writableCodec, key, newCounterMod)
   }
 
   /**

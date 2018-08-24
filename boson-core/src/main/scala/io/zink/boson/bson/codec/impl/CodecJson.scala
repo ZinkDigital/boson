@@ -144,7 +144,9 @@ class CodecJson(str: String) extends Codec {
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = readTokenAux(tkn, ignore)
+
+  private def readTokenAux(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
     case SonObject(request, _) =>
       request match {
         case C_DOT =>
@@ -238,7 +240,12 @@ class CodecJson(str: String) extends Codec {
   }
 
   override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = {
-
+    val oldIndex = readerIndex //Memorize the index in which "readerIndex" was (most likely zero)
+    readerIndex = counter //Set the reader index to be the same as "counter"
+    val token = readTokenAux(tkn, ignore) //Perform read actions that will affect readerIndex
+    val newCounter = readerIndex //retrieve readerIndex that now corresponds to the updated counter variable
+    readerIndex = oldIndex //restore readerIndex to its former self
+    (token, newCounter)
   }
 
   /**
