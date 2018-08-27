@@ -569,4 +569,27 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     new CodecBson(newB)
   }
 
+  //********** Inject Value Functions Go Here **********//
+
+  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = {
+
+    value match {
+      case string: String =>
+        buff.writeIntLE(string.length + 1) // plus 1 byte because of the end 0
+        buff.writeBytes(string.getBytes)
+      case int: Int =>
+        buff.writeIntLE(int)
+      case _ =>
+    }
+
+    dataType match {
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        codec.readToken(SonString(CS_STRING))
+      case D_INT =>
+        val codecBuff = codec.getCodecData.asInstanceOf[Left[ByteBuf,String]].value
+        codecBuff.readIntLE
+    }
+    this
+  }
+
 }

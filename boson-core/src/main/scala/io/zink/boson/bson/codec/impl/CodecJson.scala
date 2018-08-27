@@ -850,5 +850,9 @@ class CodecJson(str: String) extends Codec {
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
 
+
+  //********** Inject Value Functions Go Here **********//
+
+  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = this
 }
 

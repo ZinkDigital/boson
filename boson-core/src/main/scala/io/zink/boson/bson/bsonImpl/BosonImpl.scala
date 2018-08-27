@@ -1,5 +1,7 @@
 package io.zink.boson.bson.bsonImpl
 
+import java.io.{ByteArrayOutputStream, ObjectOutputStream}
+
 import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
@@ -204,9 +206,12 @@ object BosonImpl {
       case Left(byteBuf: ByteBuf) => new CodecBson(byteBuf)
     }
 
-    //TODO - stuff goes here
+    val resCodec: Codec = statements.head._1 match {
+      case Key(key: String) => injectKeyValue(codec, statements, injValue, key)
+      case _ => ???
+    }
 
-    codec
+    resCodec
   }
 
 }

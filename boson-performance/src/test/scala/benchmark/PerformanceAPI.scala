@@ -385,81 +385,81 @@ object PerformanceTests extends App {
   //    .mappingProvider(new JsonOrgMappingProvider)
   //    .jsonProvider(new JsonOrgJsonProvider).build
 
-  // .Markets[1].Tags
-
-  performanceJsonPath("$.Markets[1].Tags", tag, confSmart, "confSmart")
-
-  // .Markets[first].Tags
-
-  performanceJsonPath("$.Markets[0].Tags", tag, confSmart, "confSmart")
-
-  // .Markets[all].Tags
-
-  performanceJsonPath("$.Markets[*].Tags", tag, confSmart, "confSmart")
-
-  performanceJsonPath("$.Markets[*].Tags", new Array[Byte](0), confSmart, "confSmart")
-
-  // .Markets[end].Tags
-
-  performanceJsonPath("$.Markets.[-1].Tags", tag, confSmart, "confSmart")
-
-  //   .Markets[0 to 10].Tags
-
-  performanceJsonPath("$.Markets[0:10].Tags", tag, confSmart, "confSmart")
-
-  // .Markets[0 until 10].Tags
-
-  performanceJsonPath("$.Markets[0:9].Tags", tag, confSmart, "confSmart")
-
-  // .Markets[0 to end].Tags
-
-  performanceJsonPath("$.Markets[*].Tags", tag, confSmart, "confSmart")
-
-  // .Markets[0 until end].Tags
-
-  performanceJsonPath("$.Markets[:-1].Tags", tag, confSmart, "confSmart")
-
-  // .Epoch
-
-  performanceJsonPath("$.Epoch", new Integer(0), confSmart, "confSmart")
-
-  //   .Participants[1].Tags.SSLNLastName
-
-  performanceJsonPath("$.Participants[1].Tags.SSLNLastName", "", confSmart, "confSmart")
-
-  // .Markets[3 to 5]
-
-  performanceJsonPath("$.Markets[3:5]", "", confSmart, "confSmart")
-
-  // .Markets[10].selectiongroupid
-
-  //  performanceJsonPath("$.Markets[10].selectiongroupid", "", confSmart, "confSmart")
-
-  //  Relative Paths JsonPath
-
-  //  $.Markets.[-1].Tags
-  performanceJsonPath("$..Markets.[-1].Tags", tag, confSmart, "confSmart")
-
-  // $..Markets[@Selections]..Id
-  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "", confSmart, "confSmart")
-
-  // $..marketgroupid
-  performanceJsonPath("$..marketgroupid", "", confSmart, "confSmart")
-
-  // $..Selections..Tradable
-  performanceJsonPath("$..Selections..Tradable", false, confSmart, "confSmart")
-
-  // $..Markets..Selections[@Id]
-  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "", confSmart, "confSmart")
-
-  // $..Markets[first].Tags
-  performanceJsonPath("$..Markets[0].Tags", tag, confSmart, "confSmart")
-
-  // $..Markets[all].Tags
-  performanceJsonPath("$..Markets[*].Tags", tag, confSmart, "confSmart")
-
-  //$..Markets[end].Tags..marketgroupid
-  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag, confSmart, "confSmart")
+  //  // .Markets[1].Tags
+  //
+  //  performanceJsonPath("$.Markets[1].Tags", tag, confSmart, "confSmart")
+  //
+  //  // .Markets[first].Tags
+  //
+  //  performanceJsonPath("$.Markets[0].Tags", tag, confSmart, "confSmart")
+  //
+  //  // .Markets[all].Tags
+  //
+  //  performanceJsonPath("$.Markets[*].Tags", tag, confSmart, "confSmart")
+  //
+  //  performanceJsonPath("$.Markets[*].Tags", new Array[Byte](0), confSmart, "confSmart")
+  //
+  //  // .Markets[end].Tags
+  //
+  //  performanceJsonPath("$.Markets.[-1].Tags", tag, confSmart, "confSmart")
+  //
+  //  //   .Markets[0 to 10].Tags
+  //
+  //  performanceJsonPath("$.Markets[0:10].Tags", tag, confSmart, "confSmart")
+  //
+  //  // .Markets[0 until 10].Tags
+  //
+  //  performanceJsonPath("$.Markets[0:9].Tags", tag, confSmart, "confSmart")
+  //
+  //  // .Markets[0 to end].Tags
+  //
+  //  performanceJsonPath("$.Markets[*].Tags", tag, confSmart, "confSmart")
+  //
+  //  // .Markets[0 until end].Tags
+  //
+  //  performanceJsonPath("$.Markets[:-1].Tags", tag, confSmart, "confSmart")
+  //
+  //  // .Epoch
+  //
+  //  performanceJsonPath("$.Epoch", new Integer(0), confSmart, "confSmart")
+  //
+  //  //   .Participants[1].Tags.SSLNLastName
+  //
+  //  performanceJsonPath("$.Participants[1].Tags.SSLNLastName", "", confSmart, "confSmart")
+  //
+  //  // .Markets[3 to 5]
+  //
+  //  performanceJsonPath("$.Markets[3:5]", "", confSmart, "confSmart")
+  //
+  //  // .Markets[10].selectiongroupid
+  //
+  //  //  performanceJsonPath("$.Markets[10].selectiongroupid", "", confSmart, "confSmart")
+  //
+  //  //  Relative Paths JsonPath
+  //
+  //  //  $.Markets.[-1].Tags
+  //  performanceJsonPath("$..Markets.[-1].Tags", tag, confSmart, "confSmart")
+  //
+  //  // $..Markets[@Selections]..Id
+  //  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "", confSmart, "confSmart")
+  //
+  //  // $..marketgroupid
+  //  performanceJsonPath("$..marketgroupid", "", confSmart, "confSmart")
+  //
+  //  // $..Selections..Tradable
+  //  performanceJsonPath("$..Selections..Tradable", false, confSmart, "confSmart")
+  //
+  //  // $..Markets..Selections[@Id]
+  //  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "", confSmart, "confSmart")
+  //
+  //  // $..Markets[first].Tags
+  //  performanceJsonPath("$..Markets[0].Tags", tag, confSmart, "confSmart")
+  //
+  //  // $..Markets[all].Tags
+  //  performanceJsonPath("$..Markets[*].Tags", tag, confSmart, "confSmart")
+  //
+  //  //$..Markets[end].Tags..marketgroupid
+  //  performanceJsonPath("$..Markets[-1].Tags..marketgroupid", tag, confSmart, "confSmart")
   //
   //
   //  //Injector .
@@ -576,6 +576,13 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bosonArticle7, ".Markets[all].Tags", codecJson = true)
 
 
+  //    Injector .Markets[all].Tags (.Markets[*].Tags)
+  val bosonArticle17: Boson = Boson.injector(".Tags.StartTime", (in: String) => in)
+  val bosonArticle17Value: Boson = Boson.injector(".Tags.StartTime", "Something")
+  performanceAnalysis(bosonArticle17, ".Tags.StartTime")
+//  performanceAnalysis(bosonArticle17, ".Tags.StartTime", codecJson = true)
+  performanceAnalysis(bosonArticle17Value, ".Tags.StartTime")
+
   /**
     * Private function to analise the performance of a given boson operation
     *
@@ -603,8 +610,8 @@ object PerformanceTests extends App {
       val start = System.nanoTime()
       val jsonParse = Lib1.bson.asJson().toString
       var aux: Any = JsonPath.using(conf).parse(jsonParse).read(path)
-//      aux = value
-//      JsonPath.using(conf).parse(jsonParse).set(path, aux)
+      //      aux = value
+      //      JsonPath.using(conf).parse(jsonParse).set(path, aux)
       val end = System.nanoTime()
       timesBuffer.append(end - start)
     })
@@ -613,7 +620,6 @@ object PerformanceTests extends App {
     timesBuffer.clear()
     println()
   }
-
 
 }
 

@@ -305,6 +305,10 @@ trait Codec {
     * @return a Codec with an empty data structure inside it
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec
+
+  //********** Inject Value Functions Go Here **********//
+
+  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec
 }
 
 sealed trait CodecFacade {
