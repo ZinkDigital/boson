@@ -51,7 +51,8 @@
             "timeoffcards":null,
             "timeoffsubstitutions":null,
             "timeoffcorners":null,
-            "hub_match":false
+            "hub_match":false,
+            "client":{"person":{"name":"john doe"}}
             },
     "Markets":[
                 {

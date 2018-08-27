@@ -9,22 +9,15 @@ import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.bsonLib.BsonObject
 import io.zink.utils.ThreadUtils._
-import java.util.concurrent.Executors
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.JavaConversions.asExecutionContext
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Await, ExecutionContextExecutorService, Future}
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  /*
-    Note: if we have 2 threads in .newFixedThreadPool some tests wont end,
-    because it recursively waits for a thread to finnish when it only finishes when the process finish (and the process is waiting for the thread to finish)
-  */
-//  protected implicit val context: ExecutionContextExecutorService = asExecutionContext(Executors.newFixedThreadPool(2))
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
