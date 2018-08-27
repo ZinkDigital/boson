@@ -576,7 +576,9 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     value match {
       case string: String =>
         buff.writeIntLE(string.length + 1) // plus 1 byte because of the end 0
-        buff.writeBytes(string.getBytes)
+        this.writeToken(SonString(CS_STRING, string))
+        buff.writeByte(0)
+//        buff.writeBytes(string.getBytes)
       case int: Int =>
         buff.writeIntLE(int)
       case _ =>
