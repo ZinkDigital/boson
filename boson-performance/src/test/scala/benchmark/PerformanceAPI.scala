@@ -447,7 +447,7 @@ object PerformanceTests extends App {
   //Injector .
 
   val bsonThread: Boson = Boson.injector(".GameState.client.person.name", (in: String) => in)
-  performanceAnalysis(bsonThread, ".GameState.client.person.name", codecJson = true)
+  performanceAnalysis(bsonThread, ".GameState.client.person.name")
   //    val bsonInj2: Boson = Boson.injector(".", (in: Array[Byte]) => in)
   //    val bsonInj2Json: Boson = Boson.injector(".", (in: String) => in)
   //    performanceAnalysis(bsonInj2, ".")
