@@ -2749,29 +2749,29 @@ class CoverageTest extends FunSuite {
   //      assert(resultValue contains "Not Doe")
   //    }
 
-  //  test("CodecJson - Top level key modification") {
-  //    val bson = new BsonObject().put("name", "john doe")
-  //    val ex = ".name"
-  //    val jsonInj = Boson.injector(ex, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val jsonEncoded = bson.encodeToString()
-  //    val future = jsonInj.go(jsonEncoded)
-  //    val resultValue: String = Await.result(future, Duration.Inf)
-  //    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
-  //  }
-  //
-  //  test("Top level key modification") {
-  //    val bson = new BsonObject().put("name", "john doe")
-  //    val ex = ".name"
-  //    val jsonInj = Boson.injector(ex, (in: String) => {
-  //      in.toUpperCase
-  //    })
-  //    val jsonEncoded = bson.encodeToBarray()
-  //    val future = jsonInj.go(jsonEncoded)
-  //    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
-  //    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
-  //  }
+  test("CodecJson - Top level key modification") {
+    val bson = new BsonObject().put("name", "john doe")
+    val ex = ".name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = bson.encodeToString()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert((resultValue contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
+  test("Top level key modification") {
+    val bson = new BsonObject().put("name", "john doe")
+    val ex = ".name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert((new String(resultValue) contains "JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
 
   test("CodecJson - Nested key modification, Multi key") {
     val obj = new BsonObject().put("name", "john doe")
