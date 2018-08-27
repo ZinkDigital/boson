@@ -273,6 +273,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getLastIndex: Int = getReaderIndex
 
+  def getLastIndexCounter(counter: Int): Int = counter
+
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
     *
@@ -544,6 +546,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return a Boolean saying if the codec is able to read a key or not
     */
   def canReadKey(searchAndModify: Boolean = false): Boolean = true
+
+  def canReadKeyCounter(counter: Int, searchAndModify: Boolean = false): Boolean = true
 
   /**
     * Method that decides if the type of the current key is an array or not

@@ -13,14 +13,14 @@ import java.util.concurrent.Executors
 
 import scala.concurrent.JavaConversions.asExecutionContext
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContextExecutorService, Future}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  protected implicit val context = asExecutionContext(Executors.newFixedThreadPool(2))
+  protected implicit val context: ExecutionContextExecutorService = asExecutionContext(Executors.newFixedThreadPool(2))
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
@@ -357,7 +357,7 @@ private[bsonImpl] object BosonInjectorImpl {
       }
 
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
-    def iterateDataStructure: Seq[Future[Seq[(Int, Int, Option[Codec])]]] = {
+    def iterateDataStructure: Seq[(Int, Int, Option[Codec])] = {
       if ((counter - startReader) >= originalSize) Seq.empty
       else {
         val startIndexMainCodec = codec.getInitialIndexWithCounter(counter)
@@ -366,10 +366,10 @@ private[bsonImpl] object BosonInjectorImpl {
         dataType match {
 
           case 0 =>
-            Seq(Future(Seq((startIndexMainCodec, codec.getLastIndex, None)))) ++ iterateDataStructure
+            Seq((startIndexMainCodec, codec.getLastIndexCounter(counter), None)) ++ iterateDataStructure
 
           case _ =>
-            val (_, key, modifiedCounter) = if (codec.canReadKey()) writeKeyAndByteCounter(codec, writeCodec, counter, readOnly = true) else (writeCodec, "", counter)
+            val (_, key, modifiedCounter) = if (codec.canReadKeyCounter(counter)) writeKeyAndByteCounter(codec, writeCodec, counter, readOnly = true) else (writeCodec, "", counter)
             counter = modifiedCounter
             key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
@@ -377,25 +377,21 @@ private[bsonImpl] object BosonInjectorImpl {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     ???
                   } else {
-                    Seq(Future {
-                      val readerIndx = counter
-                      val (codecToReadFrom, newCounterModiffier) = modiffierAllCounter(counter, codec, codec.createEmptyCodec, dataType, injFunction)
-                      counter = newCounterModiffier
-                      Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom)))
-                    }) ++ iterateDataStructure
+                    val readerIndx = counter
+                    val (codecToReadFrom, newCounterModiffier) = modiffierAllCounter(counter, codec, codec.createEmptyCodec, dataType, injFunction)
+                    counter = newCounterModiffier
+                    Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))) ++ iterateDataStructure
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     ???
                   } else {
-                    Seq(Future {
-                      val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
-                      val readerIndx = counter
-                      counter = codec.readTokenWithCounter(counter, token)._2
-                      val end = counter
-                      lazy val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = readerIndx, start = readerIndx, end = end) //put in a new thread/Future
-                      Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec)))
-                    }) ++ iterateDataStructure
+                    val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+                    val readerIndx = counter
+                    counter = codec.readTokenWithCounter(counter, token)._2
+                    val end = counter
+                    lazy val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = readerIndx, start = readerIndx, end = end) //put in a new thread/Future
+                    Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec))) ++ iterateDataStructure
                   }
                 }
 
@@ -403,20 +399,22 @@ private[bsonImpl] object BosonInjectorImpl {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   ???
                 } else {
-                  Seq(Future {
-                    val readerIndx = counter
-                    val (codecToBeRead, newCounter) = processTypesArrayCounter(counter, dataType, codec, codec.createEmptyCodec)
-                    counter = newCounter
-                    Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead)))
-                  }) ++ iterateDataStructure
+                  val readerIndx = counter
+                  val (codecToBeRead, newCounter) = processTypesArrayCounter(counter, dataType, codec, codec.createEmptyCodec)
+                  counter = newCounter
+                  Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))) ++ iterateDataStructure
                 }
             }
         }
       }
     }
 
-    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
-    Await.result(resultList, Duration.Inf).foreach(tuple =>
+    //    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
+    //    Await.result(resultList, Duration.Inf).foreach(tuple =>
+    //      writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
+    //    )
+
+    iterateDataStructure.foreach(tuple =>
       writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
     )
     writeCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)

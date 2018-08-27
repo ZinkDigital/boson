@@ -122,6 +122,8 @@ trait Codec {
     */
   def getLastIndex: Int
 
+  def getLastIndexCounter(counter: Int): Int
+
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
     *
@@ -284,6 +286,8 @@ trait Codec {
     * @return a Boolean saying if the codec is able to read a key or not
     */
   def canReadKey(searchAndModify: Boolean = false): Boolean
+
+  def canReadKeyCounter(counter: Int, searchAndModify: Boolean = false): Boolean
 
   /**
     * Method that decides if the type of the current key is an array or not

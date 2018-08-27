@@ -363,6 +363,8 @@ class CodecJson(str: String) extends Codec {
     */
   def getLastIndex: Int = getReaderIndex - 1
 
+  def getLastIndexCounter(counter: Int): Int = counter - 1
+
   /**
     * readSize is used to obtain the size of the next tokens, consuming the values from the stream
     *
@@ -393,7 +395,8 @@ class CodecJson(str: String) extends Codec {
         size
       case _ =>
         readerIndex += 1
-        val s = readSize
+        val (s, reader) = readSizeAux(indexToUse)
+        readerIndex = reader
         s + 1
     }
     (size, readerIndex)
@@ -804,6 +807,8 @@ class CodecJson(str: String) extends Codec {
     * @return a Boolean saying if the codec is able to read a key or not
     */
   def canReadKey(searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1 else false
+
+  def canReadKeyCounter(counter: Int, searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || counter != 1 else false
 
   /**
     * Method that decides if the type of the current key is an array or not
