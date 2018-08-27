@@ -259,6 +259,8 @@ trait Codec {
     */
   def skipChar(back: Boolean = false): Unit
 
+  def skipCharCounter(counter: Int, back: Boolean = false): Int
+
   /**
     * Method that adds a comma to the end of a CodecJson data structure
     * In case the current codec is a CodecBson this method simply returns the current codec

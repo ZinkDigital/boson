@@ -20,7 +20,11 @@ import scala.util.{Failure, Success, Try}
 private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
-  protected implicit val context: ExecutionContextExecutorService = asExecutionContext(Executors.newFixedThreadPool(2))
+  /*
+    Note: if we have 2 threads in .newFixedThreadPool some tests wont end,
+    because it recursively waits for a thread to finnish when it only finishes when the process finish (and the process is waiting for the thread to finish)
+  */
+  protected implicit val context: ExecutionContextExecutorService = asExecutionContext(Executors.newFixedThreadPool(10))
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
@@ -345,6 +349,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
   def modifyAllSingleCodecCounter[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     var counter: Int = startIndex
+    counter = codec.skipCharCounter(counter)
     val (startReader: Int, originalSize: Int) =
       if (startIndex == 0 && endIndex == 0) {
         val (size, newCounter) = codec.readSizeWithCounter(counter)
@@ -357,16 +362,17 @@ private[bsonImpl] object BosonInjectorImpl {
       }
 
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
-    def iterateDataStructure: Seq[(Int, Int, Option[Codec])] = {
+    def iterateDataStructure: Seq[Future[Seq[(Int, Int, Option[Codec])]]] = {
       if ((counter - startReader) >= originalSize) Seq.empty
       else {
+        println(statementsList.head._1.asInstanceOf[Key].key + " " + counter)
         val startIndexMainCodec = codec.getInitialIndexWithCounter(counter)
         val (dataType, _, newCounter) = readWriteDataTypeCounter(codec, writeCodec, counter, readOnly = true)
         counter = newCounter
         dataType match {
 
           case 0 =>
-            Seq((startIndexMainCodec, codec.getLastIndexCounter(counter), None)) ++ iterateDataStructure
+            Seq(Future(Seq((startIndexMainCodec, codec.getLastIndexCounter(counter), None)))) ++ iterateDataStructure
 
           case _ =>
             val (_, key, modifiedCounter) = if (codec.canReadKeyCounter(counter)) writeKeyAndByteCounter(codec, writeCodec, counter, readOnly = true) else (writeCodec, "", counter)
@@ -379,8 +385,8 @@ private[bsonImpl] object BosonInjectorImpl {
                   } else {
                     val readerIndx = counter
                     val (codecToReadFrom, newCounterModiffier) = modiffierAllCounter(counter, codec, codec.createEmptyCodec, dataType, injFunction)
-                    counter = newCounterModiffier
-                    Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))) ++ iterateDataStructure
+                    counter = newCounterModiffier //TODO THIS MIGHT BE A PROBLEM WHEN TRYING TO IMPLEMENT PARALLELISM SETTING THE COUNTER AND CONTINUING ITERATION
+                    Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))))) ++ iterateDataStructure
                   }
                 } else {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
@@ -390,8 +396,10 @@ private[bsonImpl] object BosonInjectorImpl {
                     val readerIndx = counter
                     counter = codec.readTokenWithCounter(counter, token)._2
                     val end = counter
-                    lazy val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = readerIndx, start = readerIndx, end = end) //put in a new thread/Future
-                    Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec))) ++ iterateDataStructure
+                    Seq(Future {
+                      lazy val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = readerIndx, start = readerIndx, end = end) //put in a new thread/Future
+                      Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec)))
+                    }) ++ iterateDataStructure
                   }
                 }
 
@@ -402,21 +410,21 @@ private[bsonImpl] object BosonInjectorImpl {
                   val readerIndx = counter
                   val (codecToBeRead, newCounter) = processTypesArrayCounter(counter, dataType, codec, codec.createEmptyCodec)
                   counter = newCounter
-                  Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))) ++ iterateDataStructure
+                  Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))))) ++ iterateDataStructure
                 }
             }
         }
       }
     }
 
-    //    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
-    //    Await.result(resultList, Duration.Inf).foreach(tuple =>
-    //      writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
-    //    )
-
-    iterateDataStructure.foreach(tuple =>
+    val resultList = Future.sequence(iterateDataStructure).map(s => s.reduceLeft(_ ++ _))
+    Await.result(resultList, Duration.Inf).foreach(tuple =>
       writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
     )
+
+    //    iterateDataStructure.foreach(tuple =>
+    //      writeCodec.writeInformation(if (tuple._3.isDefined) tuple._3.get else codec, tuple._1, tuple._2)
+    //    )
     writeCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 

@@ -518,6 +518,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def skipChar(back: Boolean = false): Unit = {}
 
+  def skipCharCounter(counter: Int, back: Boolean = false): Int = counter
+
 
   /**
     * Method that adds a comma to the end of a CodecJson data structure

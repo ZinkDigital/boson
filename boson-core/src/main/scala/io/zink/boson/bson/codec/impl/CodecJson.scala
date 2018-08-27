@@ -777,6 +777,8 @@ class CodecJson(str: String) extends Codec {
     */
   def skipChar(back: Boolean = false): Unit = if (!back) setReaderIndex(getReaderIndex + 1) else setReaderIndex(getReaderIndex - 1)
 
+  def skipCharCounter(counter: Int, back: Boolean = false): Int = if (!back) counter + 1 else counter - 1
+
   /**
     * Method that adds a comma to the end of a CodecJson data structure
     * In case the current codec is a CodecBson this method simply returns the current codec
