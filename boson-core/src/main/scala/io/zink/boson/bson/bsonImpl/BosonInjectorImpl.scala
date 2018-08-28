@@ -1548,7 +1548,7 @@ private[bsonImpl] object BosonInjectorImpl {
           found match {
             case extracted if key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted) =>
               if (statementsList.lengthCompare(1) == 0) {
-                writeValue(codec,currentCodec ,value, dataType)
+                writeValue(codec, currentCodec, value, dataType)
               } else {
                 dataType match {
                   case D_BSONOBJECT | D_BSONARRAY =>
@@ -1571,14 +1571,92 @@ private[bsonImpl] object BosonInjectorImpl {
     currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
-  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: T, key: String): Codec = {
+  def injectArrayValueWithKey[T](codec: Codec, statementsList: StatementsList, value: T, key: String, condition: String, from: String, to: String = C_END)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
-    ???
+    val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
 
-    codec
+    val currentCodec = codec.createEmptyCodec
+    val currentCodecCopy = codec.createEmptyCodec
+    while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
+      val (dataType, _) = readWriteDataType(codec, currentCodec)
+      currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+
+      dataType match {
+        case 0 =>
+        case _ =>
+          val found: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+          val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
+
+          currentCodec.writeToken(SonString(CS_STRING, found), isKey = true)
+          currentCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+
+          currentCodecCopy.writeToken(SonString(CS_STRING, found), isKey = true)
+          currentCodecCopy.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+
+          found match {
+            case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType == D_BSONARRAY =>
+              if (statementsList.size == 1) {
+                val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
+                val newCodec = injectArrayValue(partialCodec, statementsList, value, from, condition, to)
+                currentCodec + newCodec
+                currentCodecCopy + newCodec
+              } else {
+                ???
+              }
+            case _ => processTypesArray(dataType, codec, currentCodec)
+          }
+
+      }
+    }
+
+    currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
-  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int):Codec ={
+  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: T, condition: String, from: String, to: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+    val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
+    var counter: Int = -1
+
+    val currentCodec = codec.createEmptyCodec
+    val currentCodecCopy = codec.createEmptyCodec
+    while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
+      val (dataType, _) = readWriteDataType(codec, currentCodec, 4)
+      currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+      dataType match {
+        case 0 =>
+        case _ =>
+          val key: String = codec.getCodecData match {
+            case Left(_) => codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+            case Right(_) =>
+              counter += 1
+              counter.toString
+          }
+
+          val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
+
+          currentCodec.writeToken(SonString(CS_STRING, key), ignoreForJson = true)
+          currentCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+
+          currentCodecCopy.writeToken(SonString(CS_STRING, key), ignoreForJson = true)
+          currentCodecCopy.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+
+          val isArray = codec.isArray(4, key)
+
+          (key, condition, to) match {
+            case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
+              if (statementsList.lengthCompare(1) == 0) {
+                writeValue(codec, currentCodec, value, dataType)
+              } else {
+                processTypesArray(dataType, codec, currentCodec)
+              }
+            case _ => processTypesArray(dataType, codec, currentCodec)
+          }
+      }
+    }
+
+    currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
+  }
+
+  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int): Codec = {
     value match {
       case string: String =>
         currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1))
@@ -1603,8 +1681,6 @@ private[bsonImpl] object BosonInjectorImpl {
     }
     currentCodec
   }
-
-
 
 
 }

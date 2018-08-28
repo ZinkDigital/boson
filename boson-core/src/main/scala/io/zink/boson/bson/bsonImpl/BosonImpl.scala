@@ -208,6 +208,29 @@ object BosonImpl {
 
     val resCodec: Codec = statements.head._1 match {
       case Key(key: String) => injectKeyValue(codec, statements, injValue, key)
+      case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
+        val input: (String, Int, String, Any) =
+        (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
+          case (_, o1, o2) if o1.isDefined && o2.isDefined =>
+            if (o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]) {
+              val to: Int = o2.get.asInstanceOf[Int]
+              (key, arrEx.leftArg, TO_RANGE, to - 1)
+            } else (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
+
+          case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
+            (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg) //User sent, for example, Key[1] translates to - Key[1 TO 1]
+
+          case (0, str, None) =>
+            str.get.value match {
+              case C_FIRST =>
+                (key, 0, TO_RANGE, 0) //User sent Key[first] , translates to - Key[0 TO 0]
+              case C_END =>
+                (key, 0, C_END, None) //User sent Key[end], translates to - Key[0 END None]
+              case C_ALL =>
+                (key, 0, TO_RANGE, C_END) //user sent Key[all], translates to - Key[0 TO END]
+            }
+        }
+        injectArrayValueWithKey(codec, statements, injValue, input._1, input._2.toString, input._3, input._4.toString)
       case _ => ???
     }
 
