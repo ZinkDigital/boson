@@ -852,7 +852,7 @@ class CodecJson(str: String) extends Codec {
 
 
   //********** Inject Value Functions Go Here **********//
-
-  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = this
+//
+//  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = this
 }
 
