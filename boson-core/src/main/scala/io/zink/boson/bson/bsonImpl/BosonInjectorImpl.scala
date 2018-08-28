@@ -521,13 +521,13 @@ private[bsonImpl] object BosonInjectorImpl {
 
     case D_INT =>
       val token = codec.readToken(SonNumber(CS_INTEGER))
-      val value0: Int = token.asInstanceOf[SonNumber].asInstanceOf[Int]
+      val value0: Int = token.asInstanceOf[SonNumber].info.asInstanceOf[Int]
       codecRes.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
       codecResCopy.writeToken(token)
 
     case D_LONG =>
       val token = codec.readToken(SonNumber(CS_LONG))
-      val value0: Long = token.asInstanceOf[SonNumber].asInstanceOf[Long]
+      val value0: Long = token.asInstanceOf[SonNumber].info.asInstanceOf[Long]
       codecRes.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
       codecResCopy.writeToken(token)
 
