@@ -1571,6 +1571,13 @@ private[bsonImpl] object BosonInjectorImpl {
     currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
+  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: T, key: String): Codec = {
+
+    ???
+
+    codec
+  }
+
   private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int):Codec ={
     value match {
       case string: String =>
@@ -1596,6 +1603,8 @@ private[bsonImpl] object BosonInjectorImpl {
     }
     currentCodec
   }
+
+
 
 
 }
