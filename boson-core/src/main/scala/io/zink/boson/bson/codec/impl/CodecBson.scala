@@ -1,10 +1,12 @@
 package io.zink.boson.bson.codec.impl
 
 import java.nio.charset.Charset
+import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
+import io.zink.bsonLib.{BsonArray, BsonObject}
 
 import scala.collection.mutable.ListBuffer
 
@@ -571,30 +573,35 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
   //********** Inject Value Functions Go Here **********//
 
-  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = {
-
-    value match {
-      case string: String =>
-        buff.writeIntLE(string.length + 1) // plus 1 byte because of the end 0
-        this.writeToken(SonString(CS_STRING, string))
-        buff.writeByte(0)
-      case int: Int =>
-        buff.writeIntLE(int)
-      case long: Long =>
-      case double: Double =>
-      case float: Float =>
-      case boolean: Boolean =>
-      case _ =>
-    }
-
-    dataType match {
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        codec.readToken(SonString(CS_STRING))
-      case D_INT =>
-        val codecBuff = codec.getCodecData.asInstanceOf[Left[ByteBuf,String]].value
-        codecBuff.readIntLE
-    }
-    this
-  }
+//  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = {
+//
+//    value match {
+//      case string: String =>
+//        this.writeToken(SonNumber(CS_INTEGER, string.length + 1))
+////        buff.writeIntLE(string.length + 1) // plus 1 byte because of the end 0
+//        this.writeToken(SonString(CS_STRING, string))
+//        this.writeToken(SonNumber(CS_BYTE, 0.toByte))
+////        buff.writeByte(0)
+//      case int: Int =>
+//        this.writeToken(SonNumber(CS_INTEGER, int))
+//      case long: Long => ???
+//      case double: Double => ???
+//      case float: Float => ???
+//      case boolean: Boolean => ???
+//      case bsonObj: BsonObject => ???
+//      case bsonArr: BsonArray => ???
+//      case instant: Instant => ???
+//      case _ => ??? //TODO - case classes
+//    }
+//
+//    dataType match {
+//      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+//        codec.readToken(SonString(CS_STRING))
+//      case D_INT =>
+//        codec.readToken(SonNumber(CS_INTEGER))
+//
+//    }
+//    this
+//  }
 
 }

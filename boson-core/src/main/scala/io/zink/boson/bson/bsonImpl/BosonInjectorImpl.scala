@@ -7,7 +7,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-import io.zink.bsonLib.BsonObject
+import io.zink.bsonLib.{BsonArray, BsonObject}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -1548,7 +1548,7 @@ private[bsonImpl] object BosonInjectorImpl {
           found match {
             case extracted if key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted) =>
               if (statementsList.lengthCompare(1) == 0) {
-                currentCodec.writeValue(codec, value, dataType)
+                writeValue(codec,currentCodec ,value, dataType)
               } else {
                 dataType match {
                   case D_BSONOBJECT | D_BSONARRAY =>
@@ -1570,5 +1570,32 @@ private[bsonImpl] object BosonInjectorImpl {
 
     currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
+
+  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int):Codec ={
+    value match {
+      case string: String =>
+        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1))
+        currentCodec.writeToken(SonString(CS_STRING, string))
+        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte))
+      case int: Int =>
+        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
+      case long: Long => ???
+      case double: Double => ???
+      case float: Float => ???
+      case boolean: Boolean => ???
+      case bsonObj: BsonObject => ???
+      case bsonArr: BsonArray => ???
+      case instant: Instant => ???
+      case _ => ??? //TODO - case classes
+    }
+    dataType match {
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        codec.readToken(SonString(CS_STRING))
+      case D_INT =>
+        codec.readToken(SonNumber(CS_INTEGER))
+    }
+    currentCodec
+  }
+
 
 }

@@ -579,7 +579,7 @@ object PerformanceTests extends App {
   //    Injector .Markets[all].Tags (.Markets[*].Tags)
   val bosonArticle17: Boson = Boson.injector(".Tags.TradeMode", (in: String) => in)
   val bosonArticle17Value: Boson = Boson.injector(".Tags.TradeMode", "Something")
-  performanceAnalysis(bosonArticle17, ".Tags.TradeMode")
+//  performanceAnalysis(bosonArticle17, ".Tags.TradeMode")
 //  performanceAnalysis(bosonArticle17, ".Tags.StartTime", codecJson = true)
   performanceAnalysis(bosonArticle17Value, ".Tags.TradeMode")
 
