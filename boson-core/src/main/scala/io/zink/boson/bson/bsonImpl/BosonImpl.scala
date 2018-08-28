@@ -126,7 +126,7 @@ object BosonImpl {
     * @tparam T - The type of the input and output of the injection function
     * @return a new codec with the changes applied to it
     */
-  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T, readerIndextoUse: Int = 0, start: Int = 0, end: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
+  def inject[T](dataStructure: DataStructure, statements: StatementsList, injFunction: T => T, readerIndextoUse: Int = 0, start: Int = 0, end: Int = 0, testString: String = "Initial-Thread")(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
     val codec: Codec = dataStructure match {
       case Right(jsonString: String) =>
         val returnCodec = new CodecJson(jsonString)
@@ -141,7 +141,7 @@ object BosonImpl {
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction)
 
-      case Key(key: String) => modifyAllSingleCodecCounter(statements, codec, key, injFunction, startIndex = start, endIndex = end)
+      case Key(key: String) => modifyAllSingleCodecCounter(statements, codec, key, injFunction, startIndex = start, endIndex = end, testString = testString)
 
       //            case Key(key: String) => modifyAll(statements, codec, key, injFunction)
 
