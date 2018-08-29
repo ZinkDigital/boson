@@ -576,15 +576,29 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bosonArticle7, ".Markets[all].Tags", codecJson = true)
 
 
-  //    Injector .Markets[all].Tags (.Markets[*].Tags)
+  //    Inject Value Performance Tests
   val bosonArticle17: Boson = Boson.injector(".LastEpochChangeReason[0]", (in: Int) => in)
   val bosonArticle17Value: Boson = Boson.injector(".LastEpochChangeReason[0]", 10)
+  val bosonArticle18: Boson = Boson.injector(".Tags.StartTime", (in: String) => in)
+  val bosonArticle18Value: Boson = Boson.injector(".Tags.StartTime", "Something")
+  val bosonArticle110: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
+  val bosonArticle110Value: Boson = Boson.injector(".Markets[0 to end].Tags", "Something")
   println("Function")
-  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
-//  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true)
-  println("Value")
-  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
+//  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
+//  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Fix Bug HERE!!!
+//  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
+//  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
+//  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
+  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
+  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
+  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
 
+  println("Value")
+//  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
+//  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
+  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
+
+  //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)
   /**
     * Private function to analise the performance of a given boson operation
     *

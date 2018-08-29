@@ -1601,8 +1601,13 @@ private[bsonImpl] object BosonInjectorImpl {
                 currentCodec + newCodec
                 currentCodecCopy + newCodec
               } else {
-                ???
+//                val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
+                val newCodec = injectArrayValue(codec, statementsList.drop(1), value, from, condition, to)
+                currentCodec + newCodec
+                currentCodecCopy + newCodec
               }
+            case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType != D_BSONARRAY =>
+              processTypesArray(dataType,codec, currentCodec)
             case _ => processTypesArray(dataType, codec, currentCodec)
           }
 
@@ -1642,12 +1647,36 @@ private[bsonImpl] object BosonInjectorImpl {
           val isArray = codec.isArray(4, key)
 
           (key, condition, to) match {
+            case (_, C_END, _) if isArray =>
+            case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
+              if (statementsList.lengthCompare(1) == 0) {
+                dataType match{
+                  case D_BSONOBJECT | D_BSONARRAY =>
+                    val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                    val interiorObjCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
+
+                    if(condition.equals(UNTIL_RANGE)){
+                      ???
+                    } else {
+                      currentCodec + interiorObjCodec
+                    }
+
+                  case _ => writeValue(codec, currentCodec, value, dataType)
+                }
+              }
+              if (statementsList.lengthCompare(1) == 0) {
+                writeValue(codec, currentCodec, value, dataType)
+              } else {
+                processTypesArray(dataType, codec, currentCodec)
+              }
+            case (x, _,C_END) if isArray && from.toInt > x.toInt => ???
             case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
               if (statementsList.lengthCompare(1) == 0) {
                 writeValue(codec, currentCodec, value, dataType)
               } else {
                 processTypesArray(dataType, codec, currentCodec)
               }
+            case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) => ???
             case _ => processTypesArray(dataType, codec, currentCodec)
           }
       }
@@ -1664,13 +1693,22 @@ private[bsonImpl] object BosonInjectorImpl {
         currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte))
       case int: Int =>
         currentCodec.writeToken(SonNumber(CS_INTEGER, int))
-      case long: Long => ???
-      case double: Double => ???
-      case float: Float => ???
-      case boolean: Boolean => ???
-      case bsonObj: BsonObject => ???
-      case bsonArr: BsonArray => ???
-      case instant: Instant => ???
+      case long: Long =>
+        currentCodec.writeToken(SonNumber(CS_LONG, long))
+      case double: Double =>
+        currentCodec.writeToken(SonNumber(CS_DOUBLE, double))
+      case float: Float =>
+        currentCodec.writeToken(SonNumber(CS_FLOAT, float))
+      case boolean: Boolean =>
+        currentCodec.writeToken(SonNumber(CS_BOOLEAN, boolean))
+      case bsonObj: BsonObject =>
+        val encode: Array[Byte] = bsonObj.encodeToBarray
+        //        currentCodec.writeToken(SonNumber(CS_INTEGER, encode.size + 1))
+        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
+      case bsonArr: BsonArray =>
+        val encode: Array[Byte] = bsonArr.encodeToBarray
+        //        currentCodec.writeToken(SonNumber(CS_INTEGER, encode.size + 1))
+        currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
       case _ => ??? //TODO - case classes
     }
     dataType match {
@@ -1678,6 +1716,10 @@ private[bsonImpl] object BosonInjectorImpl {
         codec.readToken(SonString(CS_STRING))
       case D_INT =>
         codec.readToken(SonNumber(CS_INTEGER))
+      case D_BSONARRAY =>
+        codec.readToken(SonArray(CS_ARRAY_INJ))
+      case D_BSONOBJECT =>
+        codec.readToken(SonObject(CS_OBJECT_INJ))
     }
     currentCodec
   }
