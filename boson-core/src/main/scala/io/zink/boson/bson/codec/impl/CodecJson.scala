@@ -862,7 +862,15 @@ class CodecJson(str: String) extends Codec {
   /**
     * Method that skips the next character in the current codec's data structure
     */
-  def skipChar(back: Boolean = false): Unit = if (!back) setReaderIndex(getReaderIndex + 1) else setReaderIndex(getReaderIndex - 1)
+  def skipChar(back: Boolean = false): Unit = {
+    lazy val index = getReaderIndex
+    if (index == 0)
+      index
+    else if (!back)
+      setReaderIndex(index + 1)
+    else
+      setReaderIndex(index - 1)
+  }
 
   def skipCharCounter(counter: Int, back: Boolean = false): Int = if (counter == 0) counter else if (!back) counter + 1 else counter - 1
 
