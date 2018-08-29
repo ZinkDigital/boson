@@ -267,8 +267,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(counter) //Get the object without its size
-          println(buff.array.mkString(" "))
-          println("counter: " + counter + " size: " + size)
           val endIndex = counter + size
           val b = buff.copy(counter, size)
           (SonObject(x, b), endIndex)

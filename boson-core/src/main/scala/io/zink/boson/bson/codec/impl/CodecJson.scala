@@ -393,8 +393,8 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
-  private def readSizeAux(indexToUse: Int): (Int, Int) = {
-    var readerIndex = indexToUse
+  def readSizeWithCounter(counter: Int): (Int, Int) = {
+    var readerIndex = counter
     val size = input(readerIndex) match {
       case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex == 0 => inputSize
       case CS_OPEN_BRACKET =>
@@ -411,14 +411,12 @@ class CodecJson(str: String) extends Codec {
         size
       case _ =>
         readerIndex += 1
-        val (s, reader) = readSizeAux(indexToUse)
+        val (s, reader) = readSizeWithCounter(counter)
         readerIndex = reader
         s + 1
     }
     (size, readerIndex)
   }
-
-  def readSizeWithCounter(counter: Int): (Int, Int) = readSizeAux(counter)
 
 
   /**
@@ -588,8 +586,9 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
-  private def readDataTypeAux(readerIndexToUse: Int, former: Int = 0): (Int, Int) = {
-    var readerIndex = readerIndexToUse
+
+  override def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int) = {
+    var readerIndex = counter
     if (readerIndex == 0) readerIndex += 1
     val aux = if (input(readerIndex).equals(CS_COMMA) && former != 4) {
       readerIndex += 1
@@ -669,8 +668,6 @@ class CodecJson(str: String) extends Codec {
     }
     (dataType, readerIndex)
   }
-
-  override def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int) = readDataTypeAux(counter, former)
 
   /**
     * duplicate is used to create a duplicate of the codec, all information is duplicate so that operations
