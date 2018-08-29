@@ -19,69 +19,53 @@ import scala.util.{Failure, Success, Try}
 
 private[bsonImpl] object BosonInjectorImpl {
 
-  case class IndexCounter(counterStart: Int, name: String) {
-    private var counterAux: Int = counterStart
-
-    def replace(num: Int): Unit = counterAux = num
-
-    def counter: Int = counterAux
-  }
-
   private type TupleList = List[(String, Any)]
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
   def modifyAllSingleCodecCounter[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
-    val indexCounter = new AtomicInteger(startIndex)
-    //    val indexCounter: IndexCounter = IndexCounter(startIndex, testString)
-    //    val indexCounter = new DynamicVariable[Int](startIndex)
-    //    indexCounter.replace(codec.skipCharCounter(indexCounter.counter))
-    //        indexCounter.set(codec.skipCharCounter(indexCounter) //Skip a char in CodecJson
-    indexCounter.set(codec.skipCharCounter(indexCounter.get))
+    var indexCounter: Int = startIndex
+
+    def updateCounter(newCounter: Int): Unit = indexCounter = newCounter
+
+    updateCounter(codec.skipCharCounter(indexCounter))
     val (startReader: Int, originalSize: Int) =
       if (startIndex == 0 && endIndex == 0) {
-        val (size, newCounter) = codec.readSizeWithCounter(indexCounter.get)
-        indexCounter.set(newCounter)
+        val (size, newCounter) = codec.readSizeWithCounter(indexCounter)
+        updateCounter(newCounter)
         (0, size)
       }
       else {
-        indexCounter.set(codec.readSizeWithCounter(indexCounter.get)._2)
-        //        indexCounter = codec.readSizeWithCounter(indexCounter)._2 //Even though we're using the start and end index here, we still need to read the size and update the indexCounter
+        updateCounter(codec.readSizeWithCounter(indexCounter)._2) //Even though we're using the start and end index here, we still need to read the size and update the indexCounter
         (startIndex, endIndex - startIndex)
       }
-    println("New sub-object, counter: " + indexCounter.get + ", start : " + startIndex)
 
     val writeCodec: Codec = codec.createEmptyCodec() //Single codec in which everything will be written
     def iterateDataStructure: Seq[Future[Seq[(Int, Int, Option[Codec])]]] = {
-      if ((indexCounter.get - startReader) >= originalSize) Seq.empty //Stop condition of the recursion
+      if ((indexCounter - startReader) >= originalSize) Seq.empty //Stop condition of the recursion
       else {
-        val startIndexMainCodec = codec.getInitialIndexWithCounter(indexCounter.get) //In case of CodecJson we want to start in index 1 instead of 0, to skip the "{" or "[" char
-        val (dataType, _, newCounter) = readWriteDataTypeCounter(codec, writeCodec, indexCounter.get, readOnly = true)
-        indexCounter.set(newCounter)
-        //        indexCounter = newCounter
-        println("Read data type, updated counter to " + indexCounter.get + ", start : " + startIndex)
+        val startIndexMainCodec = codec.getInitialIndexWithCounter(indexCounter) //In case of CodecJson we want to start in index 1 instead of 0, to skip the "{" or "[" char
+        val (dataType, _, newCounter) = readWriteDataTypeCounter(codec, writeCodec, indexCounter, readOnly = true)
+        updateCounter(newCounter)
         dataType match {
 
           case 0 =>
-            Seq(Future(Seq((startIndexMainCodec, codec.getLastIndexCounter(indexCounter.get), None)))) ++ iterateDataStructure
+            Seq(Future(Seq((startIndexMainCodec, codec.getLastIndexCounter(indexCounter), None)))) ++ iterateDataStructure
 
           case _ =>
-            val (_, key, modifiedCounter) = if (codec.canReadKeyCounter(indexCounter.get)) writeKeyAndByteCounter(codec, writeCodec, indexCounter.get, readOnly = true) else (writeCodec, "", indexCounter.get)
-            indexCounter.set(modifiedCounter)
-            //            indexCounter = modifiedCounter
-            println("Read the key, updated counter to " + indexCounter.get + ", start : " + startIndex)
+            val (_, key, modifiedCounter) = if (codec.canReadKeyCounter(indexCounter)) writeKeyAndByteCounter(codec, writeCodec, indexCounter, readOnly = true) else (writeCodec, "", indexCounter)
+            updateCounter(modifiedCounter)
             key match {
               case extracted if fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted) =>
                 if (statementsList.lengthCompare(1) == 0) {
                   if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                     ???
                   } else {
-                    val readerIndx = indexCounter.get
-                    val (codecToReadFrom, newCounterModifier) = modiffierAllCounter(indexCounter.get, codec, codec.createEmptyCodec, dataType, injFunction)
-                    indexCounter.set(newCounterModifier)
-                    //                    indexCounter = newCounterModifier //TODO THIS MIGHT BE A PROBLEM WHEN TRYING TO IMPLEMENT PARALLELISM SETTING THE COUNTER AND CONTINUING ITERATION
-                    println("modified the value, updated counter to : " + indexCounter.get + " (newCounterModifier is " + newCounterModifier + "), start : " + startIndex)
-                    //TODO it may be possible to implement this in parallel, we need to get read of the indexCounter = newCounterModifier
+                    val readerIndx = indexCounter
+                    val (codecToReadFrom, newCounterModifier) = modiffierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
+                    updateCounter(newCounterModifier)
+                    //TODO THIS MIGHT BE A PROBLEM WHEN TRYING TO IMPLEMENT PARALLELISM SETTING THE COUNTER AND CONTINUING ITERATION
+                    //TODO it may be possible to implement this in parallel, we need to get read of the updateCounter()newCounterModifier
                     Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))))) ++ iterateDataStructure
                   }
                 } else {
@@ -89,12 +73,10 @@ private[bsonImpl] object BosonInjectorImpl {
                     ???
                   } else {
                     val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
-                    val readerIndx = indexCounter.get //Register the index where the object starts
-                    indexCounter.set(codec.readTokenWithCounter(indexCounter.get, token)._2)
-                    //                    indexCounter = codec.readTokenWithCounter(indexCounter, token)._2
+                    val readerIndx = indexCounter //Register the index where the object starts
+                    updateCounter(codec.readTokenWithCounter(indexCounter, token)._2)
                     //read the object
-                    val end = indexCounter.get //Register the index where the object ends
-                    println("updated the indexCounter to " + indexCounter.get + ", start : " + startIndex)
+                    val end = indexCounter //Register the index where the object ends
                     Seq(Future {
                       val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = readerIndx, start = readerIndx, end = end)
                       Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec)))
@@ -106,11 +88,9 @@ private[bsonImpl] object BosonInjectorImpl {
                 if (statementsList.head._2.contains(C_DOUBLEDOT)) {
                   ???
                 } else {
-                  val readerIndx = indexCounter.get //Register the index where the object starts
-                  println("Processing value, counter: " + indexCounter.get + ", start : " + startIndex)
-                  val (codecToBeRead, newCounter) = processTypesArrayCounter(indexCounter.get, dataType, codec, codec.createEmptyCodec)
-                  indexCounter.set(newCounter)
-                  //                  indexCounter = newCounter
+                  val readerIndx = indexCounter //Register the index where the object starts
+                  val (codecToBeRead, newCounter) = processTypesArrayCounter(indexCounter, dataType, codec, codec.createEmptyCodec)
+                  updateCounter(newCounter)
                   Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))))) ++ iterateDataStructure
                 }
             }

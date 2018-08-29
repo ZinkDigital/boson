@@ -139,9 +139,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
     */
-  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = readTokenAux(tkn)
-
-  private def readTokenAux(tkn: SonNamedType): SonNamedType = tkn match {
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
     case SonBoolean(x, _) => SonBoolean(x, buff.readByte)
 
     case SonArray(x, _) =>
@@ -234,12 +232,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = {
-    val oldIndex = buff.readerIndex() //remember the reader index that the ByteBuff had (most likely 0)
-    buff.readerIndex(counter) //change the reader index to be the same as the counter variable
-    val resultToken = readTokenAux(tkn) //perform read operations that change the ByteBuff's reader index
-    val newCounter = buff.readerIndex() //retrieve the reader index of the ByteBuff that now corresponds to the updated counter variable
-    buff.readerIndex(oldIndex) //restore ByteBuff's reader index to its old index
-    (resultToken, newCounter)
+    //    val oldIndex = buff.readerIndex() //remember the reader index that the ByteBuff had (most likely 0)
+    //    buff.readerIndex(counter) //change the reader index to be the same as the counter variable
+    //    val resultToken = readTokenAux(tkn) //perform read operations that change the ByteBuff's reader index
+    //    val newCounter = buff.readerIndex() //retrieve the reader index of the ByteBuff that now corresponds to the updated counter variable
+    //    buff.readerIndex(oldIndex) //restore ByteBuff's reader index to its old index
+    //    (resultToken, newCounter)
+
+???
   }
 
   /**
