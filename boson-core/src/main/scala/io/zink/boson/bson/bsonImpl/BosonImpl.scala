@@ -141,9 +141,9 @@ object BosonImpl {
     statements.head._1 match {
       case ROOT => rootInjection(codec, injFunction)
 
-      case Key(key: String) => modifyAllSingleCodecCounter(statements, codec, key, injFunction, startIndex = start, endIndex = end)
+//      case Key(key: String) => modifyAllSingleCodecCounter(statements, codec, key, injFunction, startIndex = start, endIndex = end)
 
-      //            case Key(key: String) => modifyAll(statements, codec, key, injFunction)
+                  case Key(key: String) => modifyAll(statements, codec, key, injFunction)
 
       case HalfName(half: String) => modifyAll(statements, codec, half, injFunction)
 

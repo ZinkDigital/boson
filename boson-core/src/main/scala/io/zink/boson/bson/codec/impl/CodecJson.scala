@@ -144,7 +144,98 @@ class CodecJson(str: String) extends Codec {
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = readTokenAux(tkn, ignore)
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
+    case SonObject(request, _) =>
+      request match {
+        case C_DOT =>
+          SonObject(request, input.mkString)
+        case CS_OBJECT | CS_OBJECT_WITH_SIZE | CS_OBJECT_INJ =>
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+          val subStr1 = input.substring(readerIndex, readerIndex + size)
+          readerIndex += size
+          SonObject(request, subStr1)
+      }
+    case SonArray(request, _) =>
+      request match {
+        case C_DOT =>
+          SonArray(request, input.mkString)
+        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+          val subStr1 = input.substring(readerIndex, readerIndex + size)
+          readerIndex += size
+          SonArray(request, subStr1)
+        case CS_ARRAY_INJ =>
+          if (input(readerIndex).equals('[')) {
+            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val subStr1 = input.substring(readerIndex, readerIndex + size)
+            readerIndex += size
+            SonArray(request, subStr1)
+          } else {
+            if (input(readerIndex).equals('{')) {
+              val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+              val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
+              readerIndex += size
+              SonArray(request, subStr1)
+            } else {
+              //First - Read key until '['
+              val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
+              val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
+              //Second - Read actual Array until ']'
+              val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+              val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
+              SonArray(request, subKey + subArr)
+            }
+          }
+      }
+    case SonString(request, _) =>
+      request match {
+        case CS_NAME | CS_NAME_NO_LAST_BYTE =>
+          val charSliced: Char = input(readerIndex)
+          if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
+            readerIndex += 1
+          input(readerIndex) match {
+            case CS_QUOTES =>
+              val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
+              val name = input.substring(readerIndex, readerIndex + subStr + 2)
+              readerIndex += name.length
+              SonString(request, name.substring(1, name.length - 1))
+          }
+        case CS_STRING | CS_ARRAY =>
+          val index = input.substring(readerIndex, inputSize).indexOf(CS_QUOTES)
+          readerIndex += index
+          val endIndex = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
+          val subStr1 = input.substring(readerIndex, readerIndex + endIndex + 2)
+          readerIndex += subStr1.length
+          SonString(request, subStr1.substring(1, subStr1.length - 1))
+      }
+    case SonNumber(request, _) =>
+      request match {
+        case CS_INTEGER =>
+          val subStr1 = readNextNumber
+          SonNumber(request, subStr1.toInt)
+        case CS_DOUBLE =>
+          val subStr1 = readNextNumber
+          SonNumber(request, subStr1.toDouble)
+        case CS_LONG =>
+          val subStr1 = readNextNumber
+          SonNumber(request, subStr1.toLong)
+      }
+
+    case SonNull(request, _) =>
+      readNextNull
+      SonNull(request, V_NULL)
+
+
+    case SonBoolean(request, _) =>
+      if (ignore) {
+        readerIndex += 1
+        SonBoolean(request, 0.toByte)
+      }
+      else {
+        val subStr1: Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
+        SonBoolean(request, subStr1)
+      }
+  }
 
   private def readTokenAux(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
     case SonObject(request, _) =>
@@ -372,9 +463,25 @@ class CodecJson(str: String) extends Codec {
     *         which are the case that make sense to obtain a size
     */
   override def readSize: Int = {
-    val (size, newReaderIndex) = readSizeAux(readerIndex)
-    readerIndex = newReaderIndex
-    size
+    input(readerIndex) match {
+      case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex == 0 => inputSize
+      case CS_OPEN_BRACKET =>
+        val inputAux: Seq[Char] = input.substring(readerIndex, inputSize).view
+        val size = findObjectSize(inputAux, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+        size
+      case CS_OPEN_RECT_BRACKET =>
+        val inputAux: Seq[Char] = input.substring(readerIndex, input.length)
+        val size = findObjectSize(inputAux, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+        size
+      case CS_QUOTES =>
+        val inputAux: Seq[Char] = input.substring(readerIndex, inputSize)
+        val size = findStringSize(inputAux)
+        size
+      case _ =>
+        readerIndex += 1
+        val s = readSize
+        s + 1
+    }
   }
 
   private def readSizeAux(indexToUse: Int): (Int, Int) = {
@@ -493,9 +600,83 @@ class CodecJson(str: String) extends Codec {
     *         18: represents a Long
     */
   override def readDataType(former: Int = 0): Int = {
-    val (dataType, newReaderIndex) = readDataTypeAux(readerIndex, former)
-    readerIndex = newReaderIndex
-    dataType
+    if (readerIndex == 0) readerIndex += 1
+    val aux = if (input(readerIndex).equals(CS_COMMA) && former != 4) {
+      readerIndex += 1
+      readerIndex
+    } else if (input(readerIndex).equals(CS_COMMA) && former == 4) readerIndex + 1
+    else readerIndex
+    //    if(input(readerIndex).equals(CS_COMMA)) readerIndex += 1
+    //    input(readerIndex) match {
+    input(aux) match {
+      case CS_CLOSE_BRACKET | CS_CLOSE_RECT_BRACKET =>
+        readerIndex += 1
+        D_ZERO_BYTE
+      case CS_QUOTES =>
+        val rIndexAux = readerIndex + 1
+        val finalIndex: Int = input.substring(rIndexAux, inputSize).indexOf(CS_QUOTES)
+        //val value0 = input.substring(readerIndex, finalIndex)
+        input(rIndexAux + finalIndex + 1) match {
+          case CS_2DOT =>
+            val a = input.substring(rIndexAux + finalIndex + 2, inputSize)
+            a(0) match {
+              case CS_QUOTES => D_ARRAYB_INST_STR_ENUM_CHRSEQ
+              case CS_OPEN_BRACKET => D_BSONOBJECT
+              case CS_OPEN_RECT_BRACKET => D_BSONARRAY
+              case CS_T => D_BOOLEAN
+              case CS_F => D_BOOLEAN
+              case CS_N => D_NULL
+              case x if x.isDigit =>
+                val index = rIndexAux + finalIndex + 2
+                lazy val strSliced = input.substring(index, inputSize)
+                val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
+                val inputAux = input.substring(index, index + bindex)
+                if (!inputAux.contains(CS_DOT)) {
+                  Try(inputAux.toInt) match {
+                    case Success(v) => D_INT
+                    case Failure(_) => D_LONG
+                  }
+                } else D_FLOAT_DOUBLE
+            }
+          case _ => D_ARRAYB_INST_STR_ENUM_CHRSEQ
+        }
+      case CS_OPEN_BRACKET => D_BSONOBJECT
+      case CS_OPEN_RECT_BRACKET =>
+        if (former == 4) {
+          val rIndexAux = readerIndex + 1
+          input(rIndexAux) match {
+            case CS_QUOTES => D_ARRAYB_INST_STR_ENUM_CHRSEQ
+            case CS_OPEN_BRACKET => D_BSONOBJECT
+            case CS_OPEN_RECT_BRACKET => D_BSONARRAY
+            case CS_T => D_BOOLEAN
+            case CS_F => D_BOOLEAN
+            case CS_N => D_NULL
+            case x if x.isDigit =>
+              lazy val strSliced = input.substring(rIndexAux, inputSize)
+              val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
+              val inputAux = input.substring(rIndexAux, rIndexAux + bindex)
+              if (!inputAux.contains(CS_DOT)) {
+                Try(inputAux.toInt) match {
+                  case Success(v) => D_INT
+                  case Failure(_) => D_LONG
+                }
+              } else D_FLOAT_DOUBLE
+          }
+        } else D_BSONARRAY
+      case CS_T => D_BOOLEAN
+      case CS_F => D_BOOLEAN
+      case CS_N => D_NULL
+      case x if x.isDigit =>
+        lazy val strSliced = input.substring(readerIndex, inputSize)
+        val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
+        val inputAux = input.substring(readerIndex, readerIndex + bindex)
+        if (!inputAux.contains(CS_DOT)) {
+          Try(inputAux.toInt) match {
+            case Success(v) => D_INT
+            case Failure(_) => D_LONG
+          }
+        } else D_FLOAT_DOUBLE
+    }
   }
 
   private def readDataTypeAux(readerIndexToUse: Int, former: Int = 0): (Int, Int) = {
