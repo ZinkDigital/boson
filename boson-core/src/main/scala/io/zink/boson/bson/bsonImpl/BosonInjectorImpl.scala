@@ -78,7 +78,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     //read the object
                     val end = indexCounter //Register the index where the object ends
                     Seq(Future {
-                      val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, readerIndextoUse = readerIndx, start = readerIndx, end = end)
+                      val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, start = readerIndx, end = end)
                       Seq((startIndexMainCodec, readerIndx, None), (0, subCodec.getLength, Some(subCodec)))
                     }) ++ iterateDataStructure
                   }
