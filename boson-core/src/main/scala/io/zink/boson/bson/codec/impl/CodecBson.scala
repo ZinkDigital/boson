@@ -231,101 +231,93 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       }
   }
 
-  override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = {
-    //    val oldIndex = buff.readerIndex() //remember the reader index that the ByteBuff had (most likely 0)
-    //    buff.readerIndex(counter) //change the reader index to be the same as the counter variable
-    //    val resultToken = readTokenAux(tkn) //perform read operations that change the ByteBuff's reader index
-    //    val newCounter = buff.readerIndex() //retrieve the reader index of the ByteBuff that now corresponds to the updated counter variable
-    //    buff.readerIndex(oldIndex) //restore ByteBuff's reader index to its old index
-    //    (resultToken, newCounter)
-    tkn match {
-      case SonBoolean(x, _) => (SonBoolean(x, buff.getByte(counter)), counter + 1)
+  override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = tkn match {
+    case SonBoolean(x, _) => (SonBoolean(x, buff.getByte(counter)), counter + 1)
 
-      case SonArray(x, _) =>
-        x match {
-          case C_DOT =>
-            val b: ByteBuf = buff.copy(0, buff.capacity)
-            (SonArray(x, b), counter)
+    case SonArray(x, _) =>
+      x match {
+        case C_DOT =>
+          val b: ByteBuf = buff.copy(0, buff.capacity)
+          (SonArray(x, b), counter)
 
-          case CS_ARRAY =>
-            val size = buff.getIntLE(counter - 4)
-            val endIndex = counter - 4 + size
-            val b = buff.copy(counter - 4, size)
-            (SonArray(x, b), endIndex)
+        case CS_ARRAY =>
+          val size = buff.getIntLE(counter - 4)
+          val endIndex = counter - 4 + size
+          val b = buff.copy(counter - 4, size)
+          (SonArray(x, b), endIndex)
 
-          case CS_ARRAY_WITH_SIZE | CS_ARRAY_INJ =>
-            val size = buff.getIntLE(counter)
-            val endIndex = counter + size
-            val newBuff = buff.copy(counter, size)
-            (SonArray(x, newBuff), endIndex)
-        }
-
-      case SonObject(x, _) =>
-        x match {
-          case C_DOT =>
-            val b: ByteBuf = buff.copy(0, buff.capacity)
-            (SonObject(x, b), buff.capacity())
-
-          case CS_OBJECT =>
-            val size = buff.getIntLE(counter - 4)
-            val endIndex = counter - 4 + size
-            val b = buff.copy(counter - 4, size)
-            (SonObject(x, b), endIndex)
-
-          case CS_OBJECT_WITH_SIZE =>
-            val size = buff.getIntLE(counter) //Get the object without its size
-            println(buff.array.mkString(" "))
-            println("counter: " + counter + " size: " + size)
+        case CS_ARRAY_WITH_SIZE | CS_ARRAY_INJ =>
+          val size = buff.getIntLE(counter)
           val endIndex = counter + size
-            val b = buff.copy(counter, size)
-            (SonObject(x, b), endIndex)
+          val newBuff = buff.copy(counter, size)
+          (SonArray(x, newBuff), endIndex)
+      }
 
-          case CS_OBJECT_INJ =>
-            val size = buff.getIntLE(counter)
-            val endIndex = counter + size
-            val b = buff.copy(counter, size)
-            (SonObject(x, b), endIndex)
-        }
+    case SonObject(x, _) =>
+      x match {
+        case C_DOT =>
+          val b: ByteBuf = buff.copy(0, buff.capacity)
+          (SonObject(x, b), buff.capacity())
 
-      case SonString(x, _) =>
-        x match {
-          case CS_NAME | CS_NAME_NO_LAST_BYTE =>
-            val key: ListBuffer[Byte] = new ListBuffer[Byte]
-            var i: Int = counter
-            while (buff.getByte(i) != 0) {
-              key.append(buff.getByte(i))
-              i += 1
-            }
+        case CS_OBJECT =>
+          val size = buff.getIntLE(counter - 4)
+          val endIndex = counter - 4 + size
+          val b = buff.copy(counter - 4, size)
+          (SonObject(x, b), endIndex)
 
-            if (x equals CS_NAME)
-              (SonString(x, new String(key.toArray).filter(p => p != 0)), counter + i + 1) //TODO secalhar tirar aqui este + 1
-            else
-              (SonString(x, new String(key.toArray).filter(p => p != 0)), counter + i)
+        case CS_OBJECT_WITH_SIZE =>
+          val size = buff.getIntLE(counter) //Get the object without its size
+          println(buff.array.mkString(" "))
+          println("counter: " + counter + " size: " + size)
+          val endIndex = counter + size
+          val b = buff.copy(counter, size)
+          (SonObject(x, b), endIndex)
+
+        case CS_OBJECT_INJ =>
+          val size = buff.getIntLE(counter)
+          val endIndex = counter + size
+          val b = buff.copy(counter, size)
+          (SonObject(x, b), endIndex)
+      }
+
+    case SonString(x, _) =>
+      x match {
+        case CS_NAME | CS_NAME_NO_LAST_BYTE =>
+          val key: ListBuffer[Byte] = new ListBuffer[Byte]
+          var i: Int = counter
+          while (buff.getByte(i) != 0) {
+            key.append(buff.getByte(i))
+            i += 1
+          }
+
+          if (x equals CS_NAME)
+            (SonString(x, new String(key.toArray).filter(p => p != 0)), i + 1) //TODO secalhar tirar aqui este + 1
+          else
+            (SonString(x, new String(key.toArray).filter(p => p != 0)), i)
 
 
-          case CS_STRING =>
-            val valueLength: Int = buff.getIntLE(counter)
-            val charSeq = buff.getCharSequence(counter + 4, valueLength, charset).toString.filter(b => b != 0)
-            (SonString(x, charSeq), counter - 4 + valueLength)
+        case CS_STRING =>
+          val valueLength: Int = buff.getIntLE(counter)
+          val charSeq = buff.getCharSequence(counter + 4, valueLength, charset).toString.filter(b => b != 0)
+          (SonString(x, charSeq), counter + 4 + valueLength)
 
-          case _ =>
-            val valueLength: Int = buff.getIntLE(counter)
-            val newBuff: ByteBuf = Unpooled.buffer()
-            newBuff.writerIndex(0)
-            buff.getBytes(counter + 4, newBuff, valueLength)
-            newBuff.capacity(newBuff.writerIndex)
-            (SonString(x, newBuff), counter - 4 + valueLength)
-        }
+        case _ =>
+          val valueLength: Int = buff.getIntLE(counter)
+          val newBuff: ByteBuf = Unpooled.buffer()
+          newBuff.writerIndex(0)
+          buff.getBytes(counter + 4, newBuff, valueLength)
+          newBuff.capacity(newBuff.writerIndex)
+          (SonString(x, newBuff), counter - 4 + valueLength)
+      }
 
-      case SonNumber(x, _) =>
-        x match {
-          case CS_DOUBLE => (SonNumber(x, buff.getDoubleLE(counter)), counter + 8)
-          case CS_INTEGER => (SonNumber(x, buff.getIntLE(counter)), counter + 4)
-          case CS_LONG => (SonNumber(x, buff.getLongLE(counter)), counter + 8)
-        }
+    case SonNumber(x, _) =>
+      x match {
+        case CS_DOUBLE => (SonNumber(x, buff.getDoubleLE(counter)), counter + 8)
+        case CS_INTEGER => (SonNumber(x, buff.getIntLE(counter)), counter + 4)
+        case CS_LONG => (SonNumber(x, buff.getLongLE(counter)), counter + 8)
+      }
 
-      case SonNull(CS_NULL, _) => (SonNull(CS_NULL, V_NULL), counter)
-    }
+    case SonNull(CS_NULL, _) => (SonNull(CS_NULL, V_NULL), counter)
   }
 
   /**
