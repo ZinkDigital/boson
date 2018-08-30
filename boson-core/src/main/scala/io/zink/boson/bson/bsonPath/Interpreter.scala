@@ -106,33 +106,33 @@ class Interpreter[T](expression: String,
     * DefineLimits takes a set of arguments that represent a range defined by the User through BsonPath and transforms it
     * into a Tuple3.
     *
-    * @param left  Integer representing the lower limit of a Range.
-    * @param mid   String indicating which type of Range it is.
-    * @param right Integer representing the upper limit of a Range.
+    * @param lowerLimit  Integer representing the lower limit of a Range.
+    * @param rangeCondition   String indicating which type of Range it is.
+    * @param upperLimit Integer representing the upper limit of a Range.
     * @return Returns a Tuple3 used to represent a range.
     */
 
-  private def defineLimits(left: Int, mid: Option[RangeCondition], right: Option[Any]): List[(Option[Int], Option[Int], String)] = {
-    mid.isDefined match {
-      case true if right.isEmpty =>
-        mid.get.value match {
-          case C_FIRST => List((Some(0), Some(0), TO_RANGE))
-          case C_ALL => List((Some(0), None, TO_RANGE))
-          case C_END => List((Some(0), None, C_END))
-        }
-      case true if right.isDefined =>
-        (left, mid.get.value.toLowerCase, right.get) match {
-          case (a, UNTIL_RANGE, C_END) => List((Some(a), None, UNTIL_RANGE))
-          case (a, _, C_END) => List((Some(a), None, TO_RANGE))
-          case (a, expr, b) if b.isInstanceOf[Int] =>
-            expr.toLowerCase match {
-              case TO_RANGE => List((Some(a), Some(b.asInstanceOf[Int]), TO_RANGE))
-              case UNTIL_RANGE => List((Some(a), Some(b.asInstanceOf[Int] - 1), TO_RANGE))
-            }
-        }
-      case false =>
-        List((Some(left), Some(left), TO_RANGE))
-    }
+  private def defineLimits(lowerLimit: Int,
+                           rangeCondition: Option[RangeCondition],
+                           upperLimit: Option[Any]): List[(Option[Int], Option[Int], String)] = (rangeCondition.isDefined, upperLimit.isDefined) match {
+    case (true, false) =>
+      rangeCondition.get.value match {
+        case C_FIRST => List((Some(0), Some(0), TO_RANGE))
+        case C_ALL => List((Some(0), None, TO_RANGE))
+        case C_END => List((Some(0), None, C_END))
+      }
+    case (true, true) =>
+      (lowerLimit, rangeCondition.get.value.toLowerCase, upperLimit.get) match {
+        case (a, UNTIL_RANGE, C_END) => List((Some(a), None, UNTIL_RANGE))
+        case (a, _, C_END) => List((Some(a), None, TO_RANGE))
+        case (a, expr, b) if b.isInstanceOf[Int] =>
+          expr.toLowerCase match {
+            case TO_RANGE => List((Some(a), Some(b.asInstanceOf[Int]), TO_RANGE))
+            case UNTIL_RANGE => List((Some(a), Some(b.asInstanceOf[Int] - 1), TO_RANGE))
+          }
+      }
+    case (false, _) =>
+      List((Some(lowerLimit), Some(lowerLimit), TO_RANGE))
   }
 
   /**
@@ -142,15 +142,24 @@ class Interpreter[T](expression: String,
     * @param limitList List of Tuple3 with Ranges and Conditions
     * @return Boolean
     */
-  private def returnInsideSeq(keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)], dotsList: Seq[String]): Boolean =
-    limitList.exists { elem =>
+  private def returnInsideSeq(keyList: List[(String, String)],
+                              limitList: List[(Option[Int],
+                              Option[Int], String)],
+                              dotsList: Seq[String]): Boolean = {
+    val evalLimitList = limitList.exists { elem =>
       elem._1.isDefined match {
         case true if elem._2.isEmpty => if (elem._3.equals(C_END)) false else true
         case true if elem._2.isDefined && elem._2.get != elem._1.get => true
         case true if elem._2.isDefined && elem._2.get == elem._1.get => false
         case false => false
       }
-    } || dotsList.exists(e => e.equals(C_DOUBLEDOT)) || keyList.exists(e => e._2.equals(C_FILTER) || e._1.equals(STAR))
+    }
+    val evalCDoubleDot = dotsList.contains(C_DOUBLEDOT)
+    val evalCFilterOrStar = keyList.exists(e => e._2 == C_FILTER || e._1 == STAR)
+
+    //Return the OR of all evalutations:
+    Seq(evalLimitList, evalCDoubleDot, evalCFilterOrStar).reduce(_ || _)
+  }
 
   /**
     * Run is the only public method of the object Interpreter and depending on which function it was instantiated with it chooses whether it starts
@@ -158,19 +167,22 @@ class Interpreter[T](expression: String,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
+  def run(bsonEncoded: Either[Array[Byte], String]): Any =
+    if (fInj.isDefined) startInjector(bsonEncoded)
+    else startExtractor(bsonEncoded)
 
   /**
     * Method that initiates the process of extraction based on a Statement list provided by the parser.
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def start(bsonEncoded: Either[Array[Byte], String]): Any = {
+  private def startExtractor(bsonEncoded: Either[Array[Byte], String]): Any = {
     bsonEncoded match {
       case Left(byteArr) =>
         val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
         extract(Left(buf), keyList, limitList)
-      case Right(jsonString) => extract(Right(jsonString), keyList, limitList)
+      case Right(jsonString) =>
+        extract(Right(jsonString), keyList, limitList)
     }
   }
 
@@ -182,22 +194,26 @@ class Interpreter[T](expression: String,
     * @param limitList     Pairs of Ranges and Conditions used to decode the encodedSeqByteArray
     * @return List of Tuples corresponding to pairs of Key and Value used to build case classes
     */
-  private def constructObj(encodedEither: Either[List[ByteBuf], List[String]], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
+  private def constructObj(encodedEither: Either[List[ByteBuf], List[String]],
+                           keyList: List[(String, String)],
+                           limitList: List[(Option[Int], Option[Int], String)]): Seq[List[(String, Any)]] = {
     encodedEither match {
-      case Left(bufList) => bufList.par.map { encoded =>
-        val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
-        res match {
-          case tuples(list) => list
-          case _ => throw CustomException("Error building tuples to fulfill case class.")
-        }
-      }.seq
-      case Right(stringList) => stringList.par.map { encoded =>
-        val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
-        res match {
-          case tuples(list) => list
-          case _ => throw CustomException("Error building tuples to fulfill case class.")
-        }
-      }.seq
+      case Left(bufList) =>
+        bufList.par.map { encoded =>
+          val res: List[Any] = runExtractors(Left(encoded), keyList, limitList)
+          res match {
+            case tuples(list) => list
+            case _ => throw CustomException("Error building tuples to fulfill case class.")
+          }
+        }.seq
+      case Right(stringList) =>
+        stringList.par.map { encoded =>
+          val res: List[Any] = runExtractors(Right(encoded), keyList, limitList)
+          res match {
+            case tuples(list) => list
+            case _ => throw CustomException("Error building tuples to fulfill case class.")
+          }
+        }.seq
     }
   }
 
@@ -212,12 +228,17 @@ class Interpreter[T](expression: String,
     val result: List[Any] = runExtractors(encodedStructure, keyList, limitList)
     val typeClass: Option[String] =
       result.size match {
-        case 0 => None
-        case 1 => Some(result.head.getClass.getSimpleName)
+        case 0 =>
+          None
+        case 1 =>
+          Some(result.head.getClass.getSimpleName)
         case _ =>
-          if (result.tail.forall { p => result.head.getClass.equals(p.getClass) }) Some(result.head.getClass.getSimpleName)
-          else Some(ANY)
+          if (result.tail.forall{ p => result.head.getClass == p.getClass })
+            Some(result.head.getClass.getSimpleName)
+          else
+            Some(ANY)
       }
+
     validateTypes(result, typeClass, returnInsideSeqFlag)
   }
 
@@ -233,17 +254,14 @@ class Interpreter[T](expression: String,
   def runExtractors(encodedStructure: Either[ByteBuf, String], keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]): List[Any] = keyList.size match {
     case 1 =>
       BosonImpl.extract(encodedStructure, keyList, limitList)
-
-    case 2 if keyList.drop(1).head._2.equals(C_FILTER) =>
+    case 2 if keyList.tail.head._2.equals(C_FILTER) =>
       BosonImpl.extract(encodedStructure, keyList, limitList)
-
     case _ =>
       val filtered: Seq[Either[ByteBuf, String]] =
         BosonImpl.extract(encodedStructure, keyList, limitList) collect {
           case buf: ByteBuf => Left(buf)
           case str: String if isJson(str) => Right(str)
         }
-
       filtered.size match {
         case 0 => Nil
         case _ =>
@@ -254,83 +272,91 @@ class Interpreter[T](expression: String,
       }
   }
 
+  /**
+    * Applies the Extraction Function. There are two special cases: When the class is a String or a Sequence of Strings
+    * that are treated differently
+    * @param typesNvalues List of Toubles
+    */
   def applyFunction(typesNvalues: List[(String, Any)]): Unit = {
-    typesNvalues.head._2 match {
+    val (typeClassName, typeClassInstance) = typesNvalues.head
+    typeClassInstance match {
       case oneString(value) =>
         tCase.get.unapply(value).map(v => fExt.get(v)).orElse {
           val defInst: Instant = Instant.now()
           tCase.get.unapply(defInst).map(_ => fExt.get(Instant.parse(value).asInstanceOf[T]))
-            .orElse(throw CustomException(s"Type designated doesn't correspond with extracted type: ${typesNvalues.head._1}"))
+            .orElse(throw CustomException(s"Type designated doesn't correspond with extracted type: $typeClassName"))
         }
       case seqString(seq) =>
         tCase.get.unapply(seq).map(v => fExt.get(v)).orElse {
           val defInst: Seq[Instant] = List(Instant.now())
           tCase.get.unapply(defInst).map(_ => fExt.get(seq.map(Instant.parse(_)).asInstanceOf[T]))
-            .orElse(throw CustomException(s"Type designated doesn't correspond with extracted type: ${typesNvalues.head._1}"))
+            .orElse(throw CustomException(s"Type designated doesn't correspond with extracted type: $typeClassName"))
         }
       case _ =>
-        tCase.get.unapply(typesNvalues.head._2) match {
-          case Some(_) => fExt.get(typesNvalues.head._2.asInstanceOf[T])
+        tCase.get.unapply(typeClassInstance) match {
+          case Some(_) => fExt.get(typeClassInstance.asInstanceOf[T])
           case None =>
-            if (typesNvalues.tail.isEmpty) throw CustomException(s"Type designated doesn't correspond with extracted type: ${typesNvalues.head._1}") else applyFunction(typesNvalues.tail)
+            if (typesNvalues.tail.isEmpty) throw CustomException(s"Type designated doesn't correspond with extracted type: $typeClassName")
+            else applyFunction(typesNvalues.tail)
         }
     }
   }
 
   /**
-    * Function used to determine if an input string is a Json string
+    * Simplified method used to determine if an input string is a Json string
     *
     * @param str - the input string
     * @return a boolean containing the information wether the string is a Json(true) string or not(false)
     */
-  def isJson(str: String): Boolean = if ((str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))) true else false
+  def isJson(str: String): Boolean =
+    (str.startsWith("{") && str.endsWith("}")) || (str.startsWith("[") && str.endsWith("]"))
 
-  private def validateTypes(result: List[Any], typeClass: Option[String], returnInsideSeqFlag: Boolean): Any = {
-    tCase.isDefined match {
-      case true if typeClass.isDefined =>
-        typeClass.get match {
-
-          case STRING =>
-            val str: List[String] = result.asInstanceOf[List[String]]
-            if (isJsonObjOrArrExtraction(str, returnInsideSeqFlag, tCase))
-              constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
-            else
-              str.foreach(res => applyFunction(List((STRING, res), (INSTANT, res))))
-
-
-          case INTEGER => result.foreach(res => applyFunction(List((INTEGER, res))))
-
-          case DOUBLE =>
-            val res = result.asInstanceOf[List[Double]]
-            res.foreach(num => applyFunction(List((DOUBLE, num), (FLOAT, num.toFloat))))
-
-          case LONG => result.foreach(res => applyFunction(List((LONG, res))))
-
-          case BOOLEAN => result.foreach(res => applyFunction(List((BOOLEAN, res))))
-
-          case ANY =>
-            val res = result.map {
-              case buf: ByteBuf => buf.array
-              case elem => elem
-            }
-            res.foreach(obj => applyFunction(List((ANY, obj))))
-
-          case COPY_BYTEBUF => constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE))) //TODO check this case
-
-        }
-      case false if typeClass.isDefined =>
-        typeClass.get match {
-          case COPY_BYTEBUF if fExt.isDefined =>
-            val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
-            res.foreach(byteArr => fExt.get(byteArr.asInstanceOf[T]))
-          case STRING =>
-
-            val res = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
-            res.foreach(byteArr => fExt.get(byteArr.asInstanceOf[T]))
-        }
-
-      case _ => //fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
-    }
+  //TODO: Document this method properly
+  //TODO: Validate the ToDos inside this method
+  /**
+    *
+    * @param result
+    * @param typeClassName
+    * @param returnInsideSeqFlag
+    * @return
+    */
+  private def validateTypes(result: List[Any], typeClassName: Option[String], returnInsideSeqFlag: Boolean): Any = (tCase.isDefined, typeClassName.isDefined) match {
+    case (true, true) =>
+      typeClassName.get match {
+        case STRING =>
+          val str: List[String] = result.asInstanceOf[List[String]]
+          if (isJsonObjOrArrExtraction(str, returnInsideSeqFlag, tCase))
+            constructObj(Right(str), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE)))
+          else
+            str.foreach(res => applyFunction(List((STRING, res), (INSTANT, res))))
+        case INTEGER =>
+          result.foreach(res => applyFunction(List((INTEGER, res))))
+        case DOUBLE =>
+          val res = result.asInstanceOf[List[Double]]
+          res.foreach(num => applyFunction(List((DOUBLE, num), (FLOAT, num.toFloat))))
+        case LONG =>
+          result.foreach(res => applyFunction(List((LONG, res))))
+        case BOOLEAN =>
+          result.foreach(res => applyFunction(List((BOOLEAN, res))))
+        case ANY =>
+          val res = result.map {
+            case buf: ByteBuf => buf.array
+            case elem => elem
+          }
+          res.foreach(obj => applyFunction(List((ANY, obj))))
+        case COPY_BYTEBUF =>
+          constructObj(Left(result.asInstanceOf[List[ByteBuf]]), List((STAR, C_BUILD)), List((None, None, EMPTY_RANGE))) //TODO check this case
+      }
+    case (false, true) =>
+      typeClassName.get match {
+        case COPY_BYTEBUF if fExt.isDefined =>
+          val res = result.asInstanceOf[List[ByteBuf]].map(_.array)
+          res.foreach(byteArr => fExt.get(byteArr.asInstanceOf[T]))
+        case STRING =>
+          val res = result.asInstanceOf[List[String]].map(java.util.Base64.getDecoder.decode(_))
+          res.foreach(byteArr => fExt.get(byteArr.asInstanceOf[T]))
+      }
+    case (_,_) => //fExt.get.apply(result.asInstanceOf[T]) //TODO: when no results, handle this situation differently
   }
 
   /**
@@ -358,6 +384,7 @@ class Interpreter[T](expression: String,
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
+    //What is this commented code for?
 //    Try(BosonImpl.inject(input, statements, fInj.get)) match {
 //      case Success(resultCodec) =>
 //        resultCodec.getCodecData match {
@@ -368,9 +395,9 @@ class Interpreter[T](expression: String,
 //    }
 
     BosonImpl.inject(input, statements, fInj.get).getCodecData match {
-                case Left(byteBuf) => Left(byteBuf.array)
-                case Right(string) => Right(string)
-              }
+      case Left(byteBuf) => Left(byteBuf.array)
+      case Right(string) => Right(string)
+    }
   }
 
 }
