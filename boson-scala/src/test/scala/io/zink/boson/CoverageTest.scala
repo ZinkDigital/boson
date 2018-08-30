@@ -2843,6 +2843,66 @@ class CoverageTest extends FunSuite {
     assert(resultValue.contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
   }
 
+  test("CodecJson - double dot injection") {
+    val json = new BsonObject().put("name", "john doe")
+    val ex = "..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = json.encodeToString()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    assert(resultValue.contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
+  test("CodecJson- double dot injection 2") {
+    val obj = new BsonObject().put("name", "john doe")
+    val person = new BsonObject().put("person", obj)
+    val client = new BsonObject().put("client", person)
+    val someObject = new BsonObject().put("SomeObject", client)
+    val anotherObject = new BsonObject().put("AnotherObject", someObject)
+    val json = new BsonObject().put("Wrapper", anotherObject)
+    val ex = "..client..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = json.encodeToString()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: String = Await.result(future, Duration.Inf)
+    println(resultValue)
+    assert(resultValue.contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
+
+  test("double dot injection") {
+    val json = new BsonObject().put("name", "john doe")
+    val ex = "..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = json.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(new String(resultValue).contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
+  test("double dot injection 2") {
+    val obj = new BsonObject().put("name", "john doe")
+    val person = new BsonObject().put("person", obj)
+    val client = new BsonObject().put("client", person)
+    val someObject = new BsonObject().put("SomeObject", client)
+    val anotherObject = new BsonObject().put("AnotherObject", someObject)
+    val json = new BsonObject().put("Wrapper", anotherObject)
+    val ex = "..client..name"
+    val jsonInj = Boson.injector(ex, (in: String) => {
+      in.toUpperCase
+    })
+    val jsonEncoded = json.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val resultValue: Array[Byte] = Await.result(future, Duration.Inf)
+    assert(new String(resultValue).contains("JOHN DOE") && resultValue.length == jsonEncoded.length)
+  }
+
   //
   //  test("CodecJson - Top level key modification - non existing key") {
   //    val bson = new BsonObject().put("name", "john doe")
