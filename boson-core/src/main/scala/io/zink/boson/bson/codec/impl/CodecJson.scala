@@ -144,98 +144,7 @@ class CodecJson(str: String) extends Codec {
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
-    case SonObject(request, _) =>
-      request match {
-        case C_DOT =>
-          SonObject(request, input.mkString)
-        case CS_OBJECT | CS_OBJECT_WITH_SIZE | CS_OBJECT_INJ =>
-          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
-          val subStr1 = input.substring(readerIndex, readerIndex + size)
-          readerIndex += size
-          SonObject(request, subStr1)
-      }
-    case SonArray(request, _) =>
-      request match {
-        case C_DOT =>
-          SonArray(request, input.mkString)
-        case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
-          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-          val subStr1 = input.substring(readerIndex, readerIndex + size)
-          readerIndex += size
-          SonArray(request, subStr1)
-        case CS_ARRAY_INJ =>
-          if (input(readerIndex).equals('[')) {
-            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-            val subStr1 = input.substring(readerIndex, readerIndex + size)
-            readerIndex += size
-            SonArray(request, subStr1)
-          } else {
-            if (input(readerIndex).equals('{')) {
-              val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
-              val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
-              readerIndex += size
-              SonArray(request, subStr1)
-            } else {
-              //First - Read key until '['
-              val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
-              val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
-              //Second - Read actual Array until ']'
-              val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-              val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
-              SonArray(request, subKey + subArr)
-            }
-          }
-      }
-    case SonString(request, _) =>
-      request match {
-        case CS_NAME | CS_NAME_NO_LAST_BYTE =>
-          val charSliced: Char = input(readerIndex)
-          if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
-            readerIndex += 1
-          input(readerIndex) match {
-            case CS_QUOTES =>
-              val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
-              val name = input.substring(readerIndex, readerIndex + subStr + 2)
-              readerIndex += name.length
-              SonString(request, name.substring(1, name.length - 1))
-          }
-        case CS_STRING | CS_ARRAY =>
-          val index = input.substring(readerIndex, inputSize).indexOf(CS_QUOTES)
-          readerIndex += index
-          val endIndex = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
-          val subStr1 = input.substring(readerIndex, readerIndex + endIndex + 2)
-          readerIndex += subStr1.length
-          SonString(request, subStr1.substring(1, subStr1.length - 1))
-      }
-    case SonNumber(request, _) =>
-      request match {
-        case CS_INTEGER =>
-          val subStr1 = readNextNumber
-          SonNumber(request, subStr1.toInt)
-        case CS_DOUBLE =>
-          val subStr1 = readNextNumber
-          SonNumber(request, subStr1.toDouble)
-        case CS_LONG =>
-          val subStr1 = readNextNumber
-          SonNumber(request, subStr1.toLong)
-      }
-
-    case SonNull(request, _) =>
-      readNextNull
-      SonNull(request, V_NULL)
-
-
-    case SonBoolean(request, _) =>
-      if (ignore) {
-        readerIndex += 1
-        SonBoolean(request, 0.toByte)
-      }
-      else {
-        val subStr1: Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
-        SonBoolean(request, subStr1)
-      }
-  }
+  override def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = readTokenAux(tkn, ignore)
 
   private def readTokenAux(tkn: SonNamedType, ignore: Boolean = false): SonNamedType = tkn match {
     case SonObject(request, _) =>
@@ -484,8 +393,8 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
-  private def readSizeAux(indexToUse: Int): (Int, Int) = {
-    var readerIndex = indexToUse
+  def readSizeWithCounter(counter: Int): (Int, Int) = {
+    var readerIndex = counter
     val size = input(readerIndex) match {
       case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex == 0 => inputSize
       case CS_OPEN_BRACKET =>
@@ -502,14 +411,12 @@ class CodecJson(str: String) extends Codec {
         size
       case _ =>
         readerIndex += 1
-        val (s, reader) = readSizeAux(indexToUse)
+        val (s, reader) = readSizeWithCounter(counter)
         readerIndex = reader
         s + 1
     }
     (size, readerIndex)
   }
-
-  def readSizeWithCounter(counter: Int): (Int, Int) = readSizeAux(counter)
 
 
   /**
@@ -679,8 +586,9 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
-  private def readDataTypeAux(readerIndexToUse: Int, former: Int = 0): (Int, Int) = {
-    var readerIndex = readerIndexToUse
+
+  override def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int) = {
+    var readerIndex = counter
     if (readerIndex == 0) readerIndex += 1
     val aux = if (input(readerIndex).equals(CS_COMMA) && former != 4) {
       readerIndex += 1
@@ -760,8 +668,6 @@ class CodecJson(str: String) extends Codec {
     }
     (dataType, readerIndex)
   }
-
-  override def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int) = readDataTypeAux(counter, former)
 
   /**
     * duplicate is used to create a duplicate of the codec, all information is duplicate so that operations
@@ -956,9 +862,17 @@ class CodecJson(str: String) extends Codec {
   /**
     * Method that skips the next character in the current codec's data structure
     */
-  def skipChar(back: Boolean = false): Unit = if (!back) setReaderIndex(getReaderIndex + 1) else setReaderIndex(getReaderIndex - 1)
+  def skipChar(back: Boolean = false): Unit = {
+    lazy val index = getReaderIndex
+    if (index == 0)
+      index
+    else if (!back)
+      setReaderIndex(index + 1)
+    else
+      setReaderIndex(index - 1)
+  }
 
-  def skipCharCounter(counter: Int, back: Boolean = false): Int = if (!back) counter + 1 else counter - 1
+  def skipCharCounter(counter: Int, back: Boolean = false): Int = if (counter == 0) counter else if (!back) counter + 1 else counter - 1
 
   /**
     * Method that adds a comma to the end of a CodecJson data structure
