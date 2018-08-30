@@ -1,10 +1,10 @@
-package io.zink.boson.bson.bsonImpl
+package io.zink.boson.bson.bosonImpl
 
-import io.zink.boson.bson.bsonImpl.BosonInjectorImpl.isHalfword
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bosonImpl.BosonInjectorImpl.isHalfword
+import io.zink.boson.bson.bosonImpl.Dictionary._
 import io.zink.boson.bson.codec._
 
-private[bsonImpl] object BosonExtractorImpl {
+private[bosonImpl] object BosonExtractorImpl {
 
 
   /**

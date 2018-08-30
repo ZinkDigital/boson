@@ -1,4 +1,4 @@
-package io.zink.boson.bson.bsonImpl
+package io.zink.boson.bson.bosonImpl
 
 import java.nio.charset.Charset
 import java.util

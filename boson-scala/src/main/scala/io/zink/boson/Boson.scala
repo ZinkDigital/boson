@@ -3,7 +3,7 @@ package io.zink.boson
 import java.nio.ByteBuffer
 import java.time.Instant
 
-import io.zink.boson.bson.bsonImpl.extractLabels
+import io.zink.boson.bson.bosonImpl.extractLabels
 import io.zink.boson.impl._
 import shapeless.{HList, LabelledGeneric, TypeCase, Typeable}
 

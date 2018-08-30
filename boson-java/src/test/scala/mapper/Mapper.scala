@@ -5,8 +5,8 @@ import java.util
 
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.zink.boson.bson.bsonImpl.CustomException
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bosonImpl.CustomException
+import io.zink.boson.bson.bosonImpl.Dictionary._
 
 import scala.collection.immutable.List
 import scala.collection.mutable

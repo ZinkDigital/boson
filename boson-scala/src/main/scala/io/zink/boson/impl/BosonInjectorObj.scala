@@ -3,8 +3,8 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.extractLabels
-import io.zink.boson.bson.bsonPath.Interpreter
+import io.zink.boson.bson.bosonImpl.extractLabels
+import io.zink.boson.bson.bosonPath.Interpreter
 import shapeless.{HList, LabelledGeneric, TypeCase}
 
 import scala.concurrent.ExecutionContext.Implicits.global

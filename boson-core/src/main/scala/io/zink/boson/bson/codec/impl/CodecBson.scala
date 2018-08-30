@@ -3,7 +3,7 @@ package io.zink.boson.bson.codec.impl
 import java.nio.charset.Charset
 
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bosonImpl.Dictionary._
 import io.zink.boson.bson.codec._
 
 import scala.collection.mutable.ListBuffer

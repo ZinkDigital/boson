@@ -2,7 +2,7 @@ package io.zink.boson.bson.codec.impl
 
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.codec._
-import io.zink.boson.bson.bsonImpl.Dictionary.{CS_INTEGER, _}
+import io.zink.boson.bson.bosonImpl.Dictionary.{CS_INTEGER, _}
 
 import scala.collection.{JavaConverters, mutable}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}

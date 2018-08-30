@@ -3,7 +3,7 @@ package io.zink.boson
 import bsonLib.BsonObject
 import io.netty.util.ResourceLeakDetector
 import io.vertx.core.json.JsonObject
-import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bosonImpl.BosonImpl
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner

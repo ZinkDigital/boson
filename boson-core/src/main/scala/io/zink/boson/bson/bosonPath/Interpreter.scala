@@ -1,10 +1,10 @@
-package io.zink.boson.bson.bsonPath
+package io.zink.boson.bson.bosonPath
 
 import java.time.Instant
 
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
-import io.zink.boson.bson.bsonImpl._
+import io.zink.boson.bson.bosonImpl.Dictionary.{oneString, _}
+import io.zink.boson.bson.bosonImpl._
 import shapeless.TypeCase
 
 import scala.util.{Failure, Success, Try}

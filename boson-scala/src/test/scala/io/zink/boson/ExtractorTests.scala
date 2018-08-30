@@ -5,7 +5,7 @@ import java.time.Instant
 import bsonLib.{BsonArray, BsonObject}
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.netty.util.ResourceLeakDetector
-import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bosonImpl.BosonImpl
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.runner.RunWith
 import org.scalatest.FunSuite

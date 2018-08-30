@@ -3,7 +3,7 @@ package io.zink.boson.impl
 import java.nio.ByteBuffer
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonPath.Interpreter
+import io.zink.boson.bson.bosonPath.Interpreter
 import shapeless.TypeCase
 
 import scala.concurrent.ExecutionContext.Implicits.global

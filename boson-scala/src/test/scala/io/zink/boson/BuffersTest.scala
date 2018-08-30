@@ -2,7 +2,7 @@ package io.zink.boson
 
 import bsonLib.BsonObject
 import io.netty.util.ResourceLeakDetector
-import io.zink.boson.bson.bsonImpl.BosonImpl
+import io.zink.boson.bson.bosonImpl.BosonImpl
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
