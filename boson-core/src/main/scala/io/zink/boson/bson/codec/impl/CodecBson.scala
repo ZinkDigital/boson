@@ -3,7 +3,7 @@ package io.zink.boson.bson.codec.impl
 import java.nio.charset.Charset
 
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bosonImpl.Dictionary._
 import io.zink.boson.bson.codec._
 
 import scala.collection.mutable.ListBuffer
@@ -231,53 +231,49 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       }
   }
 
+  //TODO: Get rid of the "x" and "b" variables. Give names that explain what they are.
   override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = tkn match {
-    case SonBoolean(x, _) => (SonBoolean(x, buff.getByte(counter)), counter + 1)
-
+    case SonBoolean(x, _) =>
+      (SonBoolean(x, buff.getByte(counter)), counter + 1)
     case SonArray(x, _) =>
       x match {
         case C_DOT =>
           val b: ByteBuf = buff.copy(0, buff.capacity)
           (SonArray(x, b), counter)
-
         case CS_ARRAY =>
           val size = buff.getIntLE(counter - 4)
           val endIndex = counter - 4 + size
           val b = buff.copy(counter - 4, size)
           (SonArray(x, b), endIndex)
-
+            (SonArray(x, b), endIndex)
         case CS_ARRAY_WITH_SIZE | CS_ARRAY_INJ =>
           val size = buff.getIntLE(counter)
           val endIndex = counter + size
           val newBuff = buff.copy(counter, size)
           (SonArray(x, newBuff), endIndex)
       }
-
     case SonObject(x, _) =>
       x match {
         case C_DOT =>
           val b: ByteBuf = buff.copy(0, buff.capacity)
           (SonObject(x, b), buff.capacity())
-
+            (SonObject(x, b), buff.capacity())
         case CS_OBJECT =>
           val size = buff.getIntLE(counter - 4)
           val endIndex = counter - 4 + size
           val b = buff.copy(counter - 4, size)
           (SonObject(x, b), endIndex)
-
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(counter) //Get the object without its size
           val endIndex = counter + size
           val b = buff.copy(counter, size)
           (SonObject(x, b), endIndex)
-
         case CS_OBJECT_INJ =>
           val size = buff.getIntLE(counter)
           val endIndex = counter + size
           val b = buff.copy(counter, size)
           (SonObject(x, b), endIndex)
       }
-
     case SonString(x, _) =>
       x match {
         case CS_NAME | CS_NAME_NO_LAST_BYTE =>
@@ -287,18 +283,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
             key.append(buff.getByte(i))
             i += 1
           }
-
           if (x equals CS_NAME)
             (SonString(x, new String(key.toArray).filter(p => p != 0)), i + 1) //TODO secalhar tirar aqui este + 1
           else
             (SonString(x, new String(key.toArray).filter(p => p != 0)), i)
-
-
         case CS_STRING =>
           val valueLength: Int = buff.getIntLE(counter)
           val charSeq = buff.getCharSequence(counter + 4, valueLength, charset).toString.filter(b => b != 0)
           (SonString(x, charSeq), counter + 4 + valueLength)
-
         case _ =>
           val valueLength: Int = buff.getIntLE(counter)
           val newBuff: ByteBuf = Unpooled.buffer()
@@ -307,14 +299,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           newBuff.capacity(newBuff.writerIndex)
           (SonString(x, newBuff), counter - 4 + valueLength)
       }
-
     case SonNumber(x, _) =>
       x match {
         case CS_DOUBLE => (SonNumber(x, buff.getDoubleLE(counter)), counter + 8)
         case CS_INTEGER => (SonNumber(x, buff.getIntLE(counter)), counter + 4)
         case CS_LONG => (SonNumber(x, buff.getLongLE(counter)), counter + 8)
       }
-
     case SonNull(CS_NULL, _) => (SonNull(CS_NULL, V_NULL), counter)
   }
 

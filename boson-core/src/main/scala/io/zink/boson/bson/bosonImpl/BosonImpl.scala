@@ -1,8 +1,8 @@
-package io.zink.boson.bson.bsonImpl
+package io.zink.boson.bson.bosonImpl
 
 import io.netty.buffer.ByteBuf
-import io.zink.boson.bson.bsonImpl.Dictionary._
-import io.zink.boson.bson.bsonPath._
+import io.zink.boson.bson.bosonImpl.Dictionary._
+import io.zink.boson.bson.bosonPath._
 import io.zink.boson.bson.codec._
 import BosonExtractorImpl._
 import BosonInjectorImpl._

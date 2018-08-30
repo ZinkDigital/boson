@@ -1,4 +1,4 @@
-package io.zink.boson.bson.bsonImpl
+package io.zink.boson.bson.bosonImpl
 
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Typeable, Witness}
 import shapeless.labelled.{FieldType, field}

@@ -1,9 +1,9 @@
-package io.zink.boson.bson.bsonPath
+package io.zink.boson.bson.bosonPath
 
 import org.parboiled2.ParserInput.StringBasedParserInput
 import org.parboiled2._
 import scala.util.Try
-import io.zink.boson.bson.bsonImpl.Dictionary._
+import io.zink.boson.bson.bosonImpl.Dictionary._
 
 sealed trait Statement
 

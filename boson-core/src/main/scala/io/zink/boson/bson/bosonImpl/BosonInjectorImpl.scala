@@ -1,11 +1,11 @@
-package io.zink.boson.bson.bsonImpl
+package io.zink.boson.bson.bosonImpl
 
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.zink.boson.bson.bsonImpl.Dictionary._
-import io.zink.boson.bson.bsonPath._
+import io.zink.boson.bson.bosonImpl.Dictionary._
+import io.zink.boson.bson.bosonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
 import io.zink.bsonLib.BsonObject
@@ -17,7 +17,7 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-private[bsonImpl] object BosonInjectorImpl {
+private[bosonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
