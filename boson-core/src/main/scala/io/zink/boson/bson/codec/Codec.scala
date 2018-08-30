@@ -51,8 +51,17 @@ trait Codec {
     */
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
 
+  //TODO: Update this before 1.0
+  /**
+    *
+    * @param counter
+    * @param tkn
+    * @param ignore
+    * @return
+    */
   def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int)
 
+  //TODO: Update this before 1.0
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
@@ -63,6 +72,7 @@ trait Codec {
   //def readArrayPosition: Int
   def readArrayPosition: Unit
 
+  //TODO: With the new paralelised implementation these might become redundant and should be deleted
   /**
     * getReaderIndex is used to get the actual reader index position in the stream
     *
@@ -113,6 +123,12 @@ trait Codec {
     */
   def getInitialIndex: Int
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def getInitialIndexWithCounter(counter: Int): Int
 
   /**
@@ -122,6 +138,12 @@ trait Codec {
     */
   def getLastIndex: Int
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def getLastIndexCounter(counter: Int): Int
 
   /**
@@ -132,7 +154,12 @@ trait Codec {
     */
   def readSize: Int
 
-
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def readSizeWithCounter(counter: Int): (Int, Int)
 
   /**
