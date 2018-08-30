@@ -326,6 +326,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getInitialIndex: Int = getReaderIndex
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def getInitialIndexWithCounter(counter: Int): Int = counter
 
   /**
@@ -335,6 +341,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getLastIndex: Int = getReaderIndex
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def getLastIndexCounter(counter: Int): Int = counter
 
   /**
@@ -345,6 +357,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def readSize: Int = buff.readIntLE
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def readSizeWithCounter(counter: Int): (Int, Int) = (buff.getIntLE(counter), counter + 4)
 
   /**
