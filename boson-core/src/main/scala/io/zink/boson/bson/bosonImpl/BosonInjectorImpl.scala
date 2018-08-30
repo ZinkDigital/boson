@@ -152,7 +152,7 @@ private[bosonImpl] object BosonInjectorImpl {
                       Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))))) ++ iterateDataStructure
                   }
                 } else {
-                  val readerIndx = indexCounter //Register the index where the object starts
+                  val readerIndx = indexCounter   //Register the index where the object starts
                   val (codecToBeRead, newCounter) = processTypesArrayCounter(indexCounter, dataType, codec, codec.createEmptyCodec)
                   updateCounter(newCounter)
                   Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))))) ++ iterateDataStructure
