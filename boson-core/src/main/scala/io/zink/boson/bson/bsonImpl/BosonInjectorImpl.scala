@@ -1599,12 +1599,9 @@ private[bsonImpl] object BosonInjectorImpl {
                 val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
                 val newCodec = injectArrayValue(partialCodec, statementsList, value, from, condition, to)
                 currentCodec + newCodec
-                currentCodecCopy + newCodec
               } else {
-//                val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
                 val newCodec = injectArrayValue(codec, statementsList.drop(1), value, from, condition, to)
                 currentCodec + newCodec
-                currentCodecCopy + newCodec
               }
             case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType != D_BSONARRAY =>
               processTypesArray(dataType,codec, currentCodec)
@@ -1648,35 +1645,37 @@ private[bsonImpl] object BosonInjectorImpl {
 
           (key, condition, to) match {
             case (_, C_END, _) if isArray =>
-            case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
               if (statementsList.lengthCompare(1) == 0) {
-                dataType match{
-                  case D_BSONOBJECT | D_BSONARRAY =>
-                    val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
-                    val interiorObjCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
-
-                    if(condition.equals(UNTIL_RANGE)){
-                      ???
-                    } else {
-                      currentCodec + interiorObjCodec
-                    }
-
-                  case _ => writeValue(codec, currentCodec, value, dataType)
+                val newCurrentCodec = currentCodecCopy.duplicate
+                Try(writeValue(codec.duplicate, newCurrentCodec, value, dataType)) match {
+                  case Success(_) =>
+                    currentCodec.clear + newCurrentCodec
+                    processTypesArray(dataType, codec, currentCodecCopy)
+                  case Failure(_) =>
                 }
-              }
-              if (statementsList.lengthCompare(1) == 0) {
-                writeValue(codec, currentCodec, value, dataType)
-              } else {
+              }else { // TODO- Figure this one out
                 processTypesArray(dataType, codec, currentCodec)
               }
-            case (x, _,C_END) if isArray && from.toInt > x.toInt => ???
+            case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
+              if (statementsList.lengthCompare(1) == 0) {
+                writeValue(codec, currentCodec, value, dataType)
+              }else {
+                processTypesArray(dataType, codec, currentCodec)
+              }
+            case (x, _,C_END) if isArray && from.toInt > x.toInt =>
+              processTypesArray(dataType, codec, currentCodec)
             case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
               if (statementsList.lengthCompare(1) == 0) {
                 writeValue(codec, currentCodec, value, dataType)
               } else {
                 processTypesArray(dataType, codec, currentCodec)
               }
-            case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) => ???
+            case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
+              if (l.toInt < x.toInt) {
+                currentCodec.writeRest(codec, dataType)
+              } else {
+                processTypesArray(dataType, codec, currentCodec)
+              }
             case _ => processTypesArray(dataType, codec, currentCodec)
           }
       }
