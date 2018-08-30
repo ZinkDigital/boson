@@ -169,21 +169,18 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val b: ByteBuf = buff.copy(0, buff.capacity)
           buff.readerIndex(buff.capacity)
           SonObject(x, b)
-
         case CS_OBJECT =>
           val size = buff.getIntLE(buff.readerIndex - 4)
           val endIndex = buff.readerIndex - 4 + size
           val b = buff.copy(buff.readerIndex - 4, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
-
         case CS_OBJECT_WITH_SIZE =>
           val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
         val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
-
         case CS_OBJECT_INJ =>
           val size = buff.getIntLE(buff.readerIndex)
           val endIndex = buff.readerIndex + size
@@ -201,7 +198,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
             i += 1
           }
 
-          if (x equals CS_NAME) buff.readByte()
+          if (x equals CS_NAME)
+            buff.readByte()
 
           SonString(x, new String(key.toArray).filter(p => p != 0))
 
@@ -245,7 +243,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           val endIndex = counter - 4 + size
           val b = buff.copy(counter - 4, size)
           (SonArray(x, b), endIndex)
-            (SonArray(x, b), endIndex)
         case CS_ARRAY_WITH_SIZE | CS_ARRAY_INJ =>
           val size = buff.getIntLE(counter)
           val endIndex = counter + size
@@ -257,7 +254,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         case C_DOT =>
           val b: ByteBuf = buff.copy(0, buff.capacity)
           (SonObject(x, b), buff.capacity())
-            (SonObject(x, b), buff.capacity())
         case CS_OBJECT =>
           val size = buff.getIntLE(counter - 4)
           val endIndex = counter - 4 + size
@@ -330,6 +326,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getInitialIndex: Int = getReaderIndex
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def getInitialIndexWithCounter(counter: Int): Int = counter
 
   /**
@@ -339,6 +341,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getLastIndex: Int = getReaderIndex
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def getLastIndexCounter(counter: Int): Int = counter
 
   /**
@@ -349,6 +357,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def readSize: Int = buff.readIntLE
 
+  //TODO: Document this prior to 1.0
+  /**
+    *
+    * @param counter
+    * @return
+    */
   def readSizeWithCounter(counter: Int): (Int, Int) = (buff.getIntLE(counter), counter + 4)
 
   /**
