@@ -1728,10 +1728,18 @@ private[bsonImpl] object BosonInjectorImpl {
         codec.readToken(SonString(CS_STRING))
       case D_INT =>
         codec.readToken(SonNumber(CS_INTEGER))
+      case D_LONG =>
+        codec.readToken(SonNumber(CS_LONG))
+      case D_FLOAT_DOUBLE =>
+        codec.readToken(SonNumber(CS_DOUBLE))
+      case D_BOOLEAN =>
+        codec.readToken(SonBoolean(CS_BOOLEAN))
       case D_BSONARRAY =>
         codec.readToken(SonArray(CS_ARRAY_INJ))
       case D_BSONOBJECT =>
         codec.readToken(SonObject(CS_OBJECT_INJ))
+      case D_NULL =>
+        codec.readToken(SonNull(CS_NULL))
     }
     (currentCodec, before)
   }
