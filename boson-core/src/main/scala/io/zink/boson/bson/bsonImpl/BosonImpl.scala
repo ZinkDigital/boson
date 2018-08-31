@@ -231,6 +231,28 @@ object BosonImpl {
             }
         }
         injectArrayValueWithKey(codec, statements, injValue, input._1, input._2.toString, input._3, input._4.toString)
+
+      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        val input: (String, Int, String, Any) =
+          (leftArg, midArg, rightArg) match {
+            case (i, o1, o2) if o1.isDefined && o2.isDefined =>
+              if (o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]) {
+                val to: Int = o2.get.asInstanceOf[Int]
+                (EMPTY_KEY, i, TO_RANGE, to - 1)
+              }
+              else (EMPTY_KEY, i, o1.get.value, o2.get)
+
+            case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (EMPTY_KEY, i, TO_RANGE, i)
+
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
+                case C_END => (EMPTY_KEY, 0, C_END, None)
+                case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
+              }
+          }
+        injectArrayValue(codec, statements, injValue,  input._3, input._2.toString, input._4.toString)
       case _ => ???
     }
 

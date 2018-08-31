@@ -584,18 +584,18 @@ object PerformanceTests extends App {
   val bosonArticle110: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
   val bosonArticle110Value: Boson = Boson.injector(".Markets[0 to end].Tags", "Something")
   println("Function")
-//  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
-//  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Fix Bug HERE!!!
-//  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
-//  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
-//  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
+  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
+  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Fix Bug HERE!!!
+  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
+  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
+  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
   performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
   performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
   performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
 
   println("Value")
-//  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
-//  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
+  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
+  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
   performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
 
   //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)

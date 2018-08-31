@@ -1621,7 +1621,7 @@ private[bsonImpl] object BosonInjectorImpl {
     val currentCodec = codec.createEmptyCodec
     val currentCodecCopy = codec.createEmptyCodec
     while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
-      val (dataType, _) = readWriteDataType(codec, currentCodec, 4)
+      val (dataType, _) = readWriteDataType(codec, currentCodec, 4) //TODO - Put the former type as a parameter
       currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
       dataType match {
         case 0 =>
@@ -1658,8 +1658,20 @@ private[bsonImpl] object BosonInjectorImpl {
               }
             case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
               if (statementsList.lengthCompare(1) == 0) {
-                writeValue(codec, currentCodec, value, dataType)
-              }else {
+                if(condition.equals(UNTIL_RANGE)){
+                  if(codec.getDataType == 0){
+                    codec.skipChar(back = true)
+                    processTypesArray(dataType, codec.duplicate, currentCodec)
+                    processTypesArray(dataType, codec, currentCodecCopy)
+                  } else {
+                    currentCodecCopy.clear + currentCodec.duplicate
+                    val before = writeValue(codec, currentCodec, value, dataType)
+                    currentCodecCopy.writeToken(before._2)
+                  }
+                } else {
+                  writeValue(codec, currentCodec, value, dataType)
+                }
+              } else {
                 processTypesArray(dataType, codec, currentCodec)
               }
             case (x, _,C_END) if isArray && from.toInt > x.toInt =>
@@ -1681,10 +1693,11 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
+    if(condition.equals(UNTIL_RANGE)) currentCodecCopy.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
+    else currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
-  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int): Codec = {
+  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int): (Codec, SonNamedType) = {
     value match {
       case string: String =>
         currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1))
@@ -1710,7 +1723,7 @@ private[bsonImpl] object BosonInjectorImpl {
         currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
       case _ => ??? //TODO - case classes
     }
-    dataType match {
+    val before: SonNamedType = dataType match {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         codec.readToken(SonString(CS_STRING))
       case D_INT =>
@@ -1720,7 +1733,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_BSONOBJECT =>
         codec.readToken(SonObject(CS_OBJECT_INJ))
     }
-    currentCodec
+    (currentCodec, before)
   }
 
 

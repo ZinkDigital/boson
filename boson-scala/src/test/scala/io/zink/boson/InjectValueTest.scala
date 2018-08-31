@@ -63,7 +63,7 @@ class InjectValueTest extends FunSuite {
     assert(equals == true)
   }
 
-  test("CodecJson - Top level array inject single value") {
+  test("CodecJson - Top level array inject key[single] value") {
     val expectedLayer1 = new BsonArray().add(911).add(112)
     val expected = new BsonObject().put("emergency", expectedLayer1).encodeToBarray()
     val bsonLayer1 = new BsonArray().add(100).add(112)
@@ -81,7 +81,7 @@ class InjectValueTest extends FunSuite {
     assert(equals == true)
   }
 
-  test("CodecJson - Top level array inject all values") {
+  test("CodecJson - Top level array inject key[all] values") {
     val expectedLayer1 = new BsonArray().add(911).add(911).add(911).add(911).add(911)
     val expected = new BsonObject().put("emergency", expectedLayer1).encodeToBarray()
     val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
@@ -99,7 +99,7 @@ class InjectValueTest extends FunSuite {
     assert(equals == true)
   }
 
-  test("CodecJson - Top level array inject [1 to 3] values") {
+  test("CodecJson - Top level array inject Key[1 to 3] values") {
     val expectedLayer1 = new BsonArray().add(100).add(911).add(911).add(911).add(400)
     val expected = new BsonObject().put("emergency", expectedLayer1).encodeToBarray()
     val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
@@ -117,7 +117,25 @@ class InjectValueTest extends FunSuite {
     assert(equals == true)
   }
 
-  test("CodecJson - Top level array inject [end] values") {
+  test("CodecJson - Top level array inject key[1 until 4] values") {
+    val expectedLayer1 = new BsonArray().add(100).add(911).add(911).add(911).add(400)
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToBarray()
+    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = ".emergency[1 until 4]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall( b => b._1 == b._2)
+
+    println("Exp: "+ expected.mkString(", "))
+    println("Res: "+result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject key[end] values") {
     val expectedLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(911)
     val expected = new BsonObject().put("emergency", expectedLayer1).encodeToBarray()
     val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
@@ -135,4 +153,129 @@ class InjectValueTest extends FunSuite {
     assert(equals == true)
   }
 
+  test("CodecJson - Top level array inject key[0 until end] values") {
+    val expectedLayer1 = new BsonArray().add(911).add(911).add(911).add(911).add(400)
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToBarray()
+    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = ".emergency[0 until end]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall(b => b._1 == b._2)
+
+    println("Exp: " + expected.mkString(", "))
+    println("Res: " + result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject [single] value") {
+//    val expectedLayer1 = new BsonArray().add(911).add(112)
+    val expected = new BsonArray().add(911).add(112).encodeToBarray()
+//    val bsonLayer1 = new BsonArray().add(100).add(112)
+    val bson = new BsonArray().add(100).add(112)
+    val ex = ".[0]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall( b => b._1 == b._2)
+
+    println("Exp: "+ expected.mkString(", "))
+    println("Res: "+result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject [all] values") {
+//    val expectedLayer1 = new BsonArray().add(911).add(911).add(911).add(911).add(911)
+    val expected = new BsonArray().add(911).add(911).add(911).add(911).add(911).encodeToBarray()
+//    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val ex = ".[0 to end]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall( b => b._1 == b._2)
+
+    println("Exp: "+ expected.mkString(", "))
+    println("Res: "+result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject [1 to 3] values") {
+    //    val expectedLayer1 = new BsonArray().add(911).add(911).add(911).add(911).add(911)
+    val expected = new BsonArray().add(100).add(911).add(911).add(911).add(400).encodeToBarray()
+    //    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val ex = ".[1 to 3]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall( b => b._1 == b._2)
+
+    println("Exp: "+ expected.mkString(", "))
+    println("Res: "+result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject [1 until 4] values") {
+    //    val expectedLayer1 = new BsonArray().add(911).add(911).add(911).add(911).add(911)
+    val expected = new BsonArray().add(100).add(911).add(911).add(911).add(400).encodeToBarray()
+    //    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val ex = ".[1 until 4]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall( b => b._1 == b._2)
+
+    println("Exp: "+ expected.mkString(", "))
+    println("Res: "+result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject [end] values") {
+//    val expectedLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(911)
+    val expected =new BsonArray().add(100).add(112).add(200).add(300).add(911).encodeToBarray()
+//    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val ex = ".[end]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall( b => b._1 == b._2)
+
+    println("Exp: "+ expected.mkString(", "))
+    println("Res: "+result.mkString(", "))
+
+    assert(equals == true)
+  }
+
+  test("CodecJson - Top level array inject [0 until end] values") {
+//    val expectedLayer1 = new BsonArray().add(911).add(911).add(911).add(911).add(400)
+    val expected = new BsonArray().add(911).add(911).add(911).add(911).add(400).encodeToBarray()
+//    val bsonLayer1 = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val bson = new BsonArray().add(100).add(112).add(200).add(300).add(400)
+    val ex = ".[0 until end]"
+    val jsonInj = Boson.injector(ex, 911)
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall(b => b._1 == b._2)
+
+    println("Exp: " + expected.mkString(", "))
+    println("Res: " + result.mkString(", "))
+
+    assert(equals == true)
+  }
 }
