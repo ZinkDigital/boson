@@ -232,6 +232,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   //TODO: Get rid of the "x" and "b" variables. Give names that explain what they are.
+  /**
+    * readToken is used to obtain a value corresponding to the SonNamedType request, consuming the value from the stream
+    *
+    * This method uses a variable counter to simulate this codec's reader index
+    *
+    * @param tkn is a value from out DSL trait representing the requested type
+    * @return returns the same SonNamedType request with the value obtained.
+    */
   override def readTokenWithCounter(counter: Int, tkn: SonNamedType, ignore: Boolean = false): (SonNamedType, Int) = tkn match {
     case SonBoolean(x, _) =>
       (SonBoolean(x, buff.getByte(counter)), counter + 1)
@@ -330,6 +338,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getInitialIndex: Int = getReaderIndex
 
+  /**
+    * Method that gets the initial index to read from the codec
+    *
+    * This method uses a variable counter to simulate this codec's reader index
+    *
+    * @return
+    */
   def getInitialIndexWithCounter(counter: Int): Int = counter
 
   /**
@@ -339,6 +354,13 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def getLastIndex: Int = getReaderIndex
 
+  /**
+    * Method that gets the last index to read from the codec
+    *
+    * This method uses a variable counter to simulate this codec's reader index
+    *
+    * @return
+    */
   def getLastIndexCounter(counter: Int): Int = counter
 
   /**
@@ -349,6 +371,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def readSize: Int = buff.readIntLE
 
+  /**
+    * readSize is used to obtain the size of the next tokens, consuming the values from the stream
+    *
+    * This method uses a variable counter to simulate this codec's reader index
+    *
+    * @return this function return the size of the next token, if the next token is an Object, Array or String
+    *         which are the case that make sense to obtain a size
+    */
   def readSizeWithCounter(counter: Int): (Int, Int) = (buff.getIntLE(counter), counter + 4)
 
   /**
@@ -408,7 +438,23 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   override def readDataType(former: Int = 0): Int = buff.readByte()
 
-
+  /**
+    * readDataTypeCounter is used to obtain the type of the next value in stream, consuming the value from the stream
+    *
+    * This method uses a variable counter to simulate this codec's reader index
+    *
+    * @return an Int representing a type in stream
+    *         0: represents end of String, BsonObject/JsonObject, BsonArray/JsonArray
+    *         1: represents float and doubles
+    *         2: represents String, Array[Byte], Instants, CharSequences, Enumerates
+    *         3: represents BsonObject/JsonObject
+    *         4: represents BsonArray/JsonArray
+    *         8: represents a Boolean
+    *         10: represents a Null
+    *         16: represents a Int
+    *         18: represents a Long
+    *         And an int representing the modified counter
+    */
   override def readDataTypeCounter(counter: Int, former: Int = 0): (Int, Int) = (buff.getByte(counter), counter + 1)
 
 
@@ -584,6 +630,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def skipChar(back: Boolean = false): Unit = {}
 
+  /**
+    * Method that skips the next character in the current codec's data structure
+    *
+    * This method uses a variable counter that simulates this codec's reader index
+    */
   def skipCharCounter(counter: Int, back: Boolean = false): Int = counter
 
 
@@ -615,6 +666,15 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def canReadKey(searchAndModify: Boolean = false): Boolean = true
 
+  /**
+    * Method that decides if a codec is able to read a key or not. If the codec type is CodecBson this method will always return true
+    * If the method is of type CodecJson this method will check if the initial character is not an open array bracket
+    * for that would break the reading process in the Json case
+    *
+    * This method uses a variable counter that simulates this codec's reader index
+    *
+    * @return a Boolean saying if the codec is able to read a key or not
+    */
   def canReadKeyCounter(counter: Int, searchAndModify: Boolean = false): Boolean = true
 
   /**

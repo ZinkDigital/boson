@@ -23,6 +23,22 @@ private[bosonImpl] object BosonInjectorImpl {
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
   emptyBuff.writerIndex(0)
 
+  /**
+    * Function that recursively searches for the keys that are of interest to the injection
+    * This method executes the same tasks as modifyAll, except that this method creates just one
+    * write codec and does not create "sub codecs" for every time we find a sub object, instead
+    * this method passes the start and end index of where to read from the read-only codec.
+    *
+    * This method implements a variable counter that simulates the codec's reader index in order to
+    * successfully parallelize its process
+    *
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param codec          - Structure from which we are reading the old values
+    * @param fieldID        - Name of the field of interest
+    * @param injFunction    - The injection function to be applied
+    * @tparam T - The type of input and output of the injection function
+    * @return A Codec containing the alterations made
+    */
   def modifyAllSingleCodecCounter[T](statementsList: StatementsList, codec: Codec, fieldID: String, injFunction: T => T, startIndex: Int = 0, endIndex: Int = 0)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     var indexCounter: Int = startIndex
 
@@ -66,22 +82,22 @@ private[bosonImpl] object BosonInjectorImpl {
                         updateCounter(codec.readTokenWithCounter(indexCounter, token)._2) //read the object/array
                       val end = indexCounter //memorize the index of the end of the object/array
                       /*
-                        Idealy we'd want to run this next 2 instructions in another thread, but since we need to update the counter after that it may not possible
+                        Ideally we'd want to run this next 2 instructions in another thread, but since we need to update the counter after that it may not possible
                        */
                       val subCodec = BosonImpl.inject(codec.getCodecData, statementsList.drop(1), injFunction, start = start, end = end)
-                        val (codecToReadFrom, newCounterModifier) = modiffierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
+                        val (codecToReadFrom, newCounterModifier) = modifierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
                         updateCounter(newCounterModifier)
                         Seq(Future(Seq((startIndexMainCodec, start, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))))) ++ iterateDataStructure
 
                       case _ =>
                         val readerIndx = indexCounter
-                        val (codecToReadFrom, newCounterModifier) = modiffierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
+                        val (codecToReadFrom, newCounterModifier) = modifierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
                         updateCounter(newCounterModifier)
                         Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToReadFrom.getLength, Some(codecToReadFrom))))) ++ iterateDataStructure
                     }
                   } else {
                     val readerIndx = indexCounter
-                    val (codecToReadFrom, newCounterModifier) = modiffierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
+                    val (codecToReadFrom, newCounterModifier) = modifierAllCounter(indexCounter, codec, codec.createEmptyCodec, dataType, injFunction)
                     updateCounter(newCounterModifier)
                     //TODO THIS MIGHT BE A PROBLEM WHEN TRYING TO IMPLEMENT PARALLELISM SETTING THE COUNTER AND CONTINUING ITERATION
                     //TODO it may be possible to implement this in parallel, we need to get read of the updateCounter(newCounterModifier)
@@ -152,7 +168,7 @@ private[bosonImpl] object BosonInjectorImpl {
                       Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))))) ++ iterateDataStructure
                   }
                 } else {
-                  val readerIndx = indexCounter   //Register the index where the object starts
+                  val readerIndx = indexCounter //Register the index where the object starts
                   val (codecToBeRead, newCounter) = processTypesArrayCounter(indexCounter, dataType, codec, codec.createEmptyCodec)
                   updateCounter(newCounter)
                   Seq(Future(Seq((startIndexMainCodec, readerIndx, None), (0, codecToBeRead.getLength, Some(codecToBeRead))))) ++ iterateDataStructure
@@ -612,6 +628,7 @@ private[bosonImpl] object BosonInjectorImpl {
     *
     * This is method is part of the refactoring from readerIndex to indexCounter
     *
+    * @param counter         - Variable counter that simulates the codec's reader index
     * @param dataType        - Type of the value found and processing
     * @param codec           - Structure from which we are reading the values
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
@@ -729,16 +746,18 @@ private[bosonImpl] object BosonInjectorImpl {
   /**
     * Function used to perform the injection of the new values
     *
-    * This is method is part of the refactoring from readerIndex to indexCounter
+    * This method uses a variable counter instead using the codec's reader index and calls .readTokenWithCounter instead of .readToken
     *
+    * @param counter         - Variable that simulates the codec's reader index
     * @param codec           - Structure from which we are reading the values
+    * @param counter         - Variable number that simulates the codec's reader index
     * @param currentResCodec - Structure that contains the information already processed and where we write the values
     * @param seqType         - Type of the value found and processing
     * @param injFunction     - Function given by the user with the new value
     * @tparam T - Type of the value being injected
-    * @return A Codec containing the alterations made
+    * @return A Tuple containing the codec with the alterations made and the modified counter
     */
-  private def modiffierAllCounter[T](counter: Int, codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): (Codec, Int) = {
+  private def modifierAllCounter[T](counter: Int, codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): (Codec, Int) = {
     seqType match {
       case D_FLOAT_DOUBLE =>
         val (resultToken, newCounter) = codec.readTokenWithCounter(counter, SonNumber(CS_DOUBLE))
@@ -876,6 +895,22 @@ private[bosonImpl] object BosonInjectorImpl {
     case D_NULL => throw CustomException(s"NULL field. Can not be changed")
   }
 
+  /**
+    * Function that processes the types of all the information that is not relevant for the injection and copies it to
+    * the current resulting Codec
+    *
+    * This method uses a variable index counter that simulates the codec's reader index
+    *
+    * @param counter         - Variable that simulates the codec's reader index
+    * @param statementsList  - A list with pairs that contains the key of interest and the type of operation
+    * @param seqType         - Type of the value found and processing
+    * @param codec           - Structure from which we are reading the values
+    * @param currentResCodec - Structure that contains the information already processed and where we write the values
+    * @param fieldID         - name of the field we are searching
+    * @param injFunction     - Function given by the user with the new value
+    * @tparam T - Type of the value being injected
+    * @return A Codec containing the alterations made
+    */
   private def processTypesAllCounter[T](counter: Int, statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): (Codec, Int) =
     seqType match {
 
@@ -1800,11 +1835,11 @@ private[bosonImpl] object BosonInjectorImpl {
   /**
     * Helper function to retrieve a codec with the key information written in it , and the key that was written
     *
-    * This method is part of the refactoring from readerIndex to indexCounter
+    * This method calls .readTokenWithCounter instead of .readToken
     *
     * @param codec         - Structure from which we are reading the values
     * @param writableCodec - Structure that contains the information already processed and where we write the values
-    * @return the resulting codec and a string containing the key extracted
+    * @return A Tuple containing the resulting codec, a string containing the key extracted and the modified codec
     */
   private def writeKeyAndByteCounter(codec: Codec, writableCodec: Codec, counter: Int, readOnly: Boolean = false): (Codec, String, Int) = {
     val (resultToken, newCounter) = codec.readTokenWithCounter(counter, SonString(CS_NAME_NO_LAST_BYTE))
@@ -1945,11 +1980,11 @@ private[bosonImpl] object BosonInjectorImpl {
     * Method that reads the next data type, writes it to the writeCodec passed as an argument and
     * returns the data type and the written codec
     *
-    * This method is part of the refactoring from readerIndex to indexCounter
+    * This method calls .readDataTypeCounter instead of just .readDataType
     *
     * @param codec      - The codec from which to read the data type
     * @param writeCodec - The codec in which to write the data type
-    * @return A Tuple containing both the read data type and the written codec
+    * @return A Tuple containing the read data type, the written codec and the modified counter
     */
   private def readWriteDataTypeCounter(codec: Codec, writeCodec: Codec, counter: Int, formerType: Int = 0, readOnly: Boolean = false): (Int, Codec, Int) = {
     val (dataType: Int, newCounter: Int) = codec.readDataTypeCounter(counter, formerType)
