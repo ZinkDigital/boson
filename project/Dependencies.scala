@@ -19,5 +19,5 @@ object Dependencies {
   val testNG      = "org.testng"    %  "testng"        % "5.14.10"
   val perform     = "com.storm-enroute" %% "scalameter" % "0.8.2"
 
-  def scalatest(scalaVersion: String) = "org.scalatest" %% "scalatest" % "3.0.4"
+  def scalatest(scalaVersion: String) = "org.scalatest" %% "scalatest" % "3.0.5"
 }
