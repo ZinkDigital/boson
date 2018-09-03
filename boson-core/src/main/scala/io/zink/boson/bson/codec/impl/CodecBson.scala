@@ -573,6 +573,14 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
 
   //********** Inject Value Functions Go Here **********//
 
+
+  def containsKey(key: String): Boolean = {
+    val buffArray: Array[Byte] = buff.array()
+    val keyBytes: Array[Byte] = key.getBytes
+
+    buffArray.containsSlice(keyBytes)
+  }
+
 //  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = {
 //
 //    value match {

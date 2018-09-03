@@ -492,11 +492,11 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags")
   //  performanceAnalysis(bosonArticle10, ".Markets[0 to end].Tags", codecJson = true)
   //
-  //  //Injector ..Markets[@Selections]..Id
-  //  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
-  //  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
-  //  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
-  //
+  //Injector ..Markets[@Selections]..Id
+  //    val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
+  //    performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
+  //    performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
+
   //
   //  //    Injector ..Markets[end].Tags..marketgroupid
   //  val doubleDotInj3: Boson = Boson.injector("..Markets[end].Tags..marketgroupid", (in: String) => in)
@@ -518,10 +518,10 @@ object PerformanceTests extends App {
   //  performanceAnalysis(doubleDotInj5, "..Selections..Tradable", codecJson = true)
   //
   //
-  //  //  Injector ..Markets..Selections[@Id]
-  //  val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
-  //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
-  //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
+  //  Injector ..Markets..Selections[@Id]
+  //    val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
+  //    performanceAnalysis(doubleDotInj6, ".Markets.Selections[@Id]")
+  //    performanceAnalysis(doubleDotInj6, ".Markets.Selections[@Id]", codecJson = true)
   //
   //
   //  //  Injector ..Markets[first].Tags
@@ -583,20 +583,27 @@ object PerformanceTests extends App {
   val bosonArticle18Value: Boson = Boson.injector(".Tags.StartTime", "Something")
   val bosonArticle110: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
   val bosonArticle110Value: Boson = Boson.injector(".Markets[0 to end].Tags", "Something")
+  val doubleDotInj2: Boson = Boson.injector(".Markets[@Selections].Id", (in: String) => in)
+  val doubleDotInj2Value: Boson = Boson.injector(".Markets[@Selections].Id", "Something")
+
   println("Function")
-  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
-  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Fix Bug HERE!!!
-  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
-  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
-  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
-  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
-  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
-  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
+  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
+  //  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Fix Bug HERE!!!
+  //  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
+  //  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
+  //  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
+  //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
+  //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
+  //  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
+  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "Something", confSmart, "confSmart")
 
   println("Value")
-  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
-  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
-  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
+  //  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
+  //  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
+  //  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
+  performanceAnalysis(doubleDotInj2Value, "..Markets[@Selections]..KId")
 
   //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)
   /**

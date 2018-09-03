@@ -850,6 +850,10 @@ class CodecJson(str: String) extends Codec {
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
 
+  def containsKey(key: String): Boolean = {
+    true
+  }
+
 
   //********** Inject Value Functions Go Here **********//
 //
