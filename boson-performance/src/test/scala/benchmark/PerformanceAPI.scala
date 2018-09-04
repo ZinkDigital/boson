@@ -440,8 +440,8 @@ object PerformanceTests extends App {
   //  //  $.Markets.[-1].Tags
   //  performanceJsonPath("$..Markets.[-1].Tags", tag, confSmart, "confSmart")
   //
-  //  // $..Markets[@Selections]..Id
-  //  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "", confSmart, "confSmart")
+  // $..Markets[@Selections]..Id
+  //    performanceJsonPath("$..Markets[?(@.Selections)]..Id", "", confSmart, "confSmart")
   //
   //  // $..marketgroupid
   //  performanceJsonPath("$..marketgroupid", "", confSmart, "confSmart")
@@ -449,8 +449,8 @@ object PerformanceTests extends App {
   //  // $..Selections..Tradable
   //  performanceJsonPath("$..Selections..Tradable", false, confSmart, "confSmart")
   //
-  //  // $..Markets..Selections[@Id]
-  //  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "", confSmart, "confSmart")
+  // $..Markets..Selections[@Id]
+  //    performanceJsonPath("$..Markets..Selections[?(@.Id)]", "", confSmart, "confSmart")
   //
   //  // $..Markets[first].Tags
   //  performanceJsonPath("$..Markets[0].Tags", tag, confSmart, "confSmart")
@@ -583,32 +583,32 @@ object PerformanceTests extends App {
   val bosonArticle18Value: Boson = Boson.injector(".Tags.StartTime", "Something")
   val bosonArticle110: Boson = Boson.injector(".Markets[0 to end].Tags", (in: Tags) => in)
   val bosonArticle110Value: Boson = Boson.injector(".Markets[0 to end].Tags", "Something")
-  val doubleDotInj2: Boson = Boson.injector("..Markets[@Selections]..Id", (in: String) => in)
-  val doubleDotInj2Value: Boson = Boson.injector("..Markets[@Selections]..Id", "Something")
+  val doubleDotInj2: Boson = Boson.injector(".Markets[@Selections].Id", (in: String) => in)
+  val doubleDotInj2Value: Boson = Boson.injector(".Markets[@Selections].Id", "Something")
   val doubleDotInj6: Boson = Boson.injector("..Markets..Selections[@Id]", (in: String) => in)
   val doubleDotInj6Value: Boson = Boson.injector("..Markets..Selections[@Id]", "Something")
   //
 
   println("Function")
-//  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
-//  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Fix Bug HERE!!!
-//  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
-//  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
-//  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
-//  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
-//  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
-//  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
-  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id")
-  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
-  performanceJsonPath("$..Markets[?(@.Selections)]..Id", "Something", confSmart, "confSmart")
-  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
-  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
+  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]")
+  //  //  performanceAnalysis(bosonArticle17, ".LastEpochChangeReason[0]", codecJson = true)
+  //  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
+  //  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
+  //  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
+  //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
+  //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
+  //  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
+  //  performanceAnalysis(doubleDotInj2, ".Markets[@Selections].Id")
+  //  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
+  //  performanceJsonPath("$.Markets[?(@.Selections)].Id", "Something", confSmart, "confSmart")
+    performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
+  //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
   performanceJsonPath("$..Markets..Selections[?(@.Id)]", "Something", confSmart, "confSmart")
 
   println("Value")
-//  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
-//  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
-//  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
+  //  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
+  //  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
+  //  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
   performanceAnalysis(doubleDotInj2Value, ".Markets[@Selections].Id")
   performanceAnalysis(doubleDotInj6Value, "..Markets..Selections[@Id]")
 
