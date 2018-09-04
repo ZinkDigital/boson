@@ -1650,10 +1650,10 @@ private[bsonImpl] object BosonInjectorImpl {
             case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType == D_BSONARRAY =>
               if (statementsList.size == 1) {
                 val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
-                val newCodec = injectArrayValue(partialCodec, statementsList, value, from, condition, to)
+                val newCodec = injectArrayValue(partialCodec, statementsList, value, from, condition, to, dataType)
                 currentCodec + newCodec
               } else {
-                val newCodec = injectArrayValue(codec, statementsList.drop(1), value, from, condition, to)
+                val newCodec = injectArrayValue(codec, statementsList.drop(1), value, from, condition, to, dataType)
                 currentCodec + newCodec
               }
             case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType != D_BSONARRAY =>
@@ -1667,14 +1667,14 @@ private[bsonImpl] object BosonInjectorImpl {
     currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
-  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: T, condition: String, from: String, to: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: T, condition: String, from: String, to: String, formerType: Int)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
     var counter: Int = -1
 
     val currentCodec = codec.createEmptyCodec
     val currentCodecCopy = codec.createEmptyCodec
     while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
-      val (dataType, _) = readWriteDataType(codec, currentCodec, 4) //TODO - Put the former type as a parameter
+      val (dataType, _) = readWriteDataType(codec, currentCodec, formerType)
       currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
       dataType match {
         case 0 =>
@@ -1707,8 +1707,14 @@ private[bsonImpl] object BosonInjectorImpl {
                   case Failure(_) =>
                 }
               } else { // TODO- Figure this one out
-                processTypesArray(dataType, codec, currentCodec)
+                if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+
+                  ???
+                } else{
+                  processTypesArray(dataType, codec, currentCodec)
+                }
               }
+
             case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
               if (statementsList.lengthCompare(1) == 0) {
                 if (condition.equals(UNTIL_RANGE)) {
@@ -1769,6 +1775,14 @@ private[bsonImpl] object BosonInjectorImpl {
               //the key is a halfword and matches with the extracted key, dataType is an array
               //So we will look for the "elem" of interest inside the current object
               searchAndModifyValue(statementsList, codec, key, elem, value, currentCodec)
+              dataType match {
+                case D_BSONARRAY | D_BSONOBJECT => /*println("It's Here!!" + dataType)*/
+
+                //                  val partialCodec = codec.readToken()
+                case _ =>
+                  processTypesArray(dataType, codec, currentCodec)
+              }
+
 
             case _ =>
               if (statementsList.head._2.contains(C_DOUBLEDOT))
