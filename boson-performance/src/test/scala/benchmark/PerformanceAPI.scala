@@ -609,7 +609,7 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
   //  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
   //  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
-  performanceAnalysis(doubleDotInj2Value, ".Markets[@Selections].Id")
+//  performanceAnalysis(doubleDotInj2Value, ".Markets[@Selections].Id")
   performanceAnalysis(doubleDotInj6Value, "..Markets..Selections[@Id]")
 
   //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)

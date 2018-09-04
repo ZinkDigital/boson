@@ -1786,13 +1786,13 @@ private[bsonImpl] object BosonInjectorImpl {
               //the key is a halfword and matches with the extracted key, dataType is an array
               //So we will look for the "elem" of interest inside the current object
               searchAndModifyValue(statementsList, codec, key, elem, value, currentCodec)
-              dataType match {
-                case D_BSONARRAY | D_BSONOBJECT => /*println("It's Here!!" + dataType)*/
-
-                //                  val partialCodec = codec.readToken()
-                case _ =>
-                  processTypesArray(dataType, codec, currentCodec)
-              }
+            //              dataType match {
+            //                case D_BSONARRAY | D_BSONOBJECT => /*println("It's Here!!" + dataType)*/
+            //
+            //                //                  val partialCodec = codec.readToken()
+            //                case _ =>
+            //                  processTypesArray(dataType, codec, currentCodec)
+            //              }
 
 
             case _ =>
@@ -1821,7 +1821,7 @@ private[bsonImpl] object BosonInjectorImpl {
           if (codec.canReadKey(searchAndModify = true)) writeKeyAndByte(codec, currentCodec)
           val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
           val (oldReaderIndex, oldWriterIndex) = (partialCodec.getReaderIndex, partialCodec.getWriterIndex)
-          if (hasElem(partialCodec, elem)) {
+          if (hasElemValue(partialCodec, elem)) {
             partialCodec.setReaderIndex(oldReaderIndex)
             partialCodec.setWriterIndex(oldWriterIndex)
             //          if (partialCodec.containsKey(elem)) {
@@ -1866,9 +1866,7 @@ private[bsonImpl] object BosonInjectorImpl {
     writingCodec + currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
   }
 
-  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int): (Codec, SonNamedType)
-
-  = {
+  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int): (Codec, SonNamedType) = {
     value match {
       case string: String =>
         currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1))
@@ -1948,6 +1946,40 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_NULL => resultCodec.writeToken(codec.readToken(SonNull(CS_NULL)))
     }
+
+  private def hasElemValue(codec: Codec, elem: String): Boolean = {
+    val size: Int = codec.readSize
+    var key: String = ""
+    //Iterate through all of the keys from the dataStructure in order to see if it contains the elem
+    while (codec.getReaderIndex < size && (!elem.equals(key) && !isHalfword(elem, key))) {
+      key = "" //clear the key
+      val dataType = codec.readDataType()
+      dataType match {
+        case 0 =>
+        case _ =>
+          key = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].info.asInstanceOf[String]
+          dataType match {
+
+            case D_FLOAT_DOUBLE => codec.readToken(SonNumber(CS_DOUBLE))
+
+            case D_ARRAYB_INST_STR_ENUM_CHRSEQ => codec.readToken(SonString(CS_STRING))
+
+            case D_BSONOBJECT | D_BSONARRAY =>
+              codec.skipChar() //Skip the ":" character
+              codec.readToken(SonObject(CS_OBJECT_WITH_SIZE))
+
+            case D_BOOLEAN => codec.readToken(SonBoolean(CS_BOOLEAN))
+
+            case D_LONG => codec.readToken(SonNumber(CS_LONG))
+
+            case D_INT => codec.readToken(SonNumber(CS_INTEGER))
+
+            case D_NULL => codec.readToken(SonNull(CS_NULL))
+          }
+      }
+    }
+    key.toCharArray.deep == elem.toCharArray.deep || isHalfword(elem, key)
+  }
 
 
 }
