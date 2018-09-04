@@ -232,4 +232,28 @@ class InjectValueTest extends FunSuite {
 
     assert(equals)
   }
+
+  test("CodecBson - HasElem DOUBLE_DOTS injection test") {
+    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
+    val person2Ex = new BsonObject().put("name", "Something")
+    val bsonArrayEx = new BsonArray().add(person1Ex).add(person2Ex)
+    val expectedLayer = new BsonObject().put("persons", bsonArrayEx)
+    val expected = new BsonObject().put("layer1", expectedLayer).encodeToBarray()
+    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
+    val person2 = new BsonObject().put("name", "Jane Doe")
+    val bsonArray = new BsonArray().add(person1).add(person2)
+    val bsonLayer = new BsonObject().put("persons", bsonArray)
+    val bson = new BsonObject().put("layer1", bsonLayer)
+    val ex = "..persons[@name]"
+    val bsonInj = Boson.injector(ex, "Something")
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall(b => b._1 == b._2)
+
+    println("Exp: " + expected.mkString(", "))
+    println("Res: " + result.mkString(", "))
+
+    assert(equals)
+  }
 }

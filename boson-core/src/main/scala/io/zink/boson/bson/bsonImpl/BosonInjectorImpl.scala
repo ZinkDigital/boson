@@ -1610,7 +1610,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       case SonObject(_, result) => anyToEither(result)
                       case SonArray(_, result) => anyToEither(result)
                     }
-                    val subCodec = BosonImpl.injectValue(partialData, statementsList, value)
+                    val subCodec = injectKeyValue(CodecObject.toCodec(partialData), statementsList, value, key)
                     currentCodec + subCodec
                   case _ => processTypesArray(dataType, codec, currentCodec)
                 }
