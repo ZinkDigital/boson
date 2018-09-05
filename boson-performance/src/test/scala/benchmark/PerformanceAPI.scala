@@ -598,21 +598,21 @@ object PerformanceTests extends App {
   //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
   //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
   //  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confSmart")
-    performanceAnalysis(doubleDotInj2, ".Markets[@Selections].Id")
-  //  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
-    performanceJsonPath("$.Markets[?(@.Selections)].Id", "Something", confSmart, "confSmart")
-//    performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
+  performanceAnalysis(doubleDotInj2, ".Markets[@Selections].Id")
+  performanceAnalysis(doubleDotInj2, "..Markets[@Selections]..Id", codecJson = true)
+  performanceJsonPath("$.Markets[?(@.Selections)].Id", "Something", confSmart, "confSmart")
+  //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]")
   //  performanceAnalysis(doubleDotInj6, "..Markets..Selections[@Id]", codecJson = true)
-//  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "Something", confSmart, "confSmart")
+  //  performanceJsonPath("$..Markets..Selections[?(@.Id)]", "Something", confSmart, "confSmart")
 
   println("Value")
   //  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
   //  performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
   //  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
   performanceAnalysis(doubleDotInj2Value, ".Markets[@Selections].Id")
-//  performanceAnalysis(doubleDotInj6Value, "..Markets..Selections[@Id]")
+  performanceAnalysis(doubleDotInj2Value, ".Markets[@Selections].Id", codecJson = true)
+  //  performanceAnalysis(doubleDotInj6Value, "..Markets..Selections[@Id]")
 
-  //    Injector .Markets[0 to end].Tags (.Markets[*].Tags)
   /**
     * Private function to analise the performance of a given boson operation
     *

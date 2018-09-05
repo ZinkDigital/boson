@@ -267,4 +267,24 @@ class InjectValueTest extends FunSuite {
 
     assertArrayEquals(result, bsonExpected)
   }
+
+  test("CodecBson - HasElem injection test - Middle object not applicable") {
+    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
+    val person2Ex = new BsonObject().put("name", "Something")
+    val person3Ex = new BsonObject().put("person", "Helloo")
+    val bsonArrayEx = new BsonArray().add(person1Ex).add(person3Ex).add(person2Ex)
+    val expected = new BsonObject().put("persons", bsonArrayEx).encodeToBarray()
+    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
+    val person2 = new BsonObject().put("name", "Jane Doe")
+    val bsonArray = new BsonArray().add(person1).add(person3Ex).add(person2)
+    val bson = new BsonObject().put("persons", bsonArray)
+    val ex = ".persons[@name]"
+    val bsonInj = Boson.injector(ex, "Something")
+    val bsonEncoded = bson.encodeToBarray()
+    val future = bsonInj.go(bsonEncoded)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall(b => b._1 == b._2)
+
+    assert(equals)
+  }
 }
