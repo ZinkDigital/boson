@@ -1679,6 +1679,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val currentCodec = codec.createEmptyCodec
     val currentCodecCopy = codec.createEmptyCodec
+
     while ((codec.getReaderIndex - startReaderIndex) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec, formerType)
       currentCodecCopy.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
@@ -1700,7 +1701,7 @@ private[bsonImpl] object BosonInjectorImpl {
           currentCodecCopy.writeToken(SonString(CS_STRING, key), ignoreForJson = true)
           currentCodecCopy.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
 
-          val isArray = codec.isArray(4, key)
+          val isArray = codec.isArray(formerType, key)
 
           (key, condition, to) match {
             case (_, C_END, _) if isArray =>
@@ -1729,7 +1730,13 @@ private[bsonImpl] object BosonInjectorImpl {
                     currentCodecCopy.writeToken(before._2)
                   }
                 } else {
-                  writeValue(codec, currentCodec, value, dataType)
+                  if (dataType == D_BSONOBJECT) {
+                    val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                    val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
+                    currentCodec + newCodec
+                  } else {
+                    writeValue(codec, currentCodec, value, dataType)
+                  }
                 }
               } else {
                 processTypesArray(dataType, codec, currentCodec)
@@ -1785,14 +1792,27 @@ private[bsonImpl] object BosonInjectorImpl {
             case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType == D_BSONARRAY =>
               //the key is a halfword and matches with the extracted key, dataType is an array
               //So we will look for the "elem" of interest inside the current object
-              searchAndModifyValue(statementsList, codec, key, elem, value, currentCodec)
-            //              dataType match {
-            //                case D_BSONARRAY | D_BSONOBJECT => /*println("It's Here!!" + dataType)*/
-            //
-            //                //                  val partialCodec = codec.readToken()
-            //                case _ =>
-            //                  processTypesArray(dataType, codec, currentCodec)
-            //              }
+
+              //searchAndModifyValue(statementsList, codec, key, elem, value, currentCodec)
+
+              dataType match {
+                case D_BSONARRAY =>
+                  /*
+                  * HasElem only works with arrays of objects, is those objects contain the key that key is modified
+                  * */
+                  //                  val partialCodec = codec.readToken()
+
+                  val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
+//                  println(statementsList.head._1 + statementsList.head._2)
+                  val dots = statementsList.head._2
+                  val newStatementList: StatementsList = (Key(elem), dots) :: statementsList.tail /*(Key(newKey), statementsList.head._2)*/
+
+                  val modified = injectArrayValue(partialCodec, newStatementList, value, TO_RANGE, "0", C_END, dataType)
+                  currentCodec + modified
+
+                case _ =>
+                  processTypesArray(dataType, codec, currentCodec)
+              }
 
 
             case _ =>
