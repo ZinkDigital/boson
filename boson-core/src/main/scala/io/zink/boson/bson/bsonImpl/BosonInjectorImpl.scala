@@ -158,7 +158,7 @@ private[bsonImpl] object BosonInjectorImpl {
             case extracted if (fieldID.toCharArray.deep == extracted.toCharArray.deep || isHalfword(fieldID, extracted)) && dataType == D_BSONARRAY =>
               //the key is a halfword and matches with the extracted key, dataType is an array
               //So we will look for the "elem" of interest inside the current object
-//              searchAndModify(statementsList, codec, elem, injFunction, currentCodec)
+              //  searchAndModify(statementsList, codec, elem, injFunction, currentCodec)
 
               dataType match {
                 case D_BSONARRAY =>
@@ -1815,7 +1815,7 @@ private[bsonImpl] object BosonInjectorImpl {
                   //                  val partialCodec = codec.readToken()
 
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
-//                  println(statementsList.head._1 + statementsList.head._2)
+                  //                  println(statementsList.head._1 + statementsList.head._2)
                   val dots = statementsList.head._2
                   val newStatementList: StatementsList = (Key(elem), dots) :: statementsList.tail /*(Key(newKey), statementsList.head._2)*/
 
