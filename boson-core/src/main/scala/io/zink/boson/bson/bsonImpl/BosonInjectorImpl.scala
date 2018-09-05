@@ -938,7 +938,12 @@ private[bsonImpl] object BosonInjectorImpl {
                 } else {
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
-                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                      val partialCodec = if (dataType == D_BSONARRAY) {
+                        CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                      } else {
+                        CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info).wrapInBrackets() // TODO - this is putting double brackets at the end
+                      }
+                      //                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                       val interiorObjCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
                       val changedInsideCodec =
                         if (statementsList.head._2.contains(C_DOUBLEDOT))
