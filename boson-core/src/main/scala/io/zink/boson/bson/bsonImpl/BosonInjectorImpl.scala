@@ -940,8 +940,9 @@ private[bsonImpl] object BosonInjectorImpl {
                     case D_BSONARRAY | D_BSONOBJECT =>
                       val partialCodec = if (dataType == D_BSONARRAY) {
                         CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
-                      } else {
-                        CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info).wrapInBrackets() // TODO - this is putting double brackets at the end
+                      } else {// TODO - this is putting double brackets at the end
+                        val aux = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info)
+                        if(aux.wrappable) aux.wrapInBrackets() else aux
                       }
                       //                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                       val interiorObjCodec = BosonImpl.inject(partialCodec.getCodecData, statementsList, injFunction)
