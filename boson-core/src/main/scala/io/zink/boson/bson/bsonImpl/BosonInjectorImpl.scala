@@ -163,8 +163,8 @@ private[bsonImpl] object BosonInjectorImpl {
               dataType match {
                 case D_BSONARRAY =>
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
-                  val dots = statementsList.head._2
-                  val newStatementList: StatementsList = (Key(elem), dots) :: statementsList.tail
+//                  val dots = statementsList.head._2
+                  val newStatementList: StatementsList = (Key(elem), ".") :: statementsList.tail
 
                   val modified = modifyArrayEnd(newStatementList, partialCodec, injFunction, TO_RANGE, "0", C_END, statementsList, dataType)
                   currentCodec + modified
@@ -570,7 +570,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
       case D_BSONOBJECT =>
         val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-        currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction) // THIS LINE
+        currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
 
       case D_BSONARRAY =>
         val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
@@ -1038,7 +1038,7 @@ private[bsonImpl] object BosonInjectorImpl {
                         if(aux.wrappable) aux.wrapInBrackets() else aux
                       }
 //                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
-                      val statementsToUse = if (statementsList.head._2.contains(C_DOUBLEDOT)) statementsList else statementsList.drop(1)
+                      val statementsToUse = if (statementsList.head._2.contains(C_DOUBLEDOT) || fullStatementsList.head._1.isInstanceOf[HasElem]) statementsList else statementsList.drop(1)
                       Try(BosonImpl.inject(partialCodec.getCodecData, statementsToUse, injFunction)) match {
                         case Success(c) =>
                           if (condition equals UNTIL_RANGE) {
