@@ -940,7 +940,7 @@ private[bsonImpl] object BosonInjectorImpl {
                     case D_BSONARRAY | D_BSONOBJECT =>
                       val partialCodec = if (dataType == D_BSONARRAY) {
                         CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
-                      } else {// TODO - this is putting double brackets at the end
+                      } else {
                         val aux = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info)
                         if(aux.wrappable) aux.wrapInBrackets() else aux
                       }
@@ -968,11 +968,16 @@ private[bsonImpl] object BosonInjectorImpl {
                         currentCodecCopy + partialCodec.addComma
                       }
                     case _ =>
-                      val newCodecCopy = currentCodec.duplicate
-                      codec.skipChar(back = true)
-                      Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
-                        case Success(_) => currentCodecCopy.clear + newCodecCopy
-                        case Failure(_) =>
+                      if(fullStatementsList.head._1.isInstanceOf[HasElem]){
+                        codec.skipChar(back = true)
+                        processTypesArray(dataType, codec, currentCodec)
+                        currentCodecCopy.clear + currentCodec
+                      } else {
+                        val newCodecCopy = currentCodec.duplicate
+                        Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
+                          case Success(_) => currentCodecCopy.clear + newCodecCopy
+                          case Failure(_) =>
+                        }
                       }
                   }
                 }
