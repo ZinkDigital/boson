@@ -3219,6 +3219,9 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(client.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+
+    println("Res : " + resultValue + "\nExp : " + clientExpected.encodeToString)
+
     assert(resultValue.equals(clientExpected.encodeToString))
   }
 
@@ -3240,6 +3243,9 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(client.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+
+    println("Res : " + resultValue + "\nExp : " + clientExpected.encodeToString)
+
     assert(resultValue.equals(clientExpected.encodeToString))
   }
 
@@ -3261,6 +3267,9 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(client.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+
+    println("Res : " + resultValue + "\nExp : " + clientExpected.encodeToString)
+
     assert(resultValue.equals(clientExpected.encodeToString))
   }
 
@@ -3282,6 +3291,9 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(client.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+
+    println("Res : " + resultValue + "\nExp : " + clientExpected.encodeToString)
+
     assert(resultValue.equals(clientExpected.encodeToString))
   }
 
@@ -3303,6 +3315,9 @@ class CoverageTest extends FunSuite {
     })
     val future = jsonInj.go(client.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+
+    println("Res : " + resultValue + "\nExp : " + clientExpected.encodeToString)
+
     assert(resultValue.equals(clientExpected.encodeToString))
   }
 
