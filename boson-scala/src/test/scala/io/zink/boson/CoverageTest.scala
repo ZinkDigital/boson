@@ -3212,7 +3212,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3233,7 +3233,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = ".persons[@subObject].subObject.age"
+    val ex = ".persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3254,7 +3254,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3275,7 +3275,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3296,7 +3296,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })

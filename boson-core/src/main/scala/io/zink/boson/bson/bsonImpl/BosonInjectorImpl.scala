@@ -969,7 +969,7 @@ private[bsonImpl] object BosonInjectorImpl {
                       }
                     case _ =>
                       val newCodecCopy = currentCodec.duplicate
-
+                      codec.skipChar(back = true)
                       Try(modifierEnd(codec, dataType, injFunction, currentCodec, newCodecCopy)) match {
                         case Success(_) => currentCodecCopy.clear + newCodecCopy
                         case Failure(_) =>
