@@ -303,30 +303,56 @@ class InjectValueTest extends FunSuite {
   //
   //    assert(equals)
   //  }
+  //
+  //  test("Nested key injection - ..person.age") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val bson = new BsonObject().put("person", person1)
+  //    val person1Expected = new BsonObject().put("name", "john doe").put("age", 20)
+  //    val bsonExpected = new BsonObject().put("person", person1Expected).encodeToBarray
+  //    val ex = "..person.age"
+  //    val bsonInj = Boson.injector(ex, 20)
+  //    val future = bsonInj.go(bson.encodeToBarray)
+  //    val result: Array[Byte] = Await.result(future, Duration.Inf)
+  //
+  //    assertArrayEquals(result, bsonExpected)
+  //  }
+  //
+  //  test("Nested key injection - ..age") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val bson = new BsonObject().put("person", person1)
+  //    val person1Expected = new BsonObject().put("name", "john doe").put("age", 20)
+  //    val bsonExpected = new BsonObject().put("person", person1Expected).encodeToBarray
+  //    val ex = "..age"
+  //    val bsonInj = Boson.injector(ex, 20)
+  //    val future = bsonInj.go(bson.encodeToBarray)
+  //    val result: Array[Byte] = Await.result(future, Duration.Inf)
+  //
+  //    assertArrayEquals(result, bsonExpected)
+  //  }
+  //
+  //  test("Nested key injection - ..person..age") {
+  //    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
+  //    val bson = new BsonObject().put("person", person1)
+  //    val person1Expected = new BsonObject().put("name", "john doe").put("age", 20)
+  //    val bsonExpected = new BsonObject().put("person", person1Expected).encodeToBarray
+  //    val ex = "..person..age"
+  //    val bsonInj = Boson.injector(ex, 20)
+  //    val future = bsonInj.go(bson.encodeToBarray)
+  //    val result: Array[Byte] = Await.result(future, Duration.Inf)
+  //
+  //    assertArrayEquals(result, bsonExpected)
+  //  }
 
-  test("Nested key injection - ..person.age") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val bson = new BsonObject().put("person", person1)
-    val person1Expected = new BsonObject().put("name", "john doe").put("age", 20)
-    val bsonExpected = new BsonObject().put("person", person1Expected).encodeToBarray
-    val ex = "..person.age"
-    val bsonInj = Boson.injector(ex, 20)
-    val future = bsonInj.go(bson.encodeToBarray)
-    val result: Array[Byte] = Await.result(future, Duration.Inf)
-
-    assertArrayEquals(result, bsonExpected)
-  }
-
-  test("Nested key injection - ..age") {
-    val person1 = new BsonObject().put("name", "john doe").put("age", 21)
-    val bson = new BsonObject().put("person", person1)
-    val person1Expected = new BsonObject().put("name", "john doe").put("age", 20)
-    val bsonExpected = new BsonObject().put("person", person1Expected).encodeToBarray
-    val ex = "..age"
-    val bsonInj = Boson.injector(ex, 20)
-    val future = bsonInj.go(bson.encodeToBarray)
-    val result: Array[Byte] = Await.result(future, Duration.Inf)
-
-    assertArrayEquals(result, bsonExpected)
+  test("CodecJson - Top level key inject String value") {
+    val expected = new BsonObject().put("name", "Albertina").encodeToString
+    val bson = new BsonObject().put("name", "Albert")
+    val ex = ".name"
+    val jsonInj = Boson.injector(ex, "Albertina")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+//    val equals = result.zip(expected).forall(b => b._1 == b._2)
+    println(result)
+    assert(result.equals(expected))
   }
 }
