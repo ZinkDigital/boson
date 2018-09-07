@@ -1729,7 +1729,18 @@ private[bsonImpl] object BosonInjectorImpl {
               }
             case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType != D_BSONARRAY =>
               processTypesArray(dataType, codec, currentCodec)
-            case _ => processTypesArray(dataType, codec, currentCodec)
+            case _ =>
+              if((dataType == D_BSONARRAY || dataType == D_BSONOBJECT) && statementsList.head._2.equals(C_DOUBLEDOT)){
+                val partialCodec = if (dataType == D_BSONARRAY) {
+                  CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                } else {
+                  CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info).wrapInBrackets()
+                }
+                val modified = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
+                currentCodec + modified
+              } else {
+                processTypesArray(dataType, codec, currentCodec)
+              }
           }
 
       }
