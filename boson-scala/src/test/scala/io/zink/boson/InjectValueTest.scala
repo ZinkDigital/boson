@@ -381,12 +381,75 @@ class InjectValueTest extends FunSuite {
   //    assert(result.equals(expected))
   //  }
 
-  test("CodecJson - Top level array inject key[single] value") {
-    val expectedLayer1 = new BsonArray().add("Help").add("Ajuda")
-    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
-    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda")
-    val bson = new BsonObject().put("emergency", bsonLayer1)
-    val ex = ".emergency[0]"
+  //  test("CodecJson - Top level array inject key[single] value") {
+  //    val expectedLayer1 = new BsonArray().add("Help").add("Ajuda")
+  //    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+  //    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda")
+  //    val bson = new BsonObject().put("emergency", bsonLayer1)
+  //    val ex = ".emergency[0]"
+  //    val jsonInj = Boson.injector(ex, "Help")
+  //    val jsonEncoded = bson.encodeToString
+  //    val future = jsonInj.go(jsonEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+  //
+  //  test("CodecJson - Top level array inject key[all] values") {
+  //    val expectedLayer1 = new BsonArray().add("Help").add("Help").add("Help").add("Help").add("Help").add("Help")
+  //    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+  //    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+  //    val bson = new BsonObject().put("emergency", bsonLayer1)
+  //    val ex = ".emergency[0 to end]"
+  //    val jsonInj = Boson.injector(ex, "Help")
+  //    val jsonEncoded = bson.encodeToString
+  //    val future = jsonInj.go(jsonEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+  //
+  //  test("CodecJson - Top level array inject key[1 to 3] values") {
+  //    val expectedLayer1 = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda")
+  //    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+  //    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+  //    val bson = new BsonObject().put("emergency", bsonLayer1)
+  //    val ex = ".emergency[1 to 3]"
+  //    val jsonInj = Boson.injector(ex, "Help")
+  //    val jsonEncoded = bson.encodeToString
+  //    val future = jsonInj.go(jsonEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+  //
+  //  test("CodecJson - Top level array inject key[1 until 4] values") {
+  //    val expectedLayer1 = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda")
+  //    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+  //    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+  //    val bson = new BsonObject().put("emergency", bsonLayer1)
+  //    val ex = ".emergency[1 until 4]"
+  //    val jsonInj = Boson.injector(ex, "Help")
+  //    val jsonEncoded = bson.encodeToString
+  //    val future = jsonInj.go(jsonEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+  //
+  //  test("CodecJson - Top level array inject key[end] values") {
+  //    val expectedLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Help")
+  //    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+  //    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+  //    val bson = new BsonObject().put("emergency", bsonLayer1)
+  //    val ex = ".emergency[end]"
+  //    val jsonInj = Boson.injector(ex, "Help")
+  //    val jsonEncoded = bson.encodeToString
+  //    val future = jsonInj.go(jsonEncoded)
+  //    val result = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+
+  test("CodecJson - Top level array inject [single] value") {
+    val expected = new BsonArray().add("Help").add("Ajuda").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda")
+    val ex = ".[0]"
     val jsonInj = Boson.injector(ex, "Help")
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
@@ -394,12 +457,10 @@ class InjectValueTest extends FunSuite {
     assert(result.equals(expected))
   }
 
-  test("CodecBson - Top level array inject key[all] values") {
-    val expectedLayer1 = new BsonArray().add("Help").add("Help").add("Help").add("Help").add("Help").add("Help")
-    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
-    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
-    val bson = new BsonObject().put("emergency", bsonLayer1)
-    val ex = ".emergency[0 to end]"
+  test("CodecJson - Top level array inject [all] values") {
+    val expected = new BsonArray().add("Help").add("Help").add("Help").add("Help").add("Help").add("Help").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = ".[0 to end]"
     val jsonInj = Boson.injector(ex, "Help")
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
@@ -407,12 +468,10 @@ class InjectValueTest extends FunSuite {
     assert(result.equals(expected))
   }
 
-  test("CodecBson - Top level array inject key[1 to 3] values") {
-    val expectedLayer1 = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda")
-    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
-    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
-    val bson = new BsonObject().put("emergency", bsonLayer1)
-    val ex = ".emergency[1 to 3]"
+  test("CodecJson - Top level array inject [1 to 3] values") {
+    val expected = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = ".[1 to 3]"
     val jsonInj = Boson.injector(ex, "Help")
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
@@ -420,12 +479,10 @@ class InjectValueTest extends FunSuite {
     assert(result.equals(expected))
   }
 
-  test("CodecBson - Top level array inject key[1 until 4] values") {
-    val expectedLayer1 = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda")
-    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
-    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
-    val bson = new BsonObject().put("emergency", bsonLayer1)
-    val ex = ".emergency[1 until 4]"
+  test("CodecJson - Top level array inject [1 until 4] values") {
+    val expected = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = ".[1 until 4]"
     val jsonInj = Boson.injector(ex, "Help")
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
@@ -433,12 +490,10 @@ class InjectValueTest extends FunSuite {
     assert(result.equals(expected))
   }
 
-  test("CodecBson - Top level array inject key[end] values") {
-    val expectedLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Help")
-    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
-    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
-    val bson = new BsonObject().put("emergency", bsonLayer1)
-    val ex = ".emergency[end]"
+  test("CodecJson - Top level array inject [end] values") {
+    val expected = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Help").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = ".[end]"
     val jsonInj = Boson.injector(ex, "Help")
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)

@@ -261,7 +261,7 @@ object BosonImpl {
                 case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
               }
           } //TODO - might need to change below the formerType
-        injectArrayValue(codec, statements, injValue, input._3, input._2.toString, input._4.toString, 4)
+        injectArrayValue(codec.wrapInBrackets(), statements, injValue, input._3, input._2.toString, input._4.toString, 4)
     }
     resCodec
   }
