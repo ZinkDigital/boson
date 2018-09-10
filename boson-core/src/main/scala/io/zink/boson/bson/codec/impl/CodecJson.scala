@@ -496,8 +496,8 @@ class CodecJson(str: String) extends Codec {
             case CS_T => D_BOOLEAN
             case CS_F => D_BOOLEAN
             case CS_N => D_NULL
-            case x if x.isDigit =>
-              lazy val strSliced = input.substring(rIndexAux, inputSize)
+            case x if x.isDigit => //TODO - Reafctor this Section
+              val strSliced = input.substring(rIndexAux, inputSize)
               val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
               val inputAux = input.substring(rIndexAux, rIndexAux + bindex)
               if (!inputAux.contains(CS_DOT)) {
@@ -512,7 +512,7 @@ class CodecJson(str: String) extends Codec {
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL
       case x if x.isDigit =>
-        lazy val strSliced = input.substring(readerIndex, inputSize)
+        val strSliced = input.substring(readerIndex, inputSize)
         val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
         val inputAux = input.substring(readerIndex, readerIndex + bindex)
         if (!inputAux.contains(CS_DOT)) {

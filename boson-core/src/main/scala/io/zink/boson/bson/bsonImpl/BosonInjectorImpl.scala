@@ -1532,7 +1532,15 @@ private[bsonImpl] object BosonInjectorImpl {
                           val subCodec = BosonImpl.injectValue(codecData, statementsList.drop(1), value)
                           currentCodec + subCodec
                           codec.setReaderIndex(bb.readerIndex)
-                        case Right(_) => ???
+                        case Right(_) =>
+                          val token = if (dataType == D_BSONOBJECT) SonObject(CS_OBJECT_WITH_SIZE) else SonArray(CS_ARRAY_WITH_SIZE)
+                          val partialData = codec.readToken(token) match {
+                            case SonObject(_, result) => Right(result.asInstanceOf[String])
+                            case SonArray(_, result) => Right(result.asInstanceOf[String])
+                          }
+                          val subCodec = BosonImpl.injectValue(partialData, statementsList.drop(1), value)
+                          currentCodec + subCodec
+                          codec.setReaderIndex(codec.getReaderIndex + subCodec.getWriterIndex)
                       }
                     case _ => processTypesArray(dataType, codec, currentCodec)
                   }
@@ -1744,8 +1752,8 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    if (condition.equals(UNTIL_RANGE)) currentCodecCopy.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
-    else currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
+    if (condition.equals(UNTIL_RANGE)) currentCodecCopy.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
+    else currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
   }
 
 
@@ -1815,9 +1823,9 @@ private[bsonImpl] object BosonInjectorImpl {
   private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int): (Codec, SonNamedType) = {
     value match {
       case string: String =>
-        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1))
+        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
         currentCodec.writeToken(SonString(CS_STRING, string))
-        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte))
+        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
       case int: Int =>
         currentCodec.writeToken(SonNumber(CS_INTEGER, int))
       case long: Long =>
