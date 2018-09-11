@@ -163,7 +163,6 @@ private[bsonImpl] object BosonInjectorImpl {
               dataType match {
                 case D_BSONARRAY =>
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
-                  //                  val dots = statementsList.head._2
                   val newStatementList: StatementsList = (Key(elem), ".") :: statementsList.tail
 
                   val modified = modifyArrayEnd(newStatementList, partialCodec, injFunction, TO_RANGE, "0", C_END, statementsList, dataType)
@@ -1710,7 +1709,7 @@ private[bsonImpl] object BosonInjectorImpl {
                   if (dataType == D_BSONOBJECT) {
                     val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
                     val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
-                    currentCodec + newCodec
+                    currentCodec + newCodec.addComma
                   } else {
                     writeValue(codec, currentCodec, value, dataType)
                   }
@@ -1727,7 +1726,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 if (dataType == D_BSONOBJECT) {
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
                   val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
-                  currentCodec + newCodec
+                  currentCodec + newCodec.addComma
                 } else {
                   writeValue(codec, currentCodec, value, dataType)
                 }
@@ -1771,11 +1770,11 @@ private[bsonImpl] object BosonInjectorImpl {
       dataType match {
         case 0 => //Nothing
         case _ =>
-          val (_, key) = if (codec.canReadKey()) writeKeyAndByte(codec, currentCodec) else (currentCodec, "")
+          val (_, found) = if (codec.canReadKey()) writeKeyAndByte(codec, currentCodec) else (currentCodec, "")
           //We only want to modify if the dataType is an Array and if the extractedKey matches with the fieldID
           //or they're halfword's
           //in all other cases we just want to copy the data from one codec to the other (using "process" like functions)
-          key match {
+          found match {
             case extracted if (key.toCharArray.deep == extracted.toCharArray.deep || isHalfword(key, extracted)) && dataType == D_BSONARRAY =>
               //the key is a halfword and matches with the extracted key, dataType is an array
               //So we will look for the "elem" of interest inside the current object
@@ -1784,7 +1783,7 @@ private[bsonImpl] object BosonInjectorImpl {
                   /*
                   * HasElem only works with arrays of objects, is those objects contain the key that key is modified
                   * */
-                  val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
+                  val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info).wrapInBrackets()
                   val newStatementList: StatementsList = (Key(elem), ".") :: statementsList.tail
                   val modified = injectArrayValue(partialCodec, newStatementList, value, TO_RANGE, "0", C_END, dataType)
                   currentCodec + modified
