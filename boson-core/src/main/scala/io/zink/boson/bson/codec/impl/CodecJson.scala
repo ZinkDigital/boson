@@ -274,7 +274,7 @@ class CodecJson(str: String) extends Codec {
     while (!input(readerIndex).isDigit) {
       readerIndex += 1
     }
-    val strSliced = input.substring(readerIndex, inputSize)
+    lazy val strSliced = input.substring(readerIndex, inputSize)
     val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
@@ -497,9 +497,11 @@ class CodecJson(str: String) extends Codec {
             case CS_F => D_BOOLEAN
             case CS_N => D_NULL
             case x if x.isDigit => //TODO - Refactor this Section
-              val strSliced = input.substring(rIndexAux, inputSize)
-              val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
-              val inputAux = input.substring(rIndexAux, rIndexAux + bindex)
+              var i = 0
+              while(input(rIndexAux+i) != ',' && input(rIndexAux+i) != ']' && input(rIndexAux+i) != '}'  ){
+                i += 1
+              }
+              val inputAux = input.substring(rIndexAux, rIndexAux + i)
               if (!inputAux.contains(CS_DOT)) {
                 Try(inputAux.toInt) match {
                   case Success(v) => D_INT
@@ -512,9 +514,11 @@ class CodecJson(str: String) extends Codec {
       case CS_F => D_BOOLEAN
       case CS_N => D_NULL
       case x if x.isDigit =>
-        val strSliced = input.substring(readerIndex, inputSize)
-        val bindex = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(v => v > 0).min
-        val inputAux = input.substring(readerIndex, readerIndex + bindex)
+        var i = 0
+        while(input(readerIndex + i) != ',' && input(readerIndex+i) != ']' && input(readerIndex+i) != '}'  ){
+          i += 1
+        }
+        val inputAux = input.substring(readerIndex, readerIndex + i)
         if (!inputAux.contains(CS_DOT)) {
           Try(inputAux.toInt) match {
             case Success(v) => D_INT
