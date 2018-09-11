@@ -551,58 +551,178 @@ class InjectValueTest extends FunSuite {
   //    val result: String = Await.result(future, Duration.Inf)
   //    assert(result.equals(bsonExpected))
   //  }
+  //
+  //  test("CodecJson - HasElem injection test") {
+  //    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
+  //    val person2Ex = new BsonObject().put("name", "Something")
+  //    val bsonArrayEx = new BsonArray().add(person1Ex).add(person2Ex)
+  //    val expected = new BsonObject().put("persons", bsonArrayEx).encodeToString
+  //    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
+  //    val person2 = new BsonObject().put("name", "Jane Doe")
+  //    val bsonArray = new BsonArray().add(person1).add(person2)
+  //    val bson = new BsonObject().put("persons", bsonArray)
+  //    val ex = ".persons[@name]"
+  //    val bsonInj = Boson.injector(ex, "Something")
+  //    val bsonEncoded = bson.encodeToString
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val result: String = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+  //
+  //  test("CodecJson - HasElem DOUBLE_DOTS injection test") {
+  //    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
+  //    val person2Ex = new BsonObject().put("name", "Something")
+  //    val bsonArrayEx = new BsonArray().add(person1Ex).add(person2Ex)
+  //    val expectedLayer = new BsonObject().put("persons", bsonArrayEx)
+  //    val expected = new BsonObject().put("layer1", expectedLayer).encodeToString
+  //    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
+  //    val person2 = new BsonObject().put("name", "Jane Doe")
+  //    val bsonArray = new BsonArray().add(person1).add(person2)
+  //    val bsonLayer = new BsonObject().put("persons", bsonArray)
+  //    val bson = new BsonObject().put("layer1", bsonLayer)
+  //    val ex = "..persons[@name]"
+  //    val bsonInj = Boson.injector(ex, "Something")
+  //    val bsonEncoded = bson.encodeToString
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val result: String = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
+  //
+  //  test("CodecJson - HasElem injection test - Middle object not applicable") {
+  //    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
+  //    val person2Ex = new BsonObject().put("name", "Something")
+  //    val person3Ex = new BsonObject().put("person", "Helloo")
+  //    val bsonArrayEx = new BsonArray().add(person1Ex).add(person3Ex).add(person2Ex)
+  //    val expected = new BsonObject().put("persons", bsonArrayEx).encodeToString
+  //    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
+  //    val person2 = new BsonObject().put("name", "Jane Doe")
+  //    val bsonArray = new BsonArray().add(person1).add(person3Ex).add(person2)
+  //    val bson = new BsonObject().put("persons", bsonArray)
+  //    val ex = ".persons[@name]"
+  //    val bsonInj = Boson.injector(ex, "Something")
+  //    val bsonEncoded = bson.encodeToString
+  //    val future = bsonInj.go(bsonEncoded)
+  //    val result: String = Await.result(future, Duration.Inf)
+  //    assert(result.equals(expected))
+  //  }
 
-  test("CodecJson - HasElem injection test") {
-    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
-    val person2Ex = new BsonObject().put("name", "Something")
-    val bsonArrayEx = new BsonArray().add(person1Ex).add(person2Ex)
-    val expected = new BsonObject().put("persons", bsonArrayEx).encodeToString
-    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
-    val person2 = new BsonObject().put("name", "Jane Doe")
-    val bsonArray = new BsonArray().add(person1).add(person2)
-    val bson = new BsonObject().put("persons", bsonArray)
-    val ex = ".persons[@name]"
-    val bsonInj = Boson.injector(ex, "Something")
-    val bsonEncoded = bson.encodeToString
-    val future = bsonInj.go(bsonEncoded)
-    val result: String = Await.result(future, Duration.Inf)
+  test("CodecJson - Top level array DOUBLE_DOTS inject key[single] value") {
+    val expectedLayer1 = new BsonArray().add("Help").add("Ajuda")
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda")
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = "..emergency[0]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
     assert(result.equals(expected))
   }
 
-  test("CodecJson - HasElem DOUBLE_DOTS injection test") {
-    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
-    val person2Ex = new BsonObject().put("name", "Something")
-    val bsonArrayEx = new BsonArray().add(person1Ex).add(person2Ex)
-    val expectedLayer = new BsonObject().put("persons", bsonArrayEx)
-    val expected = new BsonObject().put("layer1", expectedLayer).encodeToString
-    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
-    val person2 = new BsonObject().put("name", "Jane Doe")
-    val bsonArray = new BsonArray().add(person1).add(person2)
-    val bsonLayer = new BsonObject().put("persons", bsonArray)
-    val bson = new BsonObject().put("layer1", bsonLayer)
-    val ex = "..persons[@name]"
-    val bsonInj = Boson.injector(ex, "Something")
-    val bsonEncoded = bson.encodeToString
-    val future = bsonInj.go(bsonEncoded)
-    val result: String = Await.result(future, Duration.Inf)
+  test("CodecJson - Top level array DOUBLE_DOTS inject key[all] values") {
+    val expectedLayer1 = new BsonArray().add("Help").add("Help").add("Help").add("Help").add("Help").add("Help")
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = "..emergency[0 to end]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
     assert(result.equals(expected))
   }
 
-  test("CodecJson - HasElem injection test - Middle object not applicable") {
-    val person1Ex = new BsonObject().putNull("NullKey").put("name", "Something")
-    val person2Ex = new BsonObject().put("name", "Something")
-    val person3Ex = new BsonObject().put("person", "Helloo")
-    val bsonArrayEx = new BsonArray().add(person1Ex).add(person3Ex).add(person2Ex)
-    val expected = new BsonObject().put("persons", bsonArrayEx).encodeToString
-    val person1 = new BsonObject().putNull("NullKey").put("name", "John Doe")
-    val person2 = new BsonObject().put("name", "Jane Doe")
-    val bsonArray = new BsonArray().add(person1).add(person3Ex).add(person2)
-    val bson = new BsonObject().put("persons", bsonArray)
-    val ex = ".persons[@name]"
-    val bsonInj = Boson.injector(ex, "Something")
-    val bsonEncoded = bson.encodeToString
-    val future = bsonInj.go(bsonEncoded)
-    val result: String = Await.result(future, Duration.Inf)
+  test("CodecJson - Top level array DOUBLE_DOTS inject key[1 to 3] values") {
+    val expectedLayer1 = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda")
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = "..emergency[1 to 3]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject key[1 until 4] values") {
+    val expectedLayer1 = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda")
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = "..emergency[1 until 4]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject key[end] values") {
+    val expectedLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Help")
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+    val bsonLayer1 = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = "..emergency[end]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject [single] value") {
+    val expected = new BsonArray().add("Help").add("Ajuda").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda")
+    val ex = "..[0]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject [all] values") {
+    val expected = new BsonArray().add("Help").add("Help").add("Help").add("Help").add("Help").add("Help").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = "..[0 to end]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject [1 to 3] values") {
+    val expected = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = "..[1 to 3]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject [1 until 4] values") {
+    val expected = new BsonArray().add("Blu").add("Help").add("Help").add("Help").add("Blu").add("Ajuda").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = "..[1 until 4]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("CodecJson - Top level array DOUBLE_DOTS inject [end] values") {
+    val expected = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Help").encodeToString
+    val bson = new BsonArray().add("Blu").add("Ajuda").add("Blu").add("Ajuda").add("Blu").add("Ajuda")
+    val ex = "..[end]"
+    val jsonInj = Boson.injector(ex, "Help")
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
     assert(result.equals(expected))
   }
 }
