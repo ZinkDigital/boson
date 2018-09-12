@@ -606,10 +606,10 @@ object PerformanceTests extends App {
   //
   println("Value")
   performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
-  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]", codecJson = true) //TODO - Array of INT in CodecJson
+  performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]", codecJson = true)
   performanceAnalysis(bosonArticle18Value, ".Tags.StartTime")
   performanceAnalysis(bosonArticle18Value, ".Tags.StartTime", codecJson = true)
-  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags")
+  performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags") //TODO - what changed?
   performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags", codecJson = true)
   performanceAnalysis(doubleDotInj12Value, "..Markets[@Selections]..Id")
   performanceAnalysis(doubleDotInj12Value, ".Markets[@Selections].Id", codecJson = true)

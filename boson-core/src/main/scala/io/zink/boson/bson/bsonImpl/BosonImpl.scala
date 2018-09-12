@@ -207,7 +207,8 @@ object BosonImpl {
     }
 
     val resCodec: Codec = statements.head._1 match {
-      case ROOT => ??? //rootInjectionValue
+      case ROOT =>
+        injectRootValue(codec, injValue)
 
       case Key(key: String) =>
         injectKeyValue(codec, statements, injValue, key)

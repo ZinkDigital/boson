@@ -1459,6 +1459,12 @@ private[bsonImpl] object BosonInjectorImpl {
 
   //********** Inject Value Functions Go Here **********//
 
+  def injectRootValue[T](codec: Codec, value: T): Codec = {
+    val currentCodec = codec.createEmptyCodec
+    val (mod,_) = writeValue(codec, currentCodec, value, 0)
+    mod.wrapInBrackets()
+  }
+
   /**
     *
     * @param codec
