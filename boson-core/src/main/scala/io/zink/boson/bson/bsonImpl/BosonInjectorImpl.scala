@@ -1721,7 +1721,13 @@ private[bsonImpl] object BosonInjectorImpl {
                   }
                 }
               } else {
-                processTypesArray(dataType, codec, currentCodec)
+                if(dataType == D_BSONOBJECT){
+                  val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
+                  currentCodec + newCodec.addComma
+                } else{
+                  processTypesArray(dataType, codec, currentCodec)
+                }
               }
 
             case (x, _, C_END) if isArray && from.toInt > x.toInt =>
