@@ -595,15 +595,15 @@ object PerformanceTests extends App {
   performanceAnalysis(bosonArticle18, ".Tags.StartTime")
   performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
   performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
-  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
-  performanceJsonPath("$.Markets[*].Tags", "Something", confGson, "confGson")
+  performanceAnalysis(bosonArticle110, "..Markets[0 to end]..Tags", codecJson = true)
+  performanceJsonPath("$.Markets[*].Tags", "Something", confSmart, "confGson")
   performanceAnalysis(doubleDotInj12, "..Markets[@Selections]..Id")
   performanceAnalysis(doubleDotInj12, "..Markets[@Selections]..Id", codecJson = true)
   performanceJsonPath("$..Markets[?(@.Selections)]..Id", "Something", confSmart, "confSmart")
   performanceAnalysis(doubleDotInj16, "..Markets..Selections[@Id]")
   performanceAnalysis(doubleDotInj16, "..Markets..Selections[@Id]", codecJson = true)
   performanceJsonPath("$..Markets..Selections[?(@.Id)]", "Something", confSmart, "confSmart")
-  //
+
   println("Value")
   performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]")
   performanceAnalysis(bosonArticle17Value, ".LastEpochChangeReason[0]", codecJson = true)

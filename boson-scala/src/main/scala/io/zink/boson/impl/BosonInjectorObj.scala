@@ -23,7 +23,7 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
         case tupleTypeCase(vs) =>
           vs.par.map { elem =>
             extractLabels.to[T].from[gen.Repr](elem)
-          }.seq.collect { case v if v.nonEmpty => v.get }
+          }.seq.collect { case v if v.nonEmpty => v.get } //TODO - WTF????
         case _ => Seq.empty[T]
       }
     result.head

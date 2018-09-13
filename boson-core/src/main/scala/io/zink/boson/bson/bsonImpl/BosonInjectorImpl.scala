@@ -1627,7 +1627,7 @@ private[bsonImpl] object BosonInjectorImpl {
                 val partialCodec = if (dataType == D_BSONARRAY) {
                   CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                 } else {
-                  CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info).wrapInBrackets()
+                  CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info)
                 }
                 val modified = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
                 currentCodec + modified
