@@ -451,7 +451,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     *
     * @return A new codec with exactly the same information as the current codec but with the size information written in it
     */
-  def writeCodecSize: Codec = {
+  def writeCodecSize: Codec = { //TODO - refactor
     val duplicated = Unpooled.buffer().writeIntLE(getWriterIndex + 4)
     duplicated.writeBytes(buff)
     duplicated.capacity(getWriterIndex + 4)

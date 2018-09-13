@@ -496,7 +496,7 @@ class CodecJson(str: String) extends Codec {
             case CS_T => D_BOOLEAN
             case CS_F => D_BOOLEAN
             case CS_N => D_NULL
-            case x if x.isDigit => //TODO - Refactor this Section
+            case x if x.isDigit =>
               var i = 0
               while(input(rIndexAux+i) != ',' && input(rIndexAux+i) != ']' && input(rIndexAux+i) != '}'  ){
                 i += 1
