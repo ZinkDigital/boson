@@ -1848,7 +1848,9 @@ private[bsonImpl] object BosonInjectorImpl {
       case bsonArr: BsonArray =>
         val encode: Array[Byte] = bsonArr.encodeToBarray
         currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
-      case _ => ??? //TODO - case classes
+      case _ =>
+        val encode = ??? // encode class to BsonObject
+        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
     }
     val before: SonNamedType = dataType match {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>

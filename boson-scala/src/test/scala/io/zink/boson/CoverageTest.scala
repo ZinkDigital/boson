@@ -5147,24 +5147,21 @@ class CoverageTest extends FunSuite {
     assert(isEqual == true)
   }
 
-  test("CodecJson - Top level array inject key[single] value") {
-    val expectedLayer1 = new BsonArray().add(100).add(212)
-    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
-    val bsonLayer1 = new BsonArray().add(100).add(112)
-    val bson = new BsonObject().put("emergency", bsonLayer1)
-    val ex = ".emergency[1]"
-    val jsonInj = Boson.injector(ex, (in: Int) =>{
-      in + 100
-    })
-    val jsonEncoded = bson.encodeToString
-    val future = jsonInj.go(jsonEncoded)
-    val result = Await.result(future, Duration.Inf)
-    println(result)
-    assert(result.equals(expected))
-  }
-
-
-
+//  test("CodecJson - Top level array inject key[single] value") {
+//    val expectedLayer1 = new BsonArray().add(100).add(212)
+//    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+//    val bsonLayer1 = new BsonArray().add(100).add(112)
+//    val bson = new BsonObject().put("emergency", bsonLayer1)
+//    val ex = ".emergency[1]"
+//    val jsonInj = Boson.injector(ex, (in: Int) =>{
+//      in + 100
+//    })
+//    val jsonEncoded = bson.encodeToString
+//    val future = jsonInj.go(jsonEncoded)
+//    val result = Await.result(future, Duration.Inf)
+//    println(result)
+//  assert(result.equals(expected))
+//  }
 
   private def performanceTest(boson: Boson, isJson: Boolean = false): Unit = {
     val future = if (isJson) boson.go(json) else boson.go(validatedByteArray)
