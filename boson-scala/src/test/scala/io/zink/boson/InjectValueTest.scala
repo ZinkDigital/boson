@@ -919,7 +919,7 @@ class InjectValueTest extends FunSuite {
 
   case class Tags(Type: String, line: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
 
-  test("CodecBson - Key case class injection") {
+  test("CodecBson - Key case class injection") { //TODO
     val book = new BsonObject().put("name", "Title1").put("pages", 1)
     val bson = new BsonObject().put("book", book)
 

@@ -1,7 +1,5 @@
 package io.zink.boson.impl
 
-import java.nio.ByteBuffer
-
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.bson.bsonPath.Interpreter
@@ -16,6 +14,7 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
                                                                                   extract: extractLabels[R]) extends Boson {
 
   def convert(tupleList: List[(String, Any)]): T = {
+    println("Here: "+ tupleList)
     val modTupleList = List(tupleList)
     val tupleTypeCase = TypeCase[List[List[(String, Any)]]]
     val result: Seq[T] =

@@ -9,9 +9,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: T)(implicit
-                                                                                       tp: Option[TypeCase[T]],
-                                                                                       gen: LabelledGeneric.Aux[T, R],
-                                                                                       extract: extractLabels[R]) extends Boson {
+                                                                               tp: Option[TypeCase[T]],
+                                                                               gen: LabelledGeneric.Aux[T, R],
+                                                                               extract: extractLabels[R]) extends Boson {
 
   def convert(tupleList: List[(String, Any)]): T = {
     val modTupleList = List(tupleList)

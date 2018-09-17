@@ -237,7 +237,7 @@ object Boson {
           new BosonInjectorObj[A, L](expression, injectFunction = injectFunction)(typeCase, f, ext)
 
         override def inject(expression: String, injectValue: A): Boson =
-          new BosonInjectorValueObj[A, L](expression, injectValue)(typeCase, f, ext)
+          new BosonInjectorValueObj[A, L](expression, injectValue = injectValue)(typeCase, f, ext)
       }
     }
 
