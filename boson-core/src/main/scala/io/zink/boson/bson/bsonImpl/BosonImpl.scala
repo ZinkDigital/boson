@@ -197,7 +197,7 @@ object BosonImpl {
     }
   }
 
-  def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: T, readerIndextoUse: Int = 0): Codec = {
+  def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: T, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
     val codec: Codec = dataStructure match {
       case Right(jsonString: String) =>
         val returnCodec = new CodecJson(jsonString)

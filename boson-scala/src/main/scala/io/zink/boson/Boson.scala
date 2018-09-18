@@ -233,7 +233,7 @@ object Boson {
       new injector[A] {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
 
-        def inject(expression: String, injectFunction: A => A): Boson =
+        override def inject(expression: String, injectFunction: A => A): Boson =
           new BosonInjectorObj[A, L](expression, injectFunction = injectFunction)(typeCase, f, ext)
 
         override def inject(expression: String, injectValue: A): Boson =

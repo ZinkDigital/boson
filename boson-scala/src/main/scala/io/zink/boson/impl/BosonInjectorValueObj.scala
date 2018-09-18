@@ -14,6 +14,7 @@ class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: T)(i
                                                                                extract: extractLabels[R]) extends Boson {
 
   def convert(tupleList: List[(String, Any)]): T = {
+    println("Here: "+ tupleList)
     val modTupleList = List(tupleList)
     val tupleTypeCase = TypeCase[List[List[(String, Any)]]]
     val result: Seq[T] =

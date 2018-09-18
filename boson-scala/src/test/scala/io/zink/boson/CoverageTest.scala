@@ -1932,7 +1932,6 @@ class CoverageTest extends FunSuite {
     val bson = new BsonObject().put("book", book)
 
     val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
-
     val ex = ".book"
     val bsonInj = Boson.injector(ex, (in: Book) => {
       Book("LOTR", 320)
