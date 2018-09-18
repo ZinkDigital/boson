@@ -538,7 +538,6 @@ private[bsonImpl] object BosonInjectorImpl {
 
         case byteArrOrJson if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T
 
-          println(convertFunction.isDefined)
           val extractedTuples: TupleList = byteArrOrJson match {
             case byteArray: Array[Byte] => extractTupleList(Left(byteArray))
             case jsonString: String => extractTupleList(Right(jsonString))
@@ -1849,31 +1848,17 @@ private[bsonImpl] object BosonInjectorImpl {
       case bsonArr: BsonArray =>
         val encode: Array[Byte] = bsonArr.encodeToBarray
         currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
-      case _ =>
-        println("I got Here!!!" + convertFunction.isDefined)
-        val encode = ??? // encode class to BsonObject
-        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
-
-      /*
-        val extractedTuples: TupleList = byteArrOrJson match {
-          case byteArray: Array[Byte] => extractTupleList(Left(byteArray))
-          case jsonString: String => extractTupleList(Right(jsonString))
+      case caseClass if convertFunction.isDefined =>
+        val data = codec.getCodecData match {
+          case Left(byteBuf: ByteBuf) => byteBuf.array()
+          case Right(string: String) => string
         }
-
-        val convertFunct = convertFunction.get
-        val convertedValue = convertFunct(extractedTuples)
-        Try(injFunction(convertedValue)) match {
-          case Success(modValue) =>
-            val modifiedTupleList = toTupleList(modValue)
-            encodeTupleList(modifiedTupleList, byteArrOrJson) match {
-              case Left(modByteArr) => modByteArr.asInstanceOf[T]
-              case Right(modJsonString) => modJsonString.asInstanceOf[T]
-            }
-          case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
+        val encode = encodeTupleList(toTupleList(caseClass), data) match {
+          case Left(ab) => currentCodec.writeToken(SonObject(CS_OBJECT, ab))
+          case Right(st) => currentCodec.writeToken(SonObject(CS_OBJECT, st))
         }
-      */
-
     }
+
     val before: SonNamedType = dataType match {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
         codec.readToken(SonString(CS_STRING))

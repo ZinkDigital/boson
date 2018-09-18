@@ -924,9 +924,9 @@ class InjectValueTest extends FunSuite {
     val bson = new BsonObject().put("book", book)
 
     val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
-
     val ex = ".book"
-    val bsonInj = Boson.injector(ex, Book("LOTR", 320))
+    val in = new Book("LOTR", 320)
+    val bsonInj = Boson.injector(ex, in)
     val bsonEncoded = bson.encodeToBarray
     val future = bsonInj.go(bsonEncoded)
     val resultValue: Array[Byte] = Await.result(future, Duration.Inf)

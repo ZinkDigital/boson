@@ -9,6 +9,7 @@ import io.zink.boson.bson.codec._
 import io.zink.bsonLib.{BsonArray, BsonObject}
 
 import scala.collection.mutable.ListBuffer
+import scala.util.hashing.ByteswapHashing
 
 /**
   * Class that represents the Codec to deal with Bson Values
@@ -399,9 +400,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         case SonArray(_, info) => buff.writeBytes(info.asInstanceOf[Array[Byte]])
 
         case SonObject(dataType, info) =>
-          val infoToUse = info match {
-            case byteBuff: ByteBuf => byteBuff.array
-            case byteArr: Array[Byte] => byteArr
+          val infoToUse: Array[Byte] = info match {
+            case byteBuff: ByteBuf =>
+              byteBuff.array
+            case byteArr: Array[Byte] =>
+              byteArr
           }
           dataType match {
 
