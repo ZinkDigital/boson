@@ -1848,7 +1848,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case bsonArr: BsonArray =>
         val encode: Array[Byte] = bsonArr.encodeToBarray
         currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
-      case caseClass if convertFunction.isDefined =>
+      case caseClass if convertFunction.isDefined => //In case the injected Value is a caseClass
         val data = codec.getCodecData match {
           case Left(byteBuf: ByteBuf) => byteBuf.array()
           case Right(string: String) => string
