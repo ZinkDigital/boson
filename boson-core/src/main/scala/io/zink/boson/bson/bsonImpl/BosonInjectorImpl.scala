@@ -1695,11 +1695,15 @@ private[bsonImpl] object BosonInjectorImpl {
                     processTypesArray(dataType, codec, currentCodecCopy)
                   case Failure(_) =>
                 }
-              } else { // TODO- Figure this one out
+              } else {
                 if (dataType == D_BSONOBJECT) {
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
                   val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
-                  currentCodec.clear + currentCodecCopy.duplicate + newCodec.addComma
+                  val double = if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    BosonImpl.injectValue(newCodec.getCodecData, statementsList, value)
+                  } else newCodec
+
+                  currentCodec.clear + currentCodecCopy.duplicate + double.addComma
                   currentCodecCopy + partialCodec.addComma
                 } else {
                   processTypesArray(dataType, codec, currentCodec)
@@ -1707,16 +1711,28 @@ private[bsonImpl] object BosonInjectorImpl {
               }
 
             case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
-              if (statementsList.lengthCompare(1) == 0) {
-                if (condition.equals(UNTIL_RANGE)) {
-                  if (codec.getDataType == 0) {
-                    codec.skipChar(back = true)
-                    processTypesArray(dataType, codec.duplicate, currentCodec)
-                    processTypesArray(dataType, codec, currentCodecCopy)
+              if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                ???
+              } else {
+                if (statementsList.lengthCompare(1) == 0) {
+                  if (condition.equals(UNTIL_RANGE)) {
+                    if (codec.getDataType == 0) {
+                      codec.skipChar(back = true)
+                      processTypesArray(dataType, codec.duplicate, currentCodec)
+                      processTypesArray(dataType, codec, currentCodecCopy)
+                    } else {
+                      currentCodecCopy.clear + currentCodec.duplicate
+                      val before = writeValue(codec, currentCodec, value, dataType)
+                      currentCodecCopy.writeToken(before._2)
+                    }
                   } else {
-                    currentCodecCopy.clear + currentCodec.duplicate
-                    val before = writeValue(codec, currentCodec, value, dataType)
-                    currentCodecCopy.writeToken(before._2)
+                    if (dataType == D_BSONOBJECT) {
+                      val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                      val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
+                      currentCodec + newCodec.addComma
+                    } else {
+                      writeValue(codec, currentCodec, value, dataType)
+                    }
                   }
                 } else {
                   if (dataType == D_BSONOBJECT) {
@@ -1724,21 +1740,18 @@ private[bsonImpl] object BosonInjectorImpl {
                     val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
                     currentCodec + newCodec.addComma
                   } else {
-                    writeValue(codec, currentCodec, value, dataType)
+                    processTypesArray(dataType, codec, currentCodec)
                   }
-                }
-              } else {
-                if (dataType == D_BSONOBJECT) {
-                  val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
-                  currentCodec + newCodec.addComma
-                } else {
-                  processTypesArray(dataType, codec, currentCodec)
                 }
               }
 
             case (x, _, C_END) if isArray && from.toInt > x.toInt =>
-              processTypesArray(dataType, codec, currentCodec)
+              if (statementsList.head._2.contains(C_DOUBLEDOT) && dataType == D_BSONOBJECT) {
+                val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
+                val double = BosonImpl.injectValue(newCodec.getCodecData, statementsList, value)
+                currentCodec + double.addComma
+              } else processTypesArray(dataType, codec, currentCodec)
 
             case (x, _, l) if isArray && (from.toInt <= x.toInt && l.toInt >= x.toInt) =>
               if (statementsList.lengthCompare(1) == 0) {
@@ -1750,17 +1763,31 @@ private[bsonImpl] object BosonInjectorImpl {
                   writeValue(codec, currentCodec, value, dataType)
                 }
               } else {
-                processTypesArray(dataType, codec, currentCodec)
+                if (dataType == D_BSONOBJECT) {
+                  val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
+                  val double = if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    BosonImpl.injectValue(newCodec.getCodecData, statementsList, value)
+                  } else newCodec
+
+                  currentCodec + double.addComma
+                } else processTypesArray(dataType, codec, currentCodec)
               }
 
             case (x, _, l) if isArray && (from.toInt > x.toInt || l.toInt < x.toInt) =>
-              if (l.toInt < x.toInt) {
-                currentCodec.writeRest(codec, dataType)
+              if(statementsList.head._2.contains(C_DOUBLEDOT) && dataType == D_BSONOBJECT){
+                val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
+                currentCodec + newCodec.addComma
               } else {
-                processTypesArray(dataType, codec, currentCodec)
+                if (l.toInt < x.toInt) {
+                  currentCodec.writeRest(codec, dataType)
+                } else {
+                  processTypesArray(dataType, codec, currentCodec)
+                }
               }
-
-            case _ => processTypesArray(dataType, codec, currentCodec)
+            case _ =>
+              processTypesArray(dataType, codec, currentCodec)
           }
       }
     }
