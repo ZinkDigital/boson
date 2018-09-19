@@ -1459,7 +1459,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
   //********** Inject Value Functions Go Here **********//
 
-  def injectRootValue[T](codec: Codec, value: T): Codec = {
+  def injectRootValue[T](codec: Codec, value: T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val currentCodec = codec.createEmptyCodec
     val (mod, _) = writeValue(codec, currentCodec, value, 0)
     mod.wrapInBrackets()
@@ -1696,7 +1696,14 @@ private[bsonImpl] object BosonInjectorImpl {
                   case Failure(_) =>
                 }
               } else { // TODO- Figure this one out
-                processTypesArray(dataType, codec, currentCodec)
+                if (dataType == D_BSONOBJECT) {
+                  val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
+                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
+                  currentCodec.clear + currentCodecCopy.duplicate + newCodec.addComma
+                  currentCodecCopy + partialCodec.addComma
+                } else {
+                  processTypesArray(dataType, codec, currentCodec)
+                }
               }
 
             case (x, _, C_END) if isArray && from.toInt <= x.toInt =>
@@ -1773,7 +1780,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T
     * @return
     */
-  def injectHasElemValue[T](codec: Codec, statementsList: StatementsList, value: T, key: String, elem: String): Codec = {
+  def injectHasElemValue[T](codec: Codec, statementsList: StatementsList, value: T, key: String, elem: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
     val currentCodec = codec.createEmptyCodec
