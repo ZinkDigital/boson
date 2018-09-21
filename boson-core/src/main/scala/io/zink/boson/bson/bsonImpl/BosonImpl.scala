@@ -216,7 +216,7 @@ object BosonImpl {
       case HalfName(half: String) =>
         injectKeyValue(codec, statements, injValue, half)
 
-      case HasElem(key: String, elem: String) =>  injectHasElemValue(codec, statements, injValue,key, elem)
+      case HasElem(key: String, elem: String) => injectHasElemValue(codec, statements, injValue, key, elem)
 
       case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
         val input: (String, Int, String, Any) =
@@ -262,7 +262,17 @@ object BosonImpl {
                 case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
               }
           } //TODO - might need to change below the formerType
-        injectArrayValue(codec.wrapInBrackets(), statements, injValue, input._3, input._2.toString, input._4.toString, 4)
+        val (auxType, codecToUse)= codec.getCodecData match {
+          case Right(js) => js.charAt(0) match {
+            case '[' => (4, codec.wrapInBrackets())
+            case '{' => (3, codec)
+            case _ => (codec.getDataType, codec) // Maybe
+          }
+          case Left(bb) => (4, codec)
+        }
+        //        val injectCodec = codec.wrapInBrackets()
+
+        injectArrayValue(codecToUse, statements, injValue, input._3, input._2.toString, input._4.toString, auxType)
     }
     resCodec
   }

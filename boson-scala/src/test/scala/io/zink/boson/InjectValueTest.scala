@@ -1128,6 +1128,8 @@ class InjectValueTest extends FunSuite {
     val bsonEncoded = booksArr.encodeToString
     val future = bsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
+    println(booksExpected)
+    println(resultValue)
     assert(resultValue containsSlice booksExpected)
   }
 }
