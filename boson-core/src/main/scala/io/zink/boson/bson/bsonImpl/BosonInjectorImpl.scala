@@ -1783,9 +1783,12 @@ private[bsonImpl] object BosonInjectorImpl {
       }
     }
 
-    val brackets = if (formerType == 4) true else false
-    if (condition.equals(UNTIL_RANGE)) currentCodecCopy.writeCodecSize.removeTrailingComma(codec, rectBrackets = brackets)
-    else currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = brackets)
+    if(formerType != 4){
+      currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true, noBrackets = true)
+    } else {
+      if (condition.equals(UNTIL_RANGE)) currentCodecCopy.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
+      else currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
+    }
   }
 
 

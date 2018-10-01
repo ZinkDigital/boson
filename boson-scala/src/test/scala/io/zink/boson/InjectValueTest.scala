@@ -16,17 +16,21 @@ import scala.io.Source
 @RunWith(classOf[JUnitRunner])
 class InjectValueTest extends FunSuite {
 
-  //  test("CodecBson - Top level key inject String value") {
-  //    val expected = new BsonObject().put("name", "Albertina").encodeToBarray()
-  //    val bson = new BsonObject().put("name", "Albert")
-  //    val ex = ".name"
-  //    val jsonInj = Boson.injector(ex, "Albertina")
-  //    val jsonEncoded = bson.encodeToBarray()
-  //    val future = jsonInj.go(jsonEncoded)
-  //    val result = Await.result(future, Duration.Inf)
-  //    val equals = result.zip(expected).forall(b => b._1 == b._2)
-  //    assert(equals)
-  //  }
+  test("CodecBson - Top level key inject String value") {
+    val expected = new BsonObject().put("name", "Albertina").encodeToBarray
+    val expectedJson = new BsonObject().put("name", "Albertina").encodeToString
+    val bson = new BsonObject().put("name", "Albert")
+    val ex = ".name"
+    val jsonInj = Boson.injector(ex, "Albertina")
+    val jsonEncoded = bson.encodeToBarray()
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    val equals = result.zip(expected).forall(b => b._1 == b._2)
+    expected.foreach(b => print(b.toChar))
+    println(expectedJson)
+    assert(equals)
+  }
+
   //
   //  test("CodecBson - Top level key inject Int value") {
   //    val expected = new BsonObject().put("age", 3).encodeToBarray()
@@ -1122,14 +1126,15 @@ class InjectValueTest extends FunSuite {
   //  }
 
   test("CodecJson - Case class injection - arr expression ..[end]") { //TODO - This one right here
-    val booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected).encodeToString
+    val booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected)
     val ex = "..[end].book"
     val bsonInj = Boson.injector(ex, Book("LOTR", 320))
     val bsonEncoded = booksArr.encodeToString
     val future = bsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
-    println(booksExpected)
-    println(resultValue)
-    assert(resultValue containsSlice booksExpected)
+    //    println(booksExpected.encodeToString)
+    //    println(booksExpected.encodeToBarray.mkString(", "))
+    //    println(resultValue)
+    assert(resultValue containsSlice booksExpected.encodeToString)
   }
 }

@@ -446,7 +446,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @param codec - codec we wish to remove the trailing comma
     * @return a new codec that does not have the last trailing comma in it
     */
-  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = this
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false, noBrackets: Boolean = false): Codec = this
 
   /**
     * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.

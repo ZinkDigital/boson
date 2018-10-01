@@ -27,13 +27,14 @@ class CodecJson(str: String) extends Codec {
     * inputSize is a constant with the size of the input
     * this constant is used several times along the code
     */
-  val inputSize: Int = input.length
+  val inputSize: Int = input.length //TODO - refactor all inputSize out
 
   /**
     * readerIndex and writerIndex are two var's used to maintain the actual reading and writing position, trying to mimic the functionality
     * of the ByteBuf's from Netty
     */
-  var readerIndex: Int = 0
+//  var readerIndex: Int = 0
+  var readerIndex: Int = this.getReaderIndex
   var writerIndex: Int = str.length - 1
 
   /**
@@ -271,10 +272,11 @@ class CodecJson(str: String) extends Codec {
     * @return returns a String representing the number read (Int/Long/Double/Float)
     */
   def readNextNumber: String = {
+    val size = input.length
     while (!input(readerIndex).isDigit) {
       readerIndex += 1
     }
-    lazy val strSliced = input.substring(readerIndex, inputSize)
+    lazy val strSliced = input.substring(readerIndex, size)
     val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
@@ -498,7 +500,7 @@ class CodecJson(str: String) extends Codec {
             case CS_N => D_NULL
             case x if x.isDigit =>
               var i = 0
-              while(input(rIndexAux+i) != ',' && input(rIndexAux+i) != ']' && input(rIndexAux+i) != '}'  ){
+              while (input(rIndexAux + i) != ',' && input(rIndexAux + i) != ']' && input(rIndexAux + i) != '}') {
                 i += 1
               }
               val inputAux = input.substring(rIndexAux, rIndexAux + i)
@@ -515,10 +517,10 @@ class CodecJson(str: String) extends Codec {
       case CS_N => D_NULL
       case x if x.isDigit =>
         var i = 0
-        while(input(readerIndex + i) != ',' && input(readerIndex+i) != ']' && input(readerIndex+i) != '}'  ){
+        while (input(aux + i) != ',' && input(aux + i) != ']' && input(aux + i) != '}') {
           i += 1
         }
-        val inputAux = input.substring(readerIndex, readerIndex + i)
+        val inputAux = input.substring(aux, aux + i)
         if (!inputAux.contains(CS_DOT)) {
           Try(inputAux.toInt) match {
             case Success(v) => D_INT
@@ -671,7 +673,7 @@ class CodecJson(str: String) extends Codec {
     * @param codec - codec we wish to remove the trailing comma
     * @return a new codec that does not have the last trailing comma in it
     */
-  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = {
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false, noBrackects: Boolean = false): Codec = {
     val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
     val (openBracket, closedBracket) = if (rectBrackets) ("[", "]") else ("{", "}")
 
@@ -687,8 +689,12 @@ class CodecJson(str: String) extends Codec {
           input.insert(0, '{')
         }
       } else {
-        input.replace(input.length - 1, input.length, closedBracket)
-        input.insert(0, openBracket)
+        if(noBrackects) {
+          input.deleteCharAt(input.length-1)
+        } else {
+          input.replace(input.length - 1, input.length, closedBracket)
+          input.insert(0, openBracket)
+        }
       }
     } else {
       input.insert(0, openBracket)
@@ -821,19 +827,19 @@ class CodecJson(str: String) extends Codec {
   def writeRest(codec: Codec, dataType: Int): Codec = {
     val res = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
 
-    if(dataType == 3){
-      if(res.endsWith("]}")){
+    if (dataType == 3) {
+      if (res.endsWith("]}")) {
         val aux = res.substring(codec.getReaderIndex, res.length - 2)
         input.append(aux.asInstanceOf[String])
       } else {
         val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
         input.append(aux.asInstanceOf[String])
       }
-      if(!input.endsWith("}"))
+      if (!input.endsWith("}"))
         input.append("}")
     } else {
-      if(res.endsWith("]}")) {
-        val aux = res.substring(codec.getReaderIndex, res.length-2)
+      if (res.endsWith("]}")) {
+        val aux = res.substring(codec.getReaderIndex, res.length - 2)
         input.append(aux.asInstanceOf[String])
       } else {
         val aux = res.substring(codec.getReaderIndex, res.length)
@@ -843,7 +849,7 @@ class CodecJson(str: String) extends Codec {
     codec.setReaderIndex(res.length)
     this
   }
-                                                
+
   /**
     * Method that creates a Codec with an empty data structure inside it.
     *
@@ -859,8 +865,5 @@ class CodecJson(str: String) extends Codec {
   }
 
 
-  //********** Inject Value Functions Go Here **********//
-//
-//  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = this
 }
 
