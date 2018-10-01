@@ -573,46 +573,4 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     newB.writerIndex(byteBuf.writerIndex)
     new CodecBson(newB)
   }
-
-  //********** Inject Value Functions Go Here **********//
-
-
-  def containsKey(key: String): Boolean = {
-    val buffArray: Array[Byte] = buff.array()
-    val keyBytes: Array[Byte] = key.getBytes
-
-    buffArray.containsSlice(keyBytes)
-  }
-
-//  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec = {
-//
-//    value match {
-//      case string: String =>
-//        this.writeToken(SonNumber(CS_INTEGER, string.length + 1))
-////        buff.writeIntLE(string.length + 1) // plus 1 byte because of the end 0
-//        this.writeToken(SonString(CS_STRING, string))
-//        this.writeToken(SonNumber(CS_BYTE, 0.toByte))
-////        buff.writeByte(0)
-//      case int: Int =>
-//        this.writeToken(SonNumber(CS_INTEGER, int))
-//      case long: Long => ???
-//      case double: Double => ???
-//      case float: Float => ???
-//      case boolean: Boolean => ???
-//      case bsonObj: BsonObject => ???
-//      case bsonArr: BsonArray => ???
-//      case instant: Instant => ???
-//      case _ => ??? //TODO - case classes
-//    }
-//
-//    dataType match {
-//      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-//        codec.readToken(SonString(CS_STRING))
-//      case D_INT =>
-//        codec.readToken(SonNumber(CS_INTEGER))
-//
-//    }
-//    this
-//  }
-
 }

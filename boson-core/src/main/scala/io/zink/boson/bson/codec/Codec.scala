@@ -306,11 +306,6 @@ trait Codec {
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec
 
-  def containsKey(key: String): Boolean
-
-  //********** Inject Value Functions Go Here **********//
-//
-//  def writeValue[T](codec: Codec, value: T, dataType: Int): Codec
 }
 
 sealed trait CodecFacade {

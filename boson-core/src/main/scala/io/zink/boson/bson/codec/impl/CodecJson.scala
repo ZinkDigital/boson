@@ -33,8 +33,7 @@ class CodecJson(str: String) extends Codec {
     * readerIndex and writerIndex are two var's used to maintain the actual reading and writing position, trying to mimic the functionality
     * of the ByteBuf's from Netty
     */
-//  var readerIndex: Int = 0
-  var readerIndex: Int = this.getReaderIndex
+  var readerIndex: Int = 0
   var writerIndex: Int = str.length - 1
 
   /**
@@ -244,7 +243,8 @@ class CodecJson(str: String) extends Codec {
     * @return returns a String representing the boolean read (true/false)
     */
   def readNextBoolean: String = {
-    lazy val strSliced = input.substring(readerIndex, inputSize)
+    val size = input.length
+    lazy val strSliced = input.substring(readerIndex, size)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
@@ -258,7 +258,8 @@ class CodecJson(str: String) extends Codec {
     * @return returns a String representing the null value ('Null')
     */
   def readNextNull: String = {
-    lazy val strSliced = input.substring(readerIndex, inputSize)
+    val size = input.length
+    lazy val strSliced = input.substring(readerIndex, size)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
@@ -290,7 +291,8 @@ class CodecJson(str: String) extends Codec {
     * @return returns a String representing the boolean read (true/false)
     */
   def getNextBoolean: String = {
-    lazy val strSliced = input.substring(readerIndex, inputSize)
+    val size = input.length
+    lazy val strSliced = input.substring(readerIndex, size)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, indexMin)
     val subStr1 = subStr.dropWhile(p => !p.equals(CS_T) && !p.equals(CS_F))
@@ -303,7 +305,8 @@ class CodecJson(str: String) extends Codec {
     * @return returns a String representing the null value ('Null')
     */
   def getNextNull: String = {
-    lazy val strSliced = input.substring(readerIndex, inputSize)
+    val size = input.length
+    lazy val strSliced = input.substring(readerIndex, size)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, indexMin)
     val subStr1 = subStr dropWhile (p => !p.isDigit)
@@ -316,7 +319,8 @@ class CodecJson(str: String) extends Codec {
     * @return returns a String representing the number read (Int/Long/Double/Float)
     */
   def getNextNumber: String = {
-    lazy val strSliced = input.substring(readerIndex, inputSize)
+    val size = input.length
+    lazy val strSliced = input.substring(readerIndex, size)
     lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, indexMin)
     val subStr1 = subStr dropWhile (p => !p.isDigit)
@@ -859,11 +863,6 @@ class CodecJson(str: String) extends Codec {
     * @return a Codec with an empty data structure inside it
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
-
-  def containsKey(key: String): Boolean = {
-    true
-  }
-
 
 }
 
