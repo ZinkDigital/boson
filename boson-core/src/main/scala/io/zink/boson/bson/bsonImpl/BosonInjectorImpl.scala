@@ -1620,12 +1620,14 @@ private[bsonImpl] object BosonInjectorImpl {
 
             case _ =>
               if ((dataType == D_BSONARRAY || dataType == D_BSONOBJECT) && statementsList.head._2.equals(C_DOUBLEDOT)) {
-                val partialCodec = if (dataType == D_BSONARRAY) {
-                  CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                val modified = if (dataType == D_BSONARRAY) {
+                  val codecToken = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
+                  injectArrayValue(codecToken, statementsList, value, from, condition, to, 4)
+
                 } else {
-                  CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info)
+                  val codecToken = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_INJ)).asInstanceOf[SonObject].info)
+                  BosonImpl.injectValue(codecToken.getCodecData, statementsList, value)
                 }
-                val modified = BosonImpl.injectValue(partialCodec.getCodecData, statementsList, value)
                 currentCodec + modified
               } else {
                 processTypesArray(dataType, codec, currentCodec)
