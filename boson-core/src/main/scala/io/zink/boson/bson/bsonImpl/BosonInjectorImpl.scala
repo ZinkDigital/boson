@@ -1696,10 +1696,13 @@ private[bsonImpl] object BosonInjectorImpl {
               } else {
                 if (dataType == D_BSONOBJECT) {
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
-                  val double = if (statementsList.head._2.contains(C_DOUBLEDOT)) {
+//                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
+                  val double = if (!statementsList.head._2.contains(C_DOUBLEDOT)) {
+                    val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
                     BosonImpl.injectValue(newCodec.getCodecData, statementsList, value)
-                  } else newCodec
+                  } else {
+                    BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
+                  } // Eating Quotes???
 
                   currentCodec.clear + currentCodecCopy.duplicate + double.addComma
                   currentCodecCopy + partialCodec.addComma

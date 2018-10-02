@@ -26,8 +26,6 @@ class InjectValueTest extends FunSuite {
     val future = jsonInj.go(jsonEncoded)
     val result = Await.result(future, Duration.Inf)
     val equals = result.zip(expected).forall(b => b._1 == b._2)
-    expected.foreach(b => print(b.toChar))
-    println(expectedJson)
     assert(equals)
   }
 
@@ -409,7 +407,6 @@ class InjectValueTest extends FunSuite {
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
     val result = Await.result(future, Duration.Inf)
-    println(result)
     assert(result.equals(expected))
   }
 
@@ -434,7 +431,6 @@ class InjectValueTest extends FunSuite {
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
     val result = Await.result(future, Duration.Inf)
-    println(result)
     assert(result.equals(expected))
   }
 
@@ -996,7 +992,6 @@ class InjectValueTest extends FunSuite {
   test("CodecBson - Key case class injection") {
     val book = new BsonObject().put("name", "Title1").put("pages", 1)
     val bson = new BsonObject().put("book", book)
-
     val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
     val ex = ".book"
     val bsonInj = Boson.injector(ex, Book("LOTR", 320))
@@ -1067,7 +1062,6 @@ class InjectValueTest extends FunSuite {
   test("CodecJson - Key case class injection") {
     val book = new BsonObject().put("name", "Title1").put("pages", 1)
     val bson = new BsonObject().put("book", book)
-
     val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToString
     val ex = ".book"
     val bsonInj = Boson.injector(ex, Book("LOTR", 320))
@@ -1080,11 +1074,9 @@ class InjectValueTest extends FunSuite {
   test("CodecJson - Multiple key case class injection") {
     val book: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
     val bsonBook: BsonObject = new BsonObject().put("book", book)
-
     val books: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
     val store: BsonObject = new BsonObject().put("books", books)
     val storeBsonExpected: BsonObject = new BsonObject().put("store", store)
-
     val ex = ".store.books[0].book"
     val bsonInj = Boson.injector(ex, Book("LOTR", 320))
     val bsonEncoded = storeBson.encodeToString
@@ -1095,12 +1087,16 @@ class InjectValueTest extends FunSuite {
 
   test("CodecJson - Case case injection - [all]") {
     val ex = ".store.books[all].book"
-    val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToString
+    val book = new BsonObject().put("name", "LOTR").put("pages", 320)
+    val bookObj = new BsonObject().put("book", book)
+    val bookArr = new BsonArray().add(bookObj).add(bookObj)
+    val arrObj = new BsonObject().put("books", bookArr)
+    val expected = new BsonObject().put("store", arrObj).encodeToString
     val bsonInj = Boson.injector(ex, Book("LOTR", 320))
     val bsonEncoded = storeBson.encodeToString
     val future = bsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
-    assert(resultValue containsSlice expected) //TODO - Change expected here
+    assert(resultValue equals expected)
   }
 
   test("CodecJson - Case case injection - [end]") {
@@ -1125,16 +1121,13 @@ class InjectValueTest extends FunSuite {
     assert(resultValue containsSlice storeBsonExpected.encodeToString)
   }
 
-  test("CodecJson - Case class injection - arr expression ..[end]") { //TODO - This one right here
-    val booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected)
+  test("CodecJson - Case class injection - arr expression ..[end]") {
+    val booksExpected = new BsonArray().add(bsonBook).add(bsonBook2Expected).encodeToString
     val ex = "..[end].book"
     val bsonInj = Boson.injector(ex, Book("LOTR", 320))
     val bsonEncoded = booksArr.encodeToString
     val future = bsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
-    //    println(booksExpected.encodeToString)
-    //    println(booksExpected.encodeToBarray.mkString(", "))
-        println(resultValue)
-    assert(resultValue containsSlice booksExpected.encodeToString)
+    assert(resultValue containsSlice booksExpected)
   }
 }
