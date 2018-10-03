@@ -4,8 +4,8 @@
 Streaming Data Access for BSON and JSON encoded documents  
 
 [![Build Status](https://travis-ci.org/ZinkDigital/boson.svg?branch=master)](https://travis-ci.org/ZinkDigital/boson)
-   -- Boson Scala [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
-   -- Boson Java [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava)
+   -- Boson Scala [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonscala)
+   -- Boson Java [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava/badge.svg?)](https://maven-badges.herokuapp.com/maven-central/io.zink/bosonjava)
 
 # Table of Contents
 
@@ -42,35 +42,8 @@ In the following points we show how to use Boson in both Scala and Java in a Qui
 ## QuickStart Guide
 
 Boson is available through the Central Maven Repository, divided into 3 parts, [BosonScala](https://mvnrepository.com/artifact/io.zink/bosonscala), [BosonJava](https://mvnrepository.com/artifact/io.zink/bosonjava) and [BosonCore](https://mvnrepository.com/artifact/io.zink/bosoncore).
-To include Boson in your projects you need to add the dependencies listed bellow.
+To include Boson in your project you can get the dependencies code for each part from Maven.
 
-For SBT users, add the following to your build.sbt:
-```scala
-//For the Scala API
-libraryDependencies += “io.zink” % “bosonscala” % “0.5.0”
-```
-```scala
-//For the Java API
-libraryDependencies += “io.zink” % “bosonjava” % “0.5.0"
-```
-
-For Maven users, add the following to your pom.xml:
-```xml
-<!--For the Scala API-->
-<dependency>
-    <groupId>io.zink</groupId>
-    <artifactId>bosonsala</artifactId>
-    <version>0.5.0</version>
-</dependency>
-```
-```xml
-<!--For the Java API-->
-<dependency>
-    <groupId>io.zink</groupId>
-    <artifactId>bosonjava</artifactId>
-    <version>0.5.0</version>
-</dependency>
-```
 <div id='id-Boson'/>
 
 ### Boson  
@@ -87,21 +60,26 @@ A "Boson" is an object created when constructing an extractor/injector that incl
 Extraction requires a "BsonPath" expression (see [Documentation](#documentation) for examples and syntax), an encoded BSON and an Higher-Order Function. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
 
 ```scala  
-//Encode Bson:  
+// Valid Bson
+val fieldObj = new BsonObject().put("field1",1).put("field2",2)
+val arrayObj = new BsonArray().add(new BsonObject().put("obj1", fieldObj)).add(new BsonObject().put("obj2", fieldObj))
+val bsonEvent = new BsonObject().put("name","SomeName").put("array", arrayObj)
+
+// Encode Bson:  
 val validBson : Array[Byte] = bsonEvent.encode.getBytes  
 
-//BsonPath expression:  
-val expression: String = "fridge[1].fanVelocity"  
+// BsonPath expression:  
+val expression: String = ".array[0]..field1"  
 
-// Want to put the result onto a Stream.  
+// Put the result onto a Stream.  
 val valueStream : ValueStream = ValueStream()  
 
-//Simple Extractor:  
-val boson: Boson = Boson.extractor(expression, (in: Long) => {  
-  valueStream.add(in);  
+// Simple Extractor:  
+val boson: Boson = Boson.extractor(expression, (in: Int) => {  
+  valueStream.add(in) 
 })  
 
-//Trigger extraction with encoded Bson:  
+// Trigger extraction with encoded Bson:  
 boson.go(validBson)  
 
 // Function will be called as a result of calling 'go'  
@@ -116,7 +94,7 @@ Injection requires a "BsonPath" expression (see [Documentation](#documentation) 
 val validBsonArray: Array[Byte] = bsonEvent.encode.getBytes
 
 //BsonPath expression:  
-val expression: String = "Store..name"  
+val expression: String = ".Store..name"  
 
 //Simple Injector:  
 val boson: Boson = Boson.injector(expression, (in: String) => "newName")  
@@ -126,44 +104,10 @@ val result: Future[Array[Byte]] = boson.go(validBsonArray)
 
 // Function will be called as a result of calling 'go'
 ```  
-<div id='id-bosonFuseScala'>  
-
-#### Fusion  
-**Note: Fusion in Boson is not implemented efficiently yet.**
-
-Fusion requires a [Boson Extractor](#id-bosonExtractionScala) and a [Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in
-which fuse is applied is left to the discretion of the user. This fusion is executed sequentially at the moment.  
-
-```scala  
-//First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.  
-val validatedByteArray: Array[Byte] = bsonEvent.encode.getBytes
-
-val expression = "name"  
-
-val ext: Boson = Boson.extractor(expression, (in: BsValue) => {  
-  // Use 'in' value, this is the value extracted.  
-})  
-
-val inj: Boson = Boson.injector(expression, (in: String) => "newName")  
-
-//Then call fuse() on injector or extractor, it returns a new BosonObject.  
-val fused: Boson = ext.fuse(inj)  
-
-//Finally call go() providing the byte array or a ByteBuffer on the new Boson object.  
-val result: Future[Array[Byte]] = fused.go(validatedByteArray)
-```  
+ 
 <div id='id-quickStartGuideJava'/>  
 
 ### Java  
-To work in Java, for Maven users, it is also necessary to add the following dependency to the pom.xml of your project:  
-
-```xml  
-<dependency>  
-    <groupId>io.zink</groupId>  
-    <artifactId>boson</artifactId>  
-    <version>0.5</version>  
-</dependency>  
-```  
 <div id='id-extractionJava'/>  
 
 #### Extraction
@@ -174,7 +118,7 @@ Extraction requires a "BsonPath" expression (see [Documentation](#documentation)
 byte[] validatedByteArray = bsonEvent.encode().getBytes();  
 
 //BsonPath expression:  
-String expression = "Store..SpecialEditions[@Extra]";  
+String expression = ".Store..SpecialEditions[@Extra]";  
 
 // Want to put the result onto a Stream.  
 ValueStream valueStream = ValueStream()  
@@ -209,34 +153,6 @@ Boson boson = Boson.injector(expression,  (Object in) -> {
 
 //Trigger injection with encoded Bson:  
 byte[] result = boson.go(validatedByteArray).join();  
-```  
-<div id='id-bosonFuseJava'/>  
-
-#### Fusion
-**Note: Fusion in Boson is not implemented efficiently yet.**
-
-Fusion requires  a [Boson Extractor](#id-bosonExtractionScala) and a
-[Boson Injector](#id-bosonInjectionScala) or two Boson of the same type. The order in
-which fuse is applied is left to the discretion of the user. This fusion is executed
-sequentially at the moment.  
-
-```java  
-//First step is to construct both Boson.injector and Boson.extractor by providing the necessary arguments.  
-final byte[] validatedByteArray  = bsonEvent.encode().array();  
-
-final String expression = "name";  
-
-final Boson ext = Boson.extractor(expression, (in: BsValue) -> {  
-  // Use 'in' value, this is the value extracted.  
-});  
-
-final Boson inj = Boson.injector(expression, (in: String) -> "newName");  
-
-//Then call fuse() on injector or extractor, it returns a new BosonObject.  
-final Boson fused = ext.fuse(inj);  
-
-//Finally call go() providing the byte array or a ByteBuffer on the new Boson object.  
-final byte[] result = fused.go(validatedByteArray).join();  
 ```  
 
 <div id='id-documentation'/>
