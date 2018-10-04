@@ -60,16 +60,15 @@ A "Boson" is an object created when constructing an extractor/injector that incl
 Extraction requires a "BsonPath" expression (see [Documentation](#documentation) for examples and syntax), an encoded BSON and an Higher-Order Function. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
 
 ```scala  
-// Valid Bson
-val fieldObj = new BsonObject().put("field1",1).put("field2",2)
-val arrayObj = new BsonArray().add(new BsonObject().put("obj1", fieldObj)).add(new BsonObject().put("obj2", fieldObj))
+// Valid Bson Event
+val arrayObj = new BsonArray().add(10).add(20).add(30)
 val bsonEvent = new BsonObject().put("name","SomeName").put("array", arrayObj)
 
 // Encode Bson:  
 val validBson : Array[Byte] = bsonEvent.encode.getBytes  
 
 // BsonPath expression:  
-val expression: String = ".array[0]..field1"  
+val expression: String = ".array[1]"  
 
 // Put the result onto a Stream.  
 val valueStream : ValueStream = ValueStream()  
@@ -90,16 +89,22 @@ boson.go(validBson)
 Injection requires a "BsonPath" expression (see [Documentation](#documentation) table for examples and syntax), an encoded BSON and an Higher-Order Function. The returned result is a Future[Array[Byte]]. The Injector instance is built only once and can be reused to inject different encoded BSON.  
 
 ```scala  
-//Encode Bson:  
-val validBsonArray: Array[Byte] = bsonEvent.encode.getBytes
+// Valid Bson Event
+val arrayObj = new BsonArray().add(10).add(20).add(30)
+val bsonEvent = new BsonObject().put("name","SomeName").put("array", arrayObj)
 
-//BsonPath expression:  
-val expression: String = ".Store..name"  
+// Encode Bson:  
+val validBson: Array[Byte] = bsonEvent.encode.getBytes
 
-//Simple Injector:  
-val boson: Boson = Boson.injector(expression, (in: String) => "newName")  
+// BsonPath expression:  
+val expression: String = ".name"  
 
-//Trigger injection with encoded Bson:  
+// Simple Injector:  
+val boson: Boson = Boson.injector(expression, (in: String) => {
+    in.toUpperCase
+})  
+
+// Trigger injection with encoded Bson:  
 val result: Future[Array[Byte]] = boson.go(validBsonArray)
 
 // Function will be called as a result of calling 'go'
@@ -113,22 +118,26 @@ val result: Future[Array[Byte]] = boson.go(validBsonArray)
 #### Extraction
 Extraction requires a "BsonPath" expression (see [Documentation](#documentation) table for examples and syntax), an encoded BSON and a lambda expression. The Extractor instance is built only once and can be reused multiple times to extract from different encoded BSON.  
 
-```java  
-//Encode Bson:  
+```java
+// Valid Bson Event
+BsonArray arrayObj = new BsonArray().add(10).add(20).add(30);
+BsonObject bsonEvent = new BsonObject().put("name","SomeName").put("array", arrayObj);
+  
+// Encode Bson:  
 byte[] validatedByteArray = bsonEvent.encode().getBytes();  
 
-//BsonPath expression:  
-String expression = ".Store..SpecialEditions[@Extra]";  
+// BsonPath expression:  
+String expression = ".array[1]";  
 
 // Want to put the result onto a Stream.  
-ValueStream valueStream = ValueStream()  
+ArrayList<Integer> mutableBuffer = new ArrayList<>();
 
-//Simple Extractor:  
-Boson boson = Boson.extractor(expression, (Object obj)-> {  
-   valueStream.add(in);
+// Simple Extractor:  
+Boson boson = Boson.extractor(expression, (Integer obj)-> {  
+   mutableBuffer.add(obj);
 });  
 
-//Trigger extraction with encoded Bson:  
+// Trigger extraction with encoded Bson:  
 boson.go(validatedByteArray);  
 
 // Function will be called as a result of calling 'go'  
@@ -138,21 +147,27 @@ boson.go(validatedByteArray);
 #### Injection  
 Injection requires a "BsonPath" expression (see [Documentation](#documentation) table for examplesand syntax), an encoded BSON and a lambda expression. The returned result is a CompletableFuture<byte[]>. The Injector instance is built only once and can be reused to inject different encoded BSON.  
 
-```java  
-//Encode Bson:  
+```java 
+//Valid Bson Event
+BsonArray arrayObj = new BsonArray().add(10).add(20).add(30);
+BsonObject bsonEvent = new BsonObject().put("name","SomeName").put("array", arrayObj);
+ 
+// Encode Bson:  
 byte[] validatedByteArray = bsonEvent.encode().getBytes();  
 
-//BsonPath expression:  
-String expression = "..Store.[2 until 4]";  
+// BsonPath expression:  
+String expression = ".name";  
 
-//Simple Injector:  
-Boson boson = Boson.injector(expression,  (Object in) -> {  
+// Simple Injector:  
+Boson boson = Boson.injector(expression,  (String in) -> {  
    in.toUpperCase();  
    return in;  
 });  
 
-//Trigger injection with encoded Bson:  
+// Trigger injection with encoded Bson:  
 byte[] result = boson.go(validatedByteArray).join();  
+
+// Function will be called as a result of calling 'go'
 ```  
 
 <div id='id-documentation'/>

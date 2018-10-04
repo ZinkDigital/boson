@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -5052,7 +5054,6 @@ public class CoverageTestsJava {
 
     @Test
     public void Extract_Obj_As_Class_With_Nested_Class() {
-
         BsonObject sEdition1 = new BsonObject().put("Title", "ScalaMachine").put("Price", 39);
         BsonObject title1 = new BsonObject().put("Title", "Scala").put("Price", 15.6).put("SpecialEditions", sEdition1);
         BsonArray books = new BsonArray().add(title1);
