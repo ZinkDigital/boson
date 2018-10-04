@@ -5,7 +5,8 @@ val basicSettings = Seq(
 
   organization:="io.zink",
 
-  version := "0.8.0",
+version := "0.9.0",
+
 
   scalaVersion := "2.12.3",
 
@@ -116,8 +117,11 @@ val libraries = Seq(
   "org.scala-lang.modules" % "scala-java8-compat_2.12" % "0.8.0",
   "com.chuusai" % "shapeless_2.12" % "2.3.3",
   "org.parboiled" %% "parboiled" % "2.1.4",
-  "net.jodah" % "typetools" % "0.5.0"
+  "net.jodah" % "typetools" % "0.5.0",
+
+  asm, asmTree, asmAnalysis, asmUtil
 )
+
 
 val testLibraries = Seq(
   "org.scalatest" %% "scalatest" % "3.0.3" % Test withSources(),
@@ -131,7 +135,6 @@ val testLibraries = Seq(
   "io.rest-assured" % "scala-support" % "3.0.6",
   "io.rest-assured" % "rest-assured" % "3.0.6",
   "com.squareup.okhttp3" % "mockwebserver" % "3.9.1",
-  "com.storm-enroute" %% "scalameter" % "0.8.2",
   "de.undercouch" % "bson4jackson" % "2.7.0"
 )
 
@@ -146,7 +149,6 @@ lazy val bosonCore = project.in(file("boson-core"))
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
   .settings(
-    libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false
@@ -157,7 +159,6 @@ lazy val bosonScala = project.in(file("boson-scala"))
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
   .settings(
-    libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false
@@ -168,7 +169,18 @@ lazy val bosonJava = project.in(file("boson-java"))
   .settings(basicSettings: _*)
   .settings(javaDoc:  _*)
   .settings(
-    libraryDependencies ++= Dependencies.compile(asm, asmTree, asmAnalysis, asmUtil),
+    javacOptions in Test += "-g", // needed for bytecode rewriting
+    crossPaths := false,
+    autoScalaLibrary := false
+  )
+
+lazy val bosonPerformance = project.in(file("boson-performance"))
+  .dependsOn(bosonScala)
+  //.dependsOn(bosonJava)
+  .settings(basicSettings: _*)
+  .settings(javaDoc:  _*)
+  .settings(
+    libraryDependencies ++= Dependencies.compile( perform),
     javacOptions in Test += "-g", // needed for bytecode rewriting
     crossPaths := false,
     autoScalaLibrary := false

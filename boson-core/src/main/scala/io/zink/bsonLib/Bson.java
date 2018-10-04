@@ -16,7 +16,7 @@
  * Derived from original file Json.java from Vert.x
  */
 
-package io.zink.boson.bson.bsonImpl.bsonLib;
+package io.zink.bsonLib;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

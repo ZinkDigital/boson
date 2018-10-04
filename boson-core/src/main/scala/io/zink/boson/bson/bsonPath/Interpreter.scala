@@ -6,7 +6,8 @@ import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
 import shapeless.TypeCase
-import scala.util.{Failure, Success}
+
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -23,10 +24,7 @@ class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
-  val parsedStatements: ProgStatement = new DSLParser(expression).Parse() match {
-    case Success(result) => result
-    case Failure(excp) => throw excp
-  }
+  val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)
 
   val (keyList: List[(String, String)], limitList: List[(Option[Int], Option[Int], String)]) =
     buildExtractors(parsedStatements.statementList.head, parsedStatements.statementList.tail, parsedStatements.dotsList)
@@ -356,30 +354,23 @@ class Interpreter[T](expression: String,
   private def executeMultipleKeysInjector(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val input: Either[ByteBuf, String] = bsonEncoded match {
       case Left(byteArr) =>
-        val buf: ByteBuf = Unpooled.buffer(byteArr.length).writeBytes(byteArr)
+        val buf: ByteBuf = Unpooled.copiedBuffer(byteArr) // This line is consuming a lot of CPU
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
+//    Try(BosonImpl.inject(input, statements, fInj.get)) match {
+//      case Success(resultCodec) =>
+//        resultCodec.getCodecData match {
+//          case Left(byteBuf) => Left(byteBuf.array)
+//          case Right(string) => Right(string)
+//        }
+//      case Failure(exception) => throw CustomException(exception.getMessage)
+//    }
 
-    val result: Either[Array[Byte], String] = {
-      val x = BosonImpl.inject(input, statements, fInj.get)
-      x.getCodecData match {
-        case Left(byteBuf) => Left(byteBuf.array())
-        case Right(string) => Right(string)
-      }
-    }
-    //      Try(BosonImpl.inject(input, statements, fInj.get)) match { //TODO WHEN INJECTORS ARE WORKING, REPLACE ABOVE CODE WITH THIS
-    //        case Success(resultCodec) => resultCodec.getCodecData match {
-    //          case Left(byteBuf) => Left(byteBuf.array())
-    //          case Right(string) => Right(string)
-    //        }
-    //        case Failure(e) => throw CustomException(e.getMessage)
-    //      }
-    result match {
-      case Left(bb) => println("Result was : " + new String(bb))
-      case Right(str) => println("Result was : " + str)
-    }
-    result
+    BosonImpl.inject(input, statements, fInj.get).getCodecData match {
+                case Left(byteBuf) => Left(byteBuf.array)
+                case Right(string) => Right(string)
+              }
   }
 
 }

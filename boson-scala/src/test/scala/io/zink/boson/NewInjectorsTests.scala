@@ -927,7 +927,7 @@ class NewInjectorsTests extends FunSuite {
     assert((resultValue containsSlice Array(21, 0, 0, 0)) && (resultValue containsSlice Array(32, 0, 0, 0)) && resultValue.length == bsonEncoded.length)
   }
 
-  test("Nested key injection - ..person[all]..age") {
+  test("Nested key injection - ..person[all]..age") { //TODO
     val person1 = new BsonObject().put("name", "john doe").put("age", 21)
     val person2 = new BsonObject().put("name", "jane doe").put("age", 12)
     val persons = new BsonArray().add(person1).add(person2)
@@ -3068,7 +3068,7 @@ class NewInjectorsTests extends FunSuite {
     assert(result equals expectedEncoded)
   }
 
-  test("CodecJson - Key with Array Exp ..[1 to end] - Double Dots") { //TODO
+  test("CodecJson - Key with Array Exp ..[1 to end] - Double Dots") {
     val expr = "..[1 to end]"
     val bsonArrayExpected = new BsonArray().add("person1").add("PERSON2").add("PERSON3")
     val expectedEncoded = bsonArrayExpected.encodeToString
@@ -3512,6 +3512,7 @@ class NewInjectorsTests extends FunSuite {
     })
     val future = jsonInj.go(json.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+    println(resultValue + "\n" + jsonExpected.encodeToString)
     assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
@@ -4041,6 +4042,7 @@ class NewInjectorsTests extends FunSuite {
     val resultValue: String = Await.result(future, Duration.Inf)
     assert(resultValue.equals(personsExpected.encodeToString))
   }
+
 
   test("CodecJson - Array within array ..Array[0]..Array[0] - Double/Double") {
     val person1 = new BsonArray().add("name").add("john doe").add("age")

@@ -22,6 +22,7 @@ class CodecJson(str: String) extends Codec {
     */
   val input: StringBuilder = StringBuilder.newBuilder
   input.append(str)
+
   /**
     * inputSize is a constant with the size of the input
     * this constant is used several times along the code
@@ -149,7 +150,7 @@ class CodecJson(str: String) extends Codec {
         case C_DOT =>
           SonObject(request, input.mkString)
         case CS_OBJECT | CS_OBJECT_WITH_SIZE | CS_OBJECT_INJ =>
-          val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonObject(request, subStr1)
@@ -159,19 +160,19 @@ class CodecJson(str: String) extends Codec {
         case C_DOT =>
           SonArray(request, input.mkString)
         case CS_ARRAY | CS_ARRAY_WITH_SIZE =>
-          val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
           val subStr1 = input.substring(readerIndex, readerIndex + size)
           readerIndex += size
           SonArray(request, subStr1)
         case CS_ARRAY_INJ =>
           if (input(readerIndex).equals('[')) {
-            val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
             val subStr1 = input.substring(readerIndex, readerIndex + size)
             readerIndex += size
             SonArray(request, subStr1)
           } else {
             if (input(readerIndex).equals('{')) {
-              val size = findObjectSize(input.substring(readerIndex, inputSize).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+              val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
               val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
               readerIndex += size
               SonArray(request, subStr1)
@@ -273,8 +274,8 @@ class CodecJson(str: String) extends Codec {
     while (!input(readerIndex).isDigit) {
       readerIndex += 1
     }
-    lazy val strSliced = input.substring(readerIndex, inputSize)
-    lazy val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
+    val strSliced = input.substring(readerIndex, inputSize)
+    val indexMin = List(strSliced.view.indexOf(CS_COMMA), strSliced.view.indexOf(CS_CLOSE_BRACKET), strSliced.view.indexOf(CS_CLOSE_RECT_BRACKET)).filter(n => n >= 0).min
     val subStr = input.substring(readerIndex, readerIndex + indexMin)
     readerIndex += indexMin
     val subStr1 = subStr.dropWhile(p => !p.isDigit)
@@ -342,7 +343,7 @@ class CodecJson(str: String) extends Codec {
         val size = findObjectSize(inputAux, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
         size
       case CS_OPEN_RECT_BRACKET =>
-        val inputAux: Seq[Char] = input.substring(readerIndex, inputSize)
+        val inputAux: Seq[Char] = input.substring(readerIndex, input.length)
         val size = findObjectSize(inputAux, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
         size
       case CS_QUOTES =>
@@ -530,7 +531,7 @@ class CodecJson(str: String) extends Codec {
     * @return a new duplicate Codec
     */
   override def duplicate: Codec = {
-    val newCodec = new CodecJson(str)
+    val newCodec = new CodecJson(input.toString)
     newCodec.setReaderIndex(readerIndex)
     newCodec.setWriterIndex(writerIndex)
     newCodec
@@ -552,49 +553,12 @@ class CodecJson(str: String) extends Codec {
   }
 
   /**
-    * getArrayPosition is used to get the actual array position, without consuming the value from stream
-    *
-    * @return this method doesn't return anything because this data is not usefull for extraction
-    *         however, in the future when dealing with injection, we may have the need to work with this value
-    *         (this is why there is a commented function with the same but returning a Int)
-    */
-  /*override def getArrayPosition: Int = {
-  lazy val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
-  val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
-  substr.substring(0, index).count(p => p.equals(CS_COMMA))
-}*/
-  override def getArrayPosition: Unit = {}
-
-  /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
     * @return this method doesn't return anything because this data is not usefull for extraction
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  /* override def readArrayPosition: Int ={
-   val substr = input.reverse.substring(inputSize-readerIndex, inputSize)
-   val index = substr.view.indexOf(CS_OPEN_RECT_BRACKET)
-   val str = substr.substring(0, index).view
-   val list = StringBuilder.newBuilder
-   var a = 0
-   var i = 0
-   while(i!=str.length){
-     str(i)match{
-       case x if x.equals(CS_OPEN_BRACKET)||x.equals(CS_OPEN_RECT_BRACKET) =>
-         list.append(x)
-         a+=1
-       case  x if x.equals(CS_CLOSE_BRACKET)||x.equals(CS_CLOSE_RECT_BRACKET) =>
-         list.append(x)
-         a-=1
-       case x =>
-         if(a==0) list.append(x) else list.append(CS_ZERO)
-     }
-     i+=1
-   }
-   val res = list.count(p => p.equals(CS_COMMA))
-   res
- }*/
   override def readArrayPosition: Unit = {}
 
   /**
@@ -603,63 +567,32 @@ class CodecJson(str: String) extends Codec {
     */
   override def consumeValue(seqType: Int): Unit = seqType match {
     case D_FLOAT_DOUBLE =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
 
     case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
-    //    case D_BSONOBJECT=> ???
-    //    case D_BSONARRAY=> ???
     case D_BOOLEAN =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
     case D_NULL =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
     case D_INT =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
     case D_LONG =>
-      //println(input(readerIndex))
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
       readerIndex += size
   }
 
-  /**
-    * Method that reads a specified length and returns a new codec with that information
-    */
-  override def readSpecificSize(size: Int): Codec = ???
-
-  /**
-    * Method that retains only a slice, of a specified length, of the data structure.
-    * Returns a new codec containing that slice
-    *
-    * @param length - The length of the slice to retain
-    * @return - a new codec containing only a slice of the old codec's dataStructure
-    */
-  override def readSlice(length: Int): Codec = ???
-
-  /**
-    * Create a new codec from an Array of Bytes
-    *
-    * @param byteArray - The Array of Bytes from which to create the codec
-    * @return a new codec with the information present in the array of byte
-    */
-  def fromByteArray(byteArray: Array[Byte]): Codec = new CodecJson(new String(byteArray))
-
-  //
   //-------------------------------------Injector functions--------------------------
 
   /**
@@ -668,44 +601,45 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(outCodecOpt: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
-    val duplicated: String = outCodecOpt.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
-
-    if (ignoreForJson) new CodecJson(duplicated) else {
-      val resultString: String = token match {
-        case SonBoolean(_, info) => duplicated + info.asInstanceOf[Boolean]
+  override def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
+    if (ignoreForJson) this else {
+      token match {
+        case SonBoolean(_, info) => input.append(info.asInstanceOf[Boolean])
 
         case SonNumber(numberType, info) =>
           numberType match {
-            case CS_BYTE => duplicated + info.asInstanceOf[Byte]
+            case CS_BYTE => input.append(info.asInstanceOf[Byte])
 
-            case CS_INTEGER => duplicated + info.asInstanceOf[Int]
+            case CS_INTEGER => input.append(info.asInstanceOf[Int])
 
-            case CS_DOUBLE => duplicated + info.asInstanceOf[Double]
+            case CS_DOUBLE => input.append(info.asInstanceOf[Double])
 
-            case CS_FLOAT => duplicated + info.asInstanceOf[Float]
+            case CS_FLOAT => input.append(info.asInstanceOf[Float])
 
-            case CS_LONG => duplicated + info.asInstanceOf[Long]
+            case CS_LONG => input.append(info.asInstanceOf[Long])
 
           }
 
         case SonString(tokenString, info) => tokenString match {
-          case CS_STRING_NO_QUOTES => duplicated + info.asInstanceOf[CharSequence]
+          case CS_STRING_NO_QUOTES => input.append(info.asInstanceOf[CharSequence])
 
-          case _ => duplicated + "\"" + info.asInstanceOf[CharSequence] + "\""
+          case _ => input.append("\"" + info.asInstanceOf[CharSequence] + "\"")
         }
 
-        case SonArray(_, info) => duplicated + info.asInstanceOf[CharSequence]
+        case SonArray(_, info) => input.append(info.asInstanceOf[CharSequence])
 
-        case SonObject(_, info) => duplicated + info.asInstanceOf[CharSequence]
+        case SonObject(_, info) =>
+          val writableInfo = info.asInstanceOf[CharSequence]
+          val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
+          input.append(infoToUse)
 
-        case SonNull(_, _) => duplicated + "null"
+        case SonNull(_, _) => input.append("null")
       }
-      if (isKey) {
-        val newCodec = new CodecJson(resultString + ":")
-        newCodec.setReaderIndex(readerIndex)
-        newCodec
-      } else new CodecJson(resultString + ",")
+      if (isKey)
+        input.append(":")
+      else
+        input.append(',')
+      this
     }
   }
 
@@ -714,10 +648,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a duplicate of the codec's data structure
     */
-  override def getCodecData: Either[ByteBuf, String] = {
-    val duplicate = str
-    Right(duplicate)
-  }
+  override def getCodecData: Either[ByteBuf, String] = Right(input.toString)
 
   /**
     *
@@ -725,18 +656,199 @@ class CodecJson(str: String) extends Codec {
     * @return
     */
   override def +(sumCodec: Codec): Codec = {
-    val sum = sumCodec.getCodecData match {
-      case Right(jsonString) => jsonString
-    }
-    new CodecJson(str + sum)
+    input.append(sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value)
+    this
   }
 
   /**
-    * This method will remove the empty space in this codec.
+    * Method that removes the trailing of a CodecJson in order to create a correct json
+    * This method, in case of CodecBson, simply returns the codec passed as argument
     *
-    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
-    *
+    * @param codec - codec we wish to remove the trailing comma
+    * @return a new codec that does not have the last trailing comma in it
     */
-  def removeEmptySpace: Unit = {}
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec = {
+    val codecString = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+    val (openBracket, closedBracket) = if (rectBrackets) ("[", "]") else ("{", "}")
+
+    if (input.charAt(input.length - 1).equals(',')) {
+      if (checkOpenRect) {
+        if (codecString.charAt(0).equals('[') && !input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) {
+          input.insert(0, '[')
+          input.replace(input.length - 1, input.length, "]")
+        }
+        else if (codecString.charAt(0).equals('[') && input.charAt(0).equals(CS_OPEN_RECT_BRACKET)) input.replace(input.length - 1, input.length, "")
+        else {
+          input.replace(input.length - 1, input.length, "}")
+          input.insert(0, '{')
+        }
+      } else {
+        input.replace(input.length - 1, input.length, closedBracket)
+        input.insert(0, openBracket)
+      }
+    } else {
+      input.insert(0, openBracket)
+      input.append(closedBracket)
+    }
+    this
+  }
+
+  /**
+    * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.
+    * In case the current codec is a CodecJson this method simply returns and empty CodecJson representing a codec with a size inside it (nothing)
+    *
+    * @return A new codec with exactly the same information as the current codec but with the size information written in it
+    */
+  def writeCodecSize: Codec = this
+
+  /**
+    * Method that skips the next character in the current codec's data structure
+    */
+  def skipChar(back: Boolean = false): Unit = if (!back) setReaderIndex(getReaderIndex + 1) else setReaderIndex(getReaderIndex - 1)
+
+  /**
+    * Method that adds a comma to the end of a CodecJson data structure
+    * In case the current codec is a CodecBson this method simply returns the current codec
+    *
+    * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
+    */
+  def addComma: Codec = {
+    input.append(",")
+    this
+  }
+
+  /**
+    * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
+    * Since the writing and reading of Bson and Json is not identical some edge cases are necessary, this method
+    * allows us to not expose the codec type in BosonInjectorImpl.scala
+    *
+    * @param codecForBson - Codec to use in case the current codec is of type CodecBson
+    * @param codecForJson - Codec to use in case the current codec is of type CodecJson
+    * @return The codec to use according to the current codec's type
+    */
+  def decideCodec(codecForBson: => Codec, codecForJson: Codec): Codec = codecForJson
+
+  /**
+    * Method that decides if a codec is able to read a key or not. If the codec type is CodecBson this method will always return true
+    * If the method is of type CodecJson this method will check if the initial character is not an open array bracket
+    * for that would break the reading process in the Json case
+    *
+    * @return a Boolean saying if the codec is able to read a key or not
+    */
+  def canReadKey(searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1 else false
+
+  /**
+    * Method that decides if the type of the current key is an array or not
+    *
+    * @param formerType
+    * @param key
+    * @return A Boolean specifying if the type of the current key is an array or not
+    */
+  def isArray(formerType: Int, key: String): Boolean = formerType == 4
+
+  /**
+    * Method that changes the brackets of a json string from curly brackets to rectangular brackets
+    * In case the current codec is of type CodecBson this method simple returns a duplicated codec
+    *
+    * @param dataType - The data type of value to change
+    * @return A new codec with exactly the same information but with the brackets changed
+    */
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec = {
+    if (curlyToRect) {
+      if (dataType != D_BSONOBJECT) {
+        input.replace(0, 1, "[")
+        input.replace(input.length - 1, input.length, "]")
+      }
+      this
+    } else {
+      if (dataType == 3 && input.charAt(0) == '[') {
+        input.replace(0, 1, "{")
+        input.replace(input.length - 1, input.length, "},")
+      } else
+        input.append(",")
+      this
+    }
+  }
+
+  /**
+    * Method that wraps a CodecJson in curly or rectangular brackets.
+    * For CodecBson this method simply returns a copy of this codec
+    *
+    * @param rectBracket - Boolean flag specifying if the brackets should be curly or rectangular
+    * @param key         - Json field to be written before this codec's content (optional)
+    * @return A new codec with the same information as before but with brackets encapsulating it
+    */
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = {
+    if (dataType == -1 || dataType == D_BSONOBJECT) {
+      val (openBracket, closeBracket) = if (rectBracket) ("[", "]") else ("{", "}")
+      if (key.isEmpty) {
+        input.insert(0, openBracket)
+        input.append(closeBracket)
+      } else input.insert(0, openBracket + "\"" + key + "\":")
+    }
+    this
+  }
+
+  /**
+    * Method that decides if a CodecJson can be wrapped in curly braces or not.
+    * For CodecBson this method simply returns false
+    *
+    * @return A Boolean specifying if this codec can be wrapped in curly braces or not
+    */
+  def wrappable: Boolean = !input.toString.charAt(0).equals(CS_OPEN_BRACKET)
+
+  /**
+    * This methods clears all the information inside the codec so it can be rewritten
+    *
+    * @return
+    */
+  def clear: Codec = {
+    input.clear()
+    this
+  }
+
+  /**
+    * this method is called to complete writing the rest of an array when the desired modifications have been made
+    *
+    * @param codec    - The Codec to read the information from
+    * @param dataType - The current data Type (not used in CodecBson
+    * @return
+    */
+  def writeRest(codec: Codec, dataType: Int): Codec = {
+    val res = codec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value
+
+    if(dataType == 3){
+      if(res.endsWith("]}")){
+        val aux = res.substring(codec.getReaderIndex, res.length - 2)
+        input.append(aux.asInstanceOf[String])
+      } else {
+        val aux = res.substring(codec.getReaderIndex, codec.getWriterIndex)
+        input.append(aux.asInstanceOf[String])
+      }
+      if(!input.endsWith("}"))
+        input.append("}")
+    } else {
+      if(res.endsWith("]}")) {
+        val aux = res.substring(codec.getReaderIndex, res.length-2)
+        input.append(aux.asInstanceOf[String])
+      } else {
+        val aux = res.substring(codec.getReaderIndex, res.length)
+        input.append(aux.asInstanceOf[String])
+      }
+    }
+    codec.setReaderIndex(res.length)
+    this
+  }
+                                                
+  /**
+    * Method that creates a Codec with an empty data structure inside it.
+    *
+    * For CodecBson it creates a ByteBuf with capacity 256.
+    * For CodecJson it creates an empty String
+    *
+    * @return a Codec with an empty data structure inside it
+    */
+  def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec = new CodecJson("")
+
 }
 

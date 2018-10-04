@@ -36,7 +36,7 @@ case object SonZero extends SonNamedType
   */
 trait Codec {
   /**
-    * getToken is used to obtain a value correponding to the SonNamedType request, without consuming the value from the stream
+    * getToken is used to obtain a value corresponding to the SonNamedType request, without consuming the value from the stream
     *
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
@@ -50,16 +50,6 @@ trait Codec {
     * @return returns the same SonNamedType request with the value obtained.
     */
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
-
-  /**
-    * getArrayPosition is used to get the actual array position, without consuming the value from stream
-    *
-    * @return this method doesn't return anything because this data is not usefull for extraction
-    *         however, in the future when dealing with injection, we may have the need to work with this value
-    *         (this is why there is a commented function with the same but returning a Int)
-    */
-  //def getArrayPosition: Int
-  def getArrayPosition: Unit
 
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
@@ -180,28 +170,6 @@ trait Codec {
     */
   def consumeValue(seqType: Int): Unit
 
-  /**
-    * Method that reads a specified length and returns a new codec with the length of the old one, but with only the read information
-    */
-  def readSpecificSize(size: Int): Codec
-
-  /**
-    * Method that retains only a slice, of a specified length, of the data structure.
-    * Returns a new codec containing that slice
-    *
-    * @param length - The length of the slice to retain
-    * @return - a new codec containing only a slice of the old codec's dataStructure
-    */
-  def readSlice(length: Int): Codec
-
-  /**
-    * Create a new codec from an Array of Bytes
-    *
-    * @param byteArray - The Array of Bytes from which to create the codec
-    * @return a new codec with the information present in the array of byte
-    */
-  def fromByteArray(byteArray: Array[Byte]): Codec
-
   //--------------------------------------------Injector functions-----------------------------------------
 
   /**
@@ -210,7 +178,7 @@ trait Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  def writeToken(outCodec: Codec, token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey : Boolean = false): Codec
+  def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure
@@ -220,7 +188,7 @@ trait Codec {
   def getCodecData: Either[ByteBuf, String]
 
   /**
-    * Method that adds 2 codecs and returns the reslut codec
+    * Method that adds 2 codecs and returns the result codec
     *
     * @param sumCodec - Codec to be added to the first
     * @return a codec with the added information of the other 2
@@ -228,11 +196,115 @@ trait Codec {
   def +(sumCodec: Codec): Codec
 
   /**
-    * This method will remove the empty space in this codec.
+    * Method that removes the trailing of a CodecJson in order to create a correct json
+    * This method, in case of CodecBson, simply returns the codec passed as argument
     *
-    * For CodecBson this method will set the byteBuf's capacity to the same index as writerIndex
+    * @param codec - codec we wish to remove the trailing comma
+    * @return a new codec that does not have the last trailing comma in it
     */
-  def removeEmptySpace: Unit
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec
+
+  /**
+    * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.
+    * In case the current codec is a CodecJson this method simply returns and empty CodecJson representing a codec with a size inside it (nothing)
+    *
+    * @return A new codec with exactly the same information as the current codec but with the size information written in it
+    */
+  def writeCodecSize: Codec
+
+  /**
+    * Method that skips the next character in the current codec's data structure
+    */
+  def skipChar(back: Boolean = false): Unit
+
+  /**
+    * Method that adds a comma to the end of a CodecJson data structure
+    * In case the current codec is a CodecBson this method simply returns the current codec
+    *
+    * @return A codec that has exactly the same information but adds a comma to the end of this codecs data structure in case it's a CodecJson
+    */
+  def addComma: Codec
+
+  /**
+    * Method that upon receiving two distinct codecs, will decide which one to use based on the current codec type
+    * Since the writting and reading of Bson and Json is not identical some edge cases are necessary, this method
+    * allows us to not expose the codec type in BosonInjectorImpl.scala
+    *
+    * @param codecForBson - Codec to use in case the current codec is of type CodecBson. By name parameter to only execute when necessary
+    * @param codecForJson - Codec to use in case the current codec is of type CodecJson
+    * @return The codec to use according to the current codec's type
+    */
+  def decideCodec(codecForBson: => Codec, codecForJson: Codec): Codec
+
+  /**
+    * Method that decides if a codec is able to read a key or not. If the codec type is CodecBson this method will always return true
+    * If the method is of type CodecJson this method will check if the initial character is not an open array bracket
+    * for that would break the reading process in the Json case
+    *
+    * @return a Boolean saying if the codec is able to read a key or not
+    */
+  def canReadKey(searchAndModify: Boolean = false): Boolean
+
+  /**
+    * Method that decides if the type of the current key is an array or not
+    *
+    * @param formerType
+    * @param key
+    * @return A Boolean specifying if the type of the current key is an array or not
+    */
+  def isArray(formerType: Int, key: String): Boolean
+
+  /**
+    * Method that changes the brackets of a json string from curly brackets to rectangular brackets
+    * In case the current codec is of type CodecBson this method simple returns a duplicated codec
+    *
+    * @param dataType - The data type of value to change
+    * @return A new codec with exactly the same information but with the brackets changed
+    */
+  def changeBrackets(dataType: Int, curlyToRect: Boolean = true): Codec
+
+  /**
+    * Method that wraps a CodecJson in curly or rectangular brackets.
+    * For CodecBson this method simply returns a copy of this codec
+    *
+    * @param rectBracket - Boolean flag specifying if the brackets should be curly or rectangular
+    * @param key         - Json field to be written before this codec's content (optional)
+    * @return A new codec with the same information as before but with brackets encapsulating it
+    */
+  def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec
+
+  /**
+    * Method that decides if a CodecJson can be wrapped in curly braces or not.
+    * For CodecBson this method simply returns false
+    *
+    * @return A Boolean specifying if this codec can be wrapped in curly braces or not
+    */
+  def wrappable: Boolean
+
+  /**
+    * This methods clears all the information insde the codec so it can be rewritten
+    *
+    * @return
+    */
+  def clear: Codec
+
+  /**
+    * this method is called to complete writing the rest of an array when the desired modifications have been made
+    *
+    * @param codec    - The Codec to read the information from
+    * @param dataType - The current data Type (not used in CodecBson
+    * @return
+    */
+  def writeRest(codec: Codec, dataType: Int): Codec
+
+   /** Method that creates a Codec with an empty data structure inside it.
+    *
+    * For CodecBson it creates a ByteBuf with capacity 256.
+    * For CodecJson it creates an empty String
+    *
+    * @return a Codec with an empty data structure inside it
+    */
+  def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec
 }
 
 sealed trait CodecFacade {
@@ -257,11 +329,22 @@ sealed trait DefaultCodecs {
     override def applyFunc(arg: String): CodecJson = new CodecJson(arg)
   }
 
-  //  implicit object ArrayCodec extends Codecs[Array[Byte]] {
-  //    override def applyFunc(arg:Array[Byte]): CodecBson = new CodecBson(arg) //call the array bytes codec
-  //  }
   implicit object ByteBufCodec extends Codecs[ByteBuf] {
-    override def applyFunc(arg: ByteBuf): CodecBson = new CodecBson(arg) //call the array bytes codec
+    override def applyFunc(arg: ByteBuf): CodecBson = new CodecBson(arg)
+  }
+
+  implicit object AnyCodec extends Codecs[Any] {
+    override def applyFunc(arg: Any): Codec = arg match {
+      case byteBuf: ByteBuf => new CodecBson(byteBuf)
+      case jsonString: String => new CodecJson(jsonString)
+    }
+  }
+
+  implicit object EitherCodec extends Codecs[Either[ByteBuf, String]] {
+    override def applyFunc(arg: Either[ByteBuf, String]): Codec = arg match {
+      case Left(byteBuf) => new CodecBson(byteBuf)
+      case Right(jsonString) => new CodecJson(jsonString)
+    }
   }
 
 }

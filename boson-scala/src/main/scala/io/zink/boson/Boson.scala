@@ -80,7 +80,6 @@ object Boson {
       new extractor[Seq[A]] {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
 
-        //println("implicit seqCaseClass")
         def extract(expression: String, extractFunction: Seq[A] => Unit): Boson =
           new BosonExtractorObj[A, L](expression, extractSeqFunction = Some(extractFunction))(f, ext, typeCase)
 
@@ -99,7 +98,6 @@ object Boson {
 
         implicit val typeCase: Option[TypeCase[Coll[A]]] = Some(TypeCase[Coll[A]])
 
-        //println("implicit seqLiterals")
         def extract(expression: String, extractFunction: Coll[A] => Unit): Boson =
           new BosonExtractor[Coll[A]](expression, extractFunction)(typeCase)
       }
@@ -108,7 +106,6 @@ object Boson {
       new extractor[Seq[Array[Byte]]] {
         implicit val typeCase: Option[TypeCase[Seq[Array[Byte]]]] = None
 
-        //println(s"implicit of seqArrByte")
         override def extract(expression: String, extractFunction: Seq[Array[Byte]] => Unit): Boson =
           new BosonExtractor[Seq[Array[Byte]]](expression, extractFunction)
       }
@@ -118,7 +115,6 @@ object Boson {
       */
     implicit val arrByte: extractor[Array[Byte]] =
       new extractor[Array[Byte]] {
-        //println("implicit arrByte")
         implicit val typeCase: Option[TypeCase[Array[Byte]]] = None
 
         override def extract(expression: String, extractFunction: Array[Byte] => Unit): Boson =
@@ -130,7 +126,6 @@ object Boson {
       */
     implicit val double: extractor[Double] =
       new extractor[Double] {
-        //println("implicit Double")
         implicit val typeCase: Option[TypeCase[Double]] = Some(TypeCase[Double])
 
         override def extract(expression: String, extractFunction: Double => Unit): Boson =
@@ -142,7 +137,6 @@ object Boson {
       */
     implicit val float: extractor[Float] =
       new extractor[Float] {
-        //println("float")
         implicit val typeCase: Option[TypeCase[Float]] = Some(TypeCase[Float])
 
         override def extract(expression: String, extractFunction: Float => Unit): Boson =
@@ -154,7 +148,6 @@ object Boson {
       */
     implicit val instant: extractor[Instant] =
       new extractor[Instant] {
-        //println("instant")
         implicit val typeCase: Option[TypeCase[Instant]] = Some(TypeCase[Instant])
 
         override def extract(expression: String, extractFunction: Instant => Unit): Boson =
@@ -166,7 +159,6 @@ object Boson {
       */
     implicit val long: extractor[Long] =
       new extractor[Long] {
-        //println("implicit Long")
         implicit val typeCase: Option[TypeCase[Long]] = Some(TypeCase[Long])
 
         override def extract(expression: String, extractFunction: Long => Unit): Boson =
@@ -178,7 +170,6 @@ object Boson {
       */
     implicit val int: extractor[Int] =
       new extractor[Int] {
-        //println("int")
         implicit val typeCase: Option[TypeCase[Int]] = Some(TypeCase[Int])
 
         override def extract(expression: String, extractFunction: Int => Unit): Boson =
@@ -190,7 +181,6 @@ object Boson {
       */
     implicit val string: extractor[String] =
       new extractor[String] {
-        //println("string")
         implicit val typeCase: Option[TypeCase[String]] = Some(TypeCase[String])
 
         override def extract(expression: String, extractFunction: String => Unit): Boson =
@@ -202,7 +192,6 @@ object Boson {
       */
     implicit val boolean: extractor[Boolean] =
       new extractor[Boolean] {
-        //println("boolean")
         implicit val typeCase: Option[TypeCase[Boolean]] = Some(TypeCase[Boolean])
 
         override def extract(expression: String, extractFunction: Boolean => Unit): Boson =
@@ -211,7 +200,7 @@ object Boson {
   }
 
 
-  def validate[T](expression: String, validateFunction: T => Unit) = new BosonValidate[T](expression, validateFunction)
+  //  def validate[T](expression: String, validateFunction: T => Unit) = new BosonValidate[T](expression, validateFunction)
 
   /**
     * Make an Injector that will call the inject function (of T -> T) according to
@@ -344,14 +333,14 @@ trait Boson {
   def go(bsonByteEncoding: String): Future[String]
 
 
-//  /**
-//    * Fuse one BosonImpl to another. The boson that is this should be executed first before the
-//    * boson that is the parameter in the case of update/read conflicts.
-//    * the immutable byte array being returned unmodified.
-//    *
-//    * @param boson BosonImpl to fuse to.
-//    * @return the fused BosonImpl
-//    */
-//  def fuse(boson: Boson): Boson
+  //  /**
+  //    * Fuse one BosonImpl to another. The boson that is this should be executed first before the
+  //    * boson that is the parameter in the case of update/read conflicts.
+  //    * the immutable byte array being returned unmodified.
+  //    *
+  //    * @param boson BosonImpl to fuse to.
+  //    * @return the fused BosonImpl
+  //    */
+  //  def fuse(boson: Boson): Boson
 
 }
