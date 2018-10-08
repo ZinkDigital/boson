@@ -7,6 +7,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
+import io.zink.boson.bson.value.ValueObject
 import io.zink.bsonLib.{BsonArray, BsonObject}
 
 import scala.collection.mutable.ListBuffer
@@ -1863,11 +1864,13 @@ private[bsonImpl] object BosonInjectorImpl {
   private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int)(implicit convertFunction: Option[TupleList => T] = None): (Codec, SonNamedType) = {
     value match {
       case string: String =>
-        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
-        currentCodec.writeToken(SonString(CS_STRING, string))
-        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+        ValueObject.toValue(value.asInstanceOf[String]).write(currentCodec)
+//        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
+//        currentCodec.writeToken(SonString(CS_STRING, string))
+//        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
       case int: Int =>
-        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
+        ValueObject.toValue(value.asInstanceOf[Int]).write(currentCodec)
+//        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
       case long: Long =>
         currentCodec.writeToken(SonNumber(CS_LONG, long))
       case double: Double =>
