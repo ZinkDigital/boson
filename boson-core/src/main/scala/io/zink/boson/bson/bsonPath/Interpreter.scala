@@ -5,6 +5,7 @@ import java.time.Instant
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary.{oneString, _}
 import io.zink.boson.bson.bsonImpl._
+import io.zink.boson.bson.value.Value
 import shapeless.TypeCase
 
 import scala.util.{Failure, Success, Try}
@@ -22,7 +23,7 @@ import scala.util.{Failure, Success, Try}
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
-                     vInj: Option[T] = None,
+                     vInj: Option[Value] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)

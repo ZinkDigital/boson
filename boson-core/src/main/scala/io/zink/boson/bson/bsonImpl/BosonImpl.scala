@@ -9,6 +9,7 @@ import io.zink.boson.bson.codec._
 import BosonExtractorImpl._
 import BosonInjectorImpl._
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
+import io.zink.boson.bson.value.Value
 
 import scala.util.{Failure, Success, Try}
 
@@ -197,7 +198,7 @@ object BosonImpl {
     }
   }
 
-  def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: T, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
+  def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: Value, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
     val (auxType, codec): (Int, Codec) = dataStructure match {
       case Right(jsonString: String) =>
         val returnCodec = new CodecJson(jsonString)

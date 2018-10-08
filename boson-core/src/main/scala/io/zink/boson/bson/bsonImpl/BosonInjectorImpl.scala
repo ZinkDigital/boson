@@ -7,7 +7,7 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-import io.zink.boson.bson.value.ValueObject
+import io.zink.boson.bson.value.{Value, ValueObject}
 import io.zink.bsonLib.{BsonArray, BsonObject}
 
 import scala.collection.mutable.ListBuffer
@@ -1460,7 +1460,7 @@ private[bsonImpl] object BosonInjectorImpl {
 
   //********** Inject Value Functions Go Here **********//
 
-  def injectRootValue[T](codec: Codec, value: T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def injectRootValue[T](codec: Codec, value: Value)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val currentCodec = codec.createEmptyCodec
     val (mod, _) = writeValue(codec, currentCodec, value, 0)
     mod.wrapInBrackets()
@@ -1475,7 +1475,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T
     * @return
     */
-  def injectKeyValue[T](codec: Codec, statementsList: StatementsList, value: T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def injectKeyValue[T](codec: Codec, statementsList: StatementsList, value: Value, key: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
@@ -1588,7 +1588,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T
     * @return
     */
-  def injectArrayValueWithKey[T](codec: Codec, statementsList: StatementsList, value: T, key: String, condition: String, from: String, to: String = C_END)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def injectArrayValueWithKey[T](codec: Codec, statementsList: StatementsList, value: Value, key: String, condition: String, from: String, to: String = C_END)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
 
@@ -1654,7 +1654,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T
     * @return
     */
-  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: T, condition: String, from: String, to: String, formerType: Int)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: Value, condition: String, from: String, to: String, formerType: Int)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
     var counter: Int = -1
 
@@ -1808,7 +1808,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T
     * @return
     */
-  def injectHasElemValue[T](codec: Codec, statementsList: StatementsList, value: T, key: String, elem: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+  def injectHasElemValue[T](codec: Codec, statementsList: StatementsList, value: Value, key: String, elem: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
     val currentCodec = codec.createEmptyCodec
@@ -1861,51 +1861,53 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T
     * @return
     */
-  private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int)(implicit convertFunction: Option[TupleList => T] = None): (Codec, SonNamedType) = {
+  private def writeValue[T](codec: Codec, currentCodec: Codec, value: Value, dataType: Int)(implicit convertFunction: Option[TupleList => T] = None): (Codec, SonNamedType) = {
 
-    val newVal = if(convertFunction.isDefined){
-      val data = codec.getCodecData match {
-        case Left(byteBuf: ByteBuf) => byteBuf.array()
-        case Right(string: String) => string
-      }
-      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
-    } else ValueObject.toValue(value)
+    val writtenCodec = value.write(currentCodec)
 
-
-
-    value match {
-      case string: String =>
-        ValueObject.toValue(value).write(currentCodec)
-//        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
-//        currentCodec.writeToken(SonString(CS_STRING, string))
-//        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-      case int: Int =>
-        ValueObject.toValue(value).write(currentCodec)
-//        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
-      case long: Long =>
-        currentCodec.writeToken(SonNumber(CS_LONG, long))
-      case double: Double =>
-        currentCodec.writeToken(SonNumber(CS_DOUBLE, double))
-      case float: Float =>
-        currentCodec.writeToken(SonNumber(CS_FLOAT, float))
-      case boolean: Boolean =>
-        currentCodec.writeToken(SonNumber(CS_BOOLEAN, boolean))
-      case bsonObj: BsonObject =>
-        val encode: Array[Byte] = bsonObj.encodeToBarray //TODO - For CodecJson
-        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
-      case bsonArr: BsonArray =>
-        val encode: Array[Byte] = bsonArr.encodeToBarray //TODO - For CodecJson
-        currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
-      case caseClass if convertFunction.isDefined => //In case the injected Value is a caseClass
-        val data = codec.getCodecData match {
-          case Left(byteBuf: ByteBuf) => byteBuf.array()
-          case Right(string: String) => string
-        }
-        encodeTupleList(toTupleList(caseClass), data) match {
-          case Left(ab) => currentCodec.writeToken(SonObject(CS_OBJECT, ab))
-          case Right(st) => currentCodec.writeToken(SonObject(CS_OBJECT, st))
-        }
-    }
+//    val newVal = if(convertFunction.isDefined){
+//      val data = codec.getCodecData match {
+//        case Left(byteBuf: ByteBuf) => byteBuf.array()
+//        case Right(string: String) => string
+//      }
+//      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
+//    } else ValueObject.toValue(value)
+//
+//
+//
+//    value match {
+//      case string: String =>
+//        ValueObject.toValue(value.asInstanceOf[String]).write(currentCodec)
+////        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
+////        currentCodec.writeToken(SonString(CS_STRING, string))
+////        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+//      case int: Int =>
+//        ValueObject.toValue(value.asInstanceOf[Int]).write(currentCodec)
+////        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
+//      case long: Long =>
+//        currentCodec.writeToken(SonNumber(CS_LONG, long))
+//      case double: Double =>
+//        currentCodec.writeToken(SonNumber(CS_DOUBLE, double))
+//      case float: Float =>
+//        currentCodec.writeToken(SonNumber(CS_FLOAT, float))
+//      case boolean: Boolean =>
+//        currentCodec.writeToken(SonNumber(CS_BOOLEAN, boolean))
+//      case bsonObj: BsonObject =>
+//        val encode: Array[Byte] = bsonObj.encodeToBarray //TODO - For CodecJson
+//        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
+//      case bsonArr: BsonArray =>
+//        val encode: Array[Byte] = bsonArr.encodeToBarray //TODO - For CodecJson
+//        currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
+//      case caseClass if convertFunction.isDefined => //In case the injected Value is a caseClass
+//        val data = codec.getCodecData match {
+//          case Left(byteBuf: ByteBuf) => byteBuf.array()
+//          case Right(string: String) => string
+//        }
+//        encodeTupleList(toTupleList(caseClass), data) match {
+//          case Left(ab) => currentCodec.writeToken(SonObject(CS_OBJECT, ab))
+//          case Right(st) => currentCodec.writeToken(SonObject(CS_OBJECT, st))
+//        }
+//    }
 
     val before: SonNamedType = dataType match {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
@@ -1925,7 +1927,7 @@ private[bsonImpl] object BosonInjectorImpl {
       case D_NULL =>
         codec.readToken(SonNull(CS_NULL))
     }
-    (currentCodec, before)
+    (writtenCodec, before)
   }
 
   /**
@@ -1941,7 +1943,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param convertFunction
     * @tparam T
     */
-  private def processTypesHasElemValue[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, value: T, key: String)(implicit convertFunction: Option[TupleList => T] = None): Unit =
+  private def processTypesHasElemValue[T](statementsList: StatementsList, dataType: Int, fieldID: String, elem: String, codec: Codec, resultCodec: Codec, value: Value, key: String)(implicit convertFunction: Option[TupleList => T] = None): Unit =
     dataType match {
       case D_BSONOBJECT =>
         val objectCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)

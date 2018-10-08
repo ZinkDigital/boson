@@ -3,12 +3,13 @@ package io.zink.boson.impl
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.bson.bsonPath.Interpreter
+import io.zink.boson.bson.value.Value
 import shapeless.{HList, LabelledGeneric, TypeCase}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: T)(implicit
+class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: Value)(implicit
                                                                                tp: Option[TypeCase[T]],
                                                                                gen: LabelledGeneric.Aux[T, R],
                                                                                extract: extractLabels[R]) extends Boson {

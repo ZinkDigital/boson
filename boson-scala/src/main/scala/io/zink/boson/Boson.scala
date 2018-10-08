@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 import java.time.Instant
 
 import io.zink.boson.bson.bsonImpl.extractLabels
+import io.zink.boson.bson.value.ValueObject
 import io.zink.boson.impl._
 import shapeless.{HList, LabelledGeneric, TypeCase, Typeable}
 
@@ -237,7 +238,7 @@ object Boson {
           new BosonInjectorObj[A, L](expression, injectFunction = injectFunction)(typeCase, f, ext)
 
         override def inject(expression: String, injectValue: A): Boson =
-          new BosonInjectorValueObj[A, L](expression, injectValue = injectValue)(typeCase, f, ext)
+          new BosonInjectorValueObj[A, L](expression, injectValue = ???)(typeCase, f, ext)
       }
     }
 
@@ -249,7 +250,7 @@ object Boson {
           new BosonInjector[Seq[Array[Byte]]](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Seq[Array[Byte]]): Boson =
-          new BosonInjectorValue[Seq[Array[Byte]]](expression, injectValue)
+          new BosonInjectorValue[Seq[Array[Byte]]](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val byteArr: injector[Array[Byte]] =
@@ -260,7 +261,7 @@ object Boson {
           new BosonInjector[Array[Byte]](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Array[Byte]): Boson =
-          new BosonInjectorValue[Array[Byte]](expression, injectValue)
+          new BosonInjectorValue[Array[Byte]](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val double: injector[Double] =
@@ -271,7 +272,7 @@ object Boson {
           new BosonInjector[Double](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Double): Boson =
-          new BosonInjectorValue[Double](expression, injectValue)
+          new BosonInjectorValue[Double](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val float: injector[Float] =
@@ -282,7 +283,7 @@ object Boson {
           new BosonInjector[Float](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Float): Boson =
-          new BosonInjectorValue[Float](expression, injectValue)
+          new BosonInjectorValue[Float](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val instant: injector[Instant] =
@@ -293,7 +294,7 @@ object Boson {
           new BosonInjector[Instant](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Instant): Boson =
-          new BosonInjectorValue[Instant](expression, injectValue)
+          new BosonInjectorValue[Instant](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val long: injector[Long] =
@@ -304,7 +305,7 @@ object Boson {
           new BosonInjector[Long](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Long): Boson =
-          new BosonInjectorValue[Long](expression, injectValue)
+          new BosonInjectorValue[Long](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val int: injector[Int] =
@@ -315,7 +316,7 @@ object Boson {
           new BosonInjector[Int](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Int): Boson =
-          new BosonInjectorValue[Int](expression, injectValue)
+          new BosonInjectorValue[Int](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val string: injector[String] =
@@ -326,7 +327,7 @@ object Boson {
           new BosonInjector[String](expression, injectFunction)
 
         override def inject(expression: String, injectValue: String): Boson =
-          new BosonInjectorValue[String](expression, injectValue)
+          new BosonInjectorValue[String](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val boolean: injector[Boolean] =
@@ -337,7 +338,7 @@ object Boson {
           new BosonInjector[Boolean](expression, injectFunction)
 
         override def inject(expression: String, injectValue: Boolean): Boson =
-          new BosonInjectorValue[Boolean](expression, injectValue)
+          new BosonInjectorValue[Boolean](expression, ValueObject.toValue(injectValue))
       }
   }
 

@@ -1,10 +1,10 @@
 package io.zink.boson.bson.value
 
-import io.netty.buffer.ByteBuf
+import java.time.Instant
+
 import io.zink.boson.bson.codec._
-import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
 import io.zink.boson.bson.value.impl.{ValueInt, ValueString}
-import shapeless.T
+import shapeless._
 
 trait Value {
   def write(codec: Codec): Codec
@@ -59,8 +59,16 @@ sealed trait DefaultValues {
     override def applyFunc(value: Array[Byte]): Value = ???
   }
 
-  implicit object AnyCodec extends Values[T] {
-    override def applyFunc(value: T): Value = value match {
+  implicit object SeqBarryValue extends Values[Seq[Array[Byte]]] {
+    override def applyFunc(value: Seq[Array[Byte]]): Value = ???
+  }
+
+  implicit object InstantValue extends Values[Instant] {
+    override def applyFunc(value: Instant): Value = ???
+  }
+
+  implicit object AnyCodec extends Values[Any] {
+    override def applyFunc(value: Any): Value = value match {
       case string: String => ???
       case int: Int => ???
       case _ => ???
