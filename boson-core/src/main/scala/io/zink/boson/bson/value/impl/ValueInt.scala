@@ -6,7 +6,6 @@ import io.zink.boson.bson.value.Value
 
 class ValueInt(value: Int) extends Value {
 
-  def write(codec: Codec): Codec ={
-    codec.writeToken(SonNumber(CS_INTEGER, value))
-  }
+  def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_INTEGER, value))
+
 }

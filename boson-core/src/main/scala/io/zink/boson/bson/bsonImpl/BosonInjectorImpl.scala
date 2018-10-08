@@ -1862,14 +1862,25 @@ private[bsonImpl] object BosonInjectorImpl {
     * @return
     */
   private def writeValue[T](codec: Codec, currentCodec: Codec, value: T, dataType: Int)(implicit convertFunction: Option[TupleList => T] = None): (Codec, SonNamedType) = {
+
+    val newVal = if(convertFunction.isDefined){
+      val data = codec.getCodecData match {
+        case Left(byteBuf: ByteBuf) => byteBuf.array()
+        case Right(string: String) => string
+      }
+      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
+    } else ValueObject.toValue(value)
+
+
+
     value match {
       case string: String =>
-        ValueObject.toValue(value.asInstanceOf[String]).write(currentCodec)
+        ValueObject.toValue(value).write(currentCodec)
 //        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
 //        currentCodec.writeToken(SonString(CS_STRING, string))
 //        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
       case int: Int =>
-        ValueObject.toValue(value.asInstanceOf[Int]).write(currentCodec)
+        ValueObject.toValue(value).write(currentCodec)
 //        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
       case long: Long =>
         currentCodec.writeToken(SonNumber(CS_LONG, long))
@@ -1880,17 +1891,17 @@ private[bsonImpl] object BosonInjectorImpl {
       case boolean: Boolean =>
         currentCodec.writeToken(SonNumber(CS_BOOLEAN, boolean))
       case bsonObj: BsonObject =>
-        val encode: Array[Byte] = bsonObj.encodeToBarray
+        val encode: Array[Byte] = bsonObj.encodeToBarray //TODO - For CodecJson
         currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
       case bsonArr: BsonArray =>
-        val encode: Array[Byte] = bsonArr.encodeToBarray
+        val encode: Array[Byte] = bsonArr.encodeToBarray //TODO - For CodecJson
         currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
       case caseClass if convertFunction.isDefined => //In case the injected Value is a caseClass
         val data = codec.getCodecData match {
           case Left(byteBuf: ByteBuf) => byteBuf.array()
           case Right(string: String) => string
         }
-        val encode = encodeTupleList(toTupleList(caseClass), data) match {
+        encodeTupleList(toTupleList(caseClass), data) match {
           case Left(ab) => currentCodec.writeToken(SonObject(CS_OBJECT, ab))
           case Right(st) => currentCodec.writeToken(SonObject(CS_OBJECT, st))
         }
