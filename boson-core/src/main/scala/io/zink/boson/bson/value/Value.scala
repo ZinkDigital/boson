@@ -3,7 +3,7 @@ package io.zink.boson.bson.value
 import java.time.Instant
 
 import io.zink.boson.bson.codec._
-import io.zink.boson.bson.value.impl.{ValueInt, ValueString}
+import io.zink.boson.bson.value.impl.{ValueBarray, ValueInt, ValueString}
 import shapeless._
 
 trait Value {
@@ -67,11 +67,18 @@ sealed trait DefaultValues {
     override def applyFunc(value: Instant): Value = ???
   }
 
-  implicit object AnyCodec extends Values[Any] {
+  implicit object AnyValue extends Values[Any] {
     override def applyFunc(value: Any): Value = value match {
       case string: String => ???
       case int: Int => ???
       case _ => ???
+    }
+  }
+
+  implicit object EitherValue extends Values[Either[Array[Byte],String]] {
+    override def applyFunc(value: Either[Array[Byte], String]): Value = value match {
+      case Left(ab) => new ValueBarray(ab)
+      case Right(str) => new ValueString(str)
     }
   }
 }

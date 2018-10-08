@@ -1865,15 +1865,15 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val writtenCodec = value.write(currentCodec)
 
-//    val newVal = if(convertFunction.isDefined){
-//      val data = codec.getCodecData match {
-//        case Left(byteBuf: ByteBuf) => byteBuf.array()
-//        case Right(string: String) => string
-//      }
-//      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
-//    } else ValueObject.toValue(value)
-//
-//
+    val newVal = if(convertFunction.isDefined){
+      val data = codec.getCodecData match {
+        case Left(byteBuf: ByteBuf) => byteBuf.array()
+        case Right(string: String) => string
+      }
+      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
+    } else value
+
+
 //
 //    value match {
 //      case string: String =>
