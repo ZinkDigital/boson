@@ -9,7 +9,7 @@ import io.zink.boson.bson.codec._
 import BosonExtractorImpl._
 import BosonInjectorImpl._
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
-import io.zink.boson.bson.value.Value
+import io.zink.boson.bson.value.{Value, ValueObject}
 
 import scala.util.{Failure, Success, Try}
 
@@ -27,6 +27,7 @@ object BosonImpl {
 
   type DataStructure = Either[ByteBuf, String]
   type StatementsList = List[(Statement, String)]
+  private type TupleList = List[(String, Any)]
 
   /**
     * Public method to trigger extraction.
@@ -278,16 +279,7 @@ object BosonImpl {
                 case C_END => (EMPTY_KEY, 0, C_END, None)
                 case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
               }
-          } //TODO - might need to change below the formerType
-//        val (auxType, codecToUse)= codec.getCodecData match {
-//          case Right(js) => js.charAt(0) match {
-//            case '[' => (4, codec.wrapInBrackets())
-//            case '{' => (3, codec)
-//            case _ => (codec.getDataType, codec) // Maybe
-//          }
-//          case Left(bb) => (4, codec)
-//        }
-        //        val injectCodec = codec.wrapInBrackets()
+          }
 
         injectArrayValue(codec, statements, injValue, input._3, input._2.toString, input._4.toString, auxType)
     }

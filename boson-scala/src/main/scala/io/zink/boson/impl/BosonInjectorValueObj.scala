@@ -28,9 +28,7 @@ class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: T)(i
     result.head
   }
 
-  private val newValue: Value = ???
-
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(newValue))(tp, Some(convert))
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(injectValue))(tp, Some(convert))
 
 
   /**

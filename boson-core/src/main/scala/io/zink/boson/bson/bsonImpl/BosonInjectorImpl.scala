@@ -13,7 +13,7 @@ import io.zink.bsonLib.{BsonArray, BsonObject}
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
-private[bsonImpl] object BosonInjectorImpl {
+/*private[bsonImpl]*/ object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()
@@ -1400,7 +1400,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @tparam T - The type T of the object to be iterated
     * @return A list of tuples consisting in pairs of field names and field values
     */
-  private def toTupleList[T](modifiedValue: T): TupleList = {
+  def toTupleList[T](modifiedValue: T): TupleList = {
     val tupleArray = for {
       field <- modifiedValue.getClass.getDeclaredFields //Iterate through this object's fields
       if !field.getName.equals("$outer") //remove shapeless added $outer param
@@ -1421,7 +1421,7 @@ private[bsonImpl] object BosonInjectorImpl {
     * @param tupleList - List of tuples to be encoded
     * @return An array of bytes representing the encoded list of tuples
     */
-  private def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String] = {
+  def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String] = {
     val encodedObject = new BsonObject()
     tupleList.foreach {
       case (fieldName: String, fieldValue: Any) =>
@@ -1865,13 +1865,13 @@ private[bsonImpl] object BosonInjectorImpl {
 
     val writtenCodec = value.write(currentCodec)
 
-    val newVal = if(convertFunction.isDefined){
-      val data = codec.getCodecData match {
-        case Left(byteBuf: ByteBuf) => byteBuf.array()
-        case Right(string: String) => string
-      }
-      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
-    } else value
+//    val newVal = if(convertFunction.isDefined){
+//      val data = codec.getCodecData match {
+//        case Left(byteBuf: ByteBuf) => byteBuf.array()
+//        case Right(string: String) => string
+//      }
+//      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
+//    } else value
 
 
 //

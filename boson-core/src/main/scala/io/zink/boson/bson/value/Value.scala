@@ -3,11 +3,12 @@ package io.zink.boson.bson.value
 import java.time.Instant
 
 import io.zink.boson.bson.codec._
-import io.zink.boson.bson.value.impl.{ValueBarray, ValueInt, ValueString}
+import io.zink.boson.bson.value.impl._
 import shapeless._
 
 trait Value {
   def write(codec: Codec): Codec
+
 }
 
 sealed trait ValueFacade {
@@ -69,9 +70,16 @@ sealed trait DefaultValues {
 
   implicit object AnyValue extends Values[Any] {
     override def applyFunc(value: Any): Value = value match {
-      case string: String => ???
-      case int: Int => ???
-      case _ => ???
+      case int: Int => new ValueInt(int)
+      case string: String => new ValueString(string)
+      case long: Long => new ValueLong(long)
+      case float: Float => new ValueFloat(float)
+      case double: Double => new ValueDouble(double)
+      case boolean: Boolean => new ValueBoolean(boolean)
+      case barray: Array[Byte] => new ValueBarray(barray)
+      case seqBarray: Seq[Array[Byte]] => new ValueSeqBarray(seqBarray)
+      case instant: Instant => new ValueInstant(instant)
+      case _ => new ValueNull(null)
     }
   }
 

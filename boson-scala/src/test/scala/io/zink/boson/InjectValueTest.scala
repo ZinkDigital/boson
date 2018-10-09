@@ -603,6 +603,7 @@ class InjectValueTest extends FunSuite {
     val bsonInj = Boson.injector(ex, 20)
     val future = bsonInj.go(bson.encodeToString)
     val result: String = Await.result(future, Duration.Inf)
+    println("expected: " + bsonExpected + "\nresult:   " + result)
     assert(result.equals(bsonExpected))
   }
 
