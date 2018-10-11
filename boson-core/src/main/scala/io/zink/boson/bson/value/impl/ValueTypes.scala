@@ -18,7 +18,7 @@ class ValueString(value: String) extends Value {
 class ValueInt(value: Int) extends Value {
   def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_INTEGER, value))
 
-  def get: Int = value
+//  def get: Int = value
 }
 
 class ValueLong(value: Long) extends Value {
@@ -45,6 +45,7 @@ class ValueBarray(value: Array[Byte]) extends Value {
   def write(codec: Codec): Codec = codec.writeToken(SonObject(CS_OBJECT, value))
 }
 
+//TODO - the two bellow might not be necessary
 class ValueSeqBarray(value: Seq[Array[Byte]]) extends Value {
   def write(codec: Codec): Codec = ???
 }
@@ -52,4 +53,3 @@ class ValueSeqBarray(value: Seq[Array[Byte]]) extends Value {
 class ValueInstant(value: Instant) extends Value {
   def write(codec: Codec): Codec = ???
 }
-

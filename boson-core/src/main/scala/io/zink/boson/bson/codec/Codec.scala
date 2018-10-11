@@ -326,6 +326,8 @@ object Codecs extends DefaultCodecs {
 
 sealed trait DefaultCodecs {
 
+  //TODO - If it's not Going through the two bellow what's the point????? (coverage)
+
   implicit object StringCodec extends Codecs[String] {
     override def applyFunc(arg: String): CodecJson = new CodecJson(arg)
   }

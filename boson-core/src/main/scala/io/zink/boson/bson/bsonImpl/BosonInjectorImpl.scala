@@ -1697,7 +1697,7 @@ import scala.util.{Failure, Success, Try}
               } else {
                 if (dataType == D_BSONOBJECT) {
                   val partialCodec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-//                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
+                  //                  val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
                   val double = if (!statementsList.head._2.contains(C_DOUBLEDOT)) {
                     val newCodec = BosonImpl.injectValue(partialCodec.getCodecData, statementsList.drop(1), value)
                     BosonImpl.injectValue(newCodec.getCodecData, statementsList, value)
@@ -1789,7 +1789,7 @@ import scala.util.{Failure, Success, Try}
       }
     }
 
-    if(formerType != 4){
+    if (formerType != 4) {
       currentCodec.writeCodecSize.removeTrailingComma(codec, rectBrackets = true, noBrackets = true)
     } else {
       if (condition.equals(UNTIL_RANGE)) currentCodecCopy.writeCodecSize.removeTrailingComma(codec, rectBrackets = true)
@@ -1863,51 +1863,53 @@ import scala.util.{Failure, Success, Try}
     */
   private def writeValue[T](codec: Codec, currentCodec: Codec, value: Value, dataType: Int)(implicit convertFunction: Option[TupleList => T] = None): (Codec, SonNamedType) = {
 
+//    val newVal = ValueObject.toValue(value)
+
     val writtenCodec = value.write(currentCodec)
 
-//    val newVal = if(convertFunction.isDefined){
-//      val data = codec.getCodecData match {
-//        case Left(byteBuf: ByteBuf) => byteBuf.array()
-//        case Right(string: String) => string
-//      }
-//      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
-//    } else value
+    //    val newVal = if(convertFunction.isDefined){
+    //      val data = codec.getCodecData match {
+    //        case Left(byteBuf: ByteBuf) => byteBuf.array()
+    //        case Right(string: String) => string
+    //      }
+    //      ValueObject.toValue(encodeTupleList(toTupleList(value), data))
+    //    } else value
 
 
-//
-//    value match {
-//      case string: String =>
-//        ValueObject.toValue(value.asInstanceOf[String]).write(currentCodec)
-////        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
-////        currentCodec.writeToken(SonString(CS_STRING, string))
-////        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-//      case int: Int =>
-//        ValueObject.toValue(value.asInstanceOf[Int]).write(currentCodec)
-////        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
-//      case long: Long =>
-//        currentCodec.writeToken(SonNumber(CS_LONG, long))
-//      case double: Double =>
-//        currentCodec.writeToken(SonNumber(CS_DOUBLE, double))
-//      case float: Float =>
-//        currentCodec.writeToken(SonNumber(CS_FLOAT, float))
-//      case boolean: Boolean =>
-//        currentCodec.writeToken(SonNumber(CS_BOOLEAN, boolean))
-//      case bsonObj: BsonObject =>
-//        val encode: Array[Byte] = bsonObj.encodeToBarray //TODO - For CodecJson
-//        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
-//      case bsonArr: BsonArray =>
-//        val encode: Array[Byte] = bsonArr.encodeToBarray //TODO - For CodecJson
-//        currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
-//      case caseClass if convertFunction.isDefined => //In case the injected Value is a caseClass
-//        val data = codec.getCodecData match {
-//          case Left(byteBuf: ByteBuf) => byteBuf.array()
-//          case Right(string: String) => string
-//        }
-//        encodeTupleList(toTupleList(caseClass), data) match {
-//          case Left(ab) => currentCodec.writeToken(SonObject(CS_OBJECT, ab))
-//          case Right(st) => currentCodec.writeToken(SonObject(CS_OBJECT, st))
-//        }
-//    }
+    //
+    //    value match {
+    //      case string: String =>
+    //        ValueObject.toValue(value.asInstanceOf[String]).write(currentCodec)
+    ////        currentCodec.writeToken(SonNumber(CS_INTEGER, string.length + 1), ignoreForJson = true)
+    ////        currentCodec.writeToken(SonString(CS_STRING, string))
+    ////        currentCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+    //      case int: Int =>
+    //        ValueObject.toValue(value.asInstanceOf[Int]).write(currentCodec)
+    ////        currentCodec.writeToken(SonNumber(CS_INTEGER, int))
+    //      case long: Long =>
+    //        currentCodec.writeToken(SonNumber(CS_LONG, long))
+    //      case double: Double =>
+    //        currentCodec.writeToken(SonNumber(CS_DOUBLE, double))
+    //      case float: Float =>
+    //        currentCodec.writeToken(SonNumber(CS_FLOAT, float))
+    //      case boolean: Boolean =>
+    //        currentCodec.writeToken(SonNumber(CS_BOOLEAN, boolean))
+    //      case bsonObj: BsonObject =>
+    //        val encode: Array[Byte] = bsonObj.encodeToBarray //TODO - For CodecJson
+    //        currentCodec.writeToken(SonObject(CS_OBJECT_WITH_SIZE, encode))
+    //      case bsonArr: BsonArray =>
+    //        val encode: Array[Byte] = bsonArr.encodeToBarray //TODO - For CodecJson
+    //        currentCodec.writeToken(SonArray(CS_ARRAY_WITH_SIZE, encode))
+    //      case caseClass if convertFunction.isDefined => //In case the injected Value is a caseClass
+    //        val data = codec.getCodecData match {
+    //          case Left(byteBuf: ByteBuf) => byteBuf.array()
+    //          case Right(string: String) => string
+    //        }
+    //        encodeTupleList(toTupleList(caseClass), data) match {
+    //          case Left(ab) => currentCodec.writeToken(SonObject(CS_OBJECT, ab))
+    //          case Right(st) => currentCodec.writeToken(SonObject(CS_OBJECT, st))
+    //        }
+    //    }
 
     val before: SonNamedType = dataType match {
       case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>

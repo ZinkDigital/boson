@@ -2,13 +2,14 @@ package io.zink.boson.bson.value
 
 import java.time.Instant
 
+import io.zink.boson.bson.bsonImpl.Dictionary.{CS_BYTE, CS_INTEGER, CS_STRING}
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.value.impl._
 import shapeless._
 
+
 trait Value {
   def write(codec: Codec): Codec
-
 }
 
 sealed trait ValueFacade {
@@ -80,13 +81,6 @@ sealed trait DefaultValues {
       case seqBarray: Seq[Array[Byte]] => new ValueSeqBarray(seqBarray)
       case instant: Instant => new ValueInstant(instant)
       case _ => new ValueNull(null)
-    }
-  }
-
-  implicit object EitherValue extends Values[Either[Array[Byte],String]] {
-    override def applyFunc(value: Either[Array[Byte], String]): Value = value match {
-      case Left(ab) => new ValueBarray(ab)
-      case Right(str) => new ValueString(str)
     }
   }
 }

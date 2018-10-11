@@ -9,7 +9,7 @@ import shapeless.{HList, LabelledGeneric, TypeCase}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: T)(implicit
+class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: Value/*T*/)(implicit
                                                                                tp: Option[TypeCase[T]],
                                                                                gen: LabelledGeneric.Aux[T, R],
                                                                                extract: extractLabels[R]) extends Boson {

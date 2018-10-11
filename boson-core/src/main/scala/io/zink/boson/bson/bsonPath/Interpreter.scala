@@ -9,7 +9,6 @@ import io.zink.boson.bson.bsonImpl._
 import io.zink.boson.bson.value.{Value, ValueObject}
 import shapeless.TypeCase
 
-import scala.util.{Failure, Success, Try}
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -24,7 +23,7 @@ import scala.util.{Failure, Success, Try}
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
-                     vInj: Option[T] = None,
+                     vInj: Option[Value] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)
@@ -385,15 +384,16 @@ class Interpreter[T](expression: String,
       case Right(jsString) => Right(jsString)
     }
 
-    val newVal = if(convertFunction.isDefined){
-      val data = input match {
-        case Left(byteBuf: ByteBuf) => byteBuf.array()
-        case Right(string: String) => string
-      }
-      ValueObject.toValue(encodeTupleList(toTupleList(vInj.get), data))
-    } else ValueObject.toValue(vInj.get.asInstanceOf[Any])
+//    val newVal = if(convertFunction.isDefined){
+//      val data = input match {
+//        case Left(byteBuf: ByteBuf) => byteBuf.array()
+//        case Right(string: String) => string
+//      }
+//      ValueObject.toValue(encodeTupleList(toTupleList(vInj.get), data))
+//    } else ValueObject.toValue(vInj.get.asInstanceOf[Any])
 
-    BosonImpl.injectValue(input, statements, newVal).getCodecData match {
+    //Todo - refactor the input bellow
+    BosonImpl.injectValue(input, statements, vInj.get).getCodecData match {
       case Left(byteBuf) => Left(byteBuf.array)
       case Right(string) => Right(string)
     }

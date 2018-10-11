@@ -199,8 +199,11 @@ object BosonImpl {
     }
   }
 
+
   def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: Value, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
-    val (auxType, codec): (Int, Codec) = dataStructure match {
+//    val codec = CodecObject.toCodec(dataStructure)
+
+    val (auxType, codec): (Int, Codec) = dataStructure match { // Todo - this invalidates whats in the Codec trait - "CodecObject.toCodec(dataStructure)"
       case Right(jsonString: String) =>
         val returnCodec = new CodecJson(jsonString)
         returnCodec.setReaderIndex(readerIndextoUse)
@@ -285,5 +288,4 @@ object BosonImpl {
     }
     resCodec
   }
-
 }
