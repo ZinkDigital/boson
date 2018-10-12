@@ -1863,7 +1863,7 @@ import scala.util.{Failure, Success, Try}
     */
   private def writeValue[T](codec: Codec, currentCodec: Codec, value: Value, dataType: Int)(implicit convertFunction: Option[TupleList => T] = None): (Codec, SonNamedType) = {
 
-//    val newVal = ValueObject.toValue(value)
+    //    val newVal = ValueObject.toValue(value)
 
     val writtenCodec = value.write(currentCodec)
 

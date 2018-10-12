@@ -9,7 +9,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class BosonInjectorValue[T](expression: String, injectValue: Value)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(injectValue))(tp, None)
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(Left(injectValue)))(tp, None)
 
   /**
     * Method that delegates the injection process to Interpreter passing to it the data structure to be used (either a byte array or a String)

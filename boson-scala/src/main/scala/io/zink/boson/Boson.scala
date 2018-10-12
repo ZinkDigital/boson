@@ -238,7 +238,7 @@ object Boson {
           new BosonInjectorObj[A, L](expression, injectFunction = injectFunction)(typeCase, f, ext)
 
         override def inject(expression: String, injectValue: A): Boson =
-          new BosonInjectorValueObj[A, L](expression, injectValue = ???)(typeCase, f, ext) //TODO - Find way to convert case clase to tupleList here
+          new BosonInjectorValueObj[A, L](expression, injectValue = injectValue)(typeCase, f, ext) //TODO - Find way to convert case clase to tupleList here
       }
     }
 

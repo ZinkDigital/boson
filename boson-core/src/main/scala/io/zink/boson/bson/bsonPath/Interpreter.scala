@@ -23,7 +23,7 @@ import shapeless.TypeCase
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
-                     vInj: Option[Value] = None,
+                     vInj: Option[Either[Value, T]] = None, //TODO - maybe this value can be an Either???
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)
@@ -160,14 +160,14 @@ class Interpreter[T](expression: String,
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), in the case of an Injection it returns the modified event as an encoded Array[Byte].
     */
-  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined || vInj.isDefined) startInjector(bsonEncoded) else start(bsonEncoded)
+  def run(bsonEncoded: Either[Array[Byte], String]): Any = if (fInj.isDefined || vInj.isDefined) startInjector(bsonEncoded) else startExtractor(bsonEncoded)
 
   /**
     * Method that initiates the process of extraction based on a Statement list provided by the parser.
     *
     * @return On an extraction of an Object it returns a list of pairs (Key,Value), the other cases doesn't return anything.
     */
-  private def start(bsonEncoded: Either[Array[Byte], String]): Any = {
+  private def startExtractor(bsonEncoded: Either[Array[Byte], String]): Any = {
     bsonEncoded match {
       case Left(byteArr) =>
         val buf: ByteBuf = Unpooled.copiedBuffer(byteArr)
@@ -343,7 +343,7 @@ class Interpreter[T](expression: String,
     */
   private def startInjector(bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
     val zipped = parsedStatements.statementList.zip(parsedStatements.dotsList)
-    if(fInj.isDefined) executeMultipleKeysInjector(zipped, bsonEncoded)
+    if (fInj.isDefined) executeMultipleKeysInjector(zipped, bsonEncoded)
     else executeValueInjection(zipped, bsonEncoded)
   }
 
@@ -361,19 +361,19 @@ class Interpreter[T](expression: String,
         Left(buf)
       case Right(jsString) => Right(jsString)
     }
-//    Try(BosonImpl.inject(input, statements, fInj.get)) match {
-//      case Success(resultCodec) =>
-//        resultCodec.getCodecData match {
-//          case Left(byteBuf) => Left(byteBuf.array)
-//          case Right(string) => Right(string)
-//        }
-//      case Failure(exception) => throw CustomException(exception.getMessage)
-//    }
+    //    Try(BosonImpl.inject(input, statements, fInj.get)) match {
+    //      case Success(resultCodec) =>
+    //        resultCodec.getCodecData match {
+    //          case Left(byteBuf) => Left(byteBuf.array)
+    //          case Right(string) => Right(string)
+    //        }
+    //      case Failure(exception) => throw CustomException(exception.getMessage)
+    //    }
 
     BosonImpl.inject(input, statements, fInj.get).getCodecData match {
-                case Left(byteBuf) => Left(byteBuf.array)
-                case Right(string) => Right(string)
-              }
+      case Left(byteBuf) => Left(byteBuf.array)
+      case Right(string) => Right(string)
+    }
   }
 
   private def executeValueInjection(statements: List[(Statement, String)], bsonEncoded: Either[Array[Byte], String]): Either[Array[Byte], String] = {
@@ -384,23 +384,21 @@ class Interpreter[T](expression: String,
       case Right(jsString) => Right(jsString)
     }
 
-//    val newVal = if(convertFunction.isDefined){
-//      val data = input match {
-//        case Left(byteBuf: ByteBuf) => byteBuf.array()
-//        case Right(string: String) => string
-//      }
-//      ValueObject.toValue(encodeTupleList(toTupleList(vInj.get), data))
-//    } else ValueObject.toValue(vInj.get.asInstanceOf[Any])
+    val newValue: Value = vInj.get match {
+      case Left(value) => value
+      case Right(caseClass) if convertFunction.isDefined =>
+        val data = input match {
+          case Left(byteBuf: ByteBuf) => byteBuf.array()
+          case Right(string: String) => string
+        }
+        ValueObject.toValue(encodeTupleList(toTupleList(caseClass), data)) //Encode tuple List returns an Either, maybe check into this
+    }
 
     //Todo - refactor the input bellow
-    BosonImpl.injectValue(input, statements, vInj.get).getCodecData match {
+    BosonImpl.injectValue(input, statements, newValue).getCodecData match {
       case Left(byteBuf) => Left(byteBuf.array)
       case Right(string) => Right(string)
     }
   }
-
-
-
-
 }
 
