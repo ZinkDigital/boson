@@ -13,7 +13,7 @@ import io.zink.bsonLib.{BsonArray, BsonObject}
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
-/*private[bsonImpl]*/ object BosonInjectorImpl {
+private[bsonImpl] object BosonInjectorImpl {
 
   private type TupleList = List[(String, Any)]
   implicit lazy val emptyBuff: ByteBuf = Unpooled.buffer()

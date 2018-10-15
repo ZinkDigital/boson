@@ -87,7 +87,7 @@ sealed trait DefaultValues {
   implicit object EitherValue extends Values[Either[Array[Byte],String]] {
     override def applyFunc(value: Either[Array[Byte], String]): Value = value match {
       case Left(barray) => new ValueBarray(barray)
-      case Right(string) => new ValueString(string)
+      case Right(string) => new ValueClassJson(string)
     }
   }
 }

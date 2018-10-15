@@ -16,6 +16,99 @@ import scala.io.Source
 @RunWith(classOf[JUnitRunner])
 class InjectValueTest extends FunSuite {
 
+  case class BookExt(price: Double, title: String, edition: Int, forSale: Boolean, nPages: Long)
+
+  case class Book1Ext(title: String, price: Double)
+
+  case class SpecialEditions(title: String, price: Int, availability: Boolean)
+
+  case class _BookExt(title: String, price: Double, specialEditions: Seq[SpecialEditions])
+
+  case class _Book1Ext(title: String, price: Double, specialEditions: SpecialEditions)
+
+  private val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition", 10).put("ForSale", true).put("nPages", 750000000000L)
+  private val _store = new BsonObject().put("Book", _book1)
+  private val _bson = new BsonObject().put("Store", _store)
+
+  case class Author(firstName: String, lastName: String, age: Int)
+
+  case class NestedBook(name: String, pages: Int, author: Author)
+
+  case class Book(name: String, pages: Int)
+
+  case class Book1(pages: Double, someLong: Long, someBoolean: Boolean)
+
+  case class Tags(Type: String, line: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
+
+  val bsonHuman: BsonArray = new BsonArray().add("person1").add("person2").add("person3")
+  val bsonObjArray: BsonObject = new BsonObject().put("person", bsonHuman)
+  val bsonObjArrayEncoded: Array[Byte] = bsonObjArray.encodeToBarray
+
+  val bsonAlien: BsonArray = new BsonArray().add("et").add("predator").add("alien")
+  val bsonObjArray1: BsonObject = new BsonObject().put("alien", bsonAlien)
+
+  val bsonEvent: BsonObject = new BsonObject().put("person", bsonHuman).put("alien", bsonAlien)
+  val bsonSpeciesObj: BsonObject = new BsonObject().put("species", bsonEvent)
+  val bsonSpeciesEncoded: Array[Byte] = bsonSpeciesObj.encodeToBarray
+
+  val book: BsonObject = new BsonObject().put("name", "Title1").put("pages", 1)
+  val bsonBook: BsonObject = new BsonObject().put("book", book)
+
+  val book2: BsonObject = new BsonObject().put("name", "Some book").put("pages", 123)
+  val bsonBook2: BsonObject = new BsonObject().put("book", book2)
+
+  val booksArr: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
+  val storeObj: BsonObject = new BsonObject().put("books", booksArr)
+  val storeBson: BsonObject = new BsonObject().put("store", storeObj)
+
+  val bookAux: BsonObject = new BsonObject().put("pages", 1.0).put("someLong", 1L).put("someBoolean", true)
+  val bookAux2: BsonObject = new BsonObject().put("pages", 23.10).put("someLong", 100000L).put("someBoolean", false)
+  val bookAux3: BsonObject = new BsonObject().put("pages", -3.0).put("someLong", 789456L).put("someBoolean", true)
+
+  val bsonBookAux: BsonObject = new BsonObject().put("book", bookAux)
+  val bsonBookAux2: BsonObject = new BsonObject().put("book", bookAux2)
+  val bsonBookAux3: BsonObject = new BsonObject().put("book", bookAux3)
+
+  val booksAux: BsonArray = new BsonArray().add(bsonBookAux).add(bsonBookAux2).add(bsonBookAux3)
+  val storeAux: BsonObject = new BsonObject().put("books", booksAux)
+  val storeBsonAux: BsonObject = new BsonObject().put("store", storeAux)
+
+  val expected: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
+  val bsonBookExpected: BsonObject = new BsonObject().put("book", expected)
+
+  val expected2: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
+  val bsonBook2Expected: BsonObject = new BsonObject().put("book", expected2)
+
+  val booksExpected: BsonArray = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected)
+  val storeExpected: BsonObject = new BsonObject().put("books", booksExpected)
+  val storeBsonExpected: BsonObject = new BsonObject().put("store", storeExpected)
+
+  val nestedAuthor: BsonObject = new BsonObject().put("firstName", "John").put("lastName", "Doe").put("age", 21)
+  val nestedBook: BsonObject = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", nestedAuthor)
+  val nestedBson: BsonObject = new BsonObject().put("book", nestedBook)
+
+  val nestedAuthor2: BsonObject = new BsonObject().put("firstName", "Jane").put("lastName", "Doe").put("age", 12)
+  val nestedBook2: BsonObject = new BsonObject().put("name", "A Title").put("pages", 999).put("author", nestedAuthor2)
+  val nestedBson2: BsonObject = new BsonObject().put("book", nestedBook2)
+
+  val nestedAuthorExpected: BsonObject = new BsonObject().put("firstName", "JOHN").put("lastName", "DOE").put("age", 41)
+  val nestedBookExpected: BsonObject = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthorExpected)
+  val nestedBsonExpected: BsonObject = new BsonObject().put("book", nestedBookExpected)
+
+  val nestedAuthor2Expected: BsonObject = new BsonObject().put("firstName", "JANE").put("lastName", "DOE").put("age", 32)
+  val nestedBook2Expected: BsonObject = new BsonObject().put("name", "A TITLE").put("pages", 1099).put("author", nestedAuthor2Expected)
+  val nestedBson2Expected: BsonObject = new BsonObject().put("book", nestedBook2Expected)
+
+  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
+  val jsonStr: String = bufferedSource.getLines.toSeq.head
+  bufferedSource.close
+  val jsonObj: JsonObject = new JsonObject(jsonStr)
+  val json: String = jsonObj.encode()
+  val bson1: BsonObject = new BsonObject(jsonObj)
+  val validatedByteArray: Array[Byte] = bson1.encodeToBarray()
+  val tag: Tags = new Tags("", "", "", "", "", "")
+
+
   test("CodecBson - Top level key inject String value") {
     val expected = new BsonObject().put("name", "Albertina").encodeToBarray
     val expectedJson = new BsonObject().put("name", "Albertina").encodeToString
@@ -603,7 +696,6 @@ class InjectValueTest extends FunSuite {
     val bsonInj = Boson.injector(ex, 20)
     val future = bsonInj.go(bson.encodeToString)
     val result: String = Await.result(future, Duration.Inf)
-    println("expected: " + bsonExpected + "\nresult:   " + result)
     assert(result.equals(bsonExpected))
   }
 
@@ -897,98 +989,6 @@ class InjectValueTest extends FunSuite {
     val result: String = Await.result(future, Duration.Inf)
     assert(result.equals(expected))
   }
-
-  case class BookExt(price: Double, title: String, edition: Int, forSale: Boolean, nPages: Long)
-
-  case class Book1Ext(title: String, price: Double)
-
-  case class SpecialEditions(title: String, price: Int, availability: Boolean)
-
-  case class _BookExt(title: String, price: Double, specialEditions: Seq[SpecialEditions])
-
-  case class _Book1Ext(title: String, price: Double, specialEditions: SpecialEditions)
-
-  private val _book1 = new BsonObject().put("Title", "Scala").put("Price", 25.6).put("Edition", 10).put("ForSale", true).put("nPages", 750000000000L)
-  private val _store = new BsonObject().put("Book", _book1)
-  private val _bson = new BsonObject().put("Store", _store)
-
-  case class Author(firstName: String, lastName: String, age: Int)
-
-  case class NestedBook(name: String, pages: Int, author: Author)
-
-  case class Book(name: String, pages: Int)
-
-  case class Book1(pages: Double, someLong: Long, someBoolean: Boolean)
-
-  case class Tags(Type: String, line: String, traded_pre_match: String, traded_in_play: String, name: String, marketgroupid: String)
-
-  val bsonHuman: BsonArray = new BsonArray().add("person1").add("person2").add("person3")
-  val bsonObjArray: BsonObject = new BsonObject().put("person", bsonHuman)
-  val bsonObjArrayEncoded: Array[Byte] = bsonObjArray.encodeToBarray
-
-  val bsonAlien: BsonArray = new BsonArray().add("et").add("predator").add("alien")
-  val bsonObjArray1: BsonObject = new BsonObject().put("alien", bsonAlien)
-
-  val bsonEvent: BsonObject = new BsonObject().put("person", bsonHuman).put("alien", bsonAlien)
-  val bsonSpeciesObj: BsonObject = new BsonObject().put("species", bsonEvent)
-  val bsonSpeciesEncoded: Array[Byte] = bsonSpeciesObj.encodeToBarray
-
-  val book: BsonObject = new BsonObject().put("name", "Title1").put("pages", 1)
-  val bsonBook: BsonObject = new BsonObject().put("book", book)
-
-  val book2: BsonObject = new BsonObject().put("name", "Some book").put("pages", 123)
-  val bsonBook2: BsonObject = new BsonObject().put("book", book2)
-
-  val booksArr: BsonArray = new BsonArray().add(bsonBook).add(bsonBook2)
-  val storeObj: BsonObject = new BsonObject().put("books", booksArr)
-  val storeBson: BsonObject = new BsonObject().put("store", storeObj)
-
-  val bookAux: BsonObject = new BsonObject().put("pages", 1.0).put("someLong", 1L).put("someBoolean", true)
-  val bookAux2: BsonObject = new BsonObject().put("pages", 23.10).put("someLong", 100000L).put("someBoolean", false)
-  val bookAux3: BsonObject = new BsonObject().put("pages", -3.0).put("someLong", 789456L).put("someBoolean", true)
-
-  val bsonBookAux: BsonObject = new BsonObject().put("book", bookAux)
-  val bsonBookAux2: BsonObject = new BsonObject().put("book", bookAux2)
-  val bsonBookAux3: BsonObject = new BsonObject().put("book", bookAux3)
-
-  val booksAux: BsonArray = new BsonArray().add(bsonBookAux).add(bsonBookAux2).add(bsonBookAux3)
-  val storeAux: BsonObject = new BsonObject().put("books", booksAux)
-  val storeBsonAux: BsonObject = new BsonObject().put("store", storeAux)
-
-  val expected: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
-  val bsonBookExpected: BsonObject = new BsonObject().put("book", expected)
-
-  val expected2: BsonObject = new BsonObject().put("name", "LOTR").put("pages", 320)
-  val bsonBook2Expected: BsonObject = new BsonObject().put("book", expected2)
-
-  val booksExpected: BsonArray = new BsonArray().add(bsonBookExpected).add(bsonBook2Expected)
-  val storeExpected: BsonObject = new BsonObject().put("books", booksExpected)
-  val storeBsonExpected: BsonObject = new BsonObject().put("store", storeExpected)
-
-  val nestedAuthor: BsonObject = new BsonObject().put("firstName", "John").put("lastName", "Doe").put("age", 21)
-  val nestedBook: BsonObject = new BsonObject().put("name", "Some Book").put("pages", 100).put("author", nestedAuthor)
-  val nestedBson: BsonObject = new BsonObject().put("book", nestedBook)
-
-  val nestedAuthor2: BsonObject = new BsonObject().put("firstName", "Jane").put("lastName", "Doe").put("age", 12)
-  val nestedBook2: BsonObject = new BsonObject().put("name", "A Title").put("pages", 999).put("author", nestedAuthor2)
-  val nestedBson2: BsonObject = new BsonObject().put("book", nestedBook2)
-
-  val nestedAuthorExpected: BsonObject = new BsonObject().put("firstName", "JOHN").put("lastName", "DOE").put("age", 41)
-  val nestedBookExpected: BsonObject = new BsonObject().put("name", "SOME BOOK").put("pages", 200).put("author", nestedAuthorExpected)
-  val nestedBsonExpected: BsonObject = new BsonObject().put("book", nestedBookExpected)
-
-  val nestedAuthor2Expected: BsonObject = new BsonObject().put("firstName", "JANE").put("lastName", "DOE").put("age", 32)
-  val nestedBook2Expected: BsonObject = new BsonObject().put("name", "A TITLE").put("pages", 1099).put("author", nestedAuthor2Expected)
-  val nestedBson2Expected: BsonObject = new BsonObject().put("book", nestedBook2Expected)
-
-  val bufferedSource: Source = Source.fromURL(getClass.getResource("/jsonOutput.txt"))
-  val jsonStr: String = bufferedSource.getLines.toSeq.head
-  bufferedSource.close
-  val jsonObj: JsonObject = new JsonObject(jsonStr)
-  val json: String = jsonObj.encode()
-  val bson1: BsonObject = new BsonObject(jsonObj)
-  val validatedByteArray: Array[Byte] = bson1.encodeToBarray()
-  val tag: Tags = new Tags("", "", "", "", "", "")
 
   test("CodecBson - Key case class injection") {
     val book = new BsonObject().put("name", "Title1").put("pages", 1)

@@ -15,10 +15,14 @@ class ValueString(value: String) extends Value {
   }
 }
 
+class ValueClassJson(value: String) extends Value {
+  def write(codec: Codec): Codec = codec.writeToken(SonObject(CS_OBJECT, value))
+}
+
 class ValueInt(value: Int) extends Value {
   def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_INTEGER, value))
 
-//  def get: Int = value
+  //  def get: Int = value
 }
 
 class ValueLong(value: Long) extends Value {
