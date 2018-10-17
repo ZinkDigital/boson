@@ -9,44 +9,40 @@ import shapeless._
 
 class ValueString(value: String) extends Value {
   def write(codec:Codec): Codec = {
-    codec.writeToken(SonNumber(CS_INTEGER, value.length + 1), ignoreForJson = true)
-    codec.writeToken(SonString(CS_STRING, value))
-    codec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
+    codec.writeString(value)
   }
 }
 
 class ValueClassJson(value: String) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonObject(CS_OBJECT, value))
+  def write(codec: Codec): Codec = codec.writeObject(value)
 }
 
 class ValueInt(value: Int) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_INTEGER, value))
-
-  //  def get: Int = value
+  def write(codec: Codec): Codec = codec.writeInt(value)
 }
 
 class ValueLong(value: Long) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_LONG, value))
+  def write(codec: Codec): Codec = codec.writeLong(value)
 }
 
 class ValueFloat(value:Float) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_FLOAT, value))
+  def write(codec: Codec): Codec = codec.writeFloat(value)
 }
 
 class ValueDouble(value: Double) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonNumber(CS_DOUBLE, value))
+  def write(codec: Codec): Codec = codec.writeDouble(value)
 }
 
 class ValueBoolean(value: Boolean) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonBoolean(CS_BOOLEAN, value))
+  def write(codec: Codec): Codec = codec.writeBoolean(value)
 }
 
 class ValueNull(value: Null) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonNull(CS_NULL, value))
+  def write(codec: Codec): Codec = codec.writeNull(value)
 }
 
 class ValueBarray(value: Array[Byte]) extends Value {
-  def write(codec: Codec): Codec = codec.writeToken(SonObject(CS_OBJECT, value))
+  def write(codec: Codec): Codec = codec.writeBarray(value)
 }
 
 //TODO - the two bellow might not be necessary

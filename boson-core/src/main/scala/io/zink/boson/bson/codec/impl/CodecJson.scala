@@ -654,6 +654,58 @@ class CodecJson(str: String) extends Codec {
   }
 
   /**
+    *
+    * @param info
+    * @return
+    */
+  override def writeString(info: String): Codec = {
+    input.append("\"" + info + "\",")
+    this
+  }
+
+  override def writeObject(info: String): Codec = {
+    val writableInfo = info.asInstanceOf[CharSequence]
+    val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
+    input.append(infoToUse)
+    this
+  }
+
+  override def writeInt(info: Int): Codec = {
+    input.append(info)
+    this
+  }
+
+  override def writeLong(info: Long): Codec = {
+    input.append(info)
+    this
+  }
+
+  override def writeFloat(info: Float): Codec = {
+    input.append(info)
+    this
+  }
+
+  override def writeDouble(info: Double): Codec = {
+    input.append(info)
+    this
+  }
+
+  override def writeBoolean(info: Boolean): Codec = {
+    input.append(info)
+    this
+  }
+
+  override def writeNull(info: Null): Codec = {
+    input.append("null")
+    this
+  }
+
+  override def writeBarray(info: Array[Byte]): Codec = {
+    input.append(info)
+    this
+  }
+
+  /**
     * Method that returns a duplicate of the codec's data structure
     *
     * @return a duplicate of the codec's data structure

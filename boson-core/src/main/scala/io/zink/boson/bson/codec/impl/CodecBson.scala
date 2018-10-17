@@ -418,6 +418,55 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
+    *
+    * @param info
+    * @return
+    */
+  override def writeString(info: String): Codec = {
+    buff.writeIntLE(info.length + 1)
+    buff.writeCharSequence(info, Charset.defaultCharset())
+    buff.writeByte(0.toByte)
+    this
+  }
+
+  override def writeObject(info: String): Codec = this
+
+  override def writeInt(info: Int): Codec = {
+    buff.writeIntLE(info)
+    this
+  }
+
+  override def writeLong(info: Long): Codec = {
+    buff.writeLongLE(info)
+    this
+  }
+
+  override def writeFloat(info: Float): Codec = {
+    buff.writeFloatLE(info)
+    this
+  }
+
+  override def writeDouble(info: Double): Codec = {
+    buff.writeDoubleLE(info)
+    this
+  }
+
+  override def writeBoolean(info: Boolean): Codec = {
+    buff.writeBoolean(info)
+    this
+  }
+
+  override def writeNull(info: Null): Codec = {
+    this
+  }
+
+  override def writeBarray(info: Array[Byte]): Codec = {
+    buff.writeBytes(info)
+    this
+  }
+
+
+  /**
     * Method that returns a duplicate of the codec's data structure
     *
     * @return a duplicate of the codec's data structure
@@ -561,7 +610,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def writeRest(codec: Codec, dataType: Int): Codec = {
     val rest = codec.getCodecData.asInstanceOf[Left[ByteBuf, String]].value
-    val aux = rest.copy(codec.getReaderIndex, codec.getWriterIndex - codec.getReaderIndex -1)
+    val aux = rest.copy(codec.getReaderIndex, codec.getWriterIndex - codec.getReaderIndex - 1)
     buff.writeBytes(aux)
     codec.setReaderIndex(codec.getWriterIndex - 1)
     this

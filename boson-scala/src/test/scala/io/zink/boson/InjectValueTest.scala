@@ -537,6 +537,7 @@ class InjectValueTest extends FunSuite {
     val jsonEncoded = bson.encodeToString
     val future = jsonInj.go(jsonEncoded)
     val result = Await.result(future, Duration.Inf)
+    println(expected + "\n" + result)
     assert(result.equals(expected))
   }
 

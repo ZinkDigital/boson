@@ -179,6 +179,35 @@ trait Codec {
     * @return a duplicated codec from the current codec, but with the new information
     */
   def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
+  
+  /**
+    *
+    * @param dataType
+    * @param info
+    * @return
+    */
+  def writeString(info: String): Codec
+
+  def writeObject(info: String): Codec
+
+  /**
+    *
+    * @param info
+    * @return
+    */
+  def writeInt(info: Int): Codec
+
+  def writeLong(info: Long): Codec
+
+  def writeFloat(info: Float): Codec
+
+  def writeDouble(info: Double): Codec
+
+  def writeBoolean(info: Boolean): Codec
+
+  def writeNull(info: Null): Codec
+
+  def writeBarray(info: Array[Byte]): Codec
 
   /**
     * Method that returns a duplicate of the codec's data structure

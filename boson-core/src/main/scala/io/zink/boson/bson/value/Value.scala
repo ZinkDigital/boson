@@ -2,11 +2,8 @@ package io.zink.boson.bson.value
 
 import java.time.Instant
 
-import io.zink.boson.bson.bsonImpl.Dictionary.{CS_BYTE, CS_INTEGER, CS_STRING}
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.value.impl._
-import shapeless._
-
 
 trait Value {
   def write(codec: Codec): Codec
