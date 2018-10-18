@@ -7,6 +7,9 @@ import io.zink.boson.bson.value.impl._
 
 trait Value {
   def write(codec: Codec): Codec
+
+//  def applyFunction(codec: Codec): Codec
+
 }
 
 sealed trait ValueFacade {
