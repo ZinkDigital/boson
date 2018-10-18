@@ -3,6 +3,7 @@ package io.zink.boson.bson.codec.impl
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.bsonImpl.Dictionary.{CS_INTEGER, _}
+import io.zink.boson.bson.value.{Value, ValueObject}
 
 import scala.collection.{JavaConverters, mutable}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -235,6 +236,54 @@ class CodecJson(str: String) extends Codec {
         val subStr1: Byte = if (readNextBoolean.equals(CS_TRUE)) 1 else 0
         SonBoolean(request, subStr1)
       }
+  }
+
+  override def readToken2(dt: Int): Value = {
+    val info = dt match {
+      case D_BSONOBJECT =>
+        val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+        val subStr1 = input.substring(readerIndex, readerIndex + size)
+        readerIndex += size
+        subStr1
+      case D_BSONARRAY =>
+        if (input(readerIndex).equals('[')) {
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+          val subStr1 = input.substring(readerIndex, readerIndex + size)
+          readerIndex += size
+          subStr1
+        } else {
+          if (input(readerIndex).equals('{')) {
+            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+            val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
+            readerIndex += size
+            subStr1
+          } else {
+            //First - Read key until '['
+            val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
+            val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
+            //Second - Read actual Array until ']'
+            val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
+            subKey + subArr
+          }
+        }
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val index = input.substring(readerIndex, inputSize).indexOf(CS_QUOTES)
+        readerIndex += index
+        val endIndex = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
+        val subStr1 = input.substring(readerIndex, readerIndex + endIndex + 2)
+        readerIndex += subStr1.length
+        subStr1.substring(1, subStr1.length - 1)
+      case D_INT =>
+        readNextNumber.toInt
+      case D_FLOAT_DOUBLE =>
+        readNextNumber.toDouble
+      case D_LONG =>
+        readNextNumber.toLong
+      case D_NULL =>
+        V_NULL
+    }
+    ValueObject.toValue(info)
   }
 
   /**

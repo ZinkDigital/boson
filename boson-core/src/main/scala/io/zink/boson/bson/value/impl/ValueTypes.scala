@@ -8,48 +8,48 @@ import io.zink.boson.bson.value.Value
 import shapeless._
 
 class ValueString(value: String) extends Value {
-  def write(codec:Codec): Codec = {
-    codec.writeString(value)
-  }
+  override def write(codec:Codec): Codec = codec.writeString(value)
+
+  def read(codec: Codec): Codec = ???
 }
 
 class ValueClassJson(value: String) extends Value {
-  def write(codec: Codec): Codec = codec.writeObject(value)
+  override def write(codec: Codec): Codec = codec.writeObject(value)
 }
 
 class ValueInt(value: Int) extends Value {
-  def write(codec: Codec): Codec = codec.writeInt(value)
+  override def write(codec: Codec): Codec = codec.writeInt(value)
 }
 
 class ValueLong(value: Long) extends Value {
-  def write(codec: Codec): Codec = codec.writeLong(value)
+  override def write(codec: Codec): Codec = codec.writeLong(value)
 }
 
 class ValueFloat(value:Float) extends Value {
-  def write(codec: Codec): Codec = codec.writeFloat(value)
+  override def write(codec: Codec): Codec = codec.writeFloat(value)
 }
 
 class ValueDouble(value: Double) extends Value {
-  def write(codec: Codec): Codec = codec.writeDouble(value)
+  override def write(codec: Codec): Codec = codec.writeDouble(value)
 }
 
 class ValueBoolean(value: Boolean) extends Value {
-  def write(codec: Codec): Codec = codec.writeBoolean(value)
+  override  def write(codec: Codec): Codec = codec.writeBoolean(value)
 }
 
 class ValueNull(value: Null) extends Value {
-  def write(codec: Codec): Codec = codec.writeNull(value)
+  override def write(codec: Codec): Codec = codec.writeNull(value)
 }
 
 class ValueBarray(value: Array[Byte]) extends Value {
-  def write(codec: Codec): Codec = codec.writeBarray(value)
+  override def write(codec: Codec): Codec = codec.writeBarray(value)
 }
 
 //TODO - the two bellow might not be necessary
 class ValueSeqBarray(value: Seq[Array[Byte]]) extends Value {
-  def write(codec: Codec): Codec = ???
+  override def write(codec: Codec): Codec = ???
 }
 
 class ValueInstant(value: Instant) extends Value {
-  def write(codec: Codec): Codec = ???
+  override def write(codec: Codec): Codec = ???
 }

@@ -2,6 +2,7 @@ package io.zink.boson.bson.codec
 
 import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
+import io.zink.boson.bson.value.Value
 
 
 /**
@@ -50,6 +51,8 @@ trait Codec {
     * @return returns the same SonNamedType request with the value obtained.
     */
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
+
+  def readToken2(dt: Int): Value
 
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream

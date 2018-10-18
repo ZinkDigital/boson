@@ -6,6 +6,7 @@ import java.time.Instant
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
+import io.zink.boson.bson.value.{Value, ValueObject}
 import io.zink.bsonLib.{BsonArray, BsonObject}
 
 import scala.collection.mutable.ListBuffer
@@ -137,7 +138,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   /**
-    * readToken is used to obtain a value correponding to the SonNamedType request, consuming the value from the stream
+    * readToken is used to obtain a value corresponding to the SonNamedType request, consuming the value from the stream
     *
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
@@ -232,6 +233,36 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         case CS_NULL =>
           SonNull(x, V_NULL)
       }
+  }
+
+  override def readToken2(dt: Int): Value = {
+    val info = dt match {
+      case D_BSONOBJECT =>
+        val size = buff.getIntLE(buff.readerIndex)
+        val endIndex = buff.readerIndex + size
+        val b = buff.copy(buff.readerIndex, size)
+        //val b = buff.readBytes(size)
+        buff.readerIndex(endIndex)
+        b.array()
+      case D_BSONARRAY =>
+        val size = buff.getIntLE(buff.readerIndex)
+        val endIndex = buff.readerIndex + size
+        val b = buff.copy(buff.readerIndex, size)
+        buff.readerIndex(endIndex)
+        b.array()
+      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
+        val valueLength: Int = buff.readIntLE()
+        buff.readCharSequence(valueLength, charset).toString.filter(b => b != 0)
+      case D_INT =>
+        buff.readIntLE()
+      case D_FLOAT_DOUBLE =>
+        buff.readDoubleLE()
+      case D_LONG =>
+        buff.readLongLE()
+      case D_NULL =>
+        V_NULL
+    }
+    ValueObject.toValue(info)
   }
 
   /**
@@ -504,6 +535,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return A new codec with exactly the same information as the current codec but with the size information written in it
     */
   def writeCodecSize: Codec = { //TODO - refactor
+    //    CodecObject.toCodec((getWriterIndex+4).asInstanceOf[ByteBuf]) + this
     val duplicated = Unpooled.buffer().writeIntLE(getWriterIndex + 4)
     duplicated.writeBytes(buff)
     duplicated.capacity(getWriterIndex + 4)
