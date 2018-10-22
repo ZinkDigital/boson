@@ -267,6 +267,16 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     ValueObject.toValue(info)
   }
 
+  override def readKey: String = {
+    val key: ListBuffer[Byte] = new ListBuffer[Byte]
+    var i: Int = buff.readerIndex()
+    while (buff.getByte(i) != 0) {
+      key.append(buff.readByte())
+      i += 1
+    }
+    new String(key.toArray).filter(p => p != 0)
+  }
+
   override def getPartialCodec(dt: Int): Codec = {
     val size = buff.getIntLE(buff.readerIndex)
     val endIndex = buff.readerIndex + size

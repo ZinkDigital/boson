@@ -1331,7 +1331,7 @@ import scala.util.{Failure, Success, Try}
     * @return the resulting codec and a string containing the key extracted
     */
   private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
-    val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+    val key: String = codec.readKey
     val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
     writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
     writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
@@ -1482,11 +1482,6 @@ import scala.util.{Failure, Success, Try}
 
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
 
-    def anyToEither(result: Any): Either[ByteBuf, String] = result match {
-      case byteBuf: ByteBuf => Left(byteBuf)
-      case jsonString: String => Right(jsonString)
-    }
-
     val currentCodec = codec.createEmptyCodec
     while ((codec.getReaderIndex - startReader) < originalSize) {
       val (dataType, _) = readWriteDataType(codec, currentCodec)
@@ -1594,7 +1589,7 @@ import scala.util.{Failure, Success, Try}
       dataType match {
         case 0 =>
         case _ =>
-          val found: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+          val found: String = codec.readKey
           val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
 
           currentCodec.writeToken(SonString(CS_STRING, found), isKey = true)
@@ -1657,7 +1652,7 @@ import scala.util.{Failure, Success, Try}
         case 0 =>
         case _ =>
           val key: String = codec.getCodecData match {
-            case Left(_) => codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
+            case Left(_) => codec.readKey
             case Right(_) =>
               counter += 1
               counter.toString

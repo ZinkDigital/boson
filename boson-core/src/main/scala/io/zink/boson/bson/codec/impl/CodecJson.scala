@@ -288,6 +288,19 @@ class CodecJson(str: String) extends Codec {
     ValueObject.toValue(info)
   }
 
+  override def readKey: String = {
+    val charSliced: Char = input(readerIndex)
+    if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
+      readerIndex += 1
+    input(readerIndex) match {
+      case CS_QUOTES =>
+        val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
+        val name = input.substring(readerIndex, readerIndex + subStr + 2)
+        readerIndex += name.length
+        name.substring(1, name.length - 1)
+    }
+  }
+
   override def getPartialCodec(dt: Int): Codec = {
     val info = dt match {
       case D_BSONOBJECT =>

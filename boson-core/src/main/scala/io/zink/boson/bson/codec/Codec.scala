@@ -54,6 +54,8 @@ trait Codec {
 
   def readToken2(dt: Int): Value
 
+  def readKey: String
+
   def getPartialCodec(dt: Int): Codec
 
   /**
