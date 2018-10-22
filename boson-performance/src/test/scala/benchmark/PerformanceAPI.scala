@@ -593,13 +593,13 @@ object PerformanceTests extends App {
   //  performanceJsonPath("$.LastEpochChangeReason[0]", 10, confSmart, "confSmart")
   //  performanceAnalysis(bosonArticle18, ".Tags.StartTime")
   //  performanceJsonPath("$.Tags.StartTime", "Something", confSmart, "confSmart")
-  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
-  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
+  //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags")
+  //  performanceAnalysis(bosonArticle110, ".Markets[0 to end].Tags", codecJson = true)
   //  performanceJsonPath("$.Markets[*].Tags", tag, confSmart, "confGson")
-  performanceAnalysis(doubleDotInj12, ".Markets[@Selections].Id")
+  //  performanceAnalysis(doubleDotInj12, ".Markets[@Selections].Id")
   //  performanceAnalysis(doubleDotInj12, ".Markets[@Selections].Id", codecJson = true)
   //  performanceJsonPath("$.Markets[?(@.Selections)].Id", "Something", confSmart, "confSmart")
-  performanceAnalysis(doubleDotInj16, ".Markets.Selections[@Id]")
+  //  performanceAnalysis(doubleDotInj16, ".Markets.Selections[@Id]")
   //  performanceAnalysis(doubleDotInj16, ".Markets.Selections[@Id]", codecJson = true)
   //  performanceJsonPath("$.Markets.Selections[?(@.Id)]", "Something", confSmart, "confSmart")
 
@@ -612,7 +612,7 @@ object PerformanceTests extends App {
   performanceAnalysis(bosonArticle110Value, ".Markets[0 to end].Tags", codecJson = true)
   performanceAnalysis(doubleDotInj12Value, ".Markets[@Selections].Id")
   //  performanceAnalysis(doubleDotInj12Value, ".Markets[@Selections]..Id", codecJson = true) //TODO - fix here ..Id
-  performanceAnalysis(doubleDotInj16Value, ".Markets.Selections[@Id]")
+  performanceAnalysis(doubleDotInj16Value, ".Markets.Selections[@Id]") //TODO - Check here
   //  performanceAnalysis(doubleDotInj16Value, "..Markets..Selections[@Id]", codecJson = true) //TODO - fix here
 
 

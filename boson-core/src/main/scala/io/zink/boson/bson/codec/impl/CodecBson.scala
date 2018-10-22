@@ -259,11 +259,22 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
         buff.readDoubleLE()
       case D_LONG =>
         buff.readLongLE()
+      case D_BOOLEAN =>
+        buff.readByte
       case D_NULL =>
         V_NULL
     }
     ValueObject.toValue(info)
   }
+
+  override def getPartialCodec(dt: Int): Codec = {
+    val size = buff.getIntLE(buff.readerIndex)
+    val endIndex = buff.readerIndex + size
+    val b = buff.copy(buff.readerIndex, size)
+    buff.readerIndex(endIndex)
+    CodecObject.toCodec(b)
+  }
+
 
   /**
     * getSize is used to obtain the size of the next tokens, without consuming

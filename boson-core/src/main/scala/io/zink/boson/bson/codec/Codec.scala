@@ -54,6 +54,8 @@ trait Codec {
 
   def readToken2(dt: Int): Value
 
+  def getPartialCodec(dt: Int): Codec
+
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
