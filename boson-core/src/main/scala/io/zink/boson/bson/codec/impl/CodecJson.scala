@@ -309,27 +309,27 @@ class CodecJson(str: String) extends Codec {
         readerIndex += size
         subStr1
       case D_BSONARRAY =>
-          if (input(readerIndex).equals('[')) {
-            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-            val subStr1 = input.substring(readerIndex, readerIndex + size)
+        if (input(readerIndex).equals('[')) {
+          val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+          val subStr1 = input.substring(readerIndex, readerIndex + size)
+          readerIndex += size
+          "{" + subStr1 + "}"
+        } else {
+          if (input(readerIndex).equals('{')) {
+            val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
+            val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
             readerIndex += size
             "{" + subStr1 + "}"
           } else {
-            if (input(readerIndex).equals('{')) {
-              val size = findObjectSize(input.substring(readerIndex, input.length).view, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
-              val subStr1 = input.substring(readerIndex + 1, readerIndex + size - 1)
-              readerIndex += size
-              "{" + subStr1 + "}"
-            } else {
-              //First - Read key until '['
-              val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
-              val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
-              //Second - Read actual Array until ']'
-              val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
-              val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
-              "{" + subKey + subArr + "}"
-            }
+            //First - Read key until '['
+            val arrKeySize = findObjectSize(input.substring(readerIndex, inputSize).view, CS_CLOSE_RECT_BRACKET, CS_OPEN_RECT_BRACKET)
+            val subKey = input.substring(readerIndex + 1, readerIndex + arrKeySize)
+            //Second - Read actual Array until ']'
+            val arrSize = findObjectSize(input.substring(readerIndex + arrKeySize, inputSize).view, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
+            val subArr = input.substring(readerIndex + arrKeySize, readerIndex + arrKeySize + arrSize)
+            "{" + subKey + subArr + "}"
           }
+        }
     }
     CodecObject.toCodec(info)
   }
@@ -509,9 +509,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return either a SonArray or SonObject representing a BsonArray/JsonArray root or BsonObject/JsonObject root
     */
-  override def rootType: SonNamedType
-
-  = {
+  override def rootType: SonNamedType = {
     input.head match {
       case CS_OPEN_BRACKET => SonObject(C_DOT)
       case CS_OPEN_RECT_BRACKET => SonArray(C_DOT)
@@ -533,9 +531,7 @@ class CodecJson(str: String) extends Codec {
     *         16: represents a Int
     *         18: represents a Long
     */
-  override def getDataType: Int
-
-  = this.readDataType()
+  override def getDataType: Int = this.readDataType()
 
   /**
     * readDataType is used to obtain the type of the next value in stream, consuming the value from the stream
@@ -641,9 +637,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a new duplicate Codec
     */
-  override def duplicate: Codec
-
-  = {
+  override def duplicate: Codec = {
     val newCodec = new CodecJson(input.toString)
     newCodec.setReaderIndex(readerIndex)
     newCodec.setWriterIndex(writerIndex)
@@ -653,17 +647,13 @@ class CodecJson(str: String) extends Codec {
   /**
     * release is used to free the resources that are no longer used
     */
-  override def release(): Unit
-
-  = {}
+  override def release(): Unit = {}
 
   /**
     * downOneLevel is only used when dealing with JSON, it is used to consume the first Character of a BsonArray('[') or BsonObject('{')
     * when we want to process information inside this BsonArray or BsonObject
     */
-  override def downOneLevel: Unit
-
-  = {
+  override def downOneLevel: Unit = {
     if (input(readerIndex).equals(CS_2DOT)) readerIndex += 1
     if (input(readerIndex).equals(CS_ARROW)) readerIndex += 2
     readerIndex += 1
@@ -676,17 +666,13 @@ class CodecJson(str: String) extends Codec {
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
-  override def readArrayPosition: Unit
-
-  = {}
+  override def readArrayPosition: Unit = {}
 
   /**
     * consumeValue is used to consume some data from the stream that is unnecessary, this method gives better performance
     * since we want to ignore a value
     */
-  override def consumeValue(seqType: Int): Unit
-
-  = seqType match {
+  override def consumeValue(seqType: Int): Unit = seqType match {
     case D_FLOAT_DOUBLE =>
       val str = input.substring(readerIndex, inputSize)
       val size = List(str.indexOf(CS_COMMA), str.indexOf(CS_CLOSE_BRACKET), str.indexOf(CS_CLOSE_RECT_BRACKET)).filter(value => value >= 0).min
@@ -722,9 +708,7 @@ class CodecJson(str: String) extends Codec {
     * @param token - the token to write to the codec
     * @return a duplicated codec from the current codec, but with the new information
     */
-  override def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
-
-  = {
+  override def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec = {
     if (ignoreForJson) this else {
       token match {
         case SonBoolean(_, info) => input.append(info.asInstanceOf[Boolean])
@@ -766,72 +750,61 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
+  override def writeDataType(dt: Int): Codec = this
+
+  override def writeKey(key: String, b: Byte): Codec = {
+    input.append("\"" + key.asInstanceOf[CharSequence] + "\":")
+    this
+  }
+
   /**
     *
     * @param info
     * @return
     */
-  override def writeString(info: String): Codec
-
-  = {
+  override def writeString(info: String): Codec = {
     input.append("\"" + info + "\",")
     this
   }
 
-  override def writeObject(info: String): Codec
-
-  = {
+  override def writeObject(info: String): Codec = {
     val writableInfo = info.asInstanceOf[CharSequence]
     val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
     input.append(infoToUse)
     this
   }
 
-  override def writeInt(info: Int): Codec
-
-  = {
+  override def writeInt(info: Int): Codec = {
     input.append(info)
     this
   }
 
-  override def writeLong(info: Long): Codec
-
-  = {
+  override def writeLong(info: Long): Codec = {
     input.append(info)
     this
   }
 
-  override def writeFloat(info: Float): Codec
-
-  = {
+  override def writeFloat(info: Float): Codec = {
     input.append(info)
     this
   }
 
-  override def writeDouble(info: Double): Codec
-
-  = {
+  override def writeDouble(info: Double): Codec = {
     input.append(info)
     this
   }
 
-  override def writeBoolean(info: Boolean): Codec
-
-  = {
+  override def writeBoolean(info: Boolean): Codec = {
     input.append(info)
     this
   }
 
-  override def writeNull(info: Null): Codec
-
-  = {
+  override def writeNull(info: Null): Codec = {
     input.append("null")
     this
   }
 
-  override def writeBarray(info: Array[Byte]): Codec
-
-  = {
+  override def writeBarray(info: Array[Byte]): Codec = {
     input.append(info)
     this
   }
@@ -841,18 +814,14 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a duplicate of the codec's data structure
     */
-  override def getCodecData: Either[ByteBuf, String]
-
-  = Right(input.toString)
+  override def getCodecData: Either[ByteBuf, String] = Right(input.toString)
 
   /**
     *
     * @param sumCodec
     * @return
     */
-  override def +(sumCodec: Codec): Codec
-
-  = {
+  override def +(sumCodec: Codec): Codec = {
     input.append(sumCodec.getCodecData.asInstanceOf[Right[ByteBuf, String]].value)
     this
   }

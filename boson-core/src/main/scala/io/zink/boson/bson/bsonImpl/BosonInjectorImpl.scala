@@ -561,7 +561,6 @@ import scala.util.{Failure, Success, Try}
 
         case byteArr: Array[Byte] =>
           Try(injFunction(new String(byteArr).asInstanceOf[T])) match {
-            //try with the value being a Array[Byte]
             case Success(modifiedValue) =>
               modifiedValue.asInstanceOf[T]
 
@@ -1333,8 +1332,7 @@ import scala.util.{Failure, Success, Try}
   private def writeKeyAndByte(codec: Codec, writableCodec: Codec): (Codec, String) = {
     val key: String = codec.readKey
     val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
-    writableCodec.writeToken(SonString(CS_STRING, key), isKey = true)
-    writableCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+    writableCodec.writeKey(key,b)
     (writableCodec, key)
   }
 
@@ -1456,7 +1454,7 @@ import scala.util.{Failure, Success, Try}
     */
   private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec) = {
     val dataType: Int = codec.readDataType(formerType)
-    writeCodec.writeToken(SonNumber(CS_BYTE, dataType.toByte), ignoreForJson = true)
+    writeCodec.writeDataType(dataType)
     (dataType, writeCodec)
   }
 

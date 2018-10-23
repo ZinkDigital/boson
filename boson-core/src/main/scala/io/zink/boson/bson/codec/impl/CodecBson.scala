@@ -469,6 +469,17 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
+  override def writeDataType(dt: Int): Codec = {
+    buff.writeByte(dt.toByte)
+    this
+  }
+
+  override def writeKey(key: String, b: Byte): Codec = {
+    buff.writeCharSequence(key.asInstanceOf[CharSequence], Charset.defaultCharset())
+    buff.writeByte(b)
+    this
+  }
+
   /**
     *
     * @param info
