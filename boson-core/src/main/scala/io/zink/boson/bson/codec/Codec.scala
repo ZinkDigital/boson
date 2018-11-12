@@ -54,7 +54,9 @@ trait Codec {
 
   def readToken2(dt: Int): Value
 
-  def readKey: String
+  def readKey: (String, Byte)
+
+  def readByte: Byte
 
   def getPartialCodec(dt: Int): Codec
 
@@ -191,6 +193,8 @@ trait Codec {
 
   def writeKey(key: String, b: Byte): Codec
 
+  def writeArrayKey(key: String, b: Byte): Codec
+
   /**
     *
     * @param dataType
@@ -200,6 +204,8 @@ trait Codec {
   def writeString(info: String): Codec
 
   def writeObject(info: String): Codec
+
+  def writeObject(info: Array[Byte]): Codec
 
   /**
     *
@@ -312,6 +318,8 @@ trait Codec {
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec
+
+  def removeBrackets(): Codec
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.

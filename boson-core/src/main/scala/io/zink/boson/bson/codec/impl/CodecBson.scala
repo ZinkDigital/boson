@@ -181,19 +181,19 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
           buff.readerIndex(endIndex)
           SonObject(x, b)
 
-        case CS_OBJECT_WITH_SIZE =>
+        case CS_OBJECT_WITH_SIZE|CS_OBJECT_INJ =>
           val size = buff.getIntLE(buff.readerIndex) //Get the object without its size
         val endIndex = buff.readerIndex + size
           val b = buff.copy(buff.readerIndex, size)
           buff.readerIndex(endIndex)
           SonObject(x, b)
 
-        case CS_OBJECT_INJ =>
-          val size = buff.getIntLE(buff.readerIndex)
-          val endIndex = buff.readerIndex + size
-          val b = buff.copy(buff.readerIndex, size)
-          buff.readerIndex(endIndex)
-          SonObject(x, b)
+//        case CS_OBJECT_INJ =>
+//          val size = buff.getIntLE(buff.readerIndex)
+//          val endIndex = buff.readerIndex + size
+//          val b = buff.copy(buff.readerIndex, size)
+//          buff.readerIndex(endIndex)
+//          SonObject(x, b)
       }
     case SonString(x, _) =>
       x match {
@@ -262,20 +262,22 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       case D_BOOLEAN =>
         buff.readByte
       case D_NULL =>
-        V_NULL
+        null
     }
     ValueObject.toValue(info)
   }
 
-  override def readKey: String = {
+  override def readKey: (String, Byte) = {
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = buff.readerIndex()
     while (buff.getByte(i) != 0) {
       key.append(buff.readByte())
       i += 1
     }
-    new String(key.toArray).filter(p => p != 0)
+    (new String(key.toArray).filter(p => p != 0), buff.readByte())
   }
+
+  override def readByte: Byte = 0.toByte
 
   override def getPartialCodec(dt: Int): Codec = {
     val size = buff.getIntLE(buff.readerIndex)
@@ -480,6 +482,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
+  override def writeArrayKey(key: String, b: Byte): Codec = writeKey(key,b)
+
   /**
     *
     * @param info
@@ -493,6 +497,11 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
   }
 
   override def writeObject(info: String): Codec = this
+
+  override def writeObject(info: Array[Byte]): Codec = {
+    buff.writeBytes(info)
+    this
+  }
 
   override def writeInt(info: Int): Codec = {
     buff.writeIntLE(info)
@@ -636,6 +645,8 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     * @return A new codec with the same information as before but with brackets encapsulating it
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = this
+
+  def removeBrackets(): Codec = this
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.

@@ -2691,7 +2691,7 @@ class CoverageTest extends FunSuite {
   test("performanceAPI Test - 19") {
     val boson = Boson.injector(".Markets[all].Tags", (in: Tags) => in)
     performanceTest(boson)
-  } // TODO -  HELLOOOOOOOOOO!
+  }
 
   test("CodecJson - Root Injection") {
     val json = new BsonObject().put("name", "john doe")
@@ -2734,7 +2734,7 @@ class CoverageTest extends FunSuite {
   }
 
   test("CodecJson - Top level key modification - HalfWord 2") {
-    val bson = new BsonObject().put("ARealyLongKeyToTest", "john doe")
+    val bson = new BsonObject().put("AReallyLongKeyToTest", "john doe")
     val ex = ".A*ea*ong*ey*To*st"
     val jsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
@@ -2847,6 +2847,7 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToString()
     val future = jsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
+    println(resultValue+"\n\n"+bsonEncoded)
     assert(resultValue.equals(bson.encodeToString))
   }
 

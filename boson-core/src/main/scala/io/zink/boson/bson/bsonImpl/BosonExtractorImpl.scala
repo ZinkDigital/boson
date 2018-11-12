@@ -1,6 +1,6 @@
 package io.zink.boson.bson.bsonImpl
 
-import io.zink.boson.bson.bsonImpl.BosonInjectorImpl.isHalfword
+import io.zink.boson.bson.bsonImpl.BosonInjectorImpl.isHalfWord
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.codec._
 
@@ -304,7 +304,7 @@ private[bsonImpl] object BosonExtractorImpl {
     */
   def compareKeys(codec: Codec, key: String): (Boolean, String) = {
     val key0 = codec.readToken(SonString(CS_NAME)).asInstanceOf[SonString].info.asInstanceOf[String]
-    (key.toCharArray.deep == key0.toCharArray.deep | isHalfword(key, key0), key0)
+    (key.toCharArray.deep == key0.toCharArray.deep | isHalfWord(key, key0), key0)
   }
 
 

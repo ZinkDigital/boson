@@ -10,7 +10,6 @@ import shapeless._
 case class ValueString(value: String) extends Value {
   override def write(codec: Codec): Codec = codec.writeString(value)
 
-
 }
 
 case class ValueClassJson(value: String) extends Value {

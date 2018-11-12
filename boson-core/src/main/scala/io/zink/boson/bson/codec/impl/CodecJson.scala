@@ -283,12 +283,13 @@ class CodecJson(str: String) extends Codec {
       case D_BOOLEAN =>
         if (readNextBoolean.equals(CS_TRUE)) true else false
       case D_NULL =>
-        V_NULL
+        readNextNull
+        null
     }
     ValueObject.toValue(info)
   }
 
-  override def readKey: String = {
+  override def readKey: (String, Byte) = {
     val charSliced: Char = input(readerIndex)
     if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
       readerIndex += 1
@@ -297,8 +298,14 @@ class CodecJson(str: String) extends Codec {
         val subStr = input.substring(readerIndex + 1, inputSize).indexOf(CS_QUOTES)
         val name = input.substring(readerIndex, readerIndex + subStr + 2)
         readerIndex += name.length
-        name.substring(1, name.length - 1)
+        readerIndex += 1
+        (name.substring(1, name.length - 1), 0.toByte)
     }
+  }
+
+  override def readByte: Byte = {
+    readerIndex += 1
+    0.toByte
   }
 
   override def getPartialCodec(dt: Int): Codec = {
@@ -757,55 +764,63 @@ class CodecJson(str: String) extends Codec {
     this
   }
 
+  override def writeArrayKey(key: String, b: Byte): Codec = this
+
   /**
     *
     * @param info
     * @return
     */
   override def writeString(info: String): Codec = {
-    input.append("\"" + info + "\",")
+    if(info.charAt(0).equals('[')||info.charAt(0).equals('{')){
+      input.append(info + ",")
+    } else {
+      input.append("\"" + info + "\",")
+    }
     this
   }
 
   override def writeObject(info: String): Codec = {
     val writableInfo = info.asInstanceOf[CharSequence]
     val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
-    input.append(infoToUse)
+    input.append(infoToUse+ ",")
     this
   }
 
+  override def writeObject(info: Array[Byte]): Codec = this
+
   override def writeInt(info: Int): Codec = {
-    input.append(info)
+    input.append(info + ",")
     this
   }
 
   override def writeLong(info: Long): Codec = {
-    input.append(info)
+    input.append(info+ ",")
     this
   }
 
   override def writeFloat(info: Float): Codec = {
-    input.append(info)
+    input.append(info+ ",")
     this
   }
 
   override def writeDouble(info: Double): Codec = {
-    input.append(info)
+    input.append(info+ ",")
     this
   }
 
   override def writeBoolean(info: Boolean): Codec = {
-    input.append(info)
+    input.append(info+ ",")
     this
   }
 
   override def writeNull(info: Null): Codec = {
-    input.append("null")
+    input.append("null"+ ",")
     this
   }
 
   override def writeBarray(info: Array[Byte]): Codec = {
-    input.append(info)
+    input.append(info + ",")
     this
   }
 
@@ -905,7 +920,11 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey(searchAndModify: Boolean = false): Boolean = if (!searchAndModify) !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1 else false
+  def canReadKey(searchAndModify: Boolean = false): Boolean ={
+    if (!searchAndModify)
+      !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1
+    else false
+  }
 
   /**
     * Method that decides if the type of the current key is an array or not
@@ -956,6 +975,12 @@ class CodecJson(str: String) extends Codec {
         input.append(closeBracket)
       } else input.insert(0, openBracket + "\"" + key + "\":")
     }
+    this
+  }
+
+  def removeBrackets(): Codec = {
+    input.deleteCharAt(0)
+    input.deleteCharAt(input.size-1)
     this
   }
 
