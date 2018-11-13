@@ -260,7 +260,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       case D_LONG =>
         buff.readLongLE()
       case D_BOOLEAN =>
-        buff.readByte
+        buff.readByte == 1
       case D_NULL =>
         null
     }

@@ -75,17 +75,7 @@ import scala.util.{Failure, Success, Try}
                 }
               }
             case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfWord(fieldID, x) =>
-              if (statementsList.head._2.contains(C_DOUBLEDOT) /*&& dataType == (4|3)*/ ) {
-                //                dataType match {
-                //                  case D_BSONOBJECT | D_BSONARRAY =>
-                //                    val partialCodec = codec.getPartialCodec(dataType)
-                //                    val subCodec = BosonImpl.inject(partialCodec.getCodecData,statementsList, injFunction)
-                //                    currentCodec + subCodec
-                //                  case _ =>
-                ////                    processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
-                //                    val processValue = codec.readToken2(dataType)
-                //                    processValue.write(currentCodec)
-                //                }
+              if (statementsList.head._2.contains(C_DOUBLEDOT) /*&& (dataType == D_BSONARRAY || dataType == D_BSONOBJECT)*/) {
                 codec.getCodecData match {
                   case Right(jsonString) =>
                     if (jsonString.charAt(0).equals('[')) {
@@ -93,25 +83,28 @@ import scala.util.{Failure, Success, Try}
                         val partialCodec = codec.getPartialCodec(dataType)
                         val subCodec = modifyAll(statementsList, partialCodec, fieldID, injFunction)
                         currentCodec + subCodec
-                        //                        processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
-                        //                        currentCodec.addComma
                       } else {
                         codec.setReaderIndex(0)
                         val processValue = codec.readToken2(4)
                         processValue.write(currentCodec)
                       }
                     } else {
-                      //TODO - Refactor this here
-                      //                                            val processValue = codec.readToken2(dataType)
-                      //                                            processValue.write(currentCodec)
-                      processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
+                      if(dataType == D_BSONARRAY || dataType == D_BSONOBJECT){
+                        val partialCodec = if (dataType == D_BSONARRAY) codec.getPartialCodec(4).removeBrackets else codec.getPartialCodec(3)
+                        currentCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
+                      } else {
+                        val value0 = codec.readToken2(dataType)
+                        value0.write(currentCodec)
+                      }
                     }
-
                   case Left(_) =>
-                    //                    val partialCodec = codec.getPartialCodec(dataType)
-                    //                    val subCodec = modifyAll(statementsList, partialCodec, fieldID, injFunction)
-                    //                    currentCodec + subCodec
-                    processTypesAll(statementsList, dataType, codec, currentCodec, fieldID, injFunction)
+                    if(dataType == D_BSONARRAY || dataType == D_BSONOBJECT){
+                      val partialCodec = if (dataType == D_BSONARRAY) codec.getPartialCodec(4).removeBrackets else codec.getPartialCodec(3)
+                      currentCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
+                    } else {
+                      val value0 = codec.readToken2(dataType)
+                      value0.write(currentCodec)
+                    }
                 }
               } else {
                 val processValue = codec.readToken2(dataType)
@@ -120,7 +113,6 @@ import scala.util.{Failure, Success, Try}
           }
       }
     }
-
     currentCodec.writeCodecSize.removeTrailingComma(codec, checkOpenRect = true)
   }
 
@@ -335,52 +327,6 @@ import scala.util.{Failure, Success, Try}
       codecResCopy.writeToken(token)
 
     case D_NULL => throw CustomException(s"NULL field. Can not be changed")
-  }
-
-  /**
-    * Function that processes the types of all the information that is not relevant for the injection and copies it to
-    * the current resulting Codec
-    *
-    * @param statementsList  - A list with pairs that contains the key of interest and the type of operation
-    * @param seqType         - Type of the value found and processing
-    * @param codec           - Structure from which we are reading the values
-    * @param currentResCodec - Structure that contains the information already processed and where we write the values
-    * @param fieldID         - name of the field we are searching
-    * @param injFunction     - Function given by the user with the new value
-    * @tparam T - Type of the value being injected
-    * @return A Codec containing the alterations made
-    */
-  private def processTypesAll[T](statementsList: StatementsList, seqType: Int, codec: Codec, currentResCodec: Codec, fieldID: String, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Unit = {
-    seqType match {
-
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ =>
-        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-        currentResCodec.writeToken(SonNumber(CS_INTEGER, value0.length + 1), ignoreForJson = true)
-        currentResCodec.writeToken(SonString(CS_STRING, value0))
-        currentResCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-
-      case D_BSONOBJECT =>
-        val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info)
-        currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
-
-      case D_BSONARRAY =>
-        val partialCodec: Codec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
-        currentResCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
-
-      case D_INT => currentResCodec.writeToken(codec.readToken(SonNumber(CS_INTEGER)))
-
-      case D_FLOAT_DOUBLE => currentResCodec.writeToken(codec.readToken(SonNumber(CS_DOUBLE)))
-
-      case D_LONG => currentResCodec.writeToken(codec.readToken(SonNumber(CS_LONG)))
-
-      case D_BOOLEAN =>
-        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
-          case byte: Byte => byte == 1
-        }
-        currentResCodec.writeToken(SonBoolean(CS_BOOLEAN, value0))
-
-      case D_NULL => currentResCodec.writeToken(codec.readToken(SonNull(CS_NULL)))
-    }
   }
 
   /**
@@ -665,7 +611,6 @@ import scala.util.{Failure, Success, Try}
                   dataType match {
                     case D_BSONARRAY | D_BSONOBJECT =>
                       val partialCodec = codec.getPartialCodec(4)
-                      //                      val partialCodec = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_INJ)).asInstanceOf[SonArray].info).wrapInBrackets()
                       Try(BosonImpl.inject(partialCodec.getCodecData, statementsList.drop(1), injFunction)) match {
                         case Success(c) =>
                           if (codec.getDataType == 0) {

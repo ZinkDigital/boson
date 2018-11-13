@@ -447,9 +447,9 @@ class CodecJson(str: String) extends Codec {
     */
   override def readSize: Int = {
     input(readerIndex) match {
-      case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex == 0 => inputSize
+      case CS_OPEN_BRACKET | CS_OPEN_RECT_BRACKET if readerIndex == 0 => input.length
       case CS_OPEN_BRACKET =>
-        val inputAux: Seq[Char] = input.substring(readerIndex, inputSize).view
+        val inputAux: Seq[Char] = input.substring(readerIndex, input.length).view
         val size = findObjectSize(inputAux, CS_OPEN_BRACKET, CS_CLOSE_BRACKET)
         size
       case CS_OPEN_RECT_BRACKET =>
@@ -457,7 +457,7 @@ class CodecJson(str: String) extends Codec {
         val size = findObjectSize(inputAux, CS_OPEN_RECT_BRACKET, CS_CLOSE_RECT_BRACKET)
         size
       case CS_QUOTES =>
-        val inputAux: Seq[Char] = input.substring(readerIndex, inputSize)
+        val inputAux: Seq[Char] = input.substring(readerIndex, input.length)
         val size = findStringSize(inputAux)
         size
       case _ =>
@@ -980,7 +980,7 @@ class CodecJson(str: String) extends Codec {
 
   def removeBrackets(): Codec = {
     input.deleteCharAt(0)
-    input.deleteCharAt(input.size-1)
+    input.deleteCharAt(input.length-1)
     this
   }
 
