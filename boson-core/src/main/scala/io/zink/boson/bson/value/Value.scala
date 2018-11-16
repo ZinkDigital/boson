@@ -5,10 +5,11 @@ import java.time.Instant
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.value.impl._
 
-trait Value {
+trait Value{
+
   def write(codec: Codec): Codec
 
-//  def applyFunction(codec: Codec): Codec
+  def applyFunction[T](injFunction: T => T): Value
 
 }
 
@@ -38,35 +39,35 @@ sealed trait DefaultValues {
   }
 
   implicit object LongValue extends Values[Long] {
-    override def applyFunc(value: Long): Value = ???
+    override def applyFunc(value: Long): Value = new ValueLong(value)
   }
 
   implicit object FloatValue extends Values[Float] {
-    override def applyFunc(value: Float): Value = ???
+    override def applyFunc(value: Float): Value = new ValueFloat(value)
   }
 
   implicit object DoubleValue extends Values[Double] {
-    override def applyFunc(value: Double): Value = ???
+    override def applyFunc(value: Double): Value = new ValueDouble(value)
   }
 
   implicit object BooleanValue extends Values[Boolean] {
-    override def applyFunc(value: Boolean): Value = ???
+    override def applyFunc(value: Boolean): Value = new ValueBoolean(value)
   }
 
   implicit object NullValue extends Values[Null] {
-    override def applyFunc(value: Null): Value = ???
+    override def applyFunc(value: Null): Value = new ValueNull(value)
   }
 
   implicit object BarrayValue extends Values[Array[Byte]] {
-    override def applyFunc(value: Array[Byte]): Value = ???
+    override def applyFunc(value: Array[Byte]): Value = new ValueBarray(value)
   }
 
   implicit object SeqBarryValue extends Values[Seq[Array[Byte]]] {
-    override def applyFunc(value: Seq[Array[Byte]]): Value = ???
+    override def applyFunc(value: Seq[Array[Byte]]): Value = new ValueSeqBarray(value)
   }
 
   implicit object InstantValue extends Values[Instant] {
-    override def applyFunc(value: Instant): Value = ???
+    override def applyFunc(value: Instant): Value = new ValueInstant(value)
   }
 
   implicit object AnyValue extends Values[Any] {
