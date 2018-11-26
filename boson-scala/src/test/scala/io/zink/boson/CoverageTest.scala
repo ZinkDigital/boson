@@ -14,6 +14,7 @@ import org.junit.Assert.{assertArrayEquals, assertEquals, assertTrue}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
+import scala.util.Success
 
 @RunWith(classOf[JUnitRunner])
 class CoverageTest extends FunSuite {
@@ -146,6 +147,10 @@ class CoverageTest extends FunSuite {
     })
     val res = boson.go(bson.encode.getBytes)
     Await.result(res, Duration.Inf)
+    import java.util.concurrent.Executors
+    import scala.concurrent.JavaConversions.asExecutionContext
+
+    implicit val context = asExecutionContext(Executors.newSingleThreadExecutor())
     assert(expected.size == mutableBuffer.size && expected.zip(mutableBuffer).forall(b => b._1.sameElements(b._2)))
   }
 
@@ -1924,7 +1929,6 @@ class CoverageTest extends FunSuite {
     val bson = new BsonObject().put("book", book)
 
     val expected = new BsonObject().put("name", "LOTR").put("pages", 320).encodeToBarray
-
     val ex = ".book"
     val bsonInj = Boson.injector(ex, (in: Book) => {
       Book("LOTR", 320)
@@ -2583,7 +2587,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -2730,7 +2734,7 @@ class CoverageTest extends FunSuite {
   }
 
   test("CodecJson - Top level key modification - HalfWord 2") {
-    val bson = new BsonObject().put("ARealyLongKeyToTest", "john doe")
+    val bson = new BsonObject().put("AReallyLongKeyToTest", "john doe")
     val ex = ".A*ea*ong*ey*To*st"
     val jsonInj = Boson.injector(ex, (in: String) => {
       in.toUpperCase
@@ -2843,6 +2847,7 @@ class CoverageTest extends FunSuite {
     val bsonEncoded = bson.encodeToString()
     val future = jsonInj.go(bsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
+    println(resultValue+"\n\n"+bsonEncoded)
     assert(resultValue.equals(bson.encodeToString))
   }
 
@@ -3013,6 +3018,7 @@ class CoverageTest extends FunSuite {
     val jsonEncoded = json.encodeToString()
     val future = jsonInj.go(jsonEncoded)
     val resultValue: String = Await.result(future, Duration.Inf)
+
     assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
@@ -3051,6 +3057,7 @@ class CoverageTest extends FunSuite {
 
     val future = jsonInj.go(json.encodeToString)
     val resultValue: String = Await.result(future, Duration.Inf)
+
     assert(resultValue.equals(jsonExpected.encodeToString))
   }
 
@@ -3200,7 +3207,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3221,7 +3228,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = ".persons[@subObject].subObject.age"
+    val ex = ".persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3242,7 +3249,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3263,7 +3270,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -3284,7 +3291,7 @@ class CoverageTest extends FunSuite {
     val personsExpected = new BsonArray().add(arr).add(personBson2Expected)
     val clientExpected = new BsonObject().put("persons", personsExpected)
 
-    val ex = "..persons[@subObject].subObject.age"
+    val ex = "..persons[@subObject].age"
     val jsonInj = Boson.injector(ex, (in: Int) => {
       in + 20
     })
@@ -5096,6 +5103,107 @@ class CoverageTest extends FunSuite {
   test("CodecJson performanceAPI Test - 19") {
     val boson = Boson.injector(".Markets[all].Tags", (in: Tags) => in)
     performanceTest(boson, isJson = true)
+  }
+
+  test("CodecJson - Nested case class injection - Non existing key") {
+    val jsonArr = new BsonArray().add(nestedBson)
+    val jsonObj = new BsonObject().put("books", jsonArr)
+
+    val jsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val jsonObjExpected = new BsonObject().put("books", jsonArrExpected)
+
+    val expr = "..NonExistingKey[first].book"
+
+    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+    })
+
+    val future = jsonInj.go(jsonObj.encodeToString)
+    val result: String = Await.result(future, Duration.Inf)
+    assert(result.equals(jsonObj.encodeToString))
+  }
+
+  test("Nested case class injection - Non existing key") {
+    val jsonArr = new BsonArray().add(nestedBson)
+    val jsonObj = new BsonObject().put("books", jsonArr)
+
+    val jsonArrExpected = new BsonArray().add(nestedBsonExpected)
+    val jsonObjExpected = new BsonObject().put("books", jsonArrExpected)
+
+    val expr = "..NonExistingKey[first].book"
+
+    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
+      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+    })
+    val expected = jsonObj.encodeToBarray
+    val future = jsonInj.go(expected)
+    val result: Array[Byte] = Await.result(future, Duration.Inf)
+    val isEqual = result.zip(expected).forall(b => b._1 == b._2)
+    assert(isEqual == true)
+  }
+
+  test("CodecJson - Top level array inject key[single] value") {
+    val expectedLayer1 = new BsonArray().add(100).add(212)
+    val expected = new BsonObject().put("emergency", expectedLayer1).encodeToString
+    val i: Int = 112
+    val bsonLayer1 = new BsonArray().add(100).add(i)
+    val bson = new BsonObject().put("emergency", bsonLayer1)
+    val ex = ".emergency[1]"
+    val jsonInj = Boson.injector(ex, (in: Int) => {
+      in + 100
+    })
+    val jsonEncoded = bson.encodeToString
+    val future = jsonInj.go(jsonEncoded)
+    val result = Await.result(future, Duration.Inf)
+    assert(result.equals(expected))
+  }
+
+  test("Array as with input of an Array (foreach)") {
+    val obj1 = new BsonObject().put("name", "Object1").put("number", 1000).put("boolean", true)
+    val obj2 = new BsonObject().put("name", "Object2").put("number", 2000).put("boolean", true)
+    val objGen = new BsonObject().put("number", 9999).put("boolean", false)
+    val objArray = new BsonArray().add(objGen).add(obj1).add(obj2).add(objGen).add(objGen)
+    val json = new BsonObject().put("object", objArray).encodeToString
+
+    val expr = ".object[all].number" //TODO - foreach? - .object[foreach].number
+
+    var list = List(1, 2, 3, 4, 5)
+
+    val injector = Boson.injector(expr, (in: Int) => {
+      val aux = list.head
+      list = list.drop(1)
+      in + aux
+    })
+    val future = injector.go(json)
+    val result = Await.result(future, Duration.Inf)
+
+    println(result)
+
+    assert(true)
+  }
+
+  test("Array as Elem if equals") {
+    val obj1 = new BsonObject().put("name", "Object1").put("number", 1000).put("boolean", true)
+    val obj2 = new BsonObject().put("name", "Object2").put("number", 2000).put("boolean", true)
+    val objGen = new BsonObject().put("number", 9999).put("boolean", false)
+    val objArray = new BsonArray().add(objGen).add(obj1).add(obj2).add(objGen).add(objGen)
+    val json = new BsonObject().put("object", objArray).encodeToString
+
+    val expr = ".object[@name]" //TODO - maybe ".object[@name="someString"]"
+
+    val injector = Boson.injector(expr, (in: String) => {
+      if (in.equals("Object1")) {
+        in.toUpperCase
+      } else in
+    })
+    val future = injector.go(json)
+    val result = Await.result(future, Duration.Inf)
+
+    println(result)
+
+    assert(true)
   }
 
   private def performanceTest(boson: Boson, isJson: Boolean = false): Unit = {

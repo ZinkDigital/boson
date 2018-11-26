@@ -3,15 +3,16 @@ package io.zink.boson.impl
 import io.zink.boson.Boson
 import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.bson.bsonPath.Interpreter
+import io.zink.boson.bson.value.Value
 import shapeless.{HList, LabelledGeneric, TypeCase}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T)(implicit
-                                                                                  tp: Option[TypeCase[T]],
-                                                                                  gen: LabelledGeneric.Aux[T, R],
-                                                                                  extract: extractLabels[R]) extends Boson {
+class BosonInjectorValueObj[T, R <: HList](expression: String, injectValue: T/*Value*/)(implicit
+                                                                               tp: Option[TypeCase[T]],
+                                                                               gen: LabelledGeneric.Aux[T, R],
+                                                                               extract: extractLabels[R]) extends Boson {
 
   def convert(tupleList: List[(String, Any)]): T = {
     val modTupleList = List(tupleList)
@@ -27,7 +28,7 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
     result.head
   }
 
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction))(tp, Some(convert))
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(Right(injectValue)))(tp, Some(convert))
 
 
   /**
@@ -71,6 +72,5 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
     }
   }
 
-//  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
-
+  //  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
 }

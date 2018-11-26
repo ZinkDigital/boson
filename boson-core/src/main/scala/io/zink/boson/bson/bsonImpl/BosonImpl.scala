@@ -1,5 +1,7 @@
 package io.zink.boson.bson.bsonImpl
 
+import java.io.{ByteArrayOutputStream, ObjectOutputStream}
+
 import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
@@ -7,7 +9,7 @@ import io.zink.boson.bson.codec._
 import BosonExtractorImpl._
 import BosonInjectorImpl._
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
-import shapeless.TypeCase
+import io.zink.boson.bson.value.{Value, ValueObject}
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,6 +27,7 @@ object BosonImpl {
 
   type DataStructure = Either[ByteBuf, String]
   type StatementsList = List[(Statement, String)]
+  private type TupleList = List[(String, Any)]
 
   /**
     * Public method to trigger extraction.
@@ -194,5 +197,95 @@ object BosonImpl {
       case _ =>
         throw CustomException("Wrong Statements, Bad Expression.")
     }
+  }
+
+
+  def injectValue[T](dataStructure: DataStructure, statements: StatementsList, injValue: Value, readerIndextoUse: Int = 0)(implicit convertFunction: Option[List[(String, Any)] => T] = None): Codec = {
+//    val codec = CodecObject.toCodec(dataStructure)
+
+    val (auxType, codec): (Int, Codec) = dataStructure match { // Todo - this invalidates whats in the Codec trait - "CodecObject.toCodec(dataStructure)"
+      case Right(jsonString: String) =>
+        val returnCodec = new CodecJson(jsonString)
+        returnCodec.setReaderIndex(readerIndextoUse)
+
+        jsonString.charAt(0) match{
+          case '[' => (4, returnCodec.wrapInBrackets())
+          case '{' => (3, returnCodec)
+          case _ => (returnCodec.getDataType, returnCodec)
+        }
+      case Left(byteBuf: ByteBuf) => (4, new CodecBson(byteBuf))
+    }
+
+    /*
+      val (auxType, codecToUse)= codec.getCodecData match {
+          case Right(js) => js.charAt(0) match {
+            case '[' => (4, codec.wrapInBrackets())
+            case '{' => (3, codec)
+            case _ => (codec.getDataType, codec) // Maybe
+          }
+          case Left(bb) => (4, codec)
+        }
+    * */
+
+    val resCodec: Codec = statements.head._1 match {
+      case ROOT =>
+        injectRootValue(codec, injValue)
+
+      case Key(key: String) =>
+        injectKeyValue(codec, statements, injValue, key)
+
+      case HalfName(half: String) =>
+        injectKeyValue(codec, statements, injValue, half)
+
+      case HasElem(key: String, elem: String) => injectHasElemValue(codec, statements, injValue, key, elem)
+
+      case KeyWithArrExpr(key: String, arrEx: ArrExpr) =>
+        val input: (String, Int, String, Any) =
+          (arrEx.leftArg, arrEx.midArg, arrEx.rightArg) match {
+            case (_, o1, o2) if o1.isDefined && o2.isDefined =>
+              if (o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]) {
+                val to: Int = o2.get.asInstanceOf[Int]
+                (key, arrEx.leftArg, TO_RANGE, to - 1)
+              } else (key, arrEx.leftArg, o1.get.value, o2.get) //User sent, for example, Key[1 TO 3] translate to - Key[1 TO 3]
+
+            case (_, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (key, arrEx.leftArg, TO_RANGE, arrEx.leftArg) //User sent, for example, Key[1] translates to - Key[1 TO 1]
+
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST =>
+                  (key, 0, TO_RANGE, 0) //User sent Key[first] , translates to - Key[0 TO 0]
+                case C_END =>
+                  (key, 0, C_END, None) //User sent Key[end], translates to - Key[0 END None]
+                case C_ALL =>
+                  (key, 0, TO_RANGE, C_END) //user sent Key[all], translates to - Key[0 TO END]
+              }
+          }
+        injectArrayValueWithKey(codec, statements, injValue, input._1, input._2.toString, input._3, input._4.toString)
+
+      case ArrExpr(leftArg: Int, midArg: Option[RangeCondition], rightArg: Option[Any]) =>
+        val input: (String, Int, String, Any) =
+          (leftArg, midArg, rightArg) match {
+            case (i, o1, o2) if o1.isDefined && o2.isDefined =>
+              if (o1.get.value.equals(UNTIL_RANGE) && o2.get.isInstanceOf[Int]) {
+                val to: Int = o2.get.asInstanceOf[Int]
+                (EMPTY_KEY, i, TO_RANGE, to - 1)
+              }
+              else (EMPTY_KEY, i, o1.get.value, o2.get)
+
+            case (i, o1, o2) if o1.isEmpty && o2.isEmpty =>
+              (EMPTY_KEY, i, TO_RANGE, i)
+
+            case (0, str, None) =>
+              str.get.value match {
+                case C_FIRST => (EMPTY_KEY, 0, TO_RANGE, 0)
+                case C_END => (EMPTY_KEY, 0, C_END, None)
+                case C_ALL => (EMPTY_KEY, 0, TO_RANGE, C_END)
+              }
+          }
+
+        injectArrayValue(codec, statements, injValue, input._3, input._2.toString, input._4.toString, auxType)
+    }
+    resCodec
   }
 }

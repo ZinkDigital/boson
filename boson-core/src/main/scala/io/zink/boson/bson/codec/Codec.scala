@@ -2,6 +2,7 @@ package io.zink.boson.bson.codec
 
 import io.netty.buffer.ByteBuf
 import io.zink.boson.bson.codec.impl.{CodecBson, CodecJson}
+import io.zink.boson.bson.value.Value
 
 
 /**
@@ -50,6 +51,14 @@ trait Codec {
     * @return returns the same SonNamedType request with the value obtained.
     */
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
+
+  def readToken2(dt: Int): Value
+
+  def readKey: (String, Byte)
+
+  def readByte: Byte
+
+  def getPartialCodec(dt: Int): Codec
 
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
@@ -180,6 +189,43 @@ trait Codec {
     */
   def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
 
+  def writeDataType(dt: Int): Codec
+
+  def writeKey(key: String, b: Byte): Codec
+
+  def writeArrayKey(key: String, b: Byte): Codec
+
+  /**
+    *
+    * @param dataType
+    * @param info
+    * @return
+    */
+  def writeString(info: String): Codec
+
+  def writeObject(info: String): Codec
+
+  def writeObject(info: Array[Byte]): Codec
+
+  /**
+    *
+    * @param info
+    * @return
+    */
+  def writeInt(info: Int): Codec
+
+  def writeLong(info: Long): Codec
+
+  def writeFloat(info: Float): Codec
+
+  def writeDouble(info: Double): Codec
+
+  def writeBoolean(info: Boolean): Codec
+
+  def writeNull(info: Null): Codec
+
+  def writeBarray(info: Array[Byte]): Codec
+
   /**
     * Method that returns a duplicate of the codec's data structure
     *
@@ -202,7 +248,7 @@ trait Codec {
     * @param codec - codec we wish to remove the trailing comma
     * @return a new codec that does not have the last trailing comma in it
     */
-  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false): Codec
+  def removeTrailingComma(codec: Codec, rectBrackets: Boolean = false, checkOpenRect: Boolean = false, noBrackets: Boolean = false): Codec
 
   /**
     * Method that creates a new codec with exactly the same information as the current codec but with the size information written in it.
@@ -273,6 +319,8 @@ trait Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec
 
+  def removeBrackets(): Codec
+
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.
     * For CodecBson this method simply returns false
@@ -305,6 +353,7 @@ trait Codec {
     * @return a Codec with an empty data structure inside it
     */
   def createEmptyCodec()(implicit emptyBuf: ByteBuf): Codec
+
 }
 
 sealed trait CodecFacade {
@@ -324,6 +373,8 @@ object Codecs extends DefaultCodecs {
 }
 
 sealed trait DefaultCodecs {
+
+  //TODO - If it's not Going through the two bellow what's the point????? (coverage)
 
   implicit object StringCodec extends Codecs[String] {
     override def applyFunc(arg: String): CodecJson = new CodecJson(arg)
