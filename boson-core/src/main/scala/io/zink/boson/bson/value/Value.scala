@@ -6,10 +6,11 @@ import io.zink.boson.bson.codec._
 import io.zink.boson.bson.value.impl._
 
 trait Value{
+  private type TupleList = List[(String, Any)]
 
   def write(codec: Codec): Codec
 
-  def applyFunction[T](injFunction: T => T): Value
+  def applyFunction[T](injFunction: T => T,convertFunction: Option[TupleList => T] = None): Value
 
 }
 

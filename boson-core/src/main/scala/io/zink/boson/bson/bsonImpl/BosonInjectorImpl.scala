@@ -7,9 +7,8 @@ import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-import com.sun.beans.decoder.ValueObject
 import io.zink.boson.bson.value.{Value, ValueObject}
-import io.zink.bsonLib.{BsonArray, BsonObject}
+import io.zink.bsonLib.BsonObject
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
@@ -184,17 +183,11 @@ import scala.util.{Failure, Success, Try}
     * @tparam T - The type of elements the injection function receives
     * @return - A new codec with the injFunction applied to it
     */
-  def rootInjection[T](codec: Codec, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec =
-    codec.getCodecData match {
-      case Left(byteBuf) =>
-
-        val modifiedBytes: Array[Byte] = applyFunction(injFunction, byteBuf.array).asInstanceOf[Array[Byte]]
-        CodecObject.toCodec(Unpooled.copiedBuffer(modifiedBytes))
-
-      case Right(jsonString) =>
-        val modifiedString: String = applyFunction(injFunction, jsonString).asInstanceOf[String]
-        CodecObject.toCodec(modifiedString)
-    }
+  def rootInjection[T](codec: Codec, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
+    val processValue = codec.readToken2(3)
+    val modValue = processValue.applyFunction(injFunction, convertFunction)
+    modValue.write(codec.clear)
+  }
 
   /**
     * Function used to perform the injection of the new values
@@ -207,63 +200,9 @@ import scala.util.{Failure, Success, Try}
     * @return A Codec containing the alterations made
     */
   private def modifierAll[T](codec: Codec, currentResCodec: Codec, seqType: Int, injFunction: T => T)(implicit convertFunction: Option[TupleList => T] = None): Unit = {
-    //    val processValue = codec.readToken2(seqType)
-    //    val modValue = processValue.applyFunction(injFunction)
-    //    modValue.write(currentResCodec)
-
-    seqType match {
-      case D_FLOAT_DOUBLE =>
-        val processValue = codec.readToken2(seqType)
-        val modValue = processValue.applyFunction(injFunction)
-        modValue.write(currentResCodec)
-//        val value0 = codec.readToken(SonNumber(CS_DOUBLE)).asInstanceOf[SonNumber].info.asInstanceOf[Double]
-//        currentResCodec.writeToken(SonNumber(CS_DOUBLE, applyFunction(injFunction, value0).asInstanceOf[Double]))
-
-      case D_ARRAYB_INST_STR_ENUM_CHRSEQ => //TODO - Java Instant
-        //        val processValue = codec.readToken2(seqType)
-        //        val modValue = processValue.applyFunction(injFunction)
-        //        modValue.write(currentResCodec)
-        val value0 = codec.readToken(SonString(CS_STRING)).asInstanceOf[SonString].info.asInstanceOf[String]
-        applyFunction(injFunction, value0) match {
-          case valueAny: Any =>
-            val value = valueAny.toString
-            currentResCodec.writeToken(SonNumber(CS_INTEGER, value.length + 1), ignoreForJson = true)
-            currentResCodec.writeToken(SonString(CS_STRING, value))
-            currentResCodec.writeToken(SonNumber(CS_BYTE, 0.toByte), ignoreForJson = true)
-        }
-
-      case D_BSONOBJECT =>
-        codec.readToken(SonObject(CS_OBJECT_WITH_SIZE)).asInstanceOf[SonObject].info match {
-          case byteBuf: ByteBuf => currentResCodec.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
-          case str: String => currentResCodec.writeToken(SonString(CS_STRING_NO_QUOTES, applyFunction(injFunction, str).asInstanceOf[String]))
-        }
-
-      case D_BSONARRAY =>
-        codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info match {
-          case byteBuf: ByteBuf => currentResCodec.writeToken(SonArray(CS_ARRAY, applyFunction(injFunction, byteBuf.array()).asInstanceOf[Array[Byte]]))
-
-          case str: String => currentResCodec.writeToken(SonString(CS_STRING_NO_QUOTES, applyFunction(injFunction, str).asInstanceOf[String]))
-        }
-
-      case D_BOOLEAN =>
-        val processValue = codec.readToken2(seqType)
-        val modValue = processValue.applyFunction(injFunction)
-        modValue.write(currentResCodec)
-      //        val value0 = codec.readToken(SonBoolean(CS_BOOLEAN)).asInstanceOf[SonBoolean].info match {
-      //          case byte: Byte => byte == 1
-      //        }
-      //        currentResCodec.writeToken(SonBoolean(CS_BOOLEAN, applyFunction(injFunction, value0).asInstanceOf[Boolean]))
-
-      case D_NULL => throw CustomException(s"NULL field. Can not be changed")
-
-      case D_INT =>
-        val value0 = codec.readToken(SonNumber(CS_INTEGER)).asInstanceOf[SonNumber].info.asInstanceOf[Int]
-        currentResCodec.writeToken(SonNumber(CS_INTEGER, applyFunction(injFunction, value0).asInstanceOf[Int]))
-
-      case D_LONG =>
-        val value0 = codec.readToken(SonNumber(CS_LONG)).asInstanceOf[SonNumber].info.asInstanceOf[Long]
-        currentResCodec.writeToken(SonNumber(CS_LONG, applyFunction(injFunction, value0).asInstanceOf[Long]))
-    }
+    val processValue = codec.readToken2(seqType)
+    val modValue = processValue.applyFunction(injFunction, convertFunction)
+    modValue.write(currentResCodec)
   }
 
   /**
@@ -316,72 +255,6 @@ import scala.util.{Failure, Success, Try}
         case _ => false
       }
     } else false
-  }
-
-
-  /**
-    * Method that tries to apply the given injector function to a given value
-    *
-    * @param injFunction - The injector function to be applied
-    * @param value       - The value to apply the injector function to
-    * @tparam T - The type of the value
-    * @return A modified value in which the injector function was applied
-    */
-  private def applyFunction[T](injFunction: T => T, value: Any)(implicit convertFunction: Option[TupleList => T] = None): T = {
-
-    def throwException(className: String): T = throw CustomException(s"Type Error. Cannot Cast $className inside the Injector Function.")
-
-    Try(injFunction(value.asInstanceOf[T])) match {
-      case Success(modifiedValue) =>
-        modifiedValue
-
-      case Failure(_) => value match {
-        case double: Double =>
-          Try(injFunction(double.toFloat.asInstanceOf[T])) match {
-            case Success(modValue) => modValue
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
-
-        case byteArrOrJson if convertFunction.isDefined => //In case T is a case class and value is a byte array encoding that object of type T
-
-          val extractedTuples: TupleList = byteArrOrJson match {
-            case byteArray: Array[Byte] => extractTupleList(Left(byteArray))
-            case jsonString: String => extractTupleList(Right(jsonString))
-          }
-
-          val convertFunct = convertFunction.get
-          val convertedValue = convertFunct(extractedTuples)
-          Try(injFunction(convertedValue)) match {
-            case Success(modValue) =>
-              val modifiedTupleList = toTupleList(modValue)
-              encodeTupleList(modifiedTupleList, byteArrOrJson) match {
-                case Left(modByteArr) => modByteArr.asInstanceOf[T]
-                case Right(modJsonString) => modJsonString.asInstanceOf[T]
-              }
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
-
-        case byteArr: Array[Byte] =>
-          Try(injFunction(new String(byteArr).asInstanceOf[T])) match {
-            case Success(modifiedValue) =>
-              modifiedValue.asInstanceOf[T]
-
-            case Failure(_) =>
-              Try(injFunction(Instant.parse(new String(byteArr)).asInstanceOf[T])) match {
-                case Success(modValue) => modValue
-                case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-              }
-          }
-
-        case str: String =>
-          Try(injFunction(Instant.parse(str).asInstanceOf[T])) match {
-            case Success(modValue) => modValue
-            case Failure(_) => throwException(value.getClass.getSimpleName.toLowerCase)
-          }
-      }
-
-      case _ => throwException(value.getClass.getSimpleName.toLowerCase)
-    }
   }
 
   /**
@@ -1122,7 +995,7 @@ import scala.util.{Failure, Success, Try}
     * @param value - Object of type T encoded in a array of bytes
     * @return a List of tuples containing the name of a field of the object the value for that field
     */
-  private def extractTupleList(value: Either[Array[Byte], String]): TupleList = {
+  def extractTupleList(value: Either[Array[Byte], String]): TupleList = {
     val codec: Codec = value match {
       case Left(byteArr) => CodecObject.toCodec(Unpooled.copiedBuffer(byteArr))
 
