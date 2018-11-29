@@ -861,7 +861,7 @@ import scala.util.{Failure, Success, Try}
     *
     * @param statementsList - A list with pairs that contains the key of interest and the type of operation
     * @param codec          - Structure from which we are reading the values
-    * @param fieldID        - Name of the field of interest
+    * @param fieldID        - Name of teh field of interest
     * @param injFunction    - Function given by the user with the new value
     * @param condition      - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
     * @param from           - Represent the inferior limit when a range is given
