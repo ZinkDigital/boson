@@ -50,7 +50,7 @@ trait Codec {
     * @param tkn is a value from out DSL trait representing the requested type
     * @return returns the same SonNamedType request with the value obtained.
     */
-  def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType
+  def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType //TODO - This function needs to be refactored out in extractors
 
   def readToken2(dt: Int): Value
 
@@ -319,7 +319,7 @@ trait Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec
 
-  def removeBrackets(): Codec
+  def removeBrackets: Codec
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.

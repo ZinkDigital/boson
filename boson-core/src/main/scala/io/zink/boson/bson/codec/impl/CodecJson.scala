@@ -978,7 +978,7 @@ class CodecJson(str: String) extends Codec {
     this
   }
 
-  def removeBrackets(): Codec = {
+  def removeBrackets: Codec = {
     input.deleteCharAt(0)
     input.deleteCharAt(input.length-1)
     this
