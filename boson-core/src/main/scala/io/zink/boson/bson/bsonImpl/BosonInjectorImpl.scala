@@ -1,13 +1,11 @@
 package io.zink.boson.bson.bsonImpl
 
-import java.time.Instant
-
 import io.netty.buffer.{ByteBuf, Unpooled}
 import io.zink.boson.bson.bsonImpl.Dictionary._
 import io.zink.boson.bson.bsonPath._
 import io.zink.boson.bson.codec._
 import BosonImpl.{DataStructure, StatementsList}
-import io.zink.boson.bson.value.{Value, ValueObject}
+import io.zink.boson.bson.value.Value
 import io.zink.bsonLib.BsonObject
 
 import scala.collection.mutable.ListBuffer
@@ -73,7 +71,7 @@ import scala.util.{Failure, Success, Try}
                     processValue.write(currentCodec)
                 }
               }
-            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfWord(fieldID, x) =>
+            case x if fieldID.toCharArray.deep != x.toCharArray.deep && !isHalfWord(fieldID, x) => //TODO - the code bellow should be refactored
               if (statementsList.head._2.contains(C_DOUBLEDOT) /*&& (dataType == D_BSONARRAY || dataType == D_BSONOBJECT)*/ ) {
                 codec.getCodecData match {
                   case Right(jsonString) =>
@@ -89,7 +87,8 @@ import scala.util.{Failure, Success, Try}
                       }
                     } else {
                       if (dataType == D_BSONARRAY || dataType == D_BSONOBJECT) {
-                        val partialCodec = if (dataType == D_BSONARRAY) codec.getPartialCodec(4).removeBrackets else codec.getPartialCodec(3)
+                        val partialCodec = if (dataType == D_BSONARRAY) codec.getPartialCodec(4).
+                          removeBrackets else codec.getPartialCodec(3)
                         currentCodec + modifyAll(statementsList, partialCodec, fieldID, injFunction)
                       } else {
                         val value0 = codec.readToken2(dataType)
@@ -889,14 +888,10 @@ import scala.util.{Failure, Success, Try}
       dataType match {
         case 0 =>
         case _ =>
-          val key: String = codec.readToken(SonString(CS_NAME_NO_LAST_BYTE)).asInstanceOf[SonString].info.asInstanceOf[String]
-          val b: Byte = codec.readToken(SonBoolean(C_ZERO), ignore = true).asInstanceOf[SonBoolean].info.asInstanceOf[Byte]
+          val (key, b): (String, Byte) = codec.readKey
 
-          currentCodec.writeToken(SonString(CS_STRING, key), isKey = true)
-          currentCodec.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
-
-          currentCodecCopy.writeToken(SonString(CS_STRING, key), isKey = true)
-          currentCodecCopy.writeToken(SonNumber(CS_BYTE, b), ignoreForJson = true)
+          currentCodec.writeKey(key, b)
+          currentCodecCopy.writeKey(key, b)
 
           key match {
             //In case we the extracted elem name is the same as the one we're looking for (or they're halfwords) and the
@@ -936,7 +931,7 @@ import scala.util.{Failure, Success, Try}
               }
             case _ =>
               if (statementsList.head._2.contains(C_DOUBLEDOT) && statementsList.head._1.isInstanceOf[KeyWithArrExpr] /*&& dataType == (D_BSONOBJECT | D_BSONARRAY)*/ ) {
-                codec.getCodecData match {
+                codec.getCodecData match { //TODO - this pattern match should be refactored
                   case Left(_) =>
                     processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
 
@@ -947,12 +942,15 @@ import scala.util.{Failure, Success, Try}
                       val keyType = codec.getDataType
                       processTypesArrayEnd(statementsList, fieldID, keyType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
                     } else {
-                      if (dataType == 4) {
-                        val codecArr = CodecObject.toCodec(codec.readToken(SonArray(CS_ARRAY_WITH_SIZE)).asInstanceOf[SonArray].info)
-                        val resCodec = arrayInjection(statementsList, codecArr, currentCodec, injFunction, key, left = 0, TO_RANGE, C_END)
+                      if (dataType == D_BSONARRAY) {
+                        val codecArr = codec.getPartialCodec(dataType).removeBrackets
+                        val resCodec = BosonImpl.inject(codecArr.getCodecData, statementsList, injFunction)
+//                        val resCodec = arrayInjection(statementsList, codecArr, currentCodec, injFunction, key, left = 0, TO_RANGE, C_END)
                         currentCodec + resCodec
                         currentCodecCopy + resCodec
-                      } else processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
+                      } else {
+                        processTypesArrayEnd(statementsList, fieldID, dataType, codec, injFunction, condition, from, to, currentCodec, currentCodecCopy)
+                      }
                     }
                 }
               } else {
@@ -1073,6 +1071,7 @@ import scala.util.{Failure, Success, Try}
     * Private method that receives a list of tuples and encodes them into a byte array or Json String (to be implemented)
     *
     * @param tupleList - List of tuples to be encoded
+    * @param value     - Object of type T encoded in a array of bytes
     * @return An array of bytes representing the encoded list of tuples
     */
   def encodeTupleList(tupleList: TupleList, value: Any): Either[Array[Byte], String] = {
@@ -1103,6 +1102,7 @@ import scala.util.{Failure, Success, Try}
     *
     * @param codec      - The codec from which to read the data type
     * @param writeCodec - The codec in which to write the data type
+    * @param formerType - flag to check if the former type is an array type
     * @return A Tuple containing both the read data type and the written codec
     */
   private def readWriteDataType(codec: Codec, writeCodec: Codec, formerType: Int = 0): (Int, Codec) = {
@@ -1114,6 +1114,12 @@ import scala.util.{Failure, Success, Try}
 
   //********** Inject Value Functions Go Here **********//
 
+  /**
+    *
+    * @param codec - Structure from which we are reading the old values
+    * @param value - The value to be injected into the root
+    * @return The modified codec
+    */
   def injectRootValue(codec: Codec, value: Value): Codec = {
     val currentCodec = codec.createEmptyCodec
     val (mod, _) = writeValue(codec, currentCodec, value, 0)
@@ -1122,12 +1128,11 @@ import scala.util.{Failure, Success, Try}
 
   /**
     *
-    * @param codec
-    * @param statementsList
-    * @param value
-    * @param key
-    * @tparam T
-    * @return
+    * @param codec          - Structure from which we are reading the old values
+    * @param statementsList - A list with pairs that contains the key of interest and the type of operation
+    * @param value          - The key of the value to be replaced
+    * @param key            - the key to look for
+    * @return The modified codec
     */
   def injectKeyValue(codec: Codec, statementsList: StatementsList, value: Value, key: String): Codec = {
 
@@ -1216,16 +1221,15 @@ import scala.util.{Failure, Success, Try}
 
   /**
     *
-    * @param codec
-    * @param statementsList
-    * @param value
-    * @param key
-    * @param condition
-    * @param from
-    * @param to
-    * @param convertFunction
-    * @tparam T
-    * @return
+    * @param codec           - Structure from which we are reading the old values
+    * @param statementsList  - A list of pairs containing the key of interest and the type of operation
+    * @param value           - The value to be injected
+    * @param key             - The key of the value to be replaced
+    * @param condition       - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param from            - The inferior limit of the range condition
+    * @param to              - the upper limit of the range condition
+    * @tparam T - The type T of the object to be iterated
+    * @return The modified codec
     */
   def injectArrayValueWithKey[T](codec: Codec, statementsList: StatementsList, value: Value, key: String, condition: String, from: String, to: String = C_END)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
 
@@ -1274,16 +1278,15 @@ import scala.util.{Failure, Success, Try}
 
   /**
     *
-    * @param codec
-    * @param statementsList
-    * @param value
-    * @param condition
-    * @param from
-    * @param to
-    * @param formerType
-    * @param convertFunction
-    * @tparam T
-    * @return
+    * @param codec           - Structure from which the old values are read
+    * @param statementsList  - A list of pairs containing the key of interest and type of operation
+    * @param value           - The value to be injected
+    * @param condition       - Represents a type of injection, it can me END, ALL, FIRST, # TO #, # UNTIL #
+    * @param from            - The lower limit of the range condition
+    * @param to              - the upper limit of the range condition
+    * @param formerType      - the former type of the current codec
+    * @tparam T - The type T of the object to be iterated
+    * @return The modified codec
     */
   def injectArrayValue[T](codec: Codec, statementsList: StatementsList, value: Value, condition: String, from: String, to: String, formerType: Int)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReaderIndex, originalSize) = (codec.getReaderIndex, codec.readSize)
@@ -1436,13 +1439,13 @@ import scala.util.{Failure, Success, Try}
 
   /**
     *
-    * @param codec
-    * @param statementsList
-    * @param value
-    * @param key
-    * @param elem
-    * @tparam T
-    * @return
+    * @param codec          - Structure from which the old values are read
+    * @param statementsList - A list of pairs containing the key of interest and type of operation
+    * @param value          - The value to be injected
+    * @param key            - The key of the value to be replaced
+    * @param elem           - - Name of the element to look for inside the objects inside an Array
+    * @tparam T - The type T of the object to be iterated
+    * @return The modified codec
     */
   def injectHasElemValue[T](codec: Codec, statementsList: StatementsList, value: Value, key: String, elem: String)(implicit convertFunction: Option[TupleList => T] = None): Codec = {
     val (startReader: Int, originalSize: Int) = (codec.getReaderIndex, codec.readSize)
@@ -1493,11 +1496,10 @@ import scala.util.{Failure, Success, Try}
 
   /**
     *
-    * @param codec
-    * @param currentCodec
-    * @param value
-    * @param dataType
-    * @tparam T
+    * @param codec        - Structure from which the old values are read
+    * @param currentCodec - The cuurent modified codec into which the results are written
+    * @param value        - The value to be injected
+    * @param dataType     - The current data type
     * @return
     */
   private def writeValue(codec: Codec, currentCodec: Codec, value: Value, dataType: Int): (Codec, Value) = {

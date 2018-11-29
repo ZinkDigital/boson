@@ -646,7 +646,7 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec = this
 
-  def removeBrackets(): Codec = this
+  def removeBrackets: Codec = this
 
   /**
     * Method that decides if a CodecJson can be wrapped in curly braces or not.
