@@ -86,14 +86,14 @@ public class BosonInjector<T> implements Boson {
                         return InstantiateExtractedObject(v1);
                     }
                 };
-                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.apply(typeCase),
+                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.apply(typeCase),
                         Option.apply(convertFunction));
             } else {
-                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.apply(typeCase), Option.empty());
+                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.apply(typeCase), Option.empty());
             }
         } else {
             typeIsClass = false;
-            this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.empty());
+            this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.empty(), Option.empty());
         }
     }
 
