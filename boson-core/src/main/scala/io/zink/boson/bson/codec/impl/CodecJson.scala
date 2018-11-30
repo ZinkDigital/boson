@@ -238,6 +238,12 @@ class CodecJson(str: String) extends Codec {
       }
   }
 
+  /**
+    * New method of reading tokens to substitute the above one. This method returns a Value type
+    *
+    * @param dt - The dataType of the Token to read
+    * @return a Value containing the Token
+    */
   override def readToken2(dt: Int): Value = {
     val info = dt match {
       case D_BSONOBJECT =>
@@ -289,6 +295,12 @@ class CodecJson(str: String) extends Codec {
     ValueObject.toValue(info)
   }
 
+  /**
+    * Method that reads key and Byte and returns them.
+    * In codec Json the byte is irrelevant
+    *
+    * @return a String contaion the key read and the byte read
+    */
   override def readKey: (String, Byte) = {
     val charSliced: Char = input(readerIndex)
     if (charSliced == CS_COMMA || charSliced == CS_OPEN_BRACKET || charSliced == CS_OPEN_RECT_BRACKET)
@@ -303,11 +315,22 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
+  /**
+    * Method that reads a single byte from the codec
+    *
+    * @return the byte read
+    */
   override def readByte: Byte = {
     readerIndex += 1
     0.toByte
   }
 
+  /**
+    * Method that return the next data of information in codec form
+    *
+    * @param dt - The data type of the information do be read
+    * @return a new codec with the information read
+    */
   override def getPartialCodec(dt: Int): Codec = {
     val info = dt match {
       case D_BSONOBJECT =>
@@ -757,22 +780,43 @@ class CodecJson(str: String) extends Codec {
     }
   }
 
+  /**
+    * Method that write the data type onto the codec
+    *
+    * @param dt - the data type to be written
+    * @return the codec with the written data type
+    */
   override def writeDataType(dt: Int): Codec = this
 
+  /**
+    * Method that writes the key of the current data being analized to the codec
+    *
+    * @param key - Key to be written
+    * @param b   - Byte 0
+    * @return the codec with the written key and byte
+    */
   override def writeKey(key: String, b: Byte): Codec = {
     input.append("\"" + key.asInstanceOf[CharSequence] + "\":")
     this
   }
 
+  /**
+    * Method that writes the key of an array
+    *
+    * @param key - Key to be written
+    * @param b   - Byte 0
+    * @return the codec with the written key
+    */
   override def writeArrayKey(key: String, b: Byte): Codec = this
 
   /**
+    * Method that writes a String to the codec
     *
-    * @param info
-    * @return
+    * @param info - The information to be written
+    * @return the codec with the string written
     */
   override def writeString(info: String): Codec = {
-    if(info.charAt(0).equals('[')||info.charAt(0).equals('{')){
+    if (info.charAt(0).equals('[') || info.charAt(0).equals('{')) {
       input.append(info + ",")
     } else {
       input.append("\"" + info + "\",")
@@ -780,45 +824,99 @@ class CodecJson(str: String) extends Codec {
     this
   }
 
+  /**
+    * Method that writes an Object in String form to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the object written
+    */
   override def writeObject(info: String): Codec = {
     val writableInfo = info.asInstanceOf[CharSequence]
     val infoToUse = if (!writableInfo.charAt(0).equals('{')) "{" + writableInfo else writableInfo
-    input.append(infoToUse+ ",")
+    input.append(infoToUse + ",")
     this
   }
 
+  /**
+    * Method that writes an Object in Array[Byte] form to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the object written
+    */
   override def writeObject(info: Array[Byte]): Codec = this
 
+  /**
+    * Method that writes an Int to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Int written
+    */
   override def writeInt(info: Int): Codec = {
     input.append(info + ",")
     this
   }
 
+  /**
+    * Method the writes a Long to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Long written
+    */
   override def writeLong(info: Long): Codec = {
-    input.append(info+ ",")
+    input.append(info + ",")
     this
   }
 
+  /**
+    * Method that writes a Float to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Float written
+    */
   override def writeFloat(info: Float): Codec = {
-    input.append(info+ ",")
+    input.append(info + ",")
     this
   }
 
+  /**
+    * Method that writes a Double to the codec
+    *
+    * @param info - The information to be written
+    * @return th codec with the information written
+    */
   override def writeDouble(info: Double): Codec = {
-    input.append(info+ ",")
+    input.append(info + ",")
     this
   }
 
+  /**
+    * Method that writes a Boolean to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Boolean written
+    */
   override def writeBoolean(info: Boolean): Codec = {
-    input.append(info+ ",")
+    input.append(info + ",")
     this
   }
 
+  /**
+    * Method that writes a Null to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Null written
+    */
   override def writeNull(info: Null): Codec = {
-    input.append("null"+ ",")
+    input.append("null" + ",")
     this
   }
 
+  /**
+    * Method that writes an Array[Byte] to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the information written
+    */
   override def writeBarray(info: Array[Byte]): Codec = {
     input.append(info + ",")
     this
@@ -920,7 +1018,7 @@ class CodecJson(str: String) extends Codec {
     *
     * @return a Boolean saying if the codec is able to read a key or not
     */
-  def canReadKey(searchAndModify: Boolean = false): Boolean ={
+  def canReadKey(searchAndModify: Boolean = false): Boolean = {
     if (!searchAndModify)
       !input.charAt(0).equals(CS_OPEN_RECT_BRACKET) || getReaderIndex != 1
     else false
@@ -980,7 +1078,7 @@ class CodecJson(str: String) extends Codec {
 
   def removeBrackets: Codec = {
     input.deleteCharAt(0)
-    input.deleteCharAt(input.length-1)
+    input.deleteCharAt(input.length - 1)
     this
   }
 

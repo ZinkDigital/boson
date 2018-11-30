@@ -235,6 +235,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
       }
   }
 
+  /**
+    * New method of reading tokens to substitute the above one. This method returns a Value type
+    *
+    * @param dt - The dataType of the Token to read
+    * @return a Value containing the Token
+    */
   override def readToken2(dt: Int): Value = {
     val info = dt match {
       case D_BSONOBJECT =>
@@ -267,6 +273,12 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     ValueObject.toValue(info)
   }
 
+  /**
+    * Method that reads key and Byte and returns them.
+    * In codec Json the byte is irrelevant
+    *
+    * @return a String contaion the key read and the byte read
+    */
   override def readKey: (String, Byte) = {
     val key: ListBuffer[Byte] = new ListBuffer[Byte]
     var i: Int = buff.readerIndex()
@@ -277,8 +289,19 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     (new String(key.toArray).filter(p => p != 0), buff.readByte())
   }
 
+  /**
+    * Method that reads a single byte from the codec
+    *
+    * @return the byte read
+    */
   override def readByte: Byte = 0.toByte
 
+  /**
+    * Method that return the next data of information in codec form
+    *
+    * @param dt - The data type of the information do be read
+    * @return a new codec with the information read
+    */
   override def getPartialCodec(dt: Int): Codec = {
     val size = buff.getIntLE(buff.readerIndex)
     val endIndex = buff.readerIndex + size
@@ -286,7 +309,6 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     buff.readerIndex(endIndex)
     CodecObject.toCodec(b)
   }
-
 
   /**
     * getSize is used to obtain the size of the next tokens, without consuming
@@ -471,23 +493,44 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
+  /**
+    * Method that write the data type onto the codec
+    *
+    * @param dt - the data type to be written
+    * @return the codec with the written data type
+    */
   override def writeDataType(dt: Int): Codec = {
     buff.writeByte(dt.toByte)
     this
   }
 
+  /**
+    * Method that writes the key of the current data being analized to the codec
+    *
+    * @param key - Key to be written
+    * @param b   - Byte 0
+    * @return the codec with the written key and byte
+    */
   override def writeKey(key: String, b: Byte): Codec = {
     buff.writeCharSequence(key.asInstanceOf[CharSequence], Charset.defaultCharset())
     buff.writeByte(b)
     this
   }
 
+  /**
+    * Method that writes the key of an array
+    *
+    * @param key - Key to be written
+    * @param b   - Byte 0
+    * @return the codec with the written key
+    */
   override def writeArrayKey(key: String, b: Byte): Codec = writeKey(key,b)
 
   /**
+    * Method that writes a String to the codec
     *
-    * @param info
-    * @return
+    * @param info - The information to be written
+    * @return the codec with the string written
     */
   override def writeString(info: String): Codec = {
     buff.writeIntLE(info.length + 1)
@@ -496,42 +539,96 @@ class CodecBson(arg: ByteBuf, opt: Option[ByteBuf] = None) extends Codec {
     this
   }
 
+  /**
+    * Method that writes an Object in String form to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the object written
+    */
   override def writeObject(info: String): Codec = this
 
+  /**
+    * Method that writes an Object in Array[Byte] form to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the object written
+    */
   override def writeObject(info: Array[Byte]): Codec = {
     buff.writeBytes(info)
     this
   }
 
+  /**
+    * Method that writes an Int to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Int written
+    */
   override def writeInt(info: Int): Codec = {
     buff.writeIntLE(info)
     this
   }
 
+  /**
+    * Method the writes a Long to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Long written
+    */
   override def writeLong(info: Long): Codec = {
     buff.writeLongLE(info)
     this
   }
 
+  /**
+    * Method that writes a Float to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Float written
+    */
   override def writeFloat(info: Float): Codec = {
     buff.writeFloatLE(info)
     this
   }
 
+  /**
+    * Method that writes a Double to the codec
+    *
+    * @param info - The information to be written
+    * @return th codec with the information written
+    */
   override def writeDouble(info: Double): Codec = {
     buff.writeDoubleLE(info)
     this
   }
 
+  /**
+    * Method that writes a Boolean to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Boolean written
+    */
   override def writeBoolean(info: Boolean): Codec = {
     buff.writeBoolean(info)
     this
   }
 
+  /**
+    * Method that writes a Null to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Null written
+    */
   override def writeNull(info: Null): Codec = {
     this
   }
 
+  /**
+    * Method that writes an Array[Byte] to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the information written
+    */
   override def writeBarray(info: Array[Byte]): Codec = {
     buff.writeBytes(info)
     this

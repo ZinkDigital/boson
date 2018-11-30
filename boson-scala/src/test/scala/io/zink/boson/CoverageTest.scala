@@ -5105,24 +5105,24 @@ class CoverageTest extends FunSuite {
     performanceTest(boson, isJson = true)
   }
 
-  test("CodecJson - Nested case class injection - Non existing key") {
-    val jsonArr = new BsonArray().add(nestedBson)
-    val jsonObj = new BsonObject().put("books", jsonArr)
-
-    val jsonArrExpected = new BsonArray().add(nestedBsonExpected)
-    val jsonObjExpected = new BsonObject().put("books", jsonArrExpected)
-
-    val expr = "..NonExistingKey[first].book"
-
-    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
-      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
-      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
-    })
-
-    val future = jsonInj.go(jsonObj.encodeToString)
-    val result: String = Await.result(future, Duration.Inf)
-    assert(result.equals(jsonObj.encodeToString))
-  }
+//  test("CodecJson - Nested case class injection - Non existing key") {
+//    val jsonArr = new BsonArray().add(nestedBson)
+//    val jsonObj = new BsonObject().put("books", jsonArr)
+//
+//    val jsonArrExpected = new BsonArray().add(nestedBsonExpected)
+//    val jsonObjExpected = new BsonObject().put("books", jsonArrExpected)
+//
+//    val expr = "..NonExistingKey[first].book"
+//
+//    val jsonInj = Boson.injector(expr, (in: NestedBook) => {
+//      val newAuthor = Author(in.author.firstName.toUpperCase, in.author.lastName.toUpperCase, in.author.age + 20)
+//      NestedBook(in.name.toUpperCase, in.pages + 100, newAuthor)
+//    })
+//
+//    val future = jsonInj.go(jsonObj.encodeToString)
+//    val result: String = Await.result(future, Duration.Inf)
+//    assert(result.equals(jsonObj.encodeToString))
+//  }
 
   test("Nested case class injection - Non existing key") {
     val jsonArr = new BsonArray().add(nestedBson)

@@ -52,18 +52,41 @@ trait Codec {
     */
   def readToken(tkn: SonNamedType, ignore: Boolean = false): SonNamedType //TODO - This function needs to be refactored out in extractors
 
+  /**
+    * New method of reading tokens to substitute the above one. This method returns a Value type
+    *
+    * @param dt - The dataType of the Token to read
+    * @return a Value containing the Token
+    */
   def readToken2(dt: Int): Value
 
+  /**
+    * Method that reads key and Byte and returns them.
+    * In codec Json the byte is irrelevant
+    *
+    * @return a String contaion the key read and the byte read
+    */
   def readKey: (String, Byte)
 
+  /**
+    * Method that reads a single byte from the codec
+    *
+    * @return the byte read
+    */
   def readByte: Byte
 
+  /**
+    * Method that return the next data of information in codec form
+    *
+    * @param dt - The data type of the information do be read
+    * @return a new codec with the information read
+    */
   def getPartialCodec(dt: Int): Codec
 
   /**
     * readArrayPosition is used to get the actual array position, consuming the value from stream
     *
-    * @return this method doesn't return anything because this data is not usefull for extraction
+    * @return this method doesn't return anything because this data is not useful for extraction
     *         however, in the future when dealing with injection, we may have the need to work with this value
     *         (this is why there is a commented function with the same but returning a Int)
     */
@@ -189,41 +212,110 @@ trait Codec {
     */
   def writeToken(token: SonNamedType, ignoreForJson: Boolean = false, ignoreForBson: Boolean = false, isKey: Boolean = false): Codec
 
+  /**
+    * Method that write the data type onto the codec
+    *
+    * @param dt - the data type to be written
+    * @return the codec with the written data type
+    */
   def writeDataType(dt: Int): Codec
 
+  /**
+    * Method that writes the key of the current data being analized to the codec
+    *
+    * @param key - Key to be written
+    * @param b   - Byte 0
+    * @return the codec with the written key and byte
+    */
   def writeKey(key: String, b: Byte): Codec
 
+  /**
+    * Method that writes the key of an array
+    *
+    * @param key - Key to be written
+    * @param b   - Byte 0
+    * @return the codec with the written key
+    */
   def writeArrayKey(key: String, b: Byte): Codec
 
   /**
+    * Method that writes a String to the codec
     *
-    * @param dataType
-    * @param info
-    * @return
+    * @param info - The information to be written
+    * @return the codec with the string written
     */
   def writeString(info: String): Codec
 
+  /**
+    * Method that writes an Object in String form to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the object written
+    */
   def writeObject(info: String): Codec
 
+  /**
+    * Method that writes an Object in Array[Byte] form to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the object written
+    */
   def writeObject(info: Array[Byte]): Codec
 
   /**
+    * Method that writes an Int to the codec
     *
-    * @param info
-    * @return
+    * @param info - The information to be written
+    * @return the codec with the Int written
     */
   def writeInt(info: Int): Codec
 
+  /**
+    * Method the writes a Long to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Long written
+    */
   def writeLong(info: Long): Codec
 
+  /**
+    * Method that writes a Float to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Float written
+    */
   def writeFloat(info: Float): Codec
 
+  /**
+    * Method that writes a Double to the codec
+    *
+    * @param info - The information to be written
+    * @return th codec with the information written
+    */
   def writeDouble(info: Double): Codec
 
+  /**
+    * Method that writes a Boolean to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Boolean written
+    */
   def writeBoolean(info: Boolean): Codec
 
+  /**
+    * Method that writes a Null to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the Null written
+    */
   def writeNull(info: Null): Codec
 
+  /**
+    * Method that writes an Array[Byte] to the codec
+    *
+    * @param info - The information to be written
+    * @return the codec with the information written
+    */
   def writeBarray(info: Array[Byte]): Codec
 
   /**
@@ -319,6 +411,11 @@ trait Codec {
     */
   def wrapInBrackets(rectBracket: Boolean = false, key: String = "", dataType: Int = -1): Codec
 
+  /**
+    * Method that removes the brackets from the codec
+    *
+    * @return the codec without the encapsulating brackets
+    */
   def removeBrackets: Codec
 
   /**
@@ -332,7 +429,7 @@ trait Codec {
   /**
     * This methods clears all the information insde the codec so it can be rewritten
     *
-    * @return
+    * @return the codec empty
     */
   def clear: Codec
 
