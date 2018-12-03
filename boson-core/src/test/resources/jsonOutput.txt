@@ -4,7 +4,8 @@
     "Id":"3KvsalYrpgfgrEuTPXYolTjEU8I",
     "FixtureName":"Emelec Guayaquil v Leon de Huanuco",
     "StartTime":"2015-08-21T00:00:00Z",
-    "Sequence":0,"MatchStatus":30,
+    "Sequence":0,
+    "MatchStatus":30,
     "Tags":{
         "StartTime":"2015-08-21T00:00:00Z",
         "PreMatchOnly":true,

@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 import java.time.Instant
 
 import io.zink.boson.bson.bsonImpl.extractLabels
+import io.zink.boson.bson.value.ValueObject
 import io.zink.boson.impl._
 import shapeless.{HList, LabelledGeneric, TypeCase, Typeable}
 
@@ -216,11 +217,15 @@ object Boson {
 
   trait injector[A] {
     def inject(expression: String, injectFunction: A => A): Boson
+
+    def inject(expression: String, injectValue: A): Boson
   }
 
   object injector {
 
     def apply[A](expression: String, injectFunction: A => A)(implicit inj: injector[A]): Boson = inj.inject(expression, injectFunction)
+
+    def apply[A](expression: String, injectValue: A)(implicit inj: injector[A]): Boson = inj.inject(expression, injectValue)
 
     implicit def caseClass[A, L <: HList](implicit
                                           f: LabelledGeneric.Aux[A, L],
@@ -229,8 +234,11 @@ object Boson {
       new injector[A] {
         implicit val typeCase: Option[TypeCase[A]] = Some(TypeCase[A])
 
-        def inject(expression: String, injectFunction: A => A): Boson =
+        override def inject(expression: String, injectFunction: A => A): Boson =
           new BosonInjectorObj[A, L](expression, injectFunction = injectFunction)(typeCase, f, ext)
+
+        override def inject(expression: String, injectValue: A): Boson =
+          new BosonInjectorValueObj[A, L](expression, injectValue = injectValue)(typeCase, f, ext) //TODO - Find way to convert case class to tupleList here
       }
     }
 
@@ -240,6 +248,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Seq[Array[Byte]] => Seq[Array[Byte]]): Boson =
           new BosonInjector[Seq[Array[Byte]]](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Seq[Array[Byte]]): Boson =
+          new BosonInjectorValue[Seq[Array[Byte]]](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val byteArr: injector[Array[Byte]] =
@@ -248,6 +259,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Array[Byte] => Array[Byte]): Boson =
           new BosonInjector[Array[Byte]](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Array[Byte]): Boson =
+          new BosonInjectorValue[Array[Byte]](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val double: injector[Double] =
@@ -256,6 +270,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Double => Double): Boson =
           new BosonInjector[Double](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Double): Boson =
+          new BosonInjectorValue[Double](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val float: injector[Float] =
@@ -264,6 +281,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Float => Float): Boson =
           new BosonInjector[Float](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Float): Boson =
+          new BosonInjectorValue[Float](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val instant: injector[Instant] =
@@ -272,6 +292,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Instant => Instant): Boson =
           new BosonInjector[Instant](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Instant): Boson =
+          new BosonInjectorValue[Instant](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val long: injector[Long] =
@@ -280,6 +303,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Long => Long): Boson =
           new BosonInjector[Long](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Long): Boson =
+          new BosonInjectorValue[Long](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val int: injector[Int] =
@@ -288,6 +314,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Int => Int): Boson =
           new BosonInjector[Int](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Int): Boson =
+          new BosonInjectorValue[Int](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val string: injector[String] =
@@ -296,6 +325,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: String => String): Boson =
           new BosonInjector[String](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: String): Boson =
+          new BosonInjectorValue[String](expression, ValueObject.toValue(injectValue))
       }
 
     implicit val boolean: injector[Boolean] =
@@ -304,6 +336,9 @@ object Boson {
 
         override def inject(expression: String, injectFunction: Boolean => Boolean): Boson =
           new BosonInjector[Boolean](expression, injectFunction)
+
+        override def inject(expression: String, injectValue: Boolean): Boson =
+          new BosonInjectorValue[Boolean](expression, ValueObject.toValue(injectValue))
       }
   }
 

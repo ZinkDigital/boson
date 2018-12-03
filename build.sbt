@@ -124,7 +124,7 @@ val libraries = Seq(
 
 
 val testLibraries = Seq(
-  "org.scalatest" %% "scalatest" % "3.0.3" % Test withSources(),
+  "org.scalatest" %% "scalatest" % "3.0.5" % Test withSources(),
   "de.undercouch" % "bson4jackson" % "2.7.0",
   "junit" % "junit" % "4.12" % Test,
   "io.vertx" % "vertx-core" % "3.5.0",

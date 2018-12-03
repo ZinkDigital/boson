@@ -1,34 +1,15 @@
 package io.zink.boson.impl
 
 import io.zink.boson.Boson
-import io.zink.boson.bson.bsonImpl.extractLabels
 import io.zink.boson.bson.bsonPath.Interpreter
-import shapeless.{HList, LabelledGeneric, TypeCase}
+import io.zink.boson.bson.value.Value
+import shapeless.TypeCase
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T)(implicit
-                                                                                  tp: Option[TypeCase[T]],
-                                                                                  gen: LabelledGeneric.Aux[T, R],
-                                                                                  extract: extractLabels[R]) extends Boson {
+class BosonInjectorValue[T](expression: String, injectValue: Value)(implicit tp: Option[TypeCase[T]]) extends Boson {
 
-  def convert(tupleList: List[(String, Any)]): T = {
-    val modTupleList = List(tupleList)
-    val tupleTypeCase = TypeCase[List[List[(String, Any)]]]
-    val result: Seq[T] =
-      modTupleList match {
-        case tupleTypeCase(vs) =>
-          vs.par.map { elem =>
-            extractLabels.to[T].from[gen.Repr](elem)
-          }.seq.collect { case v if v.nonEmpty => v.get } //TODO - WTF????
-        case _ => Seq.empty[T]
-      }
-    result.head
-  }
-
-  private val interpreter: Interpreter[T] = new Interpreter[T](expression, fInj = Some(injectFunction))(tp, Some(convert))
-
+  private val interpreter: Interpreter[T] = new Interpreter[T](expression, vInj = Some(Left(injectValue)))(tp, None)
 
   /**
     * Method that delegates the injection process to Interpreter passing to it the data structure to be used (either a byte array or a String)
@@ -48,6 +29,9 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
     * @return Future with original or a modified Array[Byte].
     */
   override def go(bsonByteEncoding: Array[Byte]): Future[Array[Byte]] = {
+    import java.util.concurrent.Executors
+    import scala.concurrent.JavaConversions.asExecutionContext
+    implicit val context = asExecutionContext(Executors.newSingleThreadExecutor())
     Future {
       runInterpreter(Left(bsonByteEncoding)) match {
         case Left(byteArr) => byteArr
@@ -64,13 +48,14 @@ class BosonInjectorObj[T, R <: HList](expression: String, injectFunction: T => T
     * @return Future with original or a modified String.
     */
   override def go(bsonByteEncoding: String): Future[String] = {
+    import java.util.concurrent.Executors
+    import scala.concurrent.JavaConversions.asExecutionContext
+    implicit val context = asExecutionContext(Executors.newSingleThreadExecutor())
     Future {
       runInterpreter(Right(bsonByteEncoding)) match {
         case Right(jsonString) => jsonString
       }
     }
   }
-
-//  override def fuse(boson: Boson): Boson = new BosonFuse(this, boson)
-
 }
+

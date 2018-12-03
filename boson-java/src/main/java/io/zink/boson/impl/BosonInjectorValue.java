@@ -3,30 +3,17 @@ package io.zink.boson.impl;
 import io.zink.boson.Boson;
 import io.zink.boson.bson.bsonImpl.CustomException;
 import io.zink.boson.bson.bsonImpl.Dictionary;
+import io.zink.boson.bson.bsonPath.Interpreter;
+import io.zink.boson.bson.value.DefaultValues;
+import io.zink.boson.bson.value.Value;
+import io.zink.boson.bson.value.ValueObject;
+import io.zink.boson.bson.value.Values;
 import net.jodah.typetools.TypeResolver;
+import org.omg.CORBA.Any;
 import scala.Function1;
 import scala.Option;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import io.zink.boson.bson.bsonPath.Interpreter;
 import scala.Some;
 import scala.Tuple2;
-import scala.collection.immutable.Nil;
-import scala.collection.immutable.Nil$;
-import scala.collection.immutable.Seq;
-import scala.collection.immutable.Seq$;
 import scala.util.Left$;
 import scala.util.Right$;
 import shapeless.TypeCase;
@@ -34,10 +21,18 @@ import shapeless.TypeCase$;
 import shapeless.Typeable;
 import shapeless.Typeable$;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
-public class BosonInjector<T> implements Boson {
+public class BosonInjectorValue<T> implements Boson {
     private String expression;
-    private Function1<T, T> anon;
+    private T anon;
     private Interpreter<T> interpreter;
     private Class<T> clazz;
     private Boolean typeIsClass;
@@ -46,22 +41,10 @@ public class BosonInjector<T> implements Boson {
     private List<String> keyNames;
     private List<Class<?>> keyTypes;
 
-    public BosonInjector(String expression, Function<T, T> injectFunction) {
-//        if ( injectFunction.right.isPresent() ) { //TODO - Value needs to be implemented in Java
-//            System.out.println("To be implemented");
-////            this.expression = expression ;
-////            this.value = injectFunction.right.get();
-////            //this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.empty(), Option.empty());
-//            this.interpreter = new Interpreter<T>(expression, Option.empty(), , Option.empty(), Option.empty(), Option.empty());
-//        } else {
+    public BosonInjectorValue(String expression, T value) {
         this.expression = expression;
-        this.anon = new Function1<T, T>() {
-            @Override
-            public T apply(T v1) {
-                return injectFunction.apply(v1);
-            }
-        };
-        Option<Class<T>> retainedClassOpt = retainConsumerType(injectFunction);
+        this.anon = value;
+        Option<Class<T>> retainedClassOpt = retainConsumerType(value);
         if (retainedClassOpt.isDefined()) {
             this.clazz = retainedClassOpt.get();
             int counter = 0;
@@ -91,17 +74,16 @@ public class BosonInjector<T> implements Boson {
                         return InstantiateExtractedObject(v1);
                     }
                 };
-                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.apply(typeCase),
+                this.interpreter = new Interpreter<T>(expression, Option.empty(), Option.apply(Right$.MODULE$.apply(this.anon)), Option.empty(), Option.apply(typeCase),
                         Option.apply(convertFunction));
             } else {
-                this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.apply(typeCase), Option.empty());
+                this.interpreter = new Interpreter<T>(expression, Option.empty(), Option.apply(Right$.MODULE$.apply(this.anon)), Option.empty(), Option.apply(typeCase), Option.empty());
             }
         } else {
             typeIsClass = false;
-            this.interpreter = new Interpreter<T>(expression, Option.apply(this.anon), Option.empty(), Option.empty(), Option.empty(), Option.empty());
+            this.interpreter = new Interpreter<T>(expression, Option.empty(), Option.apply(Right$.MODULE$.apply(this.anon)), Option.empty(), Option.empty(), Option.empty());
         }
     }
-
 
     /**
      * Method that delegates the injection process to Interpreter passing to it the data structure to be used (either a byte array or a String)
@@ -131,7 +113,7 @@ public class BosonInjector<T> implements Boson {
      * @param <T>  - The type to be retained
      * @return The retained T from the Consumer
      */
-    private static <T> Option<Class<T>> retainConsumerType(Function<T, T> cons) {
+    private static <T> Option<Class<T>> retainConsumerType(T cons) {
         try {
             Class<?>[] typeArgs = TypeResolver.resolveRawArguments(Function.class, cons.getClass());
             if (typeArgs[0].getName().equals("[B")) {   //in case T type is a byte[] return a None
@@ -295,47 +277,5 @@ public class BosonInjector<T> implements Boson {
             }
         }
         return scndList;
-    }
-
-//    @Override
-//    public Boson fuse(Boson boson) {
-//        return new BosonFuse(this, boson);
-//    }
-}
-
-final class Either<L, R> {
-    public static <L, R> Either<L, R> left(L value) {
-        return new Either<>(Optional.of(value), Optional.empty());
-    }
-
-    public static <L, R> Either<L, R> right(R value) {
-        return new Either<>(Optional.empty(), Optional.of(value));
-    }
-
-    public final Optional<L> left;
-    public final Optional<R> right;
-
-    private Either(Optional<L> l, Optional<R> r) {
-        left = l;
-        right = r;
-    }
-
-    public <T> T map(
-            Function<? super L, ? extends T> lFunc,
-            Function<? super R, ? extends T> rFunc) {
-        return left.<T>map(lFunc).orElseGet(() -> right.map(rFunc).get());
-    }
-
-    public <T> Either<T, R> mapLeft(Function<? super L, ? extends T> lFunc) {
-        return new Either<>(left.map(lFunc), right);
-    }
-
-    public <T> Either<L, T> mapRight(Function<? super R, ? extends T> rFunc) {
-        return new Either<>(left, right.map(rFunc));
-    }
-
-    public void apply(Consumer<? super L> lFunc, Consumer<? super R> rFunc) {
-        left.ifPresent(lFunc);
-        right.ifPresent(rFunc);
     }
 }
