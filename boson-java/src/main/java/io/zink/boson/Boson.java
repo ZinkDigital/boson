@@ -2,6 +2,8 @@ package io.zink.boson;
 
 import io.zink.boson.impl.BosonExtractor;
 import io.zink.boson.impl.BosonInjector;
+import io.zink.boson.impl.BosonInjectorValue;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -37,6 +39,10 @@ public interface Boson {
      */
     static <T> Boson injector(String expression, Function<T, T> injectFunction) {
         return new BosonInjector<>(expression, injectFunction);
+    }
+
+    static <T> Boson injector(String expression, T injectValue) {
+        return new BosonInjectorValue<>(expression, injectValue);
     }
 
     /**

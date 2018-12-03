@@ -5,7 +5,7 @@ import java.time.Instant
 import io.zink.boson.bson.codec._
 import io.zink.boson.bson.value.impl._
 
-trait Value{
+trait Value {
   private type TupleList = List[(String, Any)]
 
   def write(codec: Codec): Codec

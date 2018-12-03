@@ -9,6 +9,8 @@ import io.zink.boson.bson.bsonImpl._
 import io.zink.boson.bson.value.{Value, ValueObject}
 import shapeless.TypeCase
 
+import scala.util.{Failure, Success, Try}
+
 
 /**
   * Created by Tiago Filipe on 02/11/2017.
@@ -23,7 +25,7 @@ import shapeless.TypeCase
   */
 class Interpreter[T](expression: String,
                      fInj: Option[T => T] = None,
-                     vInj: Option[Either[Value, T]] = None, //TODO - maybe this value can be an Either???
+                     vInj: Option[Either[Value, T]] = None,
                      fExt: Option[T => Unit] = None)(implicit tCase: Option[TypeCase[T]], convertFunction: Option[List[(String, Any)] => T] = None) {
 
   val parsedStatements: ProgStatement = new DSLParser(expression).Parse().fold(excp => throw excp, parsedStatements => parsedStatements)
@@ -391,7 +393,10 @@ class Interpreter[T](expression: String,
           case Left(byteBuf: ByteBuf) => byteBuf.array()
           case Right(string: String) => string
         }
-        ValueObject.toValue(encodeTupleList(toTupleList(caseClass), data)) //Encode tuple List returns an Either, maybe check into this
+        Try(ValueObject.toValue(encodeTupleList(toTupleList(caseClass), data))) match {
+          case Success(res) => res
+          case Failure(_) => ValueObject.toValue(caseClass.asInstanceOf[Any])
+        } //Encode tuple List returns an Either, maybe check into this
     }
 
     //Todo - refactor the input bellow

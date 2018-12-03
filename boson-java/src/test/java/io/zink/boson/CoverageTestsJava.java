@@ -5075,4 +5075,30 @@ public class CoverageTestsJava {
         Assert.assertTrue(result.specialEditions.title.equals(expected.specialEditions.title));
         Assert.assertTrue(result.specialEditions.price == expected.specialEditions.price);
     }
+
+    @Test
+    public void VALUE_nestedMultiKeyInj_Integer() {
+        BsonObject person = new BsonObject().put("person", johnDoeBson);
+        BsonObject bson = new BsonObject().put("client", person);
+        String ex = ".client.person.age";
+        Boson boson = Boson.injector(ex, 20);
+        byte[] bsonEncoded = bson.encodeToBarray();
+        boson.go(bsonEncoded).thenAccept((resultValue) -> {
+            assert (containsInteger(resultValue, 20) && resultValue.length == bsonEncoded.length);
+        }).join();
+    }
+
+    @Test
+    public void VALUE_CaseClassInjection_All() {
+        BsonArray booksExpectedValue = new BsonArray().add(bsonBookExpected).add(bsonBookExpected);
+        BsonObject storeExpectedValue = new BsonObject().put("books", booksExpectedValue);
+        BsonObject storeBsonExpectedValue = new BsonObject().put("store", storeExpectedValue);
+
+        String ex = ".store.books[all].book";
+        Boson bsonInj = Boson.injector(ex, new BookAux("Title1", 101));
+        byte[] bsonEncoded = storeBson.encodeToBarray();
+        bsonInj.go(bsonEncoded).thenAccept(resultValue -> {
+            assertArrayEquals(resultValue, storeBsonExpectedValue.encodeToBarray());
+        }).join();
+    }
 }
