@@ -109,6 +109,11 @@ val result: Future[Array[Byte]] = boson.go(validBsonArray)
 
 // Function will be called as a result of calling 'go'
 ```  
+Instead of passing a function to modify the value found throught the path, it is also possible to just inject a simple value by replacing the above injector with the following.
+
+```scala
+val boson: Boson = Boson.injector(expression, "SOMENAME")
+```
  
 <div id='id-quickStartGuideJava'/>  
 
@@ -170,6 +175,11 @@ byte[] result = boson.go(validatedByteArray).join();
 // Function will be called as a result of calling 'go'
 ```  
 
+Instead of passing a function to modify the value found throught the path, it is also possible to just inject a simple value by replacing the above injector with the following.
+
+```scala
+val boson: Boson = Boson.injector(expression, "SOMENAME");
+```
 <div id='id-documentation'/>
 
 # Documentation  
